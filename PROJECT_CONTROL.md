@@ -13,11 +13,11 @@
 
 ## 1. Canonical mission
 
-Deliver a complete premium Windows desktop application that uses the user's existing local `fcc-claude` / FCC setup as the coding-agent runtime and provides a polished graphical coding-agent environment intended to replace the owner's day-to-day dependence on Codex-like tooling.
+Deliver a complete premium Windows desktop application that uses the owner's existing local `fcc-claude` / FCC setup as the coding-agent runtime and provides a polished graphical AI development environment intended to replace day-to-day dependence on Codex-like tooling.
 
-The product must not be limited to editing source files. It must coordinate real development workflows across repositories, build systems, debuggers, game engines, 3D creation tools, device/emulator tooling, logs, tests and external developer applications through a safe extensible tool-integration layer.
+The product is not limited to editing source files. It must coordinate repositories, build systems, debuggers, game engines, 3D creation tools, device/emulator tooling, logs, tests and external developer applications through safe extensible integrations.
 
-The user supervises outcomes. AI workers are expected to research, choose, implement, verify and document routine technical decisions autonomously.
+The owner supervises outcomes. AI workers research, choose, implement, verify and document normal technical decisions autonomously.
 
 ---
 
@@ -27,10 +27,18 @@ The user supervises outcomes. AI workers are expected to research, choose, imple
 PROJECT_STATE: SPECIFICATION_AND_CONTROL_BASELINE
 RELEASE_STATE: NOT_RELEASED
 TARGET_VERSION: 1.0.0
+CURRENT_PHASE: P00
+CURRENT_PHASE_NAME: Constitution + external-contract de-risking
+CURRENT_PHASE_STATE: IN_PROGRESS
+NEXT_PHASE: P01
+PHASE_EXIT_GATE: NOT_RUN
+KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
 VERIFIED_IMPLEMENTATION_COMPLETION: 0%
 PUBLIC_RELEASE_ELIGIBLE: false
 ```
+
+`CURRENT_PHASE.md` is the fast live resume checkpoint. `docs/EXECUTION_PLAN.md` is the canonical sequential execution contract.
 
 Documentation/bootstrap commits do not count as implementation completion.
 
@@ -68,12 +76,13 @@ The first public release includes all of the following domains:
 26. External Developer Tool Gateway
 27. First-class Unity development/debug adapter
 28. First-class Blender 3D creation/automation adapter
-29. Extensible adapters for build/test/debug/device/browser tooling
-30. Professional first-public-version setup executable
-31. Upgrade and uninstall behavior
-32. Automated quality/runtime contract testing
-33. Exact-head release verification
-34. Clean-machine installer acceptance
+29. Unity↔Blender AI asset pipeline
+30. Extensible adapters for build/test/debug/device/browser tooling
+31. Professional first-public-version setup executable
+32. Upgrade and uninstall behavior
+33. Automated quality/runtime contract testing
+34. Exact-head release verification
+35. Clean-machine installer acceptance
 
 These are mandatory v1 scope, not stretch goals.
 
@@ -81,26 +90,24 @@ These are mandatory v1 scope, not stretch goals.
 
 ## 4. Codex-replacement requirement
 
-FCC Code Desktop must be designed as a complete local AI development workbench, not a chat wrapper.
+FCC Code Desktop is a complete local AI development workbench, not a chat wrapper.
 
-The agent must be able, when tools are installed and the project type requires them, to:
+The agent must be able, when tools are installed and a project requires them, to:
 
-- discover supported local developer and content-creation tools,
-- invoke build and test systems,
+- discover supported local developer/content-creation tools,
+- invoke builds and tests,
 - start/stop controlled processes,
-- inspect structured and textual logs,
-- run debuggers or debugger adapters when integration permits,
+- inspect structured/textual logs,
+- run debuggers or debugger adapters where integration permits,
 - interact with device/emulator tools,
-- open or control development applications through supported integration contracts,
-- create/modify/validate 3D assets through supported Blender automation,
+- control development applications through supported integration contracts,
+- create/modify/validate 3D assets through Blender automation,
 - receive machine-readable results back into the agent task,
 - correlate errors with source/content changes,
 - rerun validation automatically,
-- expose all such actions in the UI activity timeline.
+- expose actions and artifacts in the UI activity timeline.
 
-This capability must be implemented through project-owned abstractions rather than hard-coded one-off shell commands inside UI code.
-
-Conceptual boundary:
+All such capabilities use project-owned abstractions rather than one-off shell commands in UI code.
 
 ```text
 Agent
@@ -108,83 +115,76 @@ Agent
   ▼
 Tool Gateway
   ├── Process/CLI Adapter
-  ├── MCP Adapter (when supported/useful)
   ├── Build/Test Adapter
   ├── Debug Adapter
   ├── Browser Adapter
   ├── Device/Emulator Adapter
-  └── Product-specific Adapters
-        ├── Unity Adapter (v1 first-class)
-        └── Blender Adapter (v1 first-class)
+  ├── protocol seams where justified (DAP/MCP/etc.)
+  └── First-class product adapters
+        ├── Unity Adapter
+        └── Blender Adapter
 ```
 
 ---
 
 ## 5. Unity v1 requirement
 
-Unity is a first-class external-development-tool target in v1.
+Unity is a mandatory first-class external-development-tool target in v1.
 
-For a Unity repository, FCC Code Desktop must detect the project and installed Unity environment, expose Unity-related health, and allow the agent to perform supported automated development/debug loops without requiring the owner to manually operate Unity for routine checks.
+For a Unity repository, FCC Code Desktop must detect the project and installed Unity environment, expose Unity health, and allow the agent to perform supported automated development/debug loops without routine manual owner operation.
 
-The Unity integration baseline includes:
+The baseline includes:
 
-- detect Unity projects from canonical project files,
-- detect the project's requested Unity Editor version,
-- resolve compatible local Unity installations / Unity Hub-managed editors,
-- launch Unity with the correct project path,
-- controlled batch-mode operations,
-- capture/stream dedicated Unity log output,
-- read and classify `Editor.log`/Player logs where appropriate,
+- detect Unity project and requested editor version,
+- resolve compatible local/Hub-managed editor installations,
+- launch with correct project path,
+- controlled batch operations,
+- dedicated log capture and classification,
 - compile validation,
-- EditMode and PlayMode automated test execution where the project supports tests,
-- invoke explicitly project-owned Editor automation entry points through supported Unity command-line facilities,
-- build target execution when requested by the task,
-- collect exit codes, test-result files and logs,
-- surface Unity failures as structured task/tool events,
-- prevent competing automation from opening the same project in unsafe concurrent editor instances,
-- support a project-local bridge/package later if richer live-editor communication is needed, without coupling the core UI to Unity internals.
+- EditMode and PlayMode tests where supported,
+- project-owned Editor automation entry points,
+- build target execution,
+- exit/test/artifact validation,
+- structured Unity tool events,
+- project/editor resource locking,
+- cancellation and recovery,
+- version-specific contract tests.
 
-Unity's command-line interfaces support project selection, batch execution and static Editor method execution. The product must validate behavior against the actual installed Unity version rather than assume all releases behave identically.
+Do not assume behavior is identical across Unity versions; test supported versions/contracts.
 
 ---
 
 ## 6. Blender v1 requirement
 
-Blender is also a first-class external tool in v1 because FCC Code Desktop is intended to support AI-driven game/content production, not source code alone.
+Blender is a mandatory first-class external tool in v1 because the product must support AI-driven game/content production, not source code alone.
 
-For Blender work, the agent must be able to automate routine 3D creation and validation workflows with minimal/no human interaction when the task is technically automatable.
+The baseline includes:
 
-The Blender integration baseline includes:
+- discover supported Blender installations/versions,
+- interactive launch when visual inspection is required,
+- background/headless deterministic execution,
+- trusted generated/project-owned Python automation,
+- scene/mesh/transform creation and modification,
+- materials and scene configuration,
+- camera/light operations where required,
+- import/export through explicit adapters/scripts,
+- still/animation rendering where required,
+- console/log/debug capture,
+- produced artifact manifests,
+- `.blend`/export/render artifact validation,
+- structured Python/process failure reporting,
+- checkpoint/backup before risky replacement,
+- target asset/resource locking,
+- cancellation and recovery,
+- contract tests against declared supported Blender versions.
 
-- detect supported local Blender installations and versions,
-- launch Blender interactively when visual inspection is required,
-- launch Blender in background/headless mode for deterministic automation,
-- execute trusted generated/project-owned Python scripts through Blender's Python interface,
-- create scenes and assets from scripts,
-- create/modify mesh objects and transforms,
-- create/update materials and scene configuration,
-- operate cameras/lights where a task requires it,
-- import supported source assets and export required game-pipeline formats through explicit adapters/scripts,
-- render stills/animations for validation when requested,
-- capture Blender console/log/debug output,
-- collect produced files and machine-readable operation manifests,
-- validate that expected `.blend`/export/render artifacts were produced and are non-empty/readable,
-- surface script exceptions and Blender process failures as structured agent tool results,
-- avoid overwriting valuable `.blend` files without checkpoint/backup policy,
-- track process ownership and prevent unsafe concurrent writes to the same target asset/project,
-- support a future project-owned Blender add-on/bridge for richer live-session control while keeping the core independent of Blender internals.
-
-Blender's official CLI supports background operation, rendering, logging/debug controls and Python-driven automation. Argument ordering is significant, so the adapter must build and test commands structurally rather than concatenate arbitrary strings.
-
-The initial adapter must include contract tests against at least one supported Blender LTS/current version and must degrade clearly when Blender is absent or incompatible.
+Argument ordering and task-specific output validation must be handled structurally. A process exit code alone does not prove success.
 
 ---
 
 ## 7. Unity + Blender pipeline requirement
 
-FCC Code Desktop must support an AI-driven Unity content pipeline in which Blender-generated assets can be produced, validated, exported and then consumed/validated inside a Unity project.
-
-Conceptual loop:
+FCC Code Desktop must prove an AI-driven 3D workflow across both tools:
 
 ```text
 Agent task
@@ -195,26 +195,26 @@ Create / modify / render / export 3D asset
    ↓
 Artifact validation + manifest
    ↓
-Unity project Assets pipeline
+Unity project asset handoff
    ↓
 Unity Adapter
    ↓
-Import / compile / tests / build or scene validation
+Import / compile / tests / build validation
    ↓
-Logs + screenshots/artifacts where available
+Structured results/artifacts
    ↓
-Agent evaluates result and iterates
+Agent evaluates and iterates
 ```
 
-No adapter may silently report success merely because a process exited. Success requires task-specific artifact/output validation.
+Success requires validated outputs, not only successful process termination.
 
 ---
 
 ## 8. External-tool extensibility requirement
 
-Unity and Blender are the first v1 first-class adapters, not the last.
+Unity and Blender are the first mandatory first-class adapters, not the last.
 
-Architecture must allow adapters for tools such as:
+Architecture must allow later adapters for tools such as:
 
 - Visual Studio / MSBuild / dotnet
 - CMake / Ninja
@@ -223,19 +223,19 @@ Architecture must allow adapters for tools such as:
 - Java/Gradle
 - Android SDK / adb / logcat / emulator
 - Docker
-- browsers and browser automation
+- browsers/browser automation
 - other game engines
 - database CLIs
 - local servers/services
 - custom project commands
 
-The core product must remain usable if optional tools are absent.
+The core product remains usable when optional tools are absent.
 
 ---
 
 ## 9. Explicitly deferred beyond v1
 
-Unless required to satisfy v1 quality:
+Unless required for v1 quality:
 
 - cloud sync,
 - team accounts,
@@ -244,87 +244,101 @@ Unless required to satisfy v1 quality:
 - mobile app,
 - public plugin marketplace,
 - SaaS telemetry/analytics,
-- multi-machine state synchronization,
+- multi-machine synchronization,
 - parallel multi-agent execution,
-- full reimplementation of FCC Admin,
+- full FCC Admin reimplementation,
 - direct ownership of provider credentials already managed by FCC.
 
 ---
 
 ## 10. Hard invariants
 
-### 10.1 Serial execution
+### 10.1 Serial agent execution
 
 ```text
 GLOBAL_AGENT_CONCURRENCY = 1
 DEFAULT_INTER_RUN_COOLDOWN_SECONDS = 15
 ```
 
-Only one active agent run executes at a time by default. A second conversation remains queued until the prior run is terminal and cooldown expires.
+Only one active coding-agent run executes at a time by default. External resource locks may be stricter.
 
-External resource locks may impose stricter serialization (for example, the same Unity project or Blender target asset cannot be modified concurrently).
+### 10.2 Single current project phase
 
-### 10.2 Repository continuity
+```text
+ACTIVE_PROJECT_PHASE_COUNT = 1
+```
 
-The repository must always contain enough current state that a new AI worker can continue without previous chat history.
+Only the phase recorded in `CURRENT_PHASE.md` is authorized for implementation.
 
-### 10.3 No partial public product
+Multiple workers may execute non-overlapping tasks inside that phase, but the project may not have implementation teams working ahead in later phases.
+
+### 10.3 Repository continuity
+
+The repository must always contain enough durable state for a new worker to continue without prior chat history.
+
+### 10.4 No partial public product
 
 Internal builds may be incomplete. Public product versions may not.
 
-The first public product version is `1.0.0` and is not eligible until every mandatory acceptance gate passes.
+The first public version is `1.0.0` and is ineligible until every mandatory gate passes.
 
-### 10.4 No silent destructive operations
+### 10.5 No silent destructive operations
 
 User code/data/assets must not be destroyed to simplify automation.
 
-### 10.5 External applications are controlled resources
+### 10.6 External applications are controlled resources
 
-Any external tool started by the product must have:
-
-- explicit lifecycle ownership,
-- process identity tracking,
-- timeout/heartbeat strategy where applicable,
-- log capture,
-- cancellation strategy,
-- result classification,
-- concurrency/resource-lock rules,
-- cleanup/recovery behavior,
-- artifact validation.
+Every controlled external tool requires lifecycle ownership, process identity, timeout/heartbeat strategy where applicable, logs, cancellation, result classification, resource locks, cleanup/recovery and artifact validation.
 
 ---
 
-## 11. Delivery phases
+## 11. Strict stage-gated delivery sequence
 
-Phases are ordered for dependency risk reduction, but implementation may be parallelized only where ownership is non-overlapping.
+The detailed phase contract and exit criteria live in `docs/EXECUTION_PLAN.md`.
+
+The canonical sequence is:
 
 ```text
-P00  Product constitution + runtime/tool contract probes
-P01  Solution foundation + CI + quality gates
-P02  Design system + premium shell
-P03  Persistence + task/session state model
-P04  FCC/fcc-claude supervisor + runtime adapter
-P05  Streaming chat + tool activity + session resume
-P06  Projects/files/editor/search
-P07  Changes/diff + Git
+P00  Constitution + external contract de-risking
+P01  Solution foundation + CI
+P02  Premium design system + shell
+P03  Persistence + canonical state model
+P04  FCC/fcc-claude runtime core
+P05  Conversation + session + task UX
+P06  Projects + files + editor + search
+P07  Change review + Git
 P08  Terminal + process supervision
-P09  Tool Gateway core
-P10  Unity first-class adapter + Unity contract suite
-P11  Blender first-class adapter + Blender contract suite
-P12  Unity↔Blender asset-pipeline acceptance workflow
-P13  Permissions + destructive-action safety
-P14  Global queue + cooldown + rate-limit control
-P15  Crash/reboot recovery + journaling/backups
-P16  Diagnostics/security/performance hardening
-P17  Premium UX closure + accessibility/high DPI
-P18  Professional branding/icon + setup/bootstrapper
-P19  Upgrade/uninstall/repair
-P20  Full automated regression + exact-head CI
-P21  Clean-machine acceptance + release provenance
+P09  External Tool Gateway
+P10  Unity first-class adapter
+P11  Blender first-class adapter
+P12  Unity↔Blender AI asset pipeline
+P13  Permissions + side-effect safety
+P14  Global queue + cooldown + throttling
+P15  Crash/reboot recovery + backups
+P16  Diagnostics + security + performance
+P17  Premium UX closure
+P18  Product identity + professional setup
+P19  Upgrade + uninstall + repair lifecycle
+P20  Full regression + exact-head candidate verification
+P21  Clean-machine + provenance acceptance
 P22  v1.0.0 release closure
 ```
 
-Do not skip a phase's verification because later UI appears complete.
+### Phase advancement invariant
+
+```text
+ALL CURRENT-PHASE TASKS = CLOSED
+AND PHASE EXIT GATE = PASS
+AND EXACT-HEAD EVIDENCE RECORDED
+AND MAIN = GREEN
+AND KNOWN PHASE-LOCAL RELEASE BLOCKERS = 0
+```
+
+Only then can `CURRENT_PHASE.md` advance.
+
+There is no authorized cross-phase implementation parallelism.
+
+If later work breaks a previously closed guarantee, forward advancement stops until that regression is fixed and impacted tests are rerun.
 
 ---
 
@@ -333,19 +347,35 @@ Do not skip a phase's verification because later UI appears complete.
 A new worker must:
 
 1. Fetch live `main`.
-2. Read `AGENTS.md` and all canonical docs listed in `README.md`.
-3. Inspect `docs/TASK_LEDGER.md`.
-4. Inspect recent commits, branches, PRs and issues.
-5. Reconcile landed code/evidence against ledger state.
-6. Build a current claim map before selecting work.
-7. Continue the next legitimate incomplete task.
-8. Update repository documentation when a material fact/decision changes.
+2. Read `AGENTS.md`.
+3. Read `CURRENT_PHASE.md`.
+4. Read `PROJECT_CONTROL.md` and `docs/EXECUTION_PLAN.md`.
+5. Read the remaining canonical docs in `README.md` order.
+6. Inspect `docs/TASK_LEDGER.md`.
+7. Inspect recent commits, branches, PRs and issues.
+8. Build a claim map.
+9. Continue one legitimate incomplete task belonging to the current phase only.
+10. Update durable repository state when material facts change.
 
-Never restart from an old prompt when live repository state exists.
+Never restart from an old prompt when live repository state exists. Never advance to a later phase because old context is missing.
 
 ---
 
-## 13. Final release condition
+## 13. Phase closure evidence
+
+Every phase requires a closure artifact using `docs/PHASE_CLOSURE_TEMPLATE.md` and stored under:
+
+```text
+evidence/phases/PXX/CLOSURE.md
+```
+
+It records the exact tested commit, mandatory tasks, commands/results, environment evidence, negative paths, recovery/safety results, known defects/regressions and explicit exit decision.
+
+No evidence = no phase closure.
+
+---
+
+## 14. Final release condition
 
 Final status may become:
 
@@ -355,9 +385,11 @@ VERIFIED_FINAL_COMPLETE
 
 only when:
 
-- the exact release commit passes all mandatory automated and manual gates,
-- the exact installer built from that commit passes clean-machine acceptance,
-- no mandatory ledger item remains below `CLOSED`,
-- no legitimate known release blocker remains,
+- P00 through P22 are validly closed in sequence,
+- the exact release commit passes every mandatory automated/manual gate,
+- the exact installer from that commit passes clean-machine acceptance,
+- no mandatory ledger task remains below `CLOSED`,
+- no legitimate release blocker remains,
 - branding/provenance/setup are final,
-- primary workflows including FCC agent operation, Unity automation, Blender automation and Unity↔Blender validation are operational and recoverable.
+- FCC agent, Unity, Blender and Unity↔Blender workflows are operational and recoverable,
+- version and installer provenance are recorded.
