@@ -19,6 +19,8 @@ LAST_RECONCILED: 2026-08-31
 
 Do not start P01 implementation until every mandatory P00 task is `CLOSED` and the P00 exit gate in `docs/EXECUTION_PLAN.md` is `PASS` with exact-head evidence.
 
+Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
+
 ## Current objective
 
 Complete P00 by proving and recording the real contracts for:
@@ -38,7 +40,9 @@ Complete P00 by proving and recording the real contracts for:
 1. Read `AGENTS.md`.
 2. Read `PROJECT_CONTROL.md`.
 3. Read `docs/EXECUTION_PLAN.md`.
-4. Read `docs/TASK_LEDGER.md`.
-5. Fetch live branches/PRs/issues/commits and build a claim map.
-6. Continue only legitimate incomplete work in `CURRENT_PHASE`.
-7. Do not promote `NEXT_PHASE` until the current exit gate is recorded `PASS`.
+4. Read `docs/WORKER_PROTOCOL.md`.
+5. Read `docs/TASK_LEDGER.md`.
+6. Fetch live branches/PRs/issues/commits, CI/evidence, and build a claim + recovery map.
+7. First resolve broken/blocking/abandoned/integration-pending work in `CURRENT_PHASE` according to `docs/WORKER_PROTOCOL.md`.
+8. Only when no such work exists, claim the next legitimate unclaimed task in `CURRENT_PHASE`.
+9. Do not promote `NEXT_PHASE` until the current exit gate is recorded `PASS`.
