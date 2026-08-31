@@ -4,7 +4,7 @@ This file is binding for every AI agent, coding worker, reviewer, maintainer, au
 
 ## 1. Supreme objective
 
-Deliver **FCC Code Desktop v1.0.0 Production** as a complete, premium, reliable Windows desktop product for the user's local `fcc-claude` environment.
+Deliver **FCC Code Desktop v1.0.0 Production** as a complete, premium, reliable Windows desktop product for the user's local `fcc-claude` environment and as a practical Codex-style local AI development workbench with first-class external developer-tool automation.
 
 The owner is primarily a supervisor. AI workers are expected to research, decide, implement, verify, document, and converge the product autonomously.
 
@@ -28,17 +28,58 @@ Do not rely on:
 Before doing material work, read at minimum:
 
 1. `AGENTS.md`
-2. `PROJECT_CONTROL.md`
-3. `docs/PRODUCT_SPEC.md`
-4. `docs/ARCHITECTURE.md`
-5. `docs/UI_UX_STANDARD.md`
-6. `docs/ENGINEERING_STANDARD.md`
-7. `docs/RELEASE_POLICY.md`
-8. `docs/ACCEPTANCE_MATRIX.md`
-9. `docs/TASK_LEDGER.md`
-10. `docs/DECISIONS.md`
+2. `CURRENT_PHASE.md`
+3. `PROJECT_CONTROL.md`
+4. `docs/EXECUTION_PLAN.md`
+5. `docs/PRODUCT_SPEC.md`
+6. `docs/ARCHITECTURE.md`
+7. `docs/UI_UX_STANDARD.md`
+8. `docs/ENGINEERING_STANDARD.md`
+9. `docs/RELEASE_POLICY.md`
+10. `docs/ACCEPTANCE_MATRIX.md`
+11. `docs/TASK_LEDGER.md`
+12. `docs/DECISIONS.md`
 
 If a material decision is made during implementation, write it to the repository before treating it as durable project knowledge.
+
+---
+
+## 2A. Strict sequential phase-lock rule
+
+`docs/EXECUTION_PLAN.md` defines the binding execution sequence from P00 through P22. `CURRENT_PHASE.md` defines the only phase currently authorized for implementation.
+
+There is exactly one current phase.
+
+A worker must not begin implementation belonging to a later phase until the current phase has been closed according to its exit gate.
+
+A phase advances only when:
+
+```text
+ALL CURRENT-PHASE MANDATORY TASKS = CLOSED
+AND PHASE EXIT GATE = PASS
+AND EXACT-HEAD EVIDENCE RECORDED
+AND MAIN IS GREEN
+AND KNOWN PHASE-LOCAL RELEASE BLOCKERS = 0
+```
+
+Before advancing, create durable evidence using `docs/PHASE_CLOSURE_TEMPLATE.md` under:
+
+```text
+evidence/phases/PXX/CLOSURE.md
+```
+
+Forbidden:
+
+- skipping ahead to an easier or more visible later phase,
+- leaving known phase defects to be fixed later,
+- treating `IMPLEMENTED` as closed,
+- treating a screenshot as functional verification,
+- advancing while a mandatory current-phase task is `BLOCKED`, `IN_PROGRESS`, `IMPLEMENTED` or merely `VERIFIED`,
+- using parallel workers to operate different project phases simultaneously.
+
+Multiple workers may operate only on non-overlapping tasks inside the same current phase. A phase controller/lead must reconcile their work and run the complete phase exit gate before advancing.
+
+If a later change regresses an earlier closed guarantee, forward advancement stops until that guarantee is restored and affected downstream verification is rerun.
 
 ---
 
@@ -60,6 +101,9 @@ Required characteristics:
 - Professional setup and branding
 - Versioned persistence and upgrade path
 - Diagnostics that make failures actionable
+- First-class Unity development automation
+- First-class Blender 3D automation
+- Safe extensible external-tool integration
 
 A temporary shortcut is permitted only inside a clearly isolated development harness and must never leak into production code or release artifacts.
 
@@ -100,6 +144,8 @@ Document consequential decisions in `docs/DECISIONS.md`.
 
 Ask for user intervention only when progress genuinely requires something the AI cannot determine or obtain, such as credentials, account permissions, paid-service authorization, legal ownership approval, external hardware access, or an irreversible business decision with materially different outcomes.
 
+Technical difficulty, failing tests, uncertain library choice, or a hard bug is work—not a reason to skip the phase or ask the owner to design the solution.
+
 ---
 
 ## 5. No-surprise engineering rule
@@ -110,6 +156,8 @@ Examples:
 
 - Verify actual `fcc-claude` behavior before building the runtime adapter.
 - Verify Claude/FCC streaming and session semantics before freezing persistence contracts.
+- Verify Unity CLI/test/build behavior on supported target versions before freezing its adapter.
+- Verify Blender CLI/background/Python/render/export behavior before freezing its adapter.
 - Verify ConPTY behavior before building the terminal UI around assumptions.
 - Verify installer upgrade/uninstall behavior before release packaging is considered complete.
 
@@ -132,6 +180,7 @@ Forbidden as finished releases:
 - installer that opens a partially implemented shell,
 - release with placeholder branding,
 - release with known broken primary workflow,
+- release whose Unity or Blender mandatory workflows are not operational,
 - release whose clean-machine setup was not validated,
 - release whose exact commit was not tested.
 
@@ -172,6 +221,8 @@ A task is complete only when all of the following are true:
 - No known regression is left behind.
 
 "Code written" is not completion.
+
+A phase is complete only when all its tasks are `CLOSED` and its explicit exit gate passes with recorded evidence.
 
 ---
 
@@ -218,7 +269,7 @@ The release must include an original professional application icon suitable for:
 - About screen,
 - repository/release presentation.
 
-Do not copy protected logos, Claude branding, Anthropic logos, or third-party product identity as FCC Code Desktop's identity.
+Do not copy protected logos, Claude branding, Anthropic logos, Unity branding, Blender branding, or third-party product identity as FCC Code Desktop's identity.
 
 Record asset origin/provenance and license status before release.
 
@@ -236,11 +287,13 @@ IAgentRuntime
   └── CLI/compatibility fallback adapter
 ```
 
+External developer tools must similarly be isolated behind project-owned Tool Gateway contracts, including first-class Unity and Blender adapters.
+
 Runtime state must be explicit and observable.
 
 No infinite ambiguous `Working...` state.
 
-Long-running tasks require lifecycle tracking, cancellation, failure classification, and recovery behavior.
+Long-running tasks require lifecycle tracking, cancellation, failure classification, artifact/result validation and recovery behavior.
 
 ---
 
@@ -274,6 +327,7 @@ High-risk operations require explicit product-level safeguards, including where 
 - bulk deletion
 - history rewrite
 - replacing local user data
+- overwriting important Unity/Blender assets without the required checkpoint policy.
 
 Do not erase dirty working-tree changes just to make tests or checkout easier.
 
@@ -307,10 +361,10 @@ If multiple AI workers are active, duplicate work is forbidden.
 Before claiming a task:
 
 1. Fetch live `main`.
-2. Read `docs/TASK_LEDGER.md`.
+2. Read `CURRENT_PHASE.md` and `docs/TASK_LEDGER.md`.
 3. Inspect open PRs/branches/issues as relevant.
 4. Build a claim map.
-5. Select one unclaimed legitimate task.
+5. Select one unclaimed legitimate task from the current phase only.
 6. Record the claim or use a dedicated branch/PR that clearly identifies ownership.
 
 Workers must not independently implement the same subsystem without an explicit reconciliation reason.
@@ -330,11 +384,13 @@ One focused task should produce one focused branch/PR unless the canonical ledge
 When resuming after any interruption:
 
 1. Fetch live repository state.
-2. Read canonical documents.
-3. Inspect recent commits, open PRs and current task ledger.
-4. Reconcile what actually landed versus what was only planned.
-5. Continue the next legitimate incomplete item.
-6. Never restart already verified work merely because previous chat context is missing.
+2. Read `AGENTS.md` and `CURRENT_PHASE.md` first.
+3. Read canonical documents, especially `docs/EXECUTION_PLAN.md`.
+4. Inspect recent commits, open PRs and current task ledger.
+5. Reconcile what actually landed versus what was only planned.
+6. Continue the next legitimate incomplete item in the current phase.
+7. Never restart already verified work merely because previous chat context is missing.
+8. Never skip to a later phase because earlier context is inconvenient.
 
 The repository must contain enough information to perform these steps without the old conversation.
 
@@ -342,7 +398,7 @@ The repository must contain enough information to perform these steps without th
 
 ## 17. Task ledger discipline
 
-`docs/TASK_LEDGER.md` is the canonical inventory.
+`docs/TASK_LEDGER.md` is the canonical work inventory.
 
 Allowed states:
 
@@ -369,17 +425,19 @@ Never:
 - disable analyzer rules without rationale,
 - suppress exceptions globally,
 - convert runtime failures into fake success,
+- treat process exit code 0 as success when required artifacts/results are invalid,
 - mark acceptance rows PASS without evidence,
 - reduce v1 scope silently,
-- claim an estimated completion percentage as verified completion.
+- claim an estimated completion percentage as verified completion,
+- advance a phase just to keep workers busy.
 
-If evidence reveals more work, update the ledger and continue.
+If evidence reveals more work, update the ledger and finish it before advancement.
 
 ---
 
 ## 19. Release closure authority
 
-Only `docs/RELEASE_POLICY.md` and `docs/ACCEPTANCE_MATRIX.md` define whether a release is eligible.
+Only the complete canonical control set—especially `docs/EXECUTION_PLAN.md`, `docs/RELEASE_POLICY.md` and `docs/ACCEPTANCE_MATRIX.md`—defines whether a release is eligible.
 
 Final status string is reserved:
 
@@ -387,4 +445,4 @@ Final status string is reserved:
 VERIFIED_FINAL_COMPLETE
 ```
 
-It may be used only when there is zero legitimate required `PENDING`, `CLAIMED`, `IN_PROGRESS`, `BLOCKED`, or merely `IMPLEMENTED` release work remaining, all mandatory gates are verified on the exact release head, and the production installer has passed clean-machine acceptance.
+It may be used only when P22 release closure passes, there is zero legitimate required `PENDING`, `CLAIMED`, `IN_PROGRESS`, `BLOCKED`, or merely `IMPLEMENTED` release work remaining, all mandatory gates are verified on the exact release head, and the production installer has passed clean-machine acceptance.
