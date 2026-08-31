@@ -40,13 +40,14 @@ Before selecting any task, every worker must fetch LIVE state and inspect at min
 6. `docs/TASK_LEDGER.md`
 7. `docs/ACCEPTANCE_MATRIX.md`
 8. `docs/DECISIONS.md`
-9. current `main` HEAD
-10. open PRs
-11. active/recent worker branches
-12. recent commits
-13. open issues relevant to the current phase
-14. phase evidence
-15. CI/test status where available
+9. `docs/PLAN_GAPS.md`
+10. current `main` HEAD
+11. open PRs
+12. active/recent worker branches
+13. recent commits
+14. open issues relevant to the current phase
+15. phase evidence
+16. CI/test status where available
 
 The worker must reconcile what actually exists with what the ledger says. Repository reality wins over stale prose.
 
@@ -173,21 +174,31 @@ Technical difficulty, failing tests, unfamiliar code, merge conflicts, or a hard
 
 If completing the selected task exposes additional work, classify it immediately.
 
-### Required to make the selected task correct
+### Required to make the already-authorized selected task correct
 
-It is part of the current task. Finish it before closure.
-
-### Required for the current phase exit gate
-
-Add it to `docs/TASK_LEDGER.md` in the current phase and ensure it is completed before phase advancement.
+It is part of the current task. Finish it before closure if it is genuinely necessary to satisfy the existing requirement and does not change canonical product scope or phase order.
 
 ### Regression in earlier closed work
 
 Stop forward progress and restore the earlier guarantee first. Rerun affected downstream verification.
 
-### Legitimate later-phase enhancement
+### Suspected missing requirement or plan gap
 
-Record it in the proper later phase if missing, but do not implement it now unless it is required to unblock the current phase.
+Ordinary workers must **not** modify canonical scope, phase order, architecture doctrine, acceptance policy, or release requirements on their own.
+
+Instead:
+
+1. prove the suspected gap with evidence,
+2. record it in `docs/PLAN_GAPS.md`,
+3. mark whether it blocks the current task or phase exit,
+4. continue unaffected authorized work where safe,
+5. if the gap truly blocks correctness/closure, keep the task/phase open and report `PLAN_GAP_REVIEW_REQUIRED`.
+
+Only an explicit project planning/reconciliation authority may accept the gap and modify canonical plan documents.
+
+### Legitimate later-phase idea already represented by the plan
+
+Do not implement it early. Leave it for its authorized phase.
 
 ### Optional/non-required idea
 
@@ -233,13 +244,13 @@ Do not stop at `IMPLEMENTED` or `VERIFIED` if the worker's assigned scope is to 
 
 ---
 
-## 10. Worker must not invent
+## 10. Worker must not invent or rewrite the plan
 
 A worker must not invent:
 
 - a new product direction,
 - a new phase order,
-- a replacement architecture without evidence and required ADR reconciliation,
+- a replacement architecture not already authorized by the plan,
 - reduced quality criteria,
 - missing PASS results,
 - fictional external-tool behavior,
@@ -248,12 +259,11 @@ A worker must not invent:
 - a different UI/UX doctrine,
 - a later-phase task just because the current work is difficult.
 
-If the canonical plan is genuinely missing something required for correctness, reliability, security, product completeness, or the declared user goal:
+Ordinary workers are implementation/closure workers, not plan authors.
 
-1. prove why it is missing,
-2. add/reconcile the requirement in the canonical project documents,
-3. place the work in the correct phase,
-4. do not silently redesign the project.
+If the canonical plan appears genuinely incomplete, the worker must use the `PLAN_GAP` workflow in section 7 and `docs/PLAN_GAPS.md`. It must not silently edit the plan to fit its preference.
+
+A canonical plan change must be explicit, reviewed as a planning/reconciliation action, and then propagated consistently into the relevant source-of-truth documents before implementation proceeds under the new requirement.
 
 ---
 
@@ -261,7 +271,7 @@ If the canonical plan is genuinely missing something required for correctness, r
 
 The owner supervises outcomes and should not be required to decide routine engineering details or manually identify the next task.
 
-Workers must make normal technical decisions using:
+Workers must make normal technical decisions **within the existing canonical plan** using:
 
 1. canonical repository requirements,
 2. live evidence,
@@ -272,6 +282,8 @@ Workers must make normal technical decisions using:
 7. premium product quality.
 
 Ask the owner only for genuine external requirements that cannot be derived or obtained autonomously.
+
+Do not ask the owner to choose between routine implementation options and do not ask the owner to invent the next task.
 
 ---
 
@@ -287,6 +299,7 @@ At minimum:
 - record blockers precisely,
 - record any active branch/PR,
 - update evidence when applicable,
+- record suspected plan gaps in `docs/PLAN_GAPS.md`,
 - do not claim closure without proof.
 
 If interrupted before doing this, the next worker must recover from live Git state using this protocol.
@@ -308,15 +321,19 @@ ELSE IF abandoned/stale blocking current-phase work exists:
     take over and finish it
 ELSE IF integration-pending current-phase work exists:
     integrate + verify + close it
-ELSE IF unclaimed current-phase work exists:
+ELSE IF authorized unclaimed current-phase work exists:
     claim highest-priority dependency-valid task
     implement + test + verify + close it
 ELSE:
     run complete current-phase exit gate
-    fix every failure
-    record exact-head closure evidence
-    close phase only if PASS
-    advance CURRENT_PHASE only after legal closure
+    fix every failure authorized by the canonical plan
+    if a genuine missing-plan requirement is discovered:
+        record PLAN_GAP_REVIEW_REQUIRED
+        do not invent the plan change
+    otherwise:
+        record exact-head closure evidence
+        close phase only if PASS
+        advance CURRENT_PHASE only after legal closure
 ```
 
-This algorithm is mandatory. It removes the need for the owner to invent or manually assign work.
+This algorithm is mandatory. It removes the need for the owner to invent or manually assign work while preventing ordinary workers from rewriting the plan.
