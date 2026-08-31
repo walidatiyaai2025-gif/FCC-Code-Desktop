@@ -1,260 +1,302 @@
 # FCC Code Desktop
 
-**Premium local AI development workbench for `fcc-claude` — designed as a practical Codex-style replacement on Windows.**
+**Production-grade local AI coding desktop for `fcc-claude`, designed as a premium Codex-style replacement with first-class external-tool automation.**
 
-> **Target:** FCC Code Desktop v1.0.0 Production  
-> **Platform:** Windows 10/11 x64  
-> **Product rule:** complete, premium and reliable on the first public release  
-> **Execution model:** AI builds and operates routine workflows; owner supervises outcomes  
-> **Project memory:** this repository only
-
----
-
-## START HERE — repository is the source of truth
-
-This repository is the permanent authoritative reference for the entire project.
-
-No chat, previous conversation, human memory, temporary prompt, scratchpad or undocumented assumption overrides repository state. If development stops at any point, a new AI worker must be able to resume from this repository alone.
-
-Mandatory reading order:
-
-1. [`AGENTS.md`](AGENTS.md) — binding constitution and autonomous-worker rules.
-2. [`PROJECT_CONTROL.md`](PROJECT_CONTROL.md) — canonical scope, status, phases and continuation protocol.
-3. [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — full v1 product requirements.
-4. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — architecture and integration boundaries.
-5. [`docs/UI_UX_STANDARD.md`](docs/UI_UX_STANDARD.md) — premium visual/interaction standard.
-6. [`docs/ENGINEERING_STANDARD.md`](docs/ENGINEERING_STANDARD.md) — code, testing, reliability, security and performance standard.
-7. [`docs/RELEASE_POLICY.md`](docs/RELEASE_POLICY.md) — no-partial-release policy and installer/release gates.
-8. [`docs/ACCEPTANCE_MATRIX.md`](docs/ACCEPTANCE_MATRIX.md) — mandatory exact-head acceptance tests.
-9. [`docs/TASK_LEDGER.md`](docs/TASK_LEDGER.md) — authoritative implementation/closure inventory.
-10. [`docs/DECISIONS.md`](docs/DECISIONS.md) — durable ADR-style project decisions.
-
-If documents conflict, use the precedence above unless a newer explicit decision says it supersedes a specific prior rule.
+> Target: **FCC Code Desktop v1.0.0 Production**  
+> Platform: **Windows 10/11 x64**  
+> Product principle: **Premium, complete, reliable from the first public release.**  
+> Execution principle: **One current phase; no phase advancement before verified closure.**
 
 ---
 
-## What the product is
+## 1. Repository is the source of truth
 
-FCC Code Desktop is **not a chat wrapper**. It is a local AI engineering workbench built around the user's existing `fcc-claude` / FCC runtime.
+This repository is the permanent authoritative memory for the entire project.
 
-The target workflow is:
+No chat, old prompt, local note, worker memory or undocumented decision is authoritative unless reconciled here.
 
-```text
-Open project
-  ↓
-Ask AI to build/fix/debug/create
-  ↓
-Agent inspects code/files
-  ↓
-Agent edits
-  ↓
-Agent uses terminal/Git/build/test/debug tools
-  ↓
-Agent can use Unity and Blender when project work requires them
-  ↓
-Agent validates outputs, reads failures and iterates
-  ↓
-User reviews final changes/artifacts
-  ↓
-Commit / continue / resume later
-```
+If work stops at any point, a new AI worker must be able to continue from this repository alone.
 
-Routine development should not require the owner to manually move between terminals, Unity, Blender and debugging utilities merely to let the AI continue.
+### Mandatory reading order
+
+1. [`AGENTS.md`](AGENTS.md) — binding project constitution and worker rules.
+2. [`CURRENT_PHASE.md`](CURRENT_PHASE.md) — exact live resume checkpoint and current authorized phase.
+3. [`PROJECT_CONTROL.md`](PROJECT_CONTROL.md) — canonical product scope and project state.
+4. [`docs/EXECUTION_PLAN.md`](docs/EXECUTION_PLAN.md) — strict P00→P22 sequential stage-gated plan.
+5. [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — complete product requirements.
+6. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system architecture and technical boundaries.
+7. [`docs/UI_UX_STANDARD.md`](docs/UI_UX_STANDARD.md) — premium design and interaction standard.
+8. [`docs/ENGINEERING_STANDARD.md`](docs/ENGINEERING_STANDARD.md) — coding, testing, reliability, security and performance standard.
+9. [`docs/RELEASE_POLICY.md`](docs/RELEASE_POLICY.md) — versioning, setup, release gates and no-partial-release policy.
+10. [`docs/ACCEPTANCE_MATRIX.md`](docs/ACCEPTANCE_MATRIX.md) — mandatory acceptance scenarios.
+11. [`docs/TASK_LEDGER.md`](docs/TASK_LEDGER.md) — canonical mandatory work inventory.
+12. [`docs/DECISIONS.md`](docs/DECISIONS.md) — architectural/product decision log.
+13. [`docs/PHASE_CLOSURE_TEMPLATE.md`](docs/PHASE_CLOSURE_TEMPLATE.md) — mandatory evidence format for phase advancement.
+
+When documents conflict, `AGENTS.md` and the current explicit phase/gate controls take precedence; consequential changes must be documented rather than silently interpreted.
 
 ---
 
-## Mandatory v1 product capabilities
+## 2. Product mission
 
-FCC Code Desktop v1.0.0 includes:
+Build a premium Windows desktop application on top of the owner's existing local FCC / `fcc-claude` environment.
+
+It must operate as a real local AI development workbench, not a chat wrapper. The owner should be able to ask the agent to implement and debug work while the application coordinates source code, terminal processes, Git, builds, tests, external developer tools and recoverable sessions.
+
+Core v1 surface includes:
 
 - Projects/workspaces
-- FCC/`fcc-claude` runtime supervision
-- Structured streaming agent conversations
-- Tool-activity timeline
-- Persistent sessions/resume
-- Durable task state/recovery
-- File explorer
-- Code editor
-- Workspace search
+- Real FCC/Claude conversations with streaming
+- Structured agent/tool activity
+- Durable sessions and resume
+- File explorer, editor and search
 - Diff/change review
 - Integrated terminal
-- Git workflows
-- Permission/safety profiles
-- Global serial execution queue
-- Default 15-second inter-run cooldown
-- Rate-limit handling
+- Safe Git workflows
+- Permissions and side-effect safety
+- Global serial execution queue and rate-limit protection
 - Crash/reboot recovery
-- Local SQLite persistence and backup
-- Structured logs and sanitized diagnostic bundles
+- Diagnostics, logs and sanitized support bundles
 - External Developer Tool Gateway
-- **First-class Unity automation/debug/build/test adapter**
-- **First-class Blender 3D creation/automation/render/export adapter**
-- **Unity↔Blender AI asset pipeline**
-- Premium dark/light UI
-- High-DPI/keyboard/accessibility support
-- Original professional AI-assisted visual identity/icon
-- Premium setup executable
-- Upgrade/repair/uninstall lifecycle
-- Exact-head automated and clean-machine release verification
-
-Nothing in this list is a post-v1 "nice to have".
+- First-class Unity automation/debug/build support
+- First-class Blender 3D creation/automation/render/export support
+- Unity↔Blender AI asset pipeline
+- Professional identity, icon and setup executable
+- Upgrade/uninstall lifecycle
+- Exact-head automated and clean-machine release acceptance
 
 ---
 
-## Unity + Blender requirement
+## 3. Strict sequential execution
 
-This product is explicitly intended to let the AI work beyond ordinary source code.
-
-### Unity
-
-The agent must be able to detect the correct Unity project/version, find a compatible installed Editor, run supported batch/editor automation, collect logs, validate compilation/tests/builds, classify failures and iterate without routine manual operation.
-
-### Blender
-
-The agent must be able to detect Blender, run background/headless automation, execute Blender Python, create/modify 3D scenes/assets, import/export, render previews when useful, validate produced artifacts, classify failures and iterate.
-
-### End-to-end 3D workflow
+The complete execution sequence is defined in [`docs/EXECUTION_PLAN.md`](docs/EXECUTION_PLAN.md):
 
 ```text
-AI task
-  ↓
-Blender creates/modifies 3D asset
-  ↓
-Artifact validated/exported
-  ↓
-Unity consumes/imports it
-  ↓
-Unity compile/test/build validation
-  ↓
-Agent evaluates evidence and fixes/iterates
+P00 Contract de-risking
+ ↓
+P01 Solution / CI
+ ↓
+P02 Premium design system / shell
+ ↓
+P03 Persistence / state
+ ↓
+P04 FCC/Claude runtime
+ ↓
+P05 Conversation / sessions / task UX
+ ↓
+P06 Projects / files / editor / search
+ ↓
+P07 Changes / Git
+ ↓
+P08 Terminal / process supervision
+ ↓
+P09 External Tool Gateway
+ ↓
+P10 Unity adapter
+ ↓
+P11 Blender adapter
+ ↓
+P12 Unity↔Blender pipeline
+ ↓
+P13 Permissions / safety
+ ↓
+P14 Queue / cooldown / throttling
+ ↓
+P15 Crash/reboot recovery / backups
+ ↓
+P16 Diagnostics / security / performance
+ ↓
+P17 Premium UX closure
+ ↓
+P18 Branding / professional setup
+ ↓
+P19 Upgrade / uninstall lifecycle
+ ↓
+P20 Full regression / exact-head candidate
+ ↓
+P21 Clean-machine / provenance
+ ↓
+P22 v1.0.0 release closure
 ```
 
-Process exit code alone never proves success; expected outputs must also validate.
+### Non-negotiable gate
+
+```text
+ALL CURRENT-PHASE TASKS = CLOSED
+AND EXIT_GATE = PASS
+AND EXACT-HEAD EVIDENCE RECORDED
+AND NO KNOWN PHASE-LOCAL BLOCKER
+```
+
+Only then may `CURRENT_PHASE.md` advance to the next phase.
+
+Multiple AI workers may work in parallel only on non-overlapping tasks **inside the same current phase**. They may not independently advance the project into later phases.
 
 ---
 
-## Product architecture at a glance
+## 4. Product standard
+
+FCC Code Desktop is **not** an MVP, prototype, mock or demo.
+
+The first public release must already be production quality within the declared v1 boundary.
+
+The project optimizes simultaneously for:
+
+- premium UI/UX,
+- maintainable architecture,
+- runtime reliability,
+- deterministic recovery,
+- user data safety,
+- secret hygiene,
+- performance on real repositories,
+- external-tool robustness,
+- accessibility/high-DPI behavior,
+- professional installation and lifecycle management.
+
+A beautiful application with unreliable runtime behavior fails. A technically correct application with amateur UI also fails.
+
+---
+
+## 5. Architecture at a glance
 
 ```text
 FCC Code Desktop
         │
         ├── Projects / Sessions / Tasks
-        ├── Premium Chat / Agent Activity
+        ├── Premium Chat + Agent Activity
         ├── Files / Editor / Search / Diff
         ├── Terminal / Git
         ├── Queue / Permissions / Recovery
         ├── Diagnostics / Settings
-        └── External Tool Gateway
-                ├── Unity Adapter
-                ├── Blender Adapter
-                └── Future tool adapters
+        └── External Tool Activity / Artifacts
+                │
+        ┌───────┴───────────────────────────┐
+        ▼                                   ▼
+  IAgentRuntime                     External Tool Gateway
+  ├─ FCC/Claude primary             ├─ Unity Adapter
+  └─ CLI fallback                   ├─ Blender Adapter
+        │                            └─ future adapters
+        ▼
+   fcc-claude
         │
         ▼
-     IAgentRuntime
-        ├── FCC/Claude primary adapter
-        └── FCC/Claude fallback adapter
-        │
-        ▼
-     fcc-claude → FCC → configured provider/model
+     FCC Proxy
 ```
 
-The UI/domain must never depend directly on brittle FCC, Unity or Blender internals.
+The UI must never be tightly coupled to unstable FCC, Claude, Unity or Blender internals. External systems are isolated behind project-owned typed contracts and compatibility tests.
 
 ---
 
-## Technology baseline
+## 6. Technology baseline
 
-Unless superseded by a documented ADR after evidence:
+Unless superseded by a documented decision:
 
-- Desktop: **C# / .NET 10 / WPF**
-- Architecture: **MVVM + DI + modular clean boundaries**
-- Persistence: **SQLite + versioned migrations + backups**
-- Editor: **locally bundled Monaco-based surface where appropriate**
-- Terminal: **Windows ConPTY**
-- Git: **native Git CLI behind project-owned safety service**
-- Embedded web surfaces: **WebView2 only where justified**
-- Logging: **structured + correlation IDs + mandatory redaction**
-- Testing: **unit, integration, runtime contract, tool contract, recovery, UI, installer**
-- Installer: **professional branded Windows setup executable**
+- **Desktop:** C# / .NET 10 / WPF
+- **Architecture:** MVVM + dependency injection + modular clean boundaries
+- **Persistence:** SQLite with migrations and backups
+- **Editor:** locally bundled Monaco-based surface where appropriate
+- **Terminal:** Windows ConPTY
+- **Git:** native Git CLI behind a safe service boundary
+- **Embedded web:** WebView2 only where justified
+- **Logging:** structured logging with mandatory secret redaction
+- **Testing:** unit + integration + runtime contract + external-tool + recovery + UI + installer lifecycle
+- **Installer:** professional Windows setup executable with branding, versioning, upgrade and uninstall
 
-Dependencies must be justified, pinned where practical and isolated behind project-owned interfaces.
-
----
-
-## Non-negotiable quality bar
-
-FCC Code Desktop is **not** an MVP, proof of concept, mock, prototype or demo.
-
-A technically working app with amateur UI fails. A beautiful app with unreliable runtime behavior fails.
-
-Required simultaneously:
-
-- premium UI/UX,
-- maintainable coding quality,
-- runtime reliability,
-- data/workspace safety,
-- security/privacy,
-- performance,
-- recovery,
-- diagnostics,
-- professional setup/branding,
-- real external-tool validation.
-
-No placeholder logo/icon, default WPF-looking primary UI, stock unfinished installer, fake success, hidden known blocker or "we will fix it later" primary feature may survive release closure.
+Dependencies must be justified, pinned where practical and isolated behind project-owned abstractions.
 
 ---
 
-## Autonomous execution policy
+## 7. Unity + Blender are mandatory v1 capabilities
 
-AI workers must inspect live repository state, choose the technically strongest normal implementation autonomously, verify it, document consequential decisions and update the task ledger.
+### Unity
 
-Do not ask the owner to decide routine engineering details.
+The agent must be able to detect a Unity project/editor, execute controlled compile/test/build automation, collect logs/results, classify failures, cancel safely and recover after interruption.
 
-User intervention is reserved for genuine external blockers such as unavailable credentials/accounts, legal/licensing owner decisions, inaccessible hardware/environment or other facts AI cannot obtain or determine safely.
+### Blender
+
+The agent must be able to discover Blender, run it headlessly, execute Python automation, create/modify 3D content, save `.blend`, render previews, import/export assets, validate actual artifacts, surface errors and recover safely.
+
+### Cross-tool pipeline
+
+A required end-to-end v1 flow is:
+
+```text
+AI task
+  ↓
+Blender create/modify asset
+  ↓
+validate .blend / render / exported artifact
+  ↓
+manifested handoff
+  ↓
+Unity import
+  ↓
+compile/test/build validation
+  ↓
+AI receives structured result
+  ↓
+fix/retry until accepted or truthfully failed
+```
+
+A zero process exit code is never enough when required output artifacts are missing, corrupt or semantically invalid.
 
 ---
 
-## No partial public releases
+## 8. Autonomous execution policy
 
-Internal builds/CI artifacts may exist, but the first public product release is:
+The owner supervises outcomes; AI workers are expected to research, choose, implement, test, fix and document normal engineering decisions autonomously.
+
+Workers must not ask the owner to choose routine libraries, class structures, retry algorithms, layout details, naming, test organization, installer internals or similar implementation details.
+
+Owner intervention is reserved for genuine external blockers such as unavailable credentials/account authorization, hardware access, licensing/legal decisions or target environments the worker cannot access.
+
+Technical difficulty is not a blocker.
+
+---
+
+## 9. First public release
+
+There is no public partial `0.x` product standing in for the requested result.
+
+Development/CI artifacts may exist internally, but the first finished public product target is:
 
 ```text
 FCC Code Desktop v1.0.0
 FCCCodeDesktop-Setup-1.0.0.exe
 ```
 
-It cannot be published as complete until the exact candidate passes every mandatory row in `docs/ACCEPTANCE_MATRIX.md` and every release gate in `docs/RELEASE_POLICY.md`.
+No installer may be presented as the finished product until every required phase and acceptance gate has closed.
 
 ---
 
-## Release invariant
+## 10. Release invariant
 
-At minimum the exact release candidate must have verified PASS evidence for:
+Final release requires the exact release commit and exact installer to pass, at minimum:
 
 ```text
-BUILD / ENGINEERING QUALITY
-UNIT + INTEGRATION TESTS
+BUILD / QUALITY
+UNIT / INTEGRATION
 FCC RUNTIME CONTRACT
-STREAMING / TOOL EVENTS
-SESSIONS / RESUME
+STREAMING / SESSIONS / RESUME
 FILES / EDITOR / SEARCH
 DIFF / GIT SAFETY
-TERMINAL / PROCESS SUPERVISION
-QUEUE / COOLDOWN / RATE LIMIT
-UNITY ADAPTER
-BLENDER ADAPTER
+TERMINAL / PROCESS CONTROL
+TOOL GATEWAY
+UNITY CONTRACT
+BLENDER CONTRACT
 UNITY↔BLENDER E2E
+PERMISSIONS / QUEUE / RATE LIMIT
 CRASH / REBOOT RECOVERY
 DATABASE / BACKUP
 SECURITY / REDACTION
 PERFORMANCE
-UI/UX / ACCESSIBILITY / DPI
-INSTALLER / UPGRADE / UNINSTALL
+PREMIUM UI/UX / DPI / ACCESSIBILITY
+INSTALL / UPGRADE / UNINSTALL
 CLEAN-MACHINE ACCEPTANCE
-PROVENANCE / CHECKSUMS / DIAGNOSTICS
+PROVENANCE
 ```
 
-Only then may the project use:
+Only after P22 closure may the final status become:
 
 ```text
 VERIFIED_FINAL_COMPLETE
@@ -262,8 +304,10 @@ VERIFIED_FINAL_COMPLETE
 
 ---
 
-## Current status
+## 11. Current state
 
-As of **2026-08-31**, the project control/specification baseline is established and implementation has not yet been credited as verified product completion.
+The authoritative live checkpoint is [`CURRENT_PHASE.md`](CURRENT_PHASE.md).
 
-The only authoritative implementation state is [`docs/TASK_LEDGER.md`](docs/TASK_LEDGER.md). Do not infer completion from commit count, file count, screenshots or code volume.
+As of **2026-08-31**, the authorized phase is **P00 — Constitution + external-contract de-risking**.
+
+Do not start P01 implementation before P00 is closed with recorded evidence.
