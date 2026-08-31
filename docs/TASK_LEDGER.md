@@ -15,13 +15,23 @@ Allowed states:
 
 Current verified implementation completion: **0%**.
 
+Documentation/governance closure does not count as verified implementation completion.
+
+## Sequential phase rule
+
+Only tasks belonging to the phase in `CURRENT_PHASE.md` may be actively implemented.
+
+A later phase may not open until every mandatory task in the current phase is `CLOSED` and the phase exit gate in `docs/EXECUTION_PLAN.md` is `PASS` with evidence stored under `evidence/phases/PXX/CLOSURE.md`.
+
+Multiple workers may claim non-overlapping tasks only inside the same current phase.
+
 ---
 
 ## P00 — Constitution and contract de-risking
 
 | ID | Task | State |
 |---|---|---|
-| FCCD-P00-001 | Establish repository constitution/source-of-truth docs | IN_PROGRESS |
+| FCCD-P00-001 | Establish repository constitution/source-of-truth docs | CLOSED |
 | FCCD-P00-002 | Probe installed FCC/`fcc-claude` discovery/version/health behavior | PENDING |
 | FCCD-P00-003 | Probe real structured streaming contract | PENDING |
 | FCCD-P00-004 | Probe session ID/resume behavior | PENDING |
@@ -326,4 +336,8 @@ Current verified implementation completion: **0%**.
 
 ## Current next action
 
-Complete `FCCD-P00-001` by finishing all canonical specification/control files, then move immediately into real external-contract probing (`FCCD-P00-002` onward).
+`CURRENT_PHASE = P00`.
+
+`FCCD-P00-001` is closed: the canonical constitution, source-of-truth hierarchy, strict execution plan, current-phase checkpoint, quality/release standards and phase-evidence template are established.
+
+The next authorized work is `FCCD-P00-002` onward: real external-contract probing. Do not start P01 until every P00 task is `CLOSED` and the P00 exit gate is `PASS` with exact-head evidence.
