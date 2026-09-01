@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "probe": "FCCD_P00_008_UNITY_SELF_TEST",
+  "status": "SELF_TEST_VERIFIED",
+  "passed": 20,
+  "failed": 0,
+  "details": [
+    {"name":"ProjectVersion parser extracts editor version and revision","status":"PASS"},
+    {"name":"Valid Unity project detected without launching Unity","status":"PASS"},
+    {"name":"Invalid directory classified cleanly","status":"PASS"},
+    {"name":"Version comparison orders alpha beta final patch and numeric builds","status":"PASS"},
+    {"name":"Exact project version resolution never silently upgrades","status":"PASS"},
+    {"name":"Command builders preserve spaces Unicode and Arabic as single arguments","status":"PASS"},
+    {"name":"Test XML validator accepts NUnit result with plausible count","status":"PASS"},
+    {"name":"Test XML validator rejects failed tests","status":"PASS"},
+    {"name":"Test XML validator rejects zero tests and missing artifact","status":"PASS"},
+    {"name":"JSON result validation requires structured artifact content","status":"PASS"},
+    {"name":"Build validation rejects exit-code-only success when artifact missing","status":"PASS"},
+    {"name":"Log parser surfaces compile errors project locks and preserves unknown lines","status":"PASS"},
+    {"name":"Compile classification distinguishes pass error timeout startup and project open failure","status":"PASS"},
+    {"name":"Redaction removes fake keys bearer values and credential-shaped fields","status":"PASS"},
+    {"name":"Owned process timeout terminates only owned child","status":"PASS"},
+    {"name":"Owned process explicit cancellation is classified separately from timeout","status":"PASS"},
+    {"name":"Disposable fixture source bootstrap writes only underneath owned root","status":"PASS"},
+    {"name":"Artifact manifest captures required operation lifecycle fields","status":"PASS"},
+    {"name":"Unified target runner invokes Unity probe and preserves Blender ownership boundary","status":"PASS"},
+    {"name":"Persisted manifest secret scan stays clean","status":"PASS"}
+  ]
+}
