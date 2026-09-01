@@ -39,7 +39,7 @@ Multiple workers may claim non-overlapping tasks only inside the same current ph
 | FCCD-P00-006 | Determine primary runtime adapter contract from evidence | PENDING |
 | FCCD-P00-007 | Prove CLI fallback contract | BLOCKED |
 | FCCD-P00-008 | Probe Unity current project/version/CLI/test/build contracts on target environment | CLOSED |
-| FCCD-P00-009 | Probe Blender current CLI/background/Python/render/export contracts on target environment | PENDING |
+| FCCD-P00-009 | Probe Blender current CLI/background/Python/render/export contracts on target environment | BLOCKED |
 | FCCD-P00-010 | Record supported version/compatibility baseline | PENDING |
 
 Blocker evidence for `FCCD-P00-002` and `FCCD-P00-007`: the reusable probes are implemented and self-tested, but this worker execution environment cannot access the owner's required Windows FCC/`fcc-claude` installation. See `docs/contracts/FCC_CLI_CONTRACT.md`, `evidence/phases/P00/fcc-discovery/PROBE_HOST_2026-09-01.md`, and `evidence/phases/P00/cli-fallback/PROBE_HOST_2026-09-01.md`.
@@ -47,6 +47,8 @@ Blocker evidence for `FCCD-P00-002` and `FCCD-P00-007`: the reusable probes are 
 Blocker evidence for `FCCD-P00-003`, `FCCD-P00-004`, and `FCCD-P00-005`: reusable streaming/session/failure probes, deterministic `SELF_TEST_ONLY` fixtures, contract docs, remote-host evidence, and unified target-runner integration are implemented. The remote worker host does not contain the owner's Windows FCC/`fcc-claude` environment, so real streaming schemas, session/resume semantics, and real cancellation/provider/failure behavior remain target-unverified. See `docs/contracts/FCC_STREAMING_CONTRACT.md`, `docs/contracts/FCC_SESSION_CONTRACT.md`, `docs/contracts/FCC_FAILURE_CONTRACT.md`, and `evidence/phases/P00/{streaming,sessions,failures}/PROBE_HOST_2026-09-01.md`.
 
 Closure evidence for `FCCD-P00-008`: the reusable probe infrastructure and deterministic 20/20 self-test were integrated and then executed on the owner's Windows target. Unity Hub, Editors `6000.5.8f1`/`2022.3.75f1`, disposable project creation, exact version selection, compile positive/negative/recovery, EditMode/PlayMode tests, `-executeMethod`, Windows x64 build artifacts, same-project locking, cancellation, and cleanup passed. See `docs/contracts/UNITY_AUTOMATION_CONTRACT.md`, `evidence/phases/P00/target/unity-contract.json`, and `evidence/phases/P00/unity/TARGET_VALIDATION_2026-09-02.md`.
+
+Blocker evidence for `FCCD-P00-009`: reusable Blender discovery/background/Python/scene/save/render/export/artifact/error/cancellation probes, 15/15 deterministic self-tests, contract documentation, and unified-runner integration are complete. The owner's current Windows host has no discoverable Blender executable, so real Blender behavior remains target-unverified. See `docs/contracts/BLENDER_AUTOMATION_CONTRACT.md`, `evidence/phases/P00/blender/PROBE_HOST_2026-09-02.md`, and `evidence/phases/P00/target/blender-contract.json`.
 
 ## P01 — Solution foundation / CI
 

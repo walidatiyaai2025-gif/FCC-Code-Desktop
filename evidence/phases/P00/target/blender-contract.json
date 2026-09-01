@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "probe": "FCCD_P00_009_BLENDER_CONTRACT",
+  "capturedAtUtc": "2026-09-01T21:13:21.130Z",
+  "host": {
+    "platform": "win32",
+    "arch": "x64",
+    "osRelease": "10.0.19045",
+    "node": "v20.11.1"
+  },
+  "discovery": {
+    "found": false,
+    "candidates": []
+  },
+  "steps": [
+    {
+      "name": "blender-discovery",
+      "status": "BLOCKED",
+      "classification": "BLENDER_NOT_FOUND"
+    }
+  ],
+  "operations": [],
+  "overallStatus": "BLOCKED_BLENDER_NOT_FOUND",
+  "evidenceState": "TARGET_UNVERIFIED"
+}
