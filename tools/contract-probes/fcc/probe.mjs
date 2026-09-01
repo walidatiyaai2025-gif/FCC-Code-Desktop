@@ -102,10 +102,23 @@ function whichAll(name) {
   return [...new Set(found.map((p) => path.normalize(p)))];
 }
 
+function resolveSpawn(exe, args) {
+  const ext = path.extname(exe).toLowerCase();
+  if (process.platform === 'win32' && (ext === '.cmd' || ext === '.bat')) {
+    const powershell = whichAll('pwsh')[0] ?? whichAll('powershell')[0];
+    if (!powershell) return { file: exe, args, wrapper: null, wrapperError: 'PowerShell required to launch .cmd/.bat safely but was not found.' };
+    const script = '$target=$args[0]; $rest=@(); if($args.Count -gt 1){$rest=$args[1..($args.Count-1)]}; & $target @rest; exit $LASTEXITCODE';
+    return { file: powershell, args: ['-NoProfile', '-NonInteractive', '-Command', script, exe, ...args], wrapper: 'powershell-call-operator', wrapperError: null };
+  }
+  return { file: exe, args, wrapper: null, wrapperError: null };
+}
+
 function runSync(exe, args, options = {}) {
   const started = Date.now();
+  const launch = resolveSpawn(exe, args);
+  if (launch.wrapperError) return redact({ command: [exe, ...args], wrapper: launch.wrapper, exitCode: null, signal: null, error: { message: launch.wrapperError }, stdout: '', stderr: '', durationMs: Date.now() - started });
   try {
-    const res = spawnSync(exe, args, {
+    const res = spawnSync(launch.file, launch.args, {
       cwd: options.cwd,
       encoding: 'utf8',
       timeout: options.timeoutMs ?? 7000,
@@ -116,6 +129,7 @@ function runSync(exe, args, options = {}) {
     });
     return redact({
       command: [exe, ...args],
+      wrapper: launch.wrapper,
       exitCode: res.status,
       signal: res.signal,
       error: res.error ? { code: res.error.code, message: res.error.message } : null,
@@ -124,7 +138,7 @@ function runSync(exe, args, options = {}) {
       durationMs: Date.now() - started,
     });
   } catch (error) {
-    return redact({ command: [exe, ...args], exitCode: null, signal: null, error: { message: String(error) }, stdout: '', stderr: '', durationMs: Date.now() - started });
+    return redact({ command: [exe, ...args], wrapper: launch.wrapper, exitCode: null, signal: null, error: { message: String(error) }, stdout: '', stderr: '', durationMs: Date.now() - started });
   }
 }
 
@@ -165,7 +179,12 @@ function listConfigMetadata() {
     const v = process.env[envName];
     if (v && !SECRET_NAME.test(envName)) candidates.push({ source: `env:${envName}`, path: v });
   }
-  const roots = [home, process.env.APPDATA, process.env.LOCALAPPDATA, process.env.PROGRAMDATA].filter(Boolean);
+  const roots = [
+    home,
+    process.env.APPDATA,
+    process.env.LOCALAPPDATA,
+    process.env.PROGRAMDATA,
+  ].filter(Boolean);
   const names = ['.fcc', 'fcc', 'fcc-claude', '.claude', 'claude'];
   for (const root of roots) for (const name of names) candidates.push({ source: 'common-location', path: path.join(root, name) });
   const seen = new Set();
@@ -177,7 +196,9 @@ function listConfigMetadata() {
     try {
       const st = fs.statSync(normalized);
       const item = { source: c.source, path: normalized, exists: true, type: st.isDirectory() ? 'directory' : 'file', size: st.isFile() ? st.size : null, children: [] };
-      if (st.isDirectory()) item.children = fs.readdirSync(normalized, { withFileTypes: true }).slice(0, 100).map((d) => ({ name: d.name, type: d.isDirectory() ? 'directory' : 'file' }));
+      if (st.isDirectory()) {
+        item.children = fs.readdirSync(normalized, { withFileTypes: true }).slice(0, 100).map((d) => ({ name: d.name, type: d.isDirectory() ? 'directory' : 'file' }));
+      }
       metadata.push(item);
     } catch {
       metadata.push({ source: c.source, path: normalized, exists: false });
@@ -191,25 +212,84 @@ function environmentVariablePresence() {
   return interesting.map((name) => ({ name, present: true, value: SECRET_NAME.test(name) ? '[REDACTED]' : redact(process.env[name] ?? '') }));
 }
 
-function listRelevantProcesses() {
+function processSnapshot() {
   if (process.platform === 'win32') {
-    const r = runSync('tasklist.exe', ['/FO', 'CSV', '/NH']);
-    const lines = (r.stdout ?? '').split(/\r?\n/).filter(Boolean);
-    const processes = [];
-    for (const line of lines) {
-      const m = line.match(/^"([^"]+)","([0-9]+)"/);
-      if (!m) continue;
-      if (/(fcc|claude|node)/i.test(m[1])) processes.push({ imageName: m[1], pid: Number(m[2]) });
+    const pwsh = whichAll('pwsh')[0] ?? whichAll('powershell')[0];
+    if (!pwsh) return { source: 'powershell', error: 'PowerShell not found', processes: [] };
+    const command = 'Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name | ConvertTo-Json -Compress';
+    const r = runSync(pwsh, ['-NoProfile', '-Command', command], { timeoutMs: 10000 });
+    try {
+      const raw = JSON.parse(r.stdout || '[]');
+      const rows = Array.isArray(raw) ? raw : [raw];
+      return {
+        source: 'Win32_Process',
+        exitCode: r.exitCode,
+        processes: rows.filter(Boolean).map((x) => ({ pid: Number(x.ProcessId), ppid: Number(x.ParentProcessId), name: String(x.Name ?? '') })),
+      };
+    } catch (error) {
+      return { source: 'Win32_Process', exitCode: r.exitCode, error: `Unable to parse process snapshot: ${error}`, processes: [] };
     }
-    return { command: r.command, exitCode: r.exitCode, processes };
   }
   const ps = runSync('ps', ['-eo', 'pid=,ppid=,comm=']);
   const processes = [];
   for (const line of (ps.stdout ?? '').split(/\r?\n/)) {
     const m = line.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/);
-    if (m && /(fcc|claude|node)/i.test(m[3])) processes.push({ pid: Number(m[1]), ppid: Number(m[2]), command: m[3] });
+    if (m) processes.push({ pid: Number(m[1]), ppid: Number(m[2]), name: m[3] });
   }
-  return { command: ps.command, exitCode: ps.exitCode, processes };
+  return { source: 'ps', exitCode: ps.exitCode, processes };
+}
+
+function listRelevantProcesses(snapshot) {
+  const processes = (snapshot?.processes ?? []).filter((p) => /(fcc|claude|node)/i.test(p.name ?? ''));
+  return { source: snapshot?.source ?? null, error: snapshot?.error ?? null, processes };
+}
+
+function descendantsOf(snapshot, rootPid) {
+  const rows = snapshot?.processes ?? [];
+  const byParent = new Map();
+  for (const row of rows) {
+    if (!byParent.has(row.ppid)) byParent.set(row.ppid, []);
+    byParent.get(row.ppid).push(row);
+  }
+  const result = [];
+  const queue = [rootPid];
+  const seen = new Set(queue);
+  while (queue.length) {
+    const parent = queue.shift();
+    for (const child of byParent.get(parent) ?? []) {
+      if (seen.has(child.pid)) continue;
+      seen.add(child.pid);
+      result.push(child);
+      queue.push(child.pid);
+    }
+  }
+  return result;
+}
+
+function listeningPortsForProcesses(relevant) {
+  const pids = new Set((relevant?.processes ?? []).map((p) => p.pid));
+  if (!pids.size) return { source: null, listeners: [] };
+  if (process.platform === 'win32') {
+    const r = runSync('netstat.exe', ['-ano', '-p', 'tcp'], { timeoutMs: 10000 });
+    const listeners = [];
+    for (const line of (r.stdout ?? '').split(/\r?\n/)) {
+      const m = line.trim().match(/^TCP\s+(\S+):(\d+)\s+\S+\s+LISTENING\s+(\d+)$/i);
+      if (!m) continue;
+      const pid = Number(m[3]);
+      if (pids.has(pid)) listeners.push({ address: m[1], port: Number(m[2]), pid });
+    }
+    return { source: 'netstat -ano -p tcp', exitCode: r.exitCode, listeners };
+  }
+  const ssPath = whichAll('ss')[0];
+  if (!ssPath) return { source: 'ss', error: 'ss not found', listeners: [] };
+  const r = runSync(ssPath, ['-ltnp'], { timeoutMs: 10000 });
+  const listeners = [];
+  for (const line of (r.stdout ?? '').split(/\r?\n/)) {
+    const portMatch = line.match(/LISTEN\s+\d+\s+\d+\s+\S+:(\d+)\s+/);
+    const pidMatch = line.match(/pid=(\d+)/);
+    if (portMatch && pidMatch && pids.has(Number(pidMatch[1]))) listeners.push({ port: Number(portMatch[1]), pid: Number(pidMatch[1]) });
+  }
+  return { source: 'ss -ltnp', exitCode: r.exitCode, listeners };
 }
 
 function inferCliArgs(helpText, prompt) {
@@ -240,7 +320,9 @@ function extractSessionIds(text) {
     /session(?:[_ -]?id)?\s*[:=]\s*["']?([0-9a-zA-Z_-]{8,})/gi,
     /\b([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\b/gi,
   ];
-  for (const p of patterns) for (const match of text.matchAll(p)) out.push(match[1]);
+  for (const p of patterns) {
+    for (const match of text.matchAll(p)) out.push(match[1]);
+  }
   return [...new Set(out)].slice(0, 10);
 }
 
@@ -252,8 +334,10 @@ async function runStreaming(exe, args, options = {}) {
   let forcedTreeKill = false;
   let gracefulSignalAttempted = false;
   let child;
+  const launch = resolveSpawn(exe, args);
+  if (launch.wrapperError) return { launchError: launch.wrapperError, pid: null, exitCode: null, signal: null, events, stdout: '', stderr: '', durationMs: Date.now() - started, classification: 'LAUNCH_OR_SIGNAL_FAILURE', wrapper: launch.wrapper };
   try {
-    child = spawn(exe, args, {
+    child = spawn(launch.file, launch.args, {
       cwd: options.cwd,
       env: process.env,
       windowsHide: true,
@@ -262,8 +346,11 @@ async function runStreaming(exe, args, options = {}) {
       stdio: ['ignore', 'pipe', 'pipe'],
     });
   } catch (error) {
-    return { launchError: String(error), pid: null, exitCode: null, signal: null, events, stdout: '', stderr: '', durationMs: Date.now() - started, classification: 'LAUNCH_OR_SIGNAL_FAILURE' };
+    return { launchError: String(error), pid: null, exitCode: null, signal: null, events, stdout: '', stderr: '', durationMs: Date.now() - started, classification: 'LAUNCH_OR_SIGNAL_FAILURE', wrapper: launch.wrapper };
   }
+  await new Promise((r) => setTimeout(r, 150));
+  const initialSnapshot = processSnapshot();
+  const observedProcessTree = [{ pid: child.pid, role: launch.wrapper ? 'launcher-wrapper' : 'launcher', name: path.basename(launch.file) }, ...descendantsOf(initialSnapshot, child.pid).map((x) => ({ ...x, role: 'descendant' }))];
   let stdout = '';
   let stderr = '';
   const push = (stream, chunk) => {
@@ -305,8 +392,16 @@ async function runStreaming(exe, args, options = {}) {
   if (cancelTimer) clearTimeout(cancelTimer);
   const redactedStdout = redact(stdout.slice(0, 200000));
   const redactedStderr = redact(stderr.slice(0, 200000));
+  await new Promise((r) => setTimeout(r, 150));
+  const finalSnapshot = processSnapshot();
+  const observedIds = new Set(observedProcessTree.map((x) => x.pid));
+  const remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter((x) => observedIds.has(x.pid));
   return {
     pid: child.pid,
+    wrapper: launch.wrapper,
+    observedProcessTree,
+    remainingOwnedProcesses,
+    processTreeCleanupObserved: remainingOwnedProcesses.length === 0,
     exitCode: exit.code,
     signal: exit.signal,
     launchError: exit.error,
@@ -332,11 +427,28 @@ async function probeHealth(url) {
   const timer = setTimeout(() => controller.abort(), 4000);
   try {
     const res = await fetch(parsed, { signal: controller.signal, headers: { Accept: 'application/json,text/plain;q=0.8,*/*;q=0.1' } });
-    const body = redact((await res.text()).slice(0, 12000));
+    const rawBody = (await res.text()).slice(0, 12000);
+    let body;
+    try { body = redact(JSON.parse(rawBody)); } catch { body = redact(rawBody); }
     return { attempted: true, url: parsed.toString(), status: res.status, ok: res.ok, body };
   } catch (error) {
     return { attempted: true, url: parsed.toString(), error: String(error) };
   } finally { clearTimeout(timer); }
+}
+
+async function probeHealthCandidates(explicitUrl, ports) {
+  if (explicitUrl) return { mode: 'explicit', results: [await probeHealth(explicitUrl)] };
+  const uniquePorts = [...new Set((ports ?? []).filter((p) => Number.isInteger(p) && p > 0 && p < 65536))].slice(0, 8);
+  if (!uniquePorts.length) return { mode: 'none', results: [{ attempted: false, reason: 'No explicit or process-correlated FCC port discovered.' }] };
+  const results = [];
+  for (const port of uniquePorts) {
+    for (const suffix of ['/health', '/status', '/']) {
+      const r = await probeHealth(`http://127.0.0.1:${port}${suffix}`);
+      results.push(r);
+      if (r.ok) break;
+    }
+  }
+  return { mode: 'process-correlated', results };
 }
 
 async function buildDiscovery(args) {
@@ -355,7 +467,12 @@ async function buildDiscovery(args) {
     claude: probeExecutable('claude'),
   };
   const explicitPort = process.env.FCC_PORT && /^\d+$/.test(process.env.FCC_PORT) ? Number(process.env.FCC_PORT) : null;
-  const healthUrl = args.healthUrl ?? (explicitPort ? `http://127.0.0.1:${explicitPort}/health` : null);
+  const snapshot = processSnapshot();
+  const relevantProcesses = listRelevantProcesses(snapshot);
+  const listening = listeningPortsForProcesses(relevantProcesses);
+  const fccProcessIds = new Set(relevantProcesses.processes.filter((p) => /fcc/i.test(p.name ?? '')).map((p) => p.pid));
+  const processCorrelatedPorts = listening.listeners.filter((x) => fccProcessIds.has(x.pid)).map((x) => x.port);
+  const healthPorts = explicitPort ? [explicitPort, ...processCorrelatedPorts] : processCorrelatedPorts;
   return redact({
     schemaVersion: 1,
     probeId: randomUUID(),
@@ -375,9 +492,10 @@ async function buildDiscovery(args) {
     executables,
     configMetadata: listConfigMetadata(),
     environmentVariablePresence: environmentVariablePresence(),
-    relevantProcesses: listRelevantProcesses(),
-    fccPort: { fromEnvironment: explicitPort, processCorrelatedPortDiscovery: 'NOT_IMPLEMENTED_IN_P00_PROBE_V1' },
-    health: await probeHealth(healthUrl),
+    relevantProcesses,
+    listeningPorts: listening,
+    fccPort: { fromEnvironment: explicitPort, processCorrelated: processCorrelatedPorts },
+    health: await probeHealthCandidates(args.healthUrl, healthPorts),
     secretsPolicy: 'Values matching secret names/patterns are redacted before output.',
   });
 }
@@ -424,7 +542,11 @@ async function buildCliProbe(args, discovery) {
 
   const base = args.workspaceRoot ? path.resolve(args.workspaceRoot) : fs.mkdtempSync(path.join(os.tmpdir(), 'fcc-contract-probe-'));
   const ownsBase = !args.workspaceRoot;
-  const workspaces = [path.join(base, 'normal'), path.join(base, 'path with spaces'), path.join(base, 'مسار-اختبار')];
+  const workspaces = [
+    path.join(base, 'normal'),
+    path.join(base, 'path with spaces'),
+    path.join(base, 'مسار-اختبار'),
+  ];
   try {
     for (const cwd of workspaces) {
       fs.mkdirSync(cwd, { recursive: true });
