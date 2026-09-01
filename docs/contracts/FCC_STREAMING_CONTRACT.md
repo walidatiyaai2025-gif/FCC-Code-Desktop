@@ -78,3 +78,11 @@ A target evidence file must retain sanitized:
 - final stdout/stderr and process status.
 
 If output exceeds the probe's bounded capture size, `outputTruncated=true` is evidence of an incomplete capture and must not be silently treated as complete structured-stream verification.
+
+## VERIFIED_ON_TARGET — Windows observation 2026-09-02
+
+The target CLI `2.1.251` accepted the observed `--print --output-format stream-json --verbose` syntax. The recorder captured newline-delimited JSON on stdout, including a `system/init` event with `session_id`, runtime/model/tool metadata, followed by `system/api_retry` events carrying `attempt`, `max_retries`, `retry_delay_ms`, `error_status: 503`, `error`, `session_id`, and `uuid`.
+
+Raw chunk ordering, sizes, hashes, sanitized text, parsed payloads, session candidates, timeout, and cancellation were persisted. Unknown fields were retained. No output truncation or secret leakage was detected. Successful assistant/tool/final-result shapes were not observed because the upstream provider remained unavailable, so those shapes stay explicitly `NOT_OBSERVED` rather than inferred.
+
+The real structured transport and failure-event contract required by `FCCD-P00-003` is captured sufficiently to close that de-risking task; future successful event shapes remain adapter compatibility cases, not invented P00 facts. Evidence: `evidence/phases/P00/target/fcc-stream-session-failure.json`.

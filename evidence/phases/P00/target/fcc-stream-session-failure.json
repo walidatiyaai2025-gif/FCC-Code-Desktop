@@ -1,0 +1,1855 @@
+{
+  "schemaVersion": 1,
+  "probe": "fcc-p00-stream-session-failure",
+  "probeId": "4e37be3a-5c29-4cf8-a902-ac882206b3b2",
+  "capturedAtUtc": "2026-09-01T21:05:11.564Z",
+  "host": {
+    "platform": "win32",
+    "arch": "x64",
+    "osType": "Windows_NT",
+    "osRelease": "10.0.19045",
+    "node": "v20.11.1"
+  },
+  "evidenceStatus": "EXECUTION_HOST_WINDOWS",
+  "runtime": {
+    "name": "fcc-claude",
+    "found": true,
+    "paths": [
+      "C:\\Users\\HP\\.local\\bin\\fcc-claude.exe",
+      "C:\\Users\\HP\\.local\\bin\\fcc-claude.EXE"
+    ],
+    "version": {
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "2.1.251 (Claude Code)\n",
+      "stderr": "",
+      "error": null,
+      "wrapper": null
+    },
+    "help": {
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "Usage: claude [options] [command] [prompt]\n\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\n\nArguments:\n  prompt                                Your prompt\n\nOptions:\n  --add-dir <directories...>            Additional directories to allow tool\n                                        access to\n  --agent <agent>                       Agent for the current session. Overrides\n                                        the 'agent' setting.\n  --agents <json>                       JSON object defining custom agents (e.g.\n                                        '{\"reviewer\": {\"description\": \"Reviews\n                                        code\", \"prompt\": \"You are a code\n                                        reviewer\"}}')\n  --allow-dangerously-skip-permissions  Enable bypassing all permission checks\n                                        as an option, without it being enabled\n                                        by default. Recommended only for\n                                        sandboxes with no internet access.\n  --allowedTools, --allowed-tools <tools...>\n      Comma or space-separated list of tool names to allow (e.g. \"Bash(git *)\n      Edit\")\n  --append-system-prompt <prompt>       Append a system prompt to the default\n                                        system prompt\n  --autocompact <auto|tokens>           Auto-compact window size (auto, or\n                                        100k–1M tokens)\n  --ax-screen-reader                    Render screen-reader friendly output\n                                        (flat text, no decorative borders or\n                                        animations).\n  --bg, --background                    Start the session in the background and\n                                        return immediately. Prints the id that\n                                        `claude attach`, `logs`, `stop` and `rm`\n                                        take; `claude agents` lists them\n  --bare                                Minimal mode: skip hooks, LSP, plugin\n                                        sync, attribution, auto-memory,\n                                        background prefetches, keychain reads,\n                                        and CLAUDE.md auto-discovery. Sets\n                                        CLAUDE_CODE_SIMPLE=1. Anthropic auth is\n                                        strictly ANTHROPIC_API_KEY or\n                                        apiKeyHelper via --settings (OAuth and\n                                        keychain are never read). 3P providers\n                                        (Bedrock/Vertex/Foundry) use their own\n                                        credentials. Skills still resolve via\n                                        /skill-name. Explicitly provide context\n                                        via: --system-prompt[-file],\n                                        --append-system-prompt[-file], --add-dir\n                                        (CLAUDE.md dirs), --mcp-config,\n                                        --settings, --agents, --plugin-dir.\n  --betas <betas...>                    Beta headers to include in API requests\n                                        (API key users only)\n  --brief                               Enable SendUserMessage tool for\n                                        agent-to-user communication\n  --chrome                              Enable Claude in Chrome integration\n  --cloud [description|session_id|url]  Create a cloud session with the given\n                                        description, or attach to an existing\n                                        one by session ID or claude.ai/code URL\n  -c, --continue                        Continue the most recent conversation in\n                                        the current directory\n  --dangerously-skip-permissions        Bypass all permission checks.\n                                        Recommended only for sandboxes with no\n                                        internet access.\n  -d, --debug [filter]                  Enable debug mode with optional category\n                                        filtering (e.g., \"api,hooks\" or\n                                        \"!1p,!file\")\n  --debug-file <path>                   Write debug logs to a specific file path\n                                        (implicitly enables debug mode)\n  --disable-slash-commands              Disable all skills\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny (e.g. \"Bash(git *)\n      Edit\")\n  --effort <level>                      Effort level for the current session\n                                        (low, medium, high, xhigh, max)\n  --environment <environment_id>        Create a new cloud session that runs on\n                                        the given self-hosted environment\n                                        (ccpool_...).\n  --exclude-dynamic-system-prompt-sections\n      Move per-machine sections (cwd, env info, memory paths, git status) from\n      the system prompt into the first user message. Improves cross-user\n      prompt-cache reuse. Only applies with the default system prompt (ignored\n      with --system-prompt). (default: false)\n  --fallback-model <model>              Enable automatic fallback to specified\n                                        model(s) when the default model is\n                                        overloaded or not available. Accepts a\n                                        comma-separated list to try each in\n                                        order. Re-tries the primary at the start\n                                        of each user turn. (only works with\n                                        --print)\n  --file <specs...>                     File resources to download at startup.\n                                        Format: file_id:relative_path (e.g.,\n                                        --file file_abc:doc.txt\n                                        file_def:img.png)\n  --fork-session                        When resuming, create a new session ID\n                                        instead of reusing the original (use\n                                        with --resume or --continue)\n  --forward-subagent-text               Forward subagent text and thinking\n                                        blocks as assistant/user messages with\n                                        parent_tool_use_id set (only works with\n                                        --print and --output-format=stream-json)\n  --from-pr [value]                     Resume a session linked to a PR by PR\n                                        number/URL, or open interactive picker\n                                        with optional search term\n  -h, --help                            Display help for command\n  --ide                                 Automatically connect to IDE on startup\n                                        if exactly one valid IDE is available\n  --include-hook-events                 Include all hook lifecycle events in the\n                                        output stream (only works with\n                                        --output-format=stream-json)\n  --include-partial-messages            Include partial message chunks as they\n                                        arrive (only works with --print and\n                                        --output-format=stream-json)\n  --input-format <format>               Input format (only works with --print):\n                                        \"text\" (default), or \"stream-json\"\n                                        (realtime streaming input) (choices:\n                                        \"text\", \"stream-json\")\n  --json-schema <schema>                JSON Schema for structured output\n                                        validation. Example:\n                                        {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]}\n  --max-budget-usd <amount>             Maximum dollar amount to spend on API\n                                        calls (only works with --print)\n  --mcp-config <configs...>             Load MCP servers from JSON files or\n                                        strings (space-separated)\n  --model <model>                       Model for the current session. Provide\n                                        an alias for the latest model (e.g.\n                                        'fable', 'opus', or 'sonnet') or a\n                                        model's full name (e.g.\n                                        'claude-fable-5').\n  -n, --name <name>                     Set a display name for this session\n                                        (shown in the prompt box, /resume\n                                        picker, and terminal title)\n  --no-chrome                           Disable Claude in Chrome integration\n  --no-session-persistence              Disable session persistence - sessions\n                                        will not be saved to disk and cannot be\n                                        resumed (only works with --print)\n  --output-format <format>              Output format (only works with --print):\n                                        \"text\" (default), \"json\" (single\n                                        result), or \"stream-json\" (realtime\n                                        streaming) (choices: \"text\", \"json\",\n                                        \"stream-json\")\n  --permission-mode <mode>              Permission mode to use for the session\n                                        (choices: \"acceptEdits\", \"auto\",\n                                        \"bypassPermissions\", \"manual\",\n                                        \"dontAsk\", \"plan\")\n  --plugin-dir <path>                   Load a plugin from a directory or .zip\n                                        for this session only (repeatable:\n                                        --plugin-dir A --plugin-dir B.zip)\n                                        (default: [])\n  --plugin-url <url>                    Fetch a plugin .zip from a URL for this\n                                        session only (repeatable: --plugin-url A\n                                        --plugin-url B) (default: [])\n  -p, --print                           Print response and exit (useful for\n                                        pipes). Note: The workspace trust dialog\n                                        is skipped when Claude is run in\n                                        non-interactive mode (via -p, or when\n                                        stdout is not a TTY, e.g. piped or\n                                        redirected output). Only use this in\n                                        directories you trust. Settings files\n                                        that fail validation are silently\n                                        ignored in this mode (no error dialog is\n                                        shown).\n  --prompt-suggestions [value]          Enable prompt suggestions. In print/SDK\n                                        mode, emits a prompt_suggestion message\n                                        after each turn with a predicted next\n                                        user prompt (choices: \"true\", \"false\",\n                                        \"1\", \"0\", \"yes\", \"no\", \"on\", \"off\",\n                                        preset: \"true\")\n  --remote-control [name]               Start an interactive session with Remote\n                                        Control enabled (optionally named)\n  --remote-control-session-name-prefix <prefix>\n      Prefix for auto-generated Remote Control session names (default: hostname)\n  --replay-user-messages                Re-emit user messages from stdin back on\n                                        stdout for acknowledgment (only works\n                                        with --input-format=stream-json and\n                                        --output-format=stream-json)\n  --restricted                          Restricted mode: removes the built-in\n                                        tools that run commands or code (Bash,\n                                        PowerShell, REPL and the other\n                                        code-running tools) and WebFetch unless\n                                        --tools names them, and ignores user,\n                                        project and local settings files\n                                        (managed settings and --settings still\n                                        apply; add --strict-mcp-config to skip\n                                        MCP servers too). Also confines the file\n                                        tools to the working directories\n                                        (--add-dir included), refuses\n                                        bypassPermissions, and lets only a\n                                        person or the configured permission\n                                        handler approve writes to settings, git\n                                        and tool-configuration files.\n  -r, --resume [value]                  Resume a conversation by session ID, or\n                                        open interactive picker with optional\n                                        search term\n  --safe-mode                           Start with all customizations\n                                        (CLAUDE.md, skills, plugins, hooks, MCP\n                                        servers, custom commands and agents,\n                                        output styles, workflows, custom themes,\n                                        keybindings, and more) disabled — useful\n                                        for troubleshooting a broken\n                                        configuration. Admin-managed (policy)\n                                        settings still apply. Auth, model\n                                        selection, built-in tools, and\n                                        permissions work normally. Sets\n                                        CLAUDE_CODE_SAFE_MODE=1.\n  --session-id <uuid>                   Use a specific session ID for the\n                                        conversation (must be a valid UUID)\n  --setting-sources <sources>           Comma-separated list of setting sources\n                                        to load (user, project, local).\n  --settings <file-or-json>             Path to a settings JSON file or a JSON\n                                        string to load additional settings from\n  --strict-mcp-config                   Only use MCP servers from --mcp-config,\n                                        ignoring all other MCP configurations\n  --system-prompt <prompt>              System prompt to use for the session\n  --teleport [session]                  Resume a teleport session, optionally\n                                        specify session ID\n  --tmux                                Create a tmux session for the worktree\n                                        (requires --worktree). Uses iTerm2\n                                        native panes when available; use\n                                        --tmux=classic for traditional tmux.\n  --tools <tools...>                    Specify the list of available tools from\n                                        the built-in set. Use \"\" to disable all\n                                        tools, \"default\" to use all tools, or\n                                        specify tool names (e.g.\n                                        \"Bash,Edit,Read\").\n  --verbose                             Override verbose mode setting from\n                                        config\n  -v, --version                         Output the version number\n  -w, --worktree [name]                 Create a new git worktree for this\n                                        session (optionally specify a name)\n\nCommands:\n  agents [options]                      Manage background agents\n  attach <id>                           Open a background session in this\n                                        terminal. <id> is the short id that\n                                        `claude --bg` prints and `claude agents`\n                                        lists\n  auth                                  Manage authentication\n  auto-mode                             Inspect or reset auto mode classifier\n                                        configuration\n  doctor                                Check the health of your Claude Code\n                                        installation. Reads settings files in\n                                        the current directory without a trust\n                                        prompt. For a full checkup that can also\n                                        fix issues, run /doctor in a session.\n  gateway [options]                     Run the enterprise auth/telemetry\n                                        gateway\n  import [options] [source]             Import config from another AI coding\n                                        agent into Claude Code\n  install [options] [target]            Install Claude Code native build. Use\n                                        [target] to specify version (stable,\n                                        latest, or specific version)\n  logs <id>                             Print a background session's recent\n                                        terminal output\n  mcp                                   Configure and manage MCP servers\n  plugin|plugins                        Manage Claude Code plugins\n  project                               Manage Claude Code project state\n  respawn [options] [id]                Restart a background session, or all of\n                                        them with --all, so it runs the current\n                                        Claude Code version\n  rm <id>                               Delete a background session, and its\n                                        worktree when that is safe. Works on\n                                        sessions that have already exited\n  setup-token                           Set up a long-lived authentication token\n                                        (requires Claude subscription)\n  stop|kill <id>                        Stop a background session. Its\n                                        conversation is kept: `claude attach\n                                        <id>` opens it again, `claude --resume`\n                                        works once it is stopped\n  ultrareview [options] [target]        Run a cloud-hosted multi-agent code\n                                        review of the current branch (or a PR\n                                        number / base branch) and print the\n                                        findings\n  update|upgrade                        Check for updates and install if\n                                        available\n",
+      "stderr": "",
+      "error": null,
+      "wrapper": null
+    }
+  },
+  "streaming": {
+    "status": "OBSERVED_FAILURE_ON_EXECUTION_HOST",
+    "runtimeFound": true,
+    "livePromptAllowed": true,
+    "invocation": {
+      "helpText": "Usage: claude [options] [command] [prompt]\n\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\n\nArguments:\n  prompt                                Your prompt\n\nOptions:\n  --add-dir <directories...>            Additional directories to allow tool\n                                        access to\n  --agent <agent>                       Agent for the current session. Overrides\n                                        the 'agent' setting.\n  --agents <json>                       JSON object defining custom agents (e.g.\n                                        '{\"reviewer\": {\"description\": \"Reviews\n                                        code\", \"prompt\": \"You are a code\n                                        reviewer\"}}')\n  --allow-dangerously-skip-permissions  Enable bypassing all permission checks\n                                        as an option, without it being enabled\n                                        by default. Recommended only for\n                                        sandboxes with no internet access.\n  --allowedTools, --allowed-tools <tools...>\n      Comma or space-separated list of tool names to allow (e.g. \"Bash(git *)\n      Edit\")\n  --append-system-prompt <prompt>       Append a system prompt to the default\n                                        system prompt\n  --autocompact <auto|tokens>           Auto-compact window size (auto, or\n                                        100k–1M tokens)\n  --ax-screen-reader                    Render screen-reader friendly output\n                                        (flat text, no decorative borders or\n                                        animations).\n  --bg, --background                    Start the session in the background and\n                                        return immediately. Prints the id that\n                                        `claude attach`, `logs`, `stop` and `rm`\n                                        take; `claude agents` lists them\n  --bare                                Minimal mode: skip hooks, LSP, plugin\n                                        sync, attribution, auto-memory,\n                                        background prefetches, keychain reads,\n                                        and CLAUDE.md auto-discovery. Sets\n                                        CLAUDE_CODE_SIMPLE=1. Anthropic auth is\n                                        strictly ANTHROPIC_API_KEY or\n                                        apiKeyHelper via --settings (OAuth and\n                                        keychain are never read). 3P providers\n                                        (Bedrock/Vertex/Foundry) use their own\n                                        credentials. Skills still resolve via\n                                        /skill-name. Explicitly provide context\n                                        via: --system-prompt[-file],\n                                        --append-system-prompt[-file], --add-dir\n                                        (CLAUDE.md dirs), --mcp-config,\n                                        --settings, --agents, --plugin-dir.\n  --betas <betas...>                    Beta headers to include in API requests\n                                        (API key users only)\n  --brief                               Enable SendUserMessage tool for\n                                        agent-to-user communication\n  --chrome                              Enable Claude in Chrome integration\n  --cloud [description|session_id|url]  Create a cloud session with the given\n                                        description, or attach to an existing\n                                        one by session ID or claude.ai/code URL\n  -c, --continue                        Continue the most recent conversation in\n                                        the current directory\n  --dangerously-skip-permissions        Bypass all permission checks.\n                                        Recommended only for sandboxes with no\n                                        internet access.\n  -d, --debug [filter]                  Enable debug mode with optional category\n                                        filtering (e.g., \"api,hooks\" or\n                                        \"!1p,!file\")\n  --debug-file <path>                   Write debug logs to a specific file path\n                                        (implicitly enables debug mode)\n  --disable-slash-commands              Disable all skills\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny (e.g. \"Bash(git *)\n      Edit\")\n  --effort <level>                      Effort level for the current session\n                                        (low, medium, high, xhigh, max)\n  --environment <environment_id>        Create a new cloud session that runs on\n                                        the given self-hosted environment\n                                        (ccpool_...).\n  --exclude-dynamic-system-prompt-sections\n      Move per-machine sections (cwd, env info, memory paths, git status) from\n      the system prompt into the first user message. Improves cross-user\n      prompt-cache reuse. Only applies with the default system prompt (ignored\n      with --system-prompt). (default: false)\n  --fallback-model <model>              Enable automatic fallback to specified\n                                        model(s) when the default model is\n                                        overloaded or not available. Accepts a\n                                        comma-separated list to try each in\n                                        order. Re-tries the primary at the start\n                                        of each user turn. (only works with\n                                        --print)\n  --file <specs...>                     File resources to download at startup.\n                                        Format: file_id:relative_path (e.g.,\n                                        --file file_abc:doc.txt\n                                        file_def:img.png)\n  --fork-session                        When resuming, create a new session ID\n                                        instead of reusing the original (use\n                                        with --resume or --continue)\n  --forward-subagent-text               Forward subagent text and thinking\n                                        blocks as assistant/user messages with\n                                        parent_tool_use_id set (only works with\n                                        --print and --output-format=stream-json)\n  --from-pr [value]                     Resume a session linked to a PR by PR\n                                        number/URL, or open interactive picker\n                                        with optional search term\n  -h, --help                            Display help for command\n  --ide                                 Automatically connect to IDE on startup\n                                        if exactly one valid IDE is available\n  --include-hook-events                 Include all hook lifecycle events in the\n                                        output stream (only works with\n                                        --output-format=stream-json)\n  --include-partial-messages            Include partial message chunks as they\n                                        arrive (only works with --print and\n                                        --output-format=stream-json)\n  --input-format <format>               Input format (only works with --print):\n                                        \"text\" (default), or \"stream-json\"\n                                        (realtime streaming input) (choices:\n                                        \"text\", \"stream-json\")\n  --json-schema <schema>                JSON Schema for structured output\n                                        validation. Example:\n                                        {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]}\n  --max-budget-usd <amount>             Maximum dollar amount to spend on API\n                                        calls (only works with --print)\n  --mcp-config <configs...>             Load MCP servers from JSON files or\n                                        strings (space-separated)\n  --model <model>                       Model for the current session. Provide\n                                        an alias for the latest model (e.g.\n                                        'fable', 'opus', or 'sonnet') or a\n                                        model's full name (e.g.\n                                        'claude-fable-5').\n  -n, --name <name>                     Set a display name for this session\n                                        (shown in the prompt box, /resume\n                                        picker, and terminal title)\n  --no-chrome                           Disable Claude in Chrome integration\n  --no-session-persistence              Disable session persistence - sessions\n                                        will not be saved to disk and cannot be\n                                        resumed (only works with --print)\n  --output-format <format>              Output format (only works with --print):\n                                        \"text\" (default), \"json\" (single\n                                        result), or \"stream-json\" (realtime\n                                        streaming) (choices: \"text\", \"json\",\n                                        \"stream-json\")\n  --permission-mode <mode>              Permission mode to use for the session\n                                        (choices: \"acceptEdits\", \"auto\",\n                                        \"bypassPermissions\", \"manual\",\n                                        \"dontAsk\", \"plan\")\n  --plugin-dir <path>                   Load a plugin from a directory or .zip\n                                        for this session only (repeatable:\n                                        --plugin-dir A --plugin-dir B.zip)\n                                        (default: [])\n  --plugin-url <url>                    Fetch a plugin .zip from a URL for this\n                                        session only (repeatable: --plugin-url A\n                                        --plugin-url B) (default: [])\n  -p, --print                           Print response and exit (useful for\n                                        pipes). Note: The workspace trust dialog\n                                        is skipped when Claude is run in\n                                        non-interactive mode (via -p, or when\n                                        stdout is not a TTY, e.g. piped or\n                                        redirected output). Only use this in\n                                        directories you trust. Settings files\n                                        that fail validation are silently\n                                        ignored in this mode (no error dialog is\n                                        shown).\n  --prompt-suggestions [value]          Enable prompt suggestions. In print/SDK\n                                        mode, emits a prompt_suggestion message\n                                        after each turn with a predicted next\n                                        user prompt (choices: \"true\", \"false\",\n                                        \"1\", \"0\", \"yes\", \"no\", \"on\", \"off\",\n                                        preset: \"true\")\n  --remote-control [name]               Start an interactive session with Remote\n                                        Control enabled (optionally named)\n  --remote-control-session-name-prefix <prefix>\n      Prefix for auto-generated Remote Control session names (default: hostname)\n  --replay-user-messages                Re-emit user messages from stdin back on\n                                        stdout for acknowledgment (only works\n                                        with --input-format=stream-json and\n                                        --output-format=stream-json)\n  --restricted                          Restricted mode: removes the built-in\n                                        tools that run commands or code (Bash,\n                                        PowerShell, REPL and the other\n                                        code-running tools) and WebFetch unless\n                                        --tools names them, and ignores user,\n                                        project and local settings files\n                                        (managed settings and --settings still\n                                        apply; add --strict-mcp-config to skip\n                                        MCP servers too). Also confines the file\n                                        tools to the working directories\n                                        (--add-dir included), refuses\n                                        bypassPermissions, and lets only a\n                                        person or the configured permission\n                                        handler approve writes to settings, git\n                                        and tool-configuration files.\n  -r, --resume [value]                  Resume a conversation by session ID, or\n                                        open interactive picker with optional\n                                        search term\n  --safe-mode                           Start with all customizations\n                                        (CLAUDE.md, skills, plugins, hooks, MCP\n                                        servers, custom commands and agents,\n                                        output styles, workflows, custom themes,\n                                        keybindings, and more) disabled — useful\n                                        for troubleshooting a broken\n                                        configuration. Admin-managed (policy)\n                                        settings still apply. Auth, model\n                                        selection, built-in tools, and\n                                        permissions work normally. Sets\n                                        CLAUDE_CODE_SAFE_MODE=1.\n  --session-id <uuid>                   Use a specific session ID for the\n                                        conversation (must be a valid UUID)\n  --setting-sources <sources>           Comma-separated list of setting sources\n                                        to load (user, project, local).\n  --settings <file-or-json>             Path to a settings JSON file or a JSON\n                                        string to load additional settings from\n  --strict-mcp-config                   Only use MCP servers from --mcp-config,\n                                        ignoring all other MCP configurations\n  --system-prompt <prompt>              System prompt to use for the session\n  --teleport [session]                  Resume a teleport session, optionally\n                                        specify session ID\n  --tmux                                Create a tmux session for the worktree\n                                        (requires --worktree). Uses iTerm2\n                                        native panes when available; use\n                                        --tmux=classic for traditional tmux.\n  --tools <tools...>                    Specify the list of available tools from\n                                        the built-in set. Use \"\" to disable all\n                                        tools, \"default\" to use all tools, or\n                                        specify tool names (e.g.\n                                        \"Bash,Edit,Read\").\n  --verbose                             Override verbose mode setting from\n                                        config\n  -v, --version                         Output the version number\n  -w, --worktree [name]                 Create a new git worktree for this\n                                        session (optionally specify a name)\n\nCommands:\n  agents [options]                      Manage background agents\n  attach <id>                           Open a background session in this\n                                        terminal. <id> is the short id that\n                                        `claude --bg` prints and `claude agents`\n                                        lists\n  auth                                  Manage authentication\n  auto-mode                             Inspect or reset auto mode classifier\n                                        configuration\n  doctor                                Check the health of your Claude Code\n                                        installation. Reads settings files in\n                                        the current directory without a trust\n                                        prompt. For a full checkup that can also\n                                        fix issues, run /doctor in a session.\n  gateway [options]                     Run the enterprise auth/telemetry\n                                        gateway\n  import [options] [source]             Import config from another AI coding\n                                        agent into Claude Code\n  install [options] [target]            Install Claude Code native build. Use\n                                        [target] to specify version (stable,\n                                        latest, or specific version)\n  logs <id>                             Print a background session's recent\n                                        terminal output\n  mcp                                   Configure and manage MCP servers\n  plugin|plugins                        Manage Claude Code plugins\n  project                               Manage Claude Code project state\n  respawn [options] [id]                Restart a background session, or all of\n                                        them with --all, so it runs the current\n                                        Claude Code version\n  rm <id>                               Delete a background session, and its\n                                        worktree when that is safe. Works on\n                                        sessions that have already exited\n  setup-token                           Set up a long-lived authentication token\n                                        (requires Claude subscription)\n  stop|kill <id>                        Stop a background session. Its\n                                        conversation is kept: `claude attach\n                                        <id>` opens it again, `claude --resume`\n                                        works once it is stopped\n  ultrareview [options] [target]        Run a cloud-hosted multi-agent code\n                                        review of the current branch (or a PR\n                                        number / base branch) and print the\n                                        findings\n  update|upgrade                        Check for updates and install if\n                                        available\n\n",
+      "hints": {
+        "streamingOptions": [
+          "--output-format",
+          "--json-schema",
+          "--verbose"
+        ],
+        "sessionOptions": [
+          "--continue",
+          "--fork-session",
+          "--resume",
+          "--no-session-persistence",
+          "--remote-control-session-name-prefix",
+          "--session-id"
+        ],
+        "modelProviderOptions": [
+          "--fallback-model",
+          "--model"
+        ]
+      },
+      "strategy": "EXPLICIT_OBSERVED_TEMPLATE",
+      "args": [
+        "--print",
+        "For this session-continuity probe, remember this nonce for the next turn: SESSION_MEMORY_77a15564-ab06-4d58-ad1e-d5b59fb7b109. Reply only READY.",
+        "--output-format",
+        "stream-json",
+        "--verbose"
+      ],
+      "structuredStreamingRequested": true,
+      "note": "Explicit target-observed template supplied."
+    },
+    "run": {
+      "runtimeFound": true,
+      "executable": "C:\\Users\\HP\\.local\\bin\\fcc-claude.exe",
+      "args": [
+        "--print",
+        "For this session-continuity probe, remember this nonce for the next turn: SESSION_MEMORY_77a15564-ab06-4d58-ad1e-d5b59fb7b109. Reply only READY.",
+        "--output-format",
+        "stream-json",
+        "--verbose"
+      ],
+      "wrapper": null,
+      "pid": 12896,
+      "cwd": "C:\\Users\\HP\\AppData\\Local\\Temp\\fcc-stream-target-Jim30h",
+      "exitCode": null,
+      "signal": "SIGINT",
+      "launchError": null,
+      "durationMs": 26318,
+      "timedOut": true,
+      "cancelled": false,
+      "gracefulInterruptAttempted": true,
+      "forcedTerminationAttempted": true,
+      "forcedTerminationSucceeded": false,
+      "observedProcessTree": [
+        {
+          "pid": 12896,
+          "ppid": null,
+          "name": "fcc-claude.exe",
+          "role": "launcher"
+        },
+        {
+          "pid": 20872,
+          "ppid": 12896,
+          "name": "conhost.exe",
+          "role": "descendant"
+        },
+        {
+          "pid": 14616,
+          "ppid": 12896,
+          "name": "python.exe",
+          "role": "descendant"
+        },
+        {
+          "pid": 25744,
+          "ppid": 14616,
+          "name": "python.exe",
+          "role": "descendant"
+        },
+        {
+          "pid": 24388,
+          "ppid": 25744,
+          "name": "claude.exe",
+          "role": "descendant"
+        }
+      ],
+      "remainingOwnedProcesses": [
+        {
+          "pid": 20872,
+          "ppid": 12896,
+          "name": "conhost.exe"
+        },
+        {
+          "pid": 24388,
+          "ppid": 25744,
+          "name": "claude.exe"
+        }
+      ],
+      "processTreeCleanupObserved": false,
+      "outputTruncated": false,
+      "stdout": "{\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Temp\\\\fcc-stream-target-Jim30h\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"DesignSync\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"Glob\",\"Grep\",\"ListAgents\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeup\",\"SendMessage\",\"Skill\",\"TaskOutput\",\"TaskStop\",\"WebFetch\",\"WebSearch\",\"Workflow\",\"Write\"],\"mcp_servers\":[],\"model\":\"claude-opus-5[1m]\",\"permissionMode\":\"default\",\"slash_commands\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\",\"agents\",\"auto-mode-setup\",\"autocompact\",\"clear\",\"color\",\"compact\",\"config\",\"context\",\"effort\",\"fast\",\"heapdump\",\"init\",\"mcp\",\"model\",\"__remote-workflow\",\"workflow-launch-exec\",\"reload-skills\",\"rename\",\"security-review\",\"usage\",\"insights\",\"recap\",\"goal\",\"design\",\"design-consent\",\"design-revoke\",\"list-agents\",\"team-onboarding\"],\"terminal_slash_commands\":[\"doctor\",\"color\"],\"apiKeySource\":\"none\",\"claude_code_version\":\"2.1.251\",\"output_style\":\"default\",\"agents\":[\"claude\",\"Explore\",\"general-purpose\",\"Plan\",\"statusline-setup\"],\"skills\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\"],\"plugins\":[],\"capabilities\":[\"interrupt_receipt_v1\",\"interrupt_cancel_queued_v1\",\"msg_lifecycle_v1\"],\"analytics_disabled\":false,\"product_feedback_disabled\":false,\"uuid\":\"6b3dc034-a488-4cce-8cbd-a0f694fdae78\",\"memory_paths\":{\"auto\":\"C:\\\\Users\\\\HP\\\\.claude\\\\projects\\\\C--Users-HP-AppData-Local-Temp-fcc-stream-target-Jim30h\\\\memory\\\\\"},\"messaging_socket_path\":\"\\\\\\\\.\\\\pipe\\\\LOCAL\\\\cc-msg-86c8837d834a6e1a0070c0f250483787\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"powershell_path\":\"C:\\\\Users\\\\HP\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":1,\"max_retries\":10,\"retry_delay_ms\":574,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"422a170d-47fb-4435-baf0-987c1bd340e8\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":2,\"max_retries\":10,\"retry_delay_ms\":1033,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"68969d98-28e0-47c9-9624-7aa5375ca06e\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":3,\"max_retries\":10,\"retry_delay_ms\":2075,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"ff3daa48-b234-4f42-a881-f2e8b4dcdada\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":4,\"max_retries\":10,\"retry_delay_ms\":4655,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"50013d1d-fb56-4e8e-b0ef-7a5e96513ca0\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":5,\"max_retries\":10,\"retry_delay_ms\":9132,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"3a5c94d9-4634-436d-b6ea-2071019ca971\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":6,\"max_retries\":10,\"retry_delay_ms\":18917,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"f587f877-cefa-424d-8ed1-d129c183f915\"}\n",
+      "stderr": "",
+      "rawFrames": [
+        {
+          "sequence": 1,
+          "stream": "stdout",
+          "atMs": 3099,
+          "byteLength": 2570,
+          "sha256": "285749d5dee8d50ff020f7afb950f014cf5b15fac1b96aa7f6cc648f68014f28",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Temp\\\\fcc-stream-target-Jim30h\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"DesignSync\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"Glob\",\"Grep\",\"ListAgents\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeup\",\"SendMessage\",\"Skill\",\"TaskOutput\",\"TaskStop\",\"WebFetch\",\"WebSearch\",\"Workflow\",\"Write\"],\"mcp_servers\":[],\"model\":\"claude-opus-5[1m]\",\"permissionMode\":\"default\",\"slash_commands\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\",\"agents\",\"auto-mode-setup\",\"autocompact\",\"clear\",\"color\",\"compact\",\"config\",\"context\",\"effort\",\"fast\",\"heapdump\",\"init\",\"mcp\",\"model\",\"__remote-workflow\",\"workflow-launch-exec\",\"reload-skills\",\"rename\",\"security-review\",\"usage\",\"insights\",\"recap\",\"goal\",\"design\",\"design-consent\",\"design-revoke\",\"list-agents\",\"team-onboarding\"],\"terminal_slash_commands\":[\"doctor\",\"color\"],\"apiKeySource\":\"none\",\"claude_code_version\":\"2.1.251\",\"output_style\":\"default\",\"agents\":[\"claude\",\"Explore\",\"general-purpose\",\"Plan\",\"statusline-setup\"],\"skills\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\"],\"plugins\":[],\"capabilities\":[\"interrupt_receipt_v1\",\"interrupt_cancel_queued_v1\",\"msg_lifecycle_v1\"],\"analytics_disabled\":false,\"product_feedback_disabled\":false,\"uuid\":\"6b3dc034-a488-4cce-8cbd-a0f694fdae78\",\"memory_paths\":{\"auto\":\"C:\\\\Users\\\\HP\\\\.claude\\\\projects\\\\C--Users-HP-AppData-Local-Temp-fcc-stream-target-Jim30h\\\\memory\\\\\"},\"messaging_socket_path\":\"\\\\\\\\.\\\\pipe\\\\LOCAL\\\\cc-msg-86c8837d834a6e1a0070c0f250483787\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"powershell_path\":\"C:\\\\Users\\\\HP\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":1,\"max_retries\":10,\"retry_delay_ms\":574,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"422a170d-47fb-4435-baf0-987c1bd340e8\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":2,\"max_retries\":10,\"retry_delay_ms\":1033,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"68969d98-28e0-47c9-9624-7aa5375ca06e\"}\n"
+        },
+        {
+          "sequence": 2,
+          "stream": "stdout",
+          "atMs": 3724,
+          "byteLength": 231,
+          "sha256": "74710aee44f504fdb1a228f265cc0c2addb997595ecdfc9e53986016af8f2139",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":3,\"max_retries\":10,\"retry_delay_ms\":2075,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"ff3daa48-b234-4f42-a881-f2e8b4dcdada\"}\n"
+        },
+        {
+          "sequence": 3,
+          "stream": "stdout",
+          "atMs": 5809,
+          "byteLength": 231,
+          "sha256": "b1cf85782b5eb6cca9090418f07d18f4d754fc5093cc7244a0609109e4dfd7fb",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":4,\"max_retries\":10,\"retry_delay_ms\":4655,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"50013d1d-fb56-4e8e-b0ef-7a5e96513ca0\"}\n"
+        },
+        {
+          "sequence": 4,
+          "stream": "stdout",
+          "atMs": 10474,
+          "byteLength": 231,
+          "sha256": "2b0e3c441438c043353897f1d5513bdde7bf84bcadae381f8d13cbd110435461",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":5,\"max_retries\":10,\"retry_delay_ms\":9132,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"3a5c94d9-4634-436d-b6ea-2071019ca971\"}\n"
+        },
+        {
+          "sequence": 5,
+          "stream": "stdout",
+          "atMs": 19616,
+          "byteLength": 232,
+          "sha256": "1319c497d73aff2519cf9962bfb91b289773d1eb397ce09b322f028bff143a9e",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":6,\"max_retries\":10,\"retry_delay_ms\":18917,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"f587f877-cefa-424d-8ed1-d129c183f915\"}\n"
+        }
+      ],
+      "lineEvents": [
+        {
+          "sequence": 1,
+          "stream": "stdout",
+          "atMs": 3099,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Temp\\\\fcc-stream-target-Jim30h\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"DesignSync\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"Glob\",\"Grep\",\"ListAgents\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeup\",\"SendMessage\",\"Skill\",\"TaskOutput\",\"TaskStop\",\"WebFetch\",\"WebSearch\",\"Workflow\",\"Write\"],\"mcp_servers\":[],\"model\":\"claude-opus-5[1m]\",\"permissionMode\":\"default\",\"slash_commands\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\",\"agents\",\"auto-mode-setup\",\"autocompact\",\"clear\",\"color\",\"compact\",\"config\",\"context\",\"effort\",\"fast\",\"heapdump\",\"init\",\"mcp\",\"model\",\"__remote-workflow\",\"workflow-launch-exec\",\"reload-skills\",\"rename\",\"security-review\",\"usage\",\"insights\",\"recap\",\"goal\",\"design\",\"design-consent\",\"design-revoke\",\"list-agents\",\"team-onboarding\"],\"terminal_slash_commands\":[\"doctor\",\"color\"],\"apiKeySource\":\"none\",\"claude_code_version\":\"2.1.251\",\"output_style\":\"default\",\"agents\":[\"claude\",\"Explore\",\"general-purpose\",\"Plan\",\"statusline-setup\"],\"skills\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\"],\"plugins\":[],\"capabilities\":[\"interrupt_receipt_v1\",\"interrupt_cancel_queued_v1\",\"msg_lifecycle_v1\"],\"analytics_disabled\":false,\"product_feedback_disabled\":false,\"uuid\":\"6b3dc034-a488-4cce-8cbd-a0f694fdae78\",\"memory_paths\":{\"auto\":\"C:\\\\Users\\\\HP\\\\.claude\\\\projects\\\\C--Users-HP-AppData-Local-Temp-fcc-stream-target-Jim30h\\\\memory\\\\\"},\"messaging_socket_path\":\"\\\\\\\\.\\\\pipe\\\\LOCAL\\\\cc-msg-86c8837d834a6e1a0070c0f250483787\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"powershell_path\":\"C:\\\\Users\\\\HP\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "SESSION_LIKE_KEY",
+            "TOOL_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.session_id",
+            "$.tools"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "init",
+            "cwd": "C:\\Users\\HP\\AppData\\Local\\Temp\\fcc-stream-target-Jim30h",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "tools": [
+              "Task",
+              "Bash",
+              "CronCreate",
+              "CronDelete",
+              "CronList",
+              "DesignSync",
+              "Edit",
+              "EnterWorktree",
+              "ExitWorktree",
+              "Glob",
+              "Grep",
+              "ListAgents",
+              "NotebookEdit",
+              "Read",
+              "ReportFindings",
+              "ScheduleWakeup",
+              "SendMessage",
+              "Skill",
+              "TaskOutput",
+              "TaskStop",
+              "WebFetch",
+              "WebSearch",
+              "Workflow",
+              "Write"
+            ],
+            "mcp_servers": [],
+            "model": "claude-opus-5[1m]",
+            "permissionMode": "default",
+            "slash_commands": [
+              "deep-research",
+              "design-sync",
+              "dataviz",
+              "update-config",
+              "verify",
+              "debug",
+              "code-review",
+              "simplify",
+              "batch",
+              "fewer-permission-prompts",
+              "doctor",
+              "loop",
+              "claude-api",
+              "workflow-authoring",
+              "run",
+              "run-skill-generator",
+              "agents",
+              "auto-mode-setup",
+              "autocompact",
+              "clear",
+              "color",
+              "compact",
+              "config",
+              "context",
+              "effort",
+              "fast",
+              "heapdump",
+              "init",
+              "mcp",
+              "model",
+              "__remote-workflow",
+              "workflow-launch-exec",
+              "reload-skills",
+              "rename",
+              "security-review",
+              "usage",
+              "insights",
+              "recap",
+              "goal",
+              "design",
+              "design-consent",
+              "design-revoke",
+              "list-agents",
+              "team-onboarding"
+            ],
+            "terminal_slash_commands": [
+              "doctor",
+              "color"
+            ],
+            "apiKeySource": "[REDACTED]",
+            "claude_code_version": "2.1.251",
+            "output_style": "default",
+            "agents": [
+              "claude",
+              "Explore",
+              "general-purpose",
+              "Plan",
+              "statusline-setup"
+            ],
+            "skills": [
+              "deep-research",
+              "design-sync",
+              "dataviz",
+              "update-config",
+              "verify",
+              "debug",
+              "code-review",
+              "simplify",
+              "batch",
+              "fewer-permission-prompts",
+              "doctor",
+              "loop",
+              "claude-api",
+              "workflow-authoring",
+              "run",
+              "run-skill-generator"
+            ],
+            "plugins": [],
+            "capabilities": [
+              "interrupt_receipt_v1",
+              "interrupt_cancel_queued_v1",
+              "msg_lifecycle_v1"
+            ],
+            "analytics_disabled": false,
+            "product_feedback_disabled": false,
+            "uuid": "6b3dc034-a488-4cce-8cbd-a0f694fdae78",
+            "memory_paths": {
+              "auto": "C:\\Users\\HP\\.claude\\projects\\C--Users-HP-AppData-Local-Temp-fcc-stream-target-Jim30h\\memory\\"
+            },
+            "messaging_socket_path": "\\\\.\\pipe\\LOCAL\\cc-msg-86c8837d834a6e1a0070c0f250483787",
+            "fast_mode_state": "off",
+            "fast_mode_disabled_reason": "sdk_opt_in_required",
+            "powershell_path": "C:\\Users\\HP\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe"
+          }
+        },
+        {
+          "sequence": 2,
+          "stream": "stdout",
+          "atMs": 3099,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":1,\"max_retries\":10,\"retry_delay_ms\":574,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"422a170d-47fb-4435-baf0-987c1bd340e8\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 1,
+            "max_retries": 10,
+            "retry_delay_ms": 574,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "422a170d-47fb-4435-baf0-987c1bd340e8"
+          }
+        },
+        {
+          "sequence": 3,
+          "stream": "stdout",
+          "atMs": 3099,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":2,\"max_retries\":10,\"retry_delay_ms\":1033,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"68969d98-28e0-47c9-9624-7aa5375ca06e\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 2,
+            "max_retries": 10,
+            "retry_delay_ms": 1033,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "68969d98-28e0-47c9-9624-7aa5375ca06e"
+          }
+        },
+        {
+          "sequence": 4,
+          "stream": "stdout",
+          "atMs": 3724,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":3,\"max_retries\":10,\"retry_delay_ms\":2075,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"ff3daa48-b234-4f42-a881-f2e8b4dcdada\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 3,
+            "max_retries": 10,
+            "retry_delay_ms": 2075,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "ff3daa48-b234-4f42-a881-f2e8b4dcdada"
+          }
+        },
+        {
+          "sequence": 5,
+          "stream": "stdout",
+          "atMs": 5809,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":4,\"max_retries\":10,\"retry_delay_ms\":4655,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"50013d1d-fb56-4e8e-b0ef-7a5e96513ca0\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 4,
+            "max_retries": 10,
+            "retry_delay_ms": 4655,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "50013d1d-fb56-4e8e-b0ef-7a5e96513ca0"
+          }
+        },
+        {
+          "sequence": 6,
+          "stream": "stdout",
+          "atMs": 10474,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":5,\"max_retries\":10,\"retry_delay_ms\":9132,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"3a5c94d9-4634-436d-b6ea-2071019ca971\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 5,
+            "max_retries": 10,
+            "retry_delay_ms": 9132,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "3a5c94d9-4634-436d-b6ea-2071019ca971"
+          }
+        },
+        {
+          "sequence": 7,
+          "stream": "stdout",
+          "atMs": 19616,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":6,\"max_retries\":10,\"retry_delay_ms\":18917,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"f587f877-cefa-424d-8ed1-d129c183f915\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 6,
+            "max_retries": 10,
+            "retry_delay_ms": 18917,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "f587f877-cefa-424d-8ed1-d129c183f915"
+          }
+        }
+      ],
+      "sessionCandidates": [
+        {
+          "source": "json-key",
+          "path": "$.session_id",
+          "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+        },
+        {
+          "source": "text-pattern",
+          "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+        },
+        {
+          "source": "text-pattern",
+          "value": "6b3dc034-a488-4cce-8cbd-a0f694fdae78"
+        },
+        {
+          "source": "text-pattern",
+          "value": "422a170d-47fb-4435-baf0-987c1bd340e8"
+        },
+        {
+          "source": "text-pattern",
+          "value": "68969d98-28e0-47c9-9624-7aa5375ca06e"
+        },
+        {
+          "source": "text-pattern",
+          "value": "ff3daa48-b234-4f42-a881-f2e8b4dcdada"
+        },
+        {
+          "source": "text-pattern",
+          "value": "50013d1d-fb56-4e8e-b0ef-7a5e96513ca0"
+        },
+        {
+          "source": "text-pattern",
+          "value": "3a5c94d9-4634-436d-b6ea-2071019ca971"
+        },
+        {
+          "source": "text-pattern",
+          "value": "f587f877-cefa-424d-8ed1-d129c183f915"
+        }
+      ],
+      "failure": {
+        "category": "TIMEOUT",
+        "source": "process",
+        "retryability": "UNKNOWN",
+        "userActionRequired": "UNKNOWN"
+      },
+      "classification": "TIMEOUT"
+    },
+    "observations": {
+      "lineClassifications": {
+        "JSON_EVENT": 7
+      },
+      "eventTypeHints": [
+        "system"
+      ],
+      "semanticHints": [
+        "SESSION_LIKE_KEY",
+        "TOOL_LIKE_KEY",
+        "ERROR_LIKE_KEY"
+      ],
+      "sessionCandidates": [
+        {
+          "source": "json-key",
+          "path": "$.session_id",
+          "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+        },
+        {
+          "source": "text-pattern",
+          "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+        },
+        {
+          "source": "text-pattern",
+          "value": "6b3dc034-a488-4cce-8cbd-a0f694fdae78"
+        },
+        {
+          "source": "text-pattern",
+          "value": "422a170d-47fb-4435-baf0-987c1bd340e8"
+        },
+        {
+          "source": "text-pattern",
+          "value": "68969d98-28e0-47c9-9624-7aa5375ca06e"
+        },
+        {
+          "source": "text-pattern",
+          "value": "ff3daa48-b234-4f42-a881-f2e8b4dcdada"
+        },
+        {
+          "source": "text-pattern",
+          "value": "50013d1d-fb56-4e8e-b0ef-7a5e96513ca0"
+        },
+        {
+          "source": "text-pattern",
+          "value": "3a5c94d9-4634-436d-b6ea-2071019ca971"
+        },
+        {
+          "source": "text-pattern",
+          "value": "f587f877-cefa-424d-8ed1-d129c183f915"
+        }
+      ],
+      "stdoutFrameCount": 5,
+      "stderrFrameCount": 0,
+      "malformedFrameCount": 0,
+      "outputTruncated": false
+    }
+  },
+  "session": {
+    "status": "OBSERVED_BUT_CONTINUATION_NOT_CONFIRMED",
+    "helpSessionOptionHints": [
+      "--continue",
+      "--fork-session",
+      "--resume",
+      "--no-session-persistence",
+      "--remote-control-session-name-prefix",
+      "--session-id"
+    ],
+    "initialSessionCandidates": [
+      {
+        "source": "json-key",
+        "path": "$.session_id",
+        "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+      },
+      {
+        "source": "text-pattern",
+        "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+      },
+      {
+        "source": "text-pattern",
+        "value": "6b3dc034-a488-4cce-8cbd-a0f694fdae78"
+      },
+      {
+        "source": "text-pattern",
+        "value": "422a170d-47fb-4435-baf0-987c1bd340e8"
+      },
+      {
+        "source": "text-pattern",
+        "value": "68969d98-28e0-47c9-9624-7aa5375ca06e"
+      },
+      {
+        "source": "text-pattern",
+        "value": "ff3daa48-b234-4f42-a881-f2e8b4dcdada"
+      },
+      {
+        "source": "text-pattern",
+        "value": "50013d1d-fb56-4e8e-b0ef-7a5e96513ca0"
+      },
+      {
+        "source": "text-pattern",
+        "value": "3a5c94d9-4634-436d-b6ea-2071019ca971"
+      },
+      {
+        "source": "text-pattern",
+        "value": "f587f877-cefa-424d-8ed1-d129c183f915"
+      }
+    ],
+    "selectedSessionId": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+    "sessionIdSource": {
+      "source": "json-key",
+      "path": "$.session_id",
+      "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+    },
+    "processExited": true,
+    "resumeCommand": [
+      "--print",
+      "Continue the existing session. Reply with exactly the nonce I asked you to remember in the previous turn, and nothing else.",
+      "--resume",
+      "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+      "--output-format",
+      "stream-json",
+      "--verbose"
+    ],
+    "resumeRun": {
+      "runtimeFound": true,
+      "executable": "C:\\Users\\HP\\.local\\bin\\fcc-claude.exe",
+      "args": [
+        "--print",
+        "Continue the existing session. Reply with exactly the nonce I asked you to remember in the previous turn, and nothing else.",
+        "--resume",
+        "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+        "--output-format",
+        "stream-json",
+        "--verbose"
+      ],
+      "wrapper": null,
+      "pid": 24204,
+      "cwd": "C:\\Users\\HP\\AppData\\Local\\Temp\\fcc-session-target-aXkeLr",
+      "exitCode": null,
+      "signal": "SIGINT",
+      "launchError": null,
+      "durationMs": 23833,
+      "timedOut": true,
+      "cancelled": false,
+      "gracefulInterruptAttempted": true,
+      "forcedTerminationAttempted": true,
+      "forcedTerminationSucceeded": false,
+      "observedProcessTree": [
+        {
+          "pid": 24204,
+          "ppid": null,
+          "name": "fcc-claude.exe",
+          "role": "launcher"
+        },
+        {
+          "pid": 4024,
+          "ppid": 24204,
+          "name": "conhost.exe",
+          "role": "descendant"
+        },
+        {
+          "pid": 15448,
+          "ppid": 24204,
+          "name": "python.exe",
+          "role": "descendant"
+        },
+        {
+          "pid": 25912,
+          "ppid": 15448,
+          "name": "python.exe",
+          "role": "descendant"
+        }
+      ],
+      "remainingOwnedProcesses": [
+        {
+          "pid": 4024,
+          "ppid": 24204,
+          "name": "conhost.exe"
+        }
+      ],
+      "processTreeCleanupObserved": false,
+      "outputTruncated": false,
+      "stdout": "{\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Temp\\\\fcc-session-target-aXkeLr\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"DesignSync\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"Glob\",\"Grep\",\"ListAgents\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeup\",\"SendMessage\",\"Skill\",\"TaskOutput\",\"TaskStop\",\"WebFetch\",\"WebSearch\",\"Workflow\",\"Write\"],\"mcp_servers\":[],\"model\":\"claude-opus-5[1m]\",\"permissionMode\":\"default\",\"slash_commands\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\",\"agents\",\"auto-mode-setup\",\"autocompact\",\"clear\",\"color\",\"compact\",\"config\",\"context\",\"effort\",\"fast\",\"heapdump\",\"init\",\"mcp\",\"model\",\"__remote-workflow\",\"workflow-launch-exec\",\"reload-skills\",\"rename\",\"security-review\",\"usage\",\"insights\",\"recap\",\"goal\",\"design\",\"design-consent\",\"design-revoke\",\"list-agents\",\"team-onboarding\"],\"terminal_slash_commands\":[\"doctor\",\"color\"],\"apiKeySource\":\"none\",\"claude_code_version\":\"2.1.251\",\"output_style\":\"default\",\"agents\":[\"claude\",\"Explore\",\"general-purpose\",\"Plan\",\"statusline-setup\"],\"skills\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\"],\"plugins\":[],\"capabilities\":[\"interrupt_receipt_v1\",\"interrupt_cancel_queued_v1\",\"msg_lifecycle_v1\"],\"analytics_disabled\":false,\"product_feedback_disabled\":false,\"uuid\":\"1b57fb91-9095-4021-9952-defa5363dd0e\",\"memory_paths\":{\"auto\":\"C:\\\\Users\\\\HP\\\\.claude\\\\projects\\\\C--Users-HP-AppData-Local-Temp-fcc-session-target-aXkeLr\\\\memory\\\\\"},\"messaging_socket_path\":\"\\\\\\\\.\\\\pipe\\\\LOCAL\\\\cc-msg-6a5edfb56faab9a86afb5a10dc47012e\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"powershell_path\":\"C:\\\\Users\\\\HP\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":1,\"max_retries\":10,\"retry_delay_ms\":589,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"c2b8eb68-700d-408a-b7d3-b71b96a451bf\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":2,\"max_retries\":10,\"retry_delay_ms\":1148,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"101d5bbe-e488-4500-8500-3d5e068fd356\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":3,\"max_retries\":10,\"retry_delay_ms\":2152,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"41e3be9f-f792-4267-8f4b-6590c522360d\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":4,\"max_retries\":10,\"retry_delay_ms\":4593,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"fd1c55bc-c57a-489a-b24f-651f5e1bf717\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":5,\"max_retries\":10,\"retry_delay_ms\":8385,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"a4b734b9-6bd8-45a9-b413-1d640397a174\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":6,\"max_retries\":10,\"retry_delay_ms\":17254,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"8e92d345-d28e-4479-a72d-4e219ac93806\"}\n",
+      "stderr": "",
+      "rawFrames": [
+        {
+          "sequence": 1,
+          "stream": "stdout",
+          "atMs": 2206,
+          "byteLength": 2111,
+          "sha256": "1632ffc7b44e73f9833983c7ff67ecc8060c8b346e988315998ae54be8271fac",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Temp\\\\fcc-session-target-aXkeLr\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"DesignSync\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"Glob\",\"Grep\",\"ListAgents\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeup\",\"SendMessage\",\"Skill\",\"TaskOutput\",\"TaskStop\",\"WebFetch\",\"WebSearch\",\"Workflow\",\"Write\"],\"mcp_servers\":[],\"model\":\"claude-opus-5[1m]\",\"permissionMode\":\"default\",\"slash_commands\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\",\"agents\",\"auto-mode-setup\",\"autocompact\",\"clear\",\"color\",\"compact\",\"config\",\"context\",\"effort\",\"fast\",\"heapdump\",\"init\",\"mcp\",\"model\",\"__remote-workflow\",\"workflow-launch-exec\",\"reload-skills\",\"rename\",\"security-review\",\"usage\",\"insights\",\"recap\",\"goal\",\"design\",\"design-consent\",\"design-revoke\",\"list-agents\",\"team-onboarding\"],\"terminal_slash_commands\":[\"doctor\",\"color\"],\"apiKeySource\":\"none\",\"claude_code_version\":\"2.1.251\",\"output_style\":\"default\",\"agents\":[\"claude\",\"Explore\",\"general-purpose\",\"Plan\",\"statusline-setup\"],\"skills\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\"],\"plugins\":[],\"capabilities\":[\"interrupt_receipt_v1\",\"interrupt_cancel_queued_v1\",\"msg_lifecycle_v1\"],\"analytics_disabled\":false,\"product_feedback_disabled\":false,\"uuid\":\"1b57fb91-9095-4021-9952-defa5363dd0e\",\"memory_paths\":{\"auto\":\"C:\\\\Users\\\\HP\\\\.claude\\\\projects\\\\C--Users-HP-AppData-Local-Temp-fcc-session-target-aXkeLr\\\\memory\\\\\"},\"messaging_socket_path\":\"\\\\\\\\.\\\\pipe\\\\LOCAL\\\\cc-msg-6a5edfb56faab9a86afb5a10dc47012e\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"powershell_path\":\"C:\\\\Users\\\\HP\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\"}\n"
+        },
+        {
+          "sequence": 2,
+          "stream": "stdout",
+          "atMs": 2251,
+          "byteLength": 230,
+          "sha256": "43d0717b4ed013dec11968b73b576b8ca194378d42a1533adb3dacf82be56fec",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":1,\"max_retries\":10,\"retry_delay_ms\":589,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"c2b8eb68-700d-408a-b7d3-b71b96a451bf\"}\n"
+        },
+        {
+          "sequence": 3,
+          "stream": "stdout",
+          "atMs": 2851,
+          "byteLength": 231,
+          "sha256": "a6600ba3195f7b20a228d43b2efad54f0b45123a84da42e9e5f3920b6b359090",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":2,\"max_retries\":10,\"retry_delay_ms\":1148,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"101d5bbe-e488-4500-8500-3d5e068fd356\"}\n"
+        },
+        {
+          "sequence": 4,
+          "stream": "stdout",
+          "atMs": 4071,
+          "byteLength": 231,
+          "sha256": "f33cabdca6e232050aaf4432f21e81d4f606b0e5b1bc6e8911ce2c18f844891e",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":3,\"max_retries\":10,\"retry_delay_ms\":2152,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"41e3be9f-f792-4267-8f4b-6590c522360d\"}\n"
+        },
+        {
+          "sequence": 5,
+          "stream": "stdout",
+          "atMs": 6232,
+          "byteLength": 231,
+          "sha256": "f350437a37b648ecc1864e83b79ddde6ff1cbee624de6e73d8fe9d6f9c010428",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":4,\"max_retries\":10,\"retry_delay_ms\":4593,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"fd1c55bc-c57a-489a-b24f-651f5e1bf717\"}\n"
+        },
+        {
+          "sequence": 6,
+          "stream": "stdout",
+          "atMs": 10849,
+          "byteLength": 231,
+          "sha256": "0df96fe9d497ffb60cb04848f002ad483b708423b12b02dad2acc3843d79d518",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":5,\"max_retries\":10,\"retry_delay_ms\":8385,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"a4b734b9-6bd8-45a9-b413-1d640397a174\"}\n"
+        },
+        {
+          "sequence": 7,
+          "stream": "stdout",
+          "atMs": 19258,
+          "byteLength": 232,
+          "sha256": "7afd48de701937e92cf7371eb67aab01d6ad082932184ea94b1a9a1bda3a79d0",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":6,\"max_retries\":10,\"retry_delay_ms\":17254,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"8e92d345-d28e-4479-a72d-4e219ac93806\"}\n"
+        }
+      ],
+      "lineEvents": [
+        {
+          "sequence": 1,
+          "stream": "stdout",
+          "atMs": 2206,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Temp\\\\fcc-session-target-aXkeLr\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"DesignSync\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"Glob\",\"Grep\",\"ListAgents\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeup\",\"SendMessage\",\"Skill\",\"TaskOutput\",\"TaskStop\",\"WebFetch\",\"WebSearch\",\"Workflow\",\"Write\"],\"mcp_servers\":[],\"model\":\"claude-opus-5[1m]\",\"permissionMode\":\"default\",\"slash_commands\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\",\"agents\",\"auto-mode-setup\",\"autocompact\",\"clear\",\"color\",\"compact\",\"config\",\"context\",\"effort\",\"fast\",\"heapdump\",\"init\",\"mcp\",\"model\",\"__remote-workflow\",\"workflow-launch-exec\",\"reload-skills\",\"rename\",\"security-review\",\"usage\",\"insights\",\"recap\",\"goal\",\"design\",\"design-consent\",\"design-revoke\",\"list-agents\",\"team-onboarding\"],\"terminal_slash_commands\":[\"doctor\",\"color\"],\"apiKeySource\":\"none\",\"claude_code_version\":\"2.1.251\",\"output_style\":\"default\",\"agents\":[\"claude\",\"Explore\",\"general-purpose\",\"Plan\",\"statusline-setup\"],\"skills\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\"],\"plugins\":[],\"capabilities\":[\"interrupt_receipt_v1\",\"interrupt_cancel_queued_v1\",\"msg_lifecycle_v1\"],\"analytics_disabled\":false,\"product_feedback_disabled\":false,\"uuid\":\"1b57fb91-9095-4021-9952-defa5363dd0e\",\"memory_paths\":{\"auto\":\"C:\\\\Users\\\\HP\\\\.claude\\\\projects\\\\C--Users-HP-AppData-Local-Temp-fcc-session-target-aXkeLr\\\\memory\\\\\"},\"messaging_socket_path\":\"\\\\\\\\.\\\\pipe\\\\LOCAL\\\\cc-msg-6a5edfb56faab9a86afb5a10dc47012e\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"powershell_path\":\"C:\\\\Users\\\\HP\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "SESSION_LIKE_KEY",
+            "TOOL_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.session_id",
+            "$.tools"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "init",
+            "cwd": "C:\\Users\\HP\\AppData\\Local\\Temp\\fcc-session-target-aXkeLr",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "tools": [
+              "Task",
+              "Bash",
+              "CronCreate",
+              "CronDelete",
+              "CronList",
+              "DesignSync",
+              "Edit",
+              "EnterWorktree",
+              "ExitWorktree",
+              "Glob",
+              "Grep",
+              "ListAgents",
+              "NotebookEdit",
+              "Read",
+              "ReportFindings",
+              "ScheduleWakeup",
+              "SendMessage",
+              "Skill",
+              "TaskOutput",
+              "TaskStop",
+              "WebFetch",
+              "WebSearch",
+              "Workflow",
+              "Write"
+            ],
+            "mcp_servers": [],
+            "model": "claude-opus-5[1m]",
+            "permissionMode": "default",
+            "slash_commands": [
+              "deep-research",
+              "design-sync",
+              "dataviz",
+              "update-config",
+              "verify",
+              "debug",
+              "code-review",
+              "simplify",
+              "batch",
+              "fewer-permission-prompts",
+              "doctor",
+              "loop",
+              "claude-api",
+              "workflow-authoring",
+              "run",
+              "run-skill-generator",
+              "agents",
+              "auto-mode-setup",
+              "autocompact",
+              "clear",
+              "color",
+              "compact",
+              "config",
+              "context",
+              "effort",
+              "fast",
+              "heapdump",
+              "init",
+              "mcp",
+              "model",
+              "__remote-workflow",
+              "workflow-launch-exec",
+              "reload-skills",
+              "rename",
+              "security-review",
+              "usage",
+              "insights",
+              "recap",
+              "goal",
+              "design",
+              "design-consent",
+              "design-revoke",
+              "list-agents",
+              "team-onboarding"
+            ],
+            "terminal_slash_commands": [
+              "doctor",
+              "color"
+            ],
+            "apiKeySource": "[REDACTED]",
+            "claude_code_version": "2.1.251",
+            "output_style": "default",
+            "agents": [
+              "claude",
+              "Explore",
+              "general-purpose",
+              "Plan",
+              "statusline-setup"
+            ],
+            "skills": [
+              "deep-research",
+              "design-sync",
+              "dataviz",
+              "update-config",
+              "verify",
+              "debug",
+              "code-review",
+              "simplify",
+              "batch",
+              "fewer-permission-prompts",
+              "doctor",
+              "loop",
+              "claude-api",
+              "workflow-authoring",
+              "run",
+              "run-skill-generator"
+            ],
+            "plugins": [],
+            "capabilities": [
+              "interrupt_receipt_v1",
+              "interrupt_cancel_queued_v1",
+              "msg_lifecycle_v1"
+            ],
+            "analytics_disabled": false,
+            "product_feedback_disabled": false,
+            "uuid": "1b57fb91-9095-4021-9952-defa5363dd0e",
+            "memory_paths": {
+              "auto": "C:\\Users\\HP\\.claude\\projects\\C--Users-HP-AppData-Local-Temp-fcc-session-target-aXkeLr\\memory\\"
+            },
+            "messaging_socket_path": "\\\\.\\pipe\\LOCAL\\cc-msg-6a5edfb56faab9a86afb5a10dc47012e",
+            "fast_mode_state": "off",
+            "fast_mode_disabled_reason": "sdk_opt_in_required",
+            "powershell_path": "C:\\Users\\HP\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe"
+          }
+        },
+        {
+          "sequence": 2,
+          "stream": "stdout",
+          "atMs": 2251,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":1,\"max_retries\":10,\"retry_delay_ms\":589,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"c2b8eb68-700d-408a-b7d3-b71b96a451bf\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 1,
+            "max_retries": 10,
+            "retry_delay_ms": 589,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "c2b8eb68-700d-408a-b7d3-b71b96a451bf"
+          }
+        },
+        {
+          "sequence": 3,
+          "stream": "stdout",
+          "atMs": 2851,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":2,\"max_retries\":10,\"retry_delay_ms\":1148,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"101d5bbe-e488-4500-8500-3d5e068fd356\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 2,
+            "max_retries": 10,
+            "retry_delay_ms": 1148,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "101d5bbe-e488-4500-8500-3d5e068fd356"
+          }
+        },
+        {
+          "sequence": 4,
+          "stream": "stdout",
+          "atMs": 4071,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":3,\"max_retries\":10,\"retry_delay_ms\":2152,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"41e3be9f-f792-4267-8f4b-6590c522360d\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 3,
+            "max_retries": 10,
+            "retry_delay_ms": 2152,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "41e3be9f-f792-4267-8f4b-6590c522360d"
+          }
+        },
+        {
+          "sequence": 5,
+          "stream": "stdout",
+          "atMs": 6232,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":4,\"max_retries\":10,\"retry_delay_ms\":4593,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"fd1c55bc-c57a-489a-b24f-651f5e1bf717\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 4,
+            "max_retries": 10,
+            "retry_delay_ms": 4593,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "fd1c55bc-c57a-489a-b24f-651f5e1bf717"
+          }
+        },
+        {
+          "sequence": 6,
+          "stream": "stdout",
+          "atMs": 10849,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":5,\"max_retries\":10,\"retry_delay_ms\":8385,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"a4b734b9-6bd8-45a9-b413-1d640397a174\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 5,
+            "max_retries": 10,
+            "retry_delay_ms": 8385,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "a4b734b9-6bd8-45a9-b413-1d640397a174"
+          }
+        },
+        {
+          "sequence": 7,
+          "stream": "stdout",
+          "atMs": 19258,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":6,\"max_retries\":10,\"retry_delay_ms\":17254,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"512aad83-27dd-4b0d-8f6a-d4ff3e36ce77\",\"uuid\":\"8e92d345-d28e-4479-a72d-4e219ac93806\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 6,
+            "max_retries": 10,
+            "retry_delay_ms": 17254,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77",
+            "uuid": "8e92d345-d28e-4479-a72d-4e219ac93806"
+          }
+        }
+      ],
+      "sessionCandidates": [
+        {
+          "source": "json-key",
+          "path": "$.session_id",
+          "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+        },
+        {
+          "source": "text-pattern",
+          "value": "512aad83-27dd-4b0d-8f6a-d4ff3e36ce77"
+        },
+        {
+          "source": "text-pattern",
+          "value": "1b57fb91-9095-4021-9952-defa5363dd0e"
+        },
+        {
+          "source": "text-pattern",
+          "value": "c2b8eb68-700d-408a-b7d3-b71b96a451bf"
+        },
+        {
+          "source": "text-pattern",
+          "value": "101d5bbe-e488-4500-8500-3d5e068fd356"
+        },
+        {
+          "source": "text-pattern",
+          "value": "41e3be9f-f792-4267-8f4b-6590c522360d"
+        },
+        {
+          "source": "text-pattern",
+          "value": "fd1c55bc-c57a-489a-b24f-651f5e1bf717"
+        },
+        {
+          "source": "text-pattern",
+          "value": "a4b734b9-6bd8-45a9-b413-1d640397a174"
+        },
+        {
+          "source": "text-pattern",
+          "value": "8e92d345-d28e-4479-a72d-4e219ac93806"
+        }
+      ],
+      "failure": {
+        "category": "TIMEOUT",
+        "source": "process",
+        "retryability": "UNKNOWN",
+        "userActionRequired": "UNKNOWN"
+      },
+      "classification": "TIMEOUT"
+    },
+    "continuationConfirmed": false,
+    "invalidSessionRun": {
+      "runtimeFound": true,
+      "executable": "C:\\Users\\HP\\.local\\bin\\fcc-claude.exe",
+      "args": [
+        "--print",
+        "This invalid session probe should not silently resume an existing session.",
+        "--resume",
+        "invalid-cf446ba5-6a5f-4686-b0cb-95a60835bfa5",
+        "--output-format",
+        "stream-json",
+        "--verbose"
+      ],
+      "wrapper": null,
+      "pid": 12196,
+      "cwd": "C:\\Users\\HP\\AppData\\Local\\Temp\\fcc-session-target-aXkeLr",
+      "exitCode": 1,
+      "signal": null,
+      "launchError": null,
+      "durationMs": 2898,
+      "timedOut": false,
+      "cancelled": false,
+      "gracefulInterruptAttempted": false,
+      "forcedTerminationAttempted": false,
+      "forcedTerminationSucceeded": false,
+      "observedProcessTree": [
+        {
+          "pid": 12196,
+          "ppid": null,
+          "name": "fcc-claude.exe",
+          "role": "launcher"
+        },
+        {
+          "pid": 11456,
+          "ppid": 12196,
+          "name": "conhost.exe",
+          "role": "descendant"
+        },
+        {
+          "pid": 25768,
+          "ppid": 12196,
+          "name": "python.exe",
+          "role": "descendant"
+        },
+        {
+          "pid": 24508,
+          "ppid": 25768,
+          "name": "python.exe",
+          "role": "descendant"
+        }
+      ],
+      "remainingOwnedProcesses": [],
+      "processTreeCleanupObserved": true,
+      "outputTruncated": false,
+      "stdout": "{\"type\":\"result\",\"subtype\":\"error_during_execution\",\"duration_ms\":0,\"duration_api_ms\":0,\"is_error\":true,\"num_turns\":0,\"stop_reason\":null,\"session_id\":\"8d0f6a2f-4103-4d8c-b1e0-ab0c557e9386\",\"total_cost_usd\":0,\"usage\":{\"output_tokens_details\":{\"thinking_tokens\":0},\"input_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":0,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{},\"permission_denials\":[],\"uuid\":\"3f15b118-da61-4257-84c8-e9f67a75719b\",\"errors\":[\"Error: --resume requires a valid session ID or session title when used with --print. Usage: claude -p --resume <session-id|title>. Provided value \\\"invalid-cf446ba5-6a5f-4686-b0cb-95a60835bfa5\\\" is not a UUID and does not match any session title.\"]}\n",
+      "stderr": "Error: --resume requires a valid session ID or session title when used with --print. Usage: claude -p --resume <session-id|title>. Provided value \"invalid-cf446ba5-6a5f-4686-b0cb-95a60835bfa5\" is not a UUID and does not match any session title.\n",
+      "rawFrames": [
+        {
+          "sequence": 1,
+          "stream": "stderr",
+          "atMs": 1683,
+          "byteLength": 245,
+          "sha256": "6ba6dea9ddadaa28452847d4269e2489c846459654b71051214f924aa33bd344",
+          "decoderFlush": false,
+          "sanitizedText": "Error: --resume requires a valid session ID or session title when used with --print. Usage: claude -p --resume <session-id|title>. Provided value \"invalid-cf446ba5-6a5f-4686-b0cb-95a60835bfa5\" is not a UUID and does not match any session title.\n"
+        },
+        {
+          "sequence": 2,
+          "stream": "stdout",
+          "atMs": 1683,
+          "byteLength": 932,
+          "sha256": "6362c44c23ed17810de9e54b657a16955aef109a38cb44c5f7dbd2f050e1c278",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"result\",\"subtype\":\"error_during_execution\",\"duration_ms\":0,\"duration_api_ms\":0,\"is_error\":true,\"num_turns\":0,\"stop_reason\":null,\"session_id\":\"8d0f6a2f-4103-4d8c-b1e0-ab0c557e9386\",\"total_cost_usd\":0,\"usage\":{\"output_tokens_details\":{\"thinking_tokens\":0},\"input_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":0,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{},\"permission_denials\":[],\"uuid\":\"3f15b118-da61-4257-84c8-e9f67a75719b\",\"errors\":[\"Error: --resume requires a valid session ID or session title when used with --print. Usage: claude -p --resume <session-id|title>. Provided value \\\"invalid-cf446ba5-6a5f-4686-b0cb-95a60835bfa5\\\" is not a UUID and does not match any session title.\"]}\n"
+        }
+      ],
+      "lineEvents": [
+        {
+          "sequence": 1,
+          "stream": "stderr",
+          "atMs": 1683,
+          "eofFlush": false,
+          "rawSanitized": "Error: --resume requires a valid session ID or session title when used with --print. Usage: claude -p --resume <session-id|title>. Provided value \"invalid-cf446ba5-6a5f-4686-b0cb-95a60835bfa5\" is not a UUID and does not match any session title.",
+          "classification": "TEXT_LINE",
+          "eventTypeHint": null,
+          "semanticHints": [],
+          "sessionCandidates": [
+            {
+              "source": "text-pattern",
+              "value": "cf446ba5-6a5f-4686-b0cb-95a60835bfa5"
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "stream": "stdout",
+          "atMs": 1683,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"result\",\"subtype\":\"error_during_execution\",\"duration_ms\":0,\"duration_api_ms\":0,\"is_error\":true,\"num_turns\":0,\"stop_reason\":null,\"session_id\":\"8d0f6a2f-4103-4d8c-b1e0-ab0c557e9386\",\"total_cost_usd\":0,\"usage\":{\"output_tokens_details\":{\"thinking_tokens\":0},\"input_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":0,\"server_tool_use\":{\"web_search_requests\":0,\"web_fetch_requests\":0},\"service_tier\":\"standard\",\"cache_creation\":{\"ephemeral_1h_input_tokens\":0,\"ephemeral_5m_input_tokens\":0},\"inference_geo\":\"\",\"iterations\":[],\"speed\":\"standard\"},\"modelUsage\":{},\"permission_denials\":[],\"uuid\":\"3f15b118-da61-4257-84c8-e9f67a75719b\",\"errors\":[\"Error: --resume requires a valid session ID or session title when used with --print. Usage: claude -p --resume <session-id|title>. Provided value \\\"invalid-cf446ba5-6a5f-4686-b0cb-95a60835bfa5\\\" is not a UUID and does not match any session title.\"]}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "result",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY",
+            "USAGE_LIKE_KEY",
+            "TOOL_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.is_error",
+            "$.session_id",
+            "$.usage",
+            "$.usage.output_tokens_details",
+            "$.usage.output_tokens_details.thinking_tokens",
+            "$.usage.input_tokens",
+            "$.usage.cache_creation_input_tokens",
+            "$.usage.cache_read_input_tokens",
+            "$.usage.output_tokens",
+            "$.usage.server_tool_use",
+            "$.usage.cache_creation.ephemeral_1h_input_tokens",
+            "$.usage.cache_creation.ephemeral_5m_input_tokens",
+            "$.modelUsage",
+            "$.errors"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "8d0f6a2f-4103-4d8c-b1e0-ab0c557e9386"
+            }
+          ],
+          "parsed": {
+            "type": "result",
+            "subtype": "error_during_execution",
+            "duration_ms": 0,
+            "duration_api_ms": 0,
+            "is_error": true,
+            "num_turns": 0,
+            "stop_reason": null,
+            "session_id": "8d0f6a2f-4103-4d8c-b1e0-ab0c557e9386",
+            "total_cost_usd": 0,
+            "usage": {
+              "output_tokens_details": "[REDACTED]",
+              "input_tokens": "[REDACTED]",
+              "cache_creation_input_tokens": "[REDACTED]",
+              "cache_read_input_tokens": "[REDACTED]",
+              "output_tokens": "[REDACTED]",
+              "server_tool_use": {
+                "web_search_requests": 0,
+                "web_fetch_requests": 0
+              },
+              "service_tier": "standard",
+              "cache_creation": {
+                "ephemeral_1h_input_tokens": "[REDACTED]",
+                "ephemeral_5m_input_tokens": "[REDACTED]"
+              },
+              "inference_geo": "",
+              "iterations": [],
+              "speed": "standard"
+            },
+            "modelUsage": {},
+            "permission_denials": [],
+            "uuid": "3f15b118-da61-4257-84c8-e9f67a75719b",
+            "errors": [
+              "Error: --resume requires a valid session ID or session title when used with --print. Usage: claude -p --resume <session-id|title>. Provided value \"invalid-cf446ba5-6a5f-4686-b0cb-95a60835bfa5\" is not a UUID and does not match any session title."
+            ]
+          }
+        }
+      ],
+      "sessionCandidates": [
+        {
+          "source": "text-pattern",
+          "value": "cf446ba5-6a5f-4686-b0cb-95a60835bfa5"
+        },
+        {
+          "source": "json-key",
+          "path": "$.session_id",
+          "value": "8d0f6a2f-4103-4d8c-b1e0-ab0c557e9386"
+        },
+        {
+          "source": "text-pattern",
+          "value": "8d0f6a2f-4103-4d8c-b1e0-ab0c557e9386"
+        },
+        {
+          "source": "text-pattern",
+          "value": "3f15b118-da61-4257-84c8-e9f67a75719b"
+        }
+      ],
+      "failure": {
+        "category": "MODEL_UNAVAILABLE",
+        "source": "output",
+        "retryability": "UNKNOWN",
+        "userActionRequired": "UNKNOWN"
+      },
+      "classification": "MODEL_UNAVAILABLE"
+    },
+    "duplicateResumeRun": null,
+    "limitations": [
+      "FCC restart, provider reconnect, and provider/model changes are not forced by this probe."
+    ]
+  },
+  "failure": {
+    "status": "OBSERVED_ON_EXECUTION_HOST",
+    "unavailableRuntime": {
+      "runtimeFound": false,
+      "executable": "C:\\Users\\HP\\AppData\\Local\\Temp\\missing-fcc-36452f9d-511b-4106-926f-417142e096a7\\fcc-claude",
+      "exitCode": null,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "rawFrames": [],
+      "lineEvents": [],
+      "sessionCandidates": [],
+      "classification": "RUNTIME_NOT_FOUND",
+      "failure": {
+        "category": "RUNTIME_NOT_FOUND",
+        "source": "launch",
+        "retryability": "UNKNOWN",
+        "userActionRequired": "UNKNOWN"
+      }
+    },
+    "liveCancellation": {
+      "runtimeFound": true,
+      "executable": "C:\\Users\\HP\\.local\\bin\\fcc-claude.exe",
+      "args": [
+        "--print",
+        "Produce a detailed but harmless explanation of software contract testing. This run may be interrupted by the probe.",
+        "--output-format",
+        "stream-json",
+        "--verbose"
+      ],
+      "wrapper": null,
+      "pid": 26492,
+      "cwd": "C:\\Users\\HP\\AppData\\Local\\Temp\\fcc-failure-target-jJ8Pua",
+      "exitCode": null,
+      "signal": "SIGINT",
+      "launchError": null,
+      "durationMs": 6372,
+      "timedOut": false,
+      "cancelled": true,
+      "gracefulInterruptAttempted": true,
+      "forcedTerminationAttempted": true,
+      "forcedTerminationSucceeded": false,
+      "observedProcessTree": [
+        {
+          "pid": 26492,
+          "ppid": null,
+          "name": "fcc-claude.exe",
+          "role": "launcher"
+        },
+        {
+          "pid": 27724,
+          "ppid": 26492,
+          "name": "conhost.exe",
+          "role": "descendant"
+        },
+        {
+          "pid": 26568,
+          "ppid": 26492,
+          "name": "python.exe",
+          "role": "descendant"
+        },
+        {
+          "pid": 17092,
+          "ppid": 26568,
+          "name": "python.exe",
+          "role": "descendant"
+        }
+      ],
+      "remainingOwnedProcesses": [
+        {
+          "pid": 27724,
+          "ppid": 26492,
+          "name": "conhost.exe"
+        }
+      ],
+      "processTreeCleanupObserved": false,
+      "outputTruncated": false,
+      "stdout": "{\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Temp\\\\fcc-failure-target-jJ8Pua\",\"session_id\":\"4e095bf5-1402-49fb-b4d9-146c4ab0929f\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"DesignSync\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"Glob\",\"Grep\",\"ListAgents\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeup\",\"SendMessage\",\"Skill\",\"TaskOutput\",\"TaskStop\",\"WebFetch\",\"WebSearch\",\"Workflow\",\"Write\"],\"mcp_servers\":[],\"model\":\"claude-opus-5[1m]\",\"permissionMode\":\"default\",\"slash_commands\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\",\"agents\",\"auto-mode-setup\",\"autocompact\",\"clear\",\"color\",\"compact\",\"config\",\"context\",\"effort\",\"fast\",\"heapdump\",\"init\",\"mcp\",\"model\",\"__remote-workflow\",\"workflow-launch-exec\",\"reload-skills\",\"rename\",\"security-review\",\"usage\",\"insights\",\"recap\",\"goal\",\"design\",\"design-consent\",\"design-revoke\",\"list-agents\",\"team-onboarding\"],\"terminal_slash_commands\":[\"doctor\",\"color\"],\"apiKeySource\":\"none\",\"claude_code_version\":\"2.1.251\",\"output_style\":\"default\",\"agents\":[\"claude\",\"Explore\",\"general-purpose\",\"Plan\",\"statusline-setup\"],\"skills\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\"],\"plugins\":[],\"capabilities\":[\"interrupt_receipt_v1\",\"interrupt_cancel_queued_v1\",\"msg_lifecycle_v1\"],\"analytics_disabled\":false,\"product_feedback_disabled\":false,\"uuid\":\"e4c019d6-c39a-48bd-b9e2-aa04cc55f12a\",\"memory_paths\":{\"auto\":\"C:\\\\Users\\\\HP\\\\.claude\\\\projects\\\\C--Users-HP-AppData-Local-Temp-fcc-failure-target-jJ8Pua\\\\memory\\\\\"},\"messaging_socket_path\":\"\\\\\\\\.\\\\pipe\\\\LOCAL\\\\cc-msg-3c06d3f57f1898c403da9cb326bdf510\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"powershell_path\":\"C:\\\\Users\\\\HP\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":1,\"max_retries\":10,\"retry_delay_ms\":579,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"4e095bf5-1402-49fb-b4d9-146c4ab0929f\",\"uuid\":\"0a5ebf25-2dd4-4fb5-bee9-7410ffecafb4\"}\n{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":2,\"max_retries\":10,\"retry_delay_ms\":1041,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"4e095bf5-1402-49fb-b4d9-146c4ab0929f\",\"uuid\":\"cab1db7e-c84e-4a98-afc4-09ddd989c463\"}\n",
+      "stderr": "",
+      "rawFrames": [
+        {
+          "sequence": 1,
+          "stream": "stdout",
+          "atMs": 1863,
+          "byteLength": 2111,
+          "sha256": "2fa4b7ae332cc907266e9ab2bc6edbca2e401e9d0c360756e34dddbf78e1c906",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Temp\\\\fcc-failure-target-jJ8Pua\",\"session_id\":\"4e095bf5-1402-49fb-b4d9-146c4ab0929f\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"DesignSync\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"Glob\",\"Grep\",\"ListAgents\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeup\",\"SendMessage\",\"Skill\",\"TaskOutput\",\"TaskStop\",\"WebFetch\",\"WebSearch\",\"Workflow\",\"Write\"],\"mcp_servers\":[],\"model\":\"claude-opus-5[1m]\",\"permissionMode\":\"default\",\"slash_commands\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\",\"agents\",\"auto-mode-setup\",\"autocompact\",\"clear\",\"color\",\"compact\",\"config\",\"context\",\"effort\",\"fast\",\"heapdump\",\"init\",\"mcp\",\"model\",\"__remote-workflow\",\"workflow-launch-exec\",\"reload-skills\",\"rename\",\"security-review\",\"usage\",\"insights\",\"recap\",\"goal\",\"design\",\"design-consent\",\"design-revoke\",\"list-agents\",\"team-onboarding\"],\"terminal_slash_commands\":[\"doctor\",\"color\"],\"apiKeySource\":\"none\",\"claude_code_version\":\"2.1.251\",\"output_style\":\"default\",\"agents\":[\"claude\",\"Explore\",\"general-purpose\",\"Plan\",\"statusline-setup\"],\"skills\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\"],\"plugins\":[],\"capabilities\":[\"interrupt_receipt_v1\",\"interrupt_cancel_queued_v1\",\"msg_lifecycle_v1\"],\"analytics_disabled\":false,\"product_feedback_disabled\":false,\"uuid\":\"e4c019d6-c39a-48bd-b9e2-aa04cc55f12a\",\"memory_paths\":{\"auto\":\"C:\\\\Users\\\\HP\\\\.claude\\\\projects\\\\C--Users-HP-AppData-Local-Temp-fcc-failure-target-jJ8Pua\\\\memory\\\\\"},\"messaging_socket_path\":\"\\\\\\\\.\\\\pipe\\\\LOCAL\\\\cc-msg-3c06d3f57f1898c403da9cb326bdf510\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"powershell_path\":\"C:\\\\Users\\\\HP\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\"}\n"
+        },
+        {
+          "sequence": 2,
+          "stream": "stdout",
+          "atMs": 1897,
+          "byteLength": 230,
+          "sha256": "d00905d1bfbd2c3411faf0f99b501eb2252ed3dd8c0353991724dcea846cec30",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":1,\"max_retries\":10,\"retry_delay_ms\":579,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"4e095bf5-1402-49fb-b4d9-146c4ab0929f\",\"uuid\":\"0a5ebf25-2dd4-4fb5-bee9-7410ffecafb4\"}\n"
+        },
+        {
+          "sequence": 3,
+          "stream": "stdout",
+          "atMs": 2493,
+          "byteLength": 231,
+          "sha256": "d54b8cb22dfa8797c21d02fd4c3fabff29b8c17ced1eaaf7828da1bf0d2adf3a",
+          "decoderFlush": false,
+          "sanitizedText": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":2,\"max_retries\":10,\"retry_delay_ms\":1041,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"4e095bf5-1402-49fb-b4d9-146c4ab0929f\",\"uuid\":\"cab1db7e-c84e-4a98-afc4-09ddd989c463\"}\n"
+        }
+      ],
+      "lineEvents": [
+        {
+          "sequence": 1,
+          "stream": "stdout",
+          "atMs": 1863,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"init\",\"cwd\":\"C:\\\\Users\\\\HP\\\\AppData\\\\Local\\\\Temp\\\\fcc-failure-target-jJ8Pua\",\"session_id\":\"4e095bf5-1402-49fb-b4d9-146c4ab0929f\",\"tools\":[\"Task\",\"Bash\",\"CronCreate\",\"CronDelete\",\"CronList\",\"DesignSync\",\"Edit\",\"EnterWorktree\",\"ExitWorktree\",\"Glob\",\"Grep\",\"ListAgents\",\"NotebookEdit\",\"Read\",\"ReportFindings\",\"ScheduleWakeup\",\"SendMessage\",\"Skill\",\"TaskOutput\",\"TaskStop\",\"WebFetch\",\"WebSearch\",\"Workflow\",\"Write\"],\"mcp_servers\":[],\"model\":\"claude-opus-5[1m]\",\"permissionMode\":\"default\",\"slash_commands\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\",\"agents\",\"auto-mode-setup\",\"autocompact\",\"clear\",\"color\",\"compact\",\"config\",\"context\",\"effort\",\"fast\",\"heapdump\",\"init\",\"mcp\",\"model\",\"__remote-workflow\",\"workflow-launch-exec\",\"reload-skills\",\"rename\",\"security-review\",\"usage\",\"insights\",\"recap\",\"goal\",\"design\",\"design-consent\",\"design-revoke\",\"list-agents\",\"team-onboarding\"],\"terminal_slash_commands\":[\"doctor\",\"color\"],\"apiKeySource\":\"none\",\"claude_code_version\":\"2.1.251\",\"output_style\":\"default\",\"agents\":[\"claude\",\"Explore\",\"general-purpose\",\"Plan\",\"statusline-setup\"],\"skills\":[\"deep-research\",\"design-sync\",\"dataviz\",\"update-config\",\"verify\",\"debug\",\"code-review\",\"simplify\",\"batch\",\"fewer-permission-prompts\",\"doctor\",\"loop\",\"claude-api\",\"workflow-authoring\",\"run\",\"run-skill-generator\"],\"plugins\":[],\"capabilities\":[\"interrupt_receipt_v1\",\"interrupt_cancel_queued_v1\",\"msg_lifecycle_v1\"],\"analytics_disabled\":false,\"product_feedback_disabled\":false,\"uuid\":\"e4c019d6-c39a-48bd-b9e2-aa04cc55f12a\",\"memory_paths\":{\"auto\":\"C:\\\\Users\\\\HP\\\\.claude\\\\projects\\\\C--Users-HP-AppData-Local-Temp-fcc-failure-target-jJ8Pua\\\\memory\\\\\"},\"messaging_socket_path\":\"\\\\\\\\.\\\\pipe\\\\LOCAL\\\\cc-msg-3c06d3f57f1898c403da9cb326bdf510\",\"fast_mode_state\":\"off\",\"fast_mode_disabled_reason\":\"sdk_opt_in_required\",\"powershell_path\":\"C:\\\\Users\\\\HP\\\\.cache\\\\codex-runtimes\\\\codex-primary-runtime\\\\dependencies\\\\native\\\\powershell\\\\pwsh.exe\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "SESSION_LIKE_KEY",
+            "TOOL_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.session_id",
+            "$.tools"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "4e095bf5-1402-49fb-b4d9-146c4ab0929f"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "init",
+            "cwd": "C:\\Users\\HP\\AppData\\Local\\Temp\\fcc-failure-target-jJ8Pua",
+            "session_id": "4e095bf5-1402-49fb-b4d9-146c4ab0929f",
+            "tools": [
+              "Task",
+              "Bash",
+              "CronCreate",
+              "CronDelete",
+              "CronList",
+              "DesignSync",
+              "Edit",
+              "EnterWorktree",
+              "ExitWorktree",
+              "Glob",
+              "Grep",
+              "ListAgents",
+              "NotebookEdit",
+              "Read",
+              "ReportFindings",
+              "ScheduleWakeup",
+              "SendMessage",
+              "Skill",
+              "TaskOutput",
+              "TaskStop",
+              "WebFetch",
+              "WebSearch",
+              "Workflow",
+              "Write"
+            ],
+            "mcp_servers": [],
+            "model": "claude-opus-5[1m]",
+            "permissionMode": "default",
+            "slash_commands": [
+              "deep-research",
+              "design-sync",
+              "dataviz",
+              "update-config",
+              "verify",
+              "debug",
+              "code-review",
+              "simplify",
+              "batch",
+              "fewer-permission-prompts",
+              "doctor",
+              "loop",
+              "claude-api",
+              "workflow-authoring",
+              "run",
+              "run-skill-generator",
+              "agents",
+              "auto-mode-setup",
+              "autocompact",
+              "clear",
+              "color",
+              "compact",
+              "config",
+              "context",
+              "effort",
+              "fast",
+              "heapdump",
+              "init",
+              "mcp",
+              "model",
+              "__remote-workflow",
+              "workflow-launch-exec",
+              "reload-skills",
+              "rename",
+              "security-review",
+              "usage",
+              "insights",
+              "recap",
+              "goal",
+              "design",
+              "design-consent",
+              "design-revoke",
+              "list-agents",
+              "team-onboarding"
+            ],
+            "terminal_slash_commands": [
+              "doctor",
+              "color"
+            ],
+            "apiKeySource": "[REDACTED]",
+            "claude_code_version": "2.1.251",
+            "output_style": "default",
+            "agents": [
+              "claude",
+              "Explore",
+              "general-purpose",
+              "Plan",
+              "statusline-setup"
+            ],
+            "skills": [
+              "deep-research",
+              "design-sync",
+              "dataviz",
+              "update-config",
+              "verify",
+              "debug",
+              "code-review",
+              "simplify",
+              "batch",
+              "fewer-permission-prompts",
+              "doctor",
+              "loop",
+              "claude-api",
+              "workflow-authoring",
+              "run",
+              "run-skill-generator"
+            ],
+            "plugins": [],
+            "capabilities": [
+              "interrupt_receipt_v1",
+              "interrupt_cancel_queued_v1",
+              "msg_lifecycle_v1"
+            ],
+            "analytics_disabled": false,
+            "product_feedback_disabled": false,
+            "uuid": "e4c019d6-c39a-48bd-b9e2-aa04cc55f12a",
+            "memory_paths": {
+              "auto": "C:\\Users\\HP\\.claude\\projects\\C--Users-HP-AppData-Local-Temp-fcc-failure-target-jJ8Pua\\memory\\"
+            },
+            "messaging_socket_path": "\\\\.\\pipe\\LOCAL\\cc-msg-3c06d3f57f1898c403da9cb326bdf510",
+            "fast_mode_state": "off",
+            "fast_mode_disabled_reason": "sdk_opt_in_required",
+            "powershell_path": "C:\\Users\\HP\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe"
+          }
+        },
+        {
+          "sequence": 2,
+          "stream": "stdout",
+          "atMs": 1897,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":1,\"max_retries\":10,\"retry_delay_ms\":579,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"4e095bf5-1402-49fb-b4d9-146c4ab0929f\",\"uuid\":\"0a5ebf25-2dd4-4fb5-bee9-7410ffecafb4\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "4e095bf5-1402-49fb-b4d9-146c4ab0929f"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 1,
+            "max_retries": 10,
+            "retry_delay_ms": 579,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "4e095bf5-1402-49fb-b4d9-146c4ab0929f",
+            "uuid": "0a5ebf25-2dd4-4fb5-bee9-7410ffecafb4"
+          }
+        },
+        {
+          "sequence": 3,
+          "stream": "stdout",
+          "atMs": 2493,
+          "eofFlush": false,
+          "rawSanitized": "{\"type\":\"system\",\"subtype\":\"api_retry\",\"attempt\":2,\"max_retries\":10,\"retry_delay_ms\":1041,\"error_status\":503,\"error\":\"server_error\",\"session_id\":\"4e095bf5-1402-49fb-b4d9-146c4ab0929f\",\"uuid\":\"cab1db7e-c84e-4a98-afc4-09ddd989c463\"}",
+          "classification": "JSON_EVENT",
+          "eventTypeHint": "system",
+          "semanticHints": [
+            "ERROR_LIKE_KEY",
+            "SESSION_LIKE_KEY"
+          ],
+          "matchingKeys": [
+            "$.error_status",
+            "$.error",
+            "$.session_id"
+          ],
+          "sessionCandidates": [
+            {
+              "source": "json-key",
+              "path": "$.session_id",
+              "value": "4e095bf5-1402-49fb-b4d9-146c4ab0929f"
+            }
+          ],
+          "parsed": {
+            "type": "system",
+            "subtype": "api_retry",
+            "attempt": 2,
+            "max_retries": 10,
+            "retry_delay_ms": 1041,
+            "error_status": 503,
+            "error": "server_error",
+            "session_id": "4e095bf5-1402-49fb-b4d9-146c4ab0929f",
+            "uuid": "cab1db7e-c84e-4a98-afc4-09ddd989c463"
+          }
+        }
+      ],
+      "sessionCandidates": [
+        {
+          "source": "json-key",
+          "path": "$.session_id",
+          "value": "4e095bf5-1402-49fb-b4d9-146c4ab0929f"
+        },
+        {
+          "source": "text-pattern",
+          "value": "4e095bf5-1402-49fb-b4d9-146c4ab0929f"
+        },
+        {
+          "source": "text-pattern",
+          "value": "e4c019d6-c39a-48bd-b9e2-aa04cc55f12a"
+        },
+        {
+          "source": "text-pattern",
+          "value": "0a5ebf25-2dd4-4fb5-bee9-7410ffecafb4"
+        },
+        {
+          "source": "text-pattern",
+          "value": "cab1db7e-c84e-4a98-afc4-09ddd989c463"
+        }
+      ],
+      "failure": {
+        "category": "INTERRUPTED",
+        "source": "process",
+        "retryability": "UNKNOWN",
+        "userActionRequired": "UNKNOWN"
+      },
+      "classification": "INTERRUPTED"
+    },
+    "observedFailureFromStreaming": {
+      "category": "TIMEOUT",
+      "source": "process",
+      "retryability": "UNKNOWN",
+      "userActionRequired": "UNKNOWN"
+    },
+    "rateLimit": "NOT_OBSERVED_ON_TARGET",
+    "unsafeNegativeTestsSkipped": [
+      "real credential revocation/auth corruption",
+      "real configuration corruption",
+      "artificial provider load to force rate limiting",
+      "forced invalid provider/model unless safely supplied by target environment"
+    ]
+  }
+}

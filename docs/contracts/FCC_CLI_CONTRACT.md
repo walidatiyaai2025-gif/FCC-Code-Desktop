@@ -2,7 +2,7 @@
 
 **Related tasks:** `FCCD-P00-002`, `FCCD-P00-007`  
 **Phase:** P00  
-**Contract status:** TARGET-ENVIRONMENT EVIDENCE BLOCKED  
+**Contract status:** discovery/version/health verified on target; successful CLI fallback remains externally blocked by observed provider 503 retries.  
 **Probe implementation:** `tools/contract-probes/fcc/probe.mjs`  
 **Self-test:** `tools/contract-probes/fcc/self-test.mjs`
 
@@ -217,3 +217,11 @@ Before committing target output, manually scan the sanitized file for secret-lik
 `FCCD-P00-007` may move beyond BLOCKED only after a target live run proves launch, prompt transmission, the three working-directory cases, stdout/stderr observability, terminal result/failure classification, cancellation and owned-tree cleanup, with limitations recorded truthfully.
 
 Until then, neither task is `CLOSED`.
+
+## 18. Windows target reconciliation — 2026-09-02
+
+The owner's Windows 10 x64 target directly exposed `fcc-claude.exe` and `fcc-server.exe` under the user's local binary directory. Starting `fcc-server` produced a healthy loopback service at `http://127.0.0.1:8082/health`. `fcc-claude --version` returned `2.1.251 (Claude Code)`, and real help output established `--print`, `--output-format stream-json`, `--session-id`, and `--resume` without guessing.
+
+`FCCD-P00-002` is closed from `evidence/phases/P00/target/fcc-discovery-health.json` plus the deterministic discovery self-test.
+
+Provider-backed fallback attempts launched correctly from normal, spaced, and Arabic paths and were observable/cancellable, but the configured upstream returned structured HTTP 503 retry events until the probe timeout. Successful prompt completion and terminal-result extraction were therefore not proven. `FCCD-P00-007` remains `BLOCKED` on provider availability; evidence is `evidence/phases/P00/target/fcc-discovery-cli.json`.

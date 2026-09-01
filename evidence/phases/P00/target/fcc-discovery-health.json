@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "probe": "fcc-p00-contract",
+  "requestedMode": "discovery",
+  "capturedAtUtc": "2026-09-01T21:15:00.893Z",
+  "discovery": {
+    "schemaVersion": 1,
+    "probeId": "edb168a4-80e7-4009-8990-b3f60a55684f",
+    "capturedAtUtc": "2026-09-01T21:15:12.611Z",
+    "host": {
+      "platform": "win32",
+      "osType": "Windows_NT",
+      "osRelease": "10.0.19045",
+      "osVersion": "Windows 10 Pro for Workstations",
+      "arch": "x64",
+      "node": "v20.11.1",
+      "powershell": {
+        "command": [
+          "C:\\Users\\HP\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell\\pwsh.exe",
+          "-NoProfile",
+          "-Command",
+          "$PSVersionTable.PSVersion.ToString()"
+        ],
+        "wrapper": null,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "7.6.4\r\n",
+        "stderr": "",
+        "durationMs": 2118
+      },
+      "git": {
+        "found": true,
+        "paths": [
+          "C:\\Program Files\\Git\\cmd\\git.exe",
+          "C:\\Program Files\\Git\\cmd\\git.EXE",
+          "C:\\Users\\HP\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd\\git.exe",
+          "C:\\Users\\HP\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd\\git.EXE"
+        ],
+        "result": {
+          "command": [
+            "C:\\Program Files\\Git\\cmd\\git.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "git version 2.38.1.windows.1\n",
+          "stderr": "",
+          "durationMs": 54
+        }
+      },
+      "dotnet": {
+        "found": true,
+        "paths": [
+          "C:\\Program Files\\dotnet\\dotnet.exe",
+          "C:\\Program Files\\dotnet\\dotnet.EXE"
+        ],
+        "result": {
+          "command": [
+            "C:\\Program Files\\dotnet\\dotnet.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "10.0.400\r\n",
+          "stderr": "",
+          "durationMs": 177
+        }
+      },
+      "python": {
+        "found": false,
+        "paths": []
+      }
+    },
+    "executables": {
+      "fcc": {
+        "name": "fcc",
+        "found": false,
+        "paths": [],
+        "version": null,
+        "help": null
+      },
+      "fccServer": {
+        "name": "fcc-server",
+        "found": true,
+        "paths": [
+          "C:\\Users\\HP\\.local\\bin\\fcc-server.exe",
+          "C:\\Users\\HP\\.local\\bin\\fcc-server.EXE"
+        ],
+        "version": {
+          "command": [
+            "C:\\Users\\HP\\.local\\bin\\fcc-server.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "free-claude-code 5.18.11\r\n",
+          "stderr": "",
+          "durationMs": 419
+        },
+        "help": {
+          "command": [
+            "C:\\Users\\HP\\.local\\bin\\fcc-server.exe",
+            "--help"
+          ],
+          "wrapper": null,
+          "exitCode": 3,
+          "signal": null,
+          "error": null,
+          "stdout": "",
+          "stderr": "INFO:     Started server process [19944]\r\nINFO:     Waiting for application startup.\r\nINFO:     Admin UI: http://127.0.0.1:8082/admin (local-only)\r\nINFO:     Application startup complete.\r\nERROR:    [Errno 10048] error while attempting to bind on address ('0.0.0.0', 8082): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted\r\nINFO:     Waiting for application shutdown.\r\nINFO:     Application shutdown complete.\r\n",
+          "durationMs": 3856
+        }
+      },
+      "fccClaude": {
+        "name": "fcc-claude",
+        "found": true,
+        "paths": [
+          "C:\\Users\\HP\\.local\\bin\\fcc-claude.exe",
+          "C:\\Users\\HP\\.local\\bin\\fcc-claude.EXE"
+        ],
+        "version": {
+          "command": [
+            "C:\\Users\\HP\\.local\\bin\\fcc-claude.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "2.1.251 (Claude Code)\n",
+          "stderr": "",
+          "durationMs": 1123
+        },
+        "help": {
+          "command": [
+            "C:\\Users\\HP\\.local\\bin\\fcc-claude.exe",
+            "--help"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "Usage: claude [options] [command] [prompt]\n\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\n\nArguments:\n  prompt                                Your prompt\n\nOptions:\n  --add-dir <directories...>            Additional directories to allow tool\n                                        access to\n  --agent <agent>                       Agent for the current session. Overrides\n                                        the 'agent' setting.\n  --agents <json>                       JSON object defining custom agents (e.g.\n                                        '{\"reviewer\": {\"description\": \"Reviews\n                                        code\", \"prompt\": \"You are a code\n                                        reviewer\"}}')\n  --allow-dangerously-skip-permissions  Enable bypassing all permission checks\n                                        as an option, without it being enabled\n                                        by default. Recommended only for\n                                        sandboxes with no internet access.\n  --allowedTools, --allowed-tools <tools...>\n      Comma or space-separated list of tool names to allow (e.g. \"Bash(git *)\n      Edit\")\n  --append-system-prompt <prompt>       Append a system prompt to the default\n                                        system prompt\n  --autocompact <auto|tokens>           Auto-compact window size (auto, or\n                                        100k–1M tokens)\n  --ax-screen-reader                    Render screen-reader friendly output\n                                        (flat text, no decorative borders or\n                                        animations).\n  --bg, --background                    Start the session in the background and\n                                        return immediately. Prints the id that\n                                        `claude attach`, `logs`, `stop` and `rm`\n                                        take; `claude agents` lists them\n  --bare                                Minimal mode: skip hooks, LSP, plugin\n                                        sync, attribution, auto-memory,\n                                        background prefetches, keychain reads,\n                                        and CLAUDE.md auto-discovery. Sets\n                                        CLAUDE_CODE_SIMPLE=1. Anthropic auth is\n                                        strictly ANTHROPIC_API_KEY or\n                                        apiKeyHelper via --settings (OAuth and\n                                        keychain are never read). 3P providers\n                                        (Bedrock/Vertex/Foundry) use their own\n                                        credentials. Skills still resolve via\n                                        /skill-name. Explicitly provide context\n                                        via: --system-prompt[-file],\n                                        --append-system-prompt[-file], --add-dir\n                                        (CLAUDE.md dirs), --mcp-config,\n                                        --settings, --agents, --plugin-dir.\n  --betas <betas...>                    Beta headers to include in API requests\n                                        (API key users only)\n  --brief                               Enable SendUserMessage tool for\n                                        agent-to-user communication\n  --chrome                              Enable Claude in Chrome integration\n  --cloud [description|session_id|url]  Create a cloud session with the given\n                                        description, or attach to an existing\n                                        one by session ID or claude.ai/code URL\n  -c, --continue                        Continue the most recent conversation in\n                                        the current directory\n  --dangerously-skip-permissions        Bypass all permission checks.\n                                        Recommended only for sandboxes with no\n                                        internet access.\n  -d, --debug [filter]                  Enable debug mode with optional category\n                                        filtering (e.g., \"api,hooks\" or\n                                        \"!1p,!file\")\n  --debug-file <path>                   Write debug logs to a specific file path\n                                        (implicitly enables debug mode)\n  --disable-slash-commands              Disable all skills\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny (e.g. \"Bash(git *)\n      Edit\")\n  --effort <level>                      Effort level for the current session\n                                        (low, medium, high, xhigh, max)\n  --environment <environment_id>        Create a new cloud session that runs on\n                                        the given self-hosted environment\n                                        (ccpool_...).\n  --exclude-dynamic-system-prompt-sections\n      Move per-machine sections (cwd, env info, memory paths, git status) from\n      the system prompt into the first user message. Improves cross-user\n      prompt-cache reuse. Only applies with the default system prompt (ignored\n      with --system-prompt). (default: false)\n  --fallback-model <model>              Enable automatic fallback to specified\n                                        model(s) when the default model is\n                                        overloaded or not available. Accepts a\n                                        comma-separated list to try each in\n                                        order. Re-tries the primary at the start\n                                        of each user turn. (only works with\n                                        --print)\n  --file <specs...>                     File resources to download at startup.\n                                        Format: file_id:relative_path (e.g.,\n                                        --file file_abc:doc.txt\n                                        file_def:img.png)\n  --fork-session                        When resuming, create a new session ID\n                                        instead of reusing the original (use\n                                        with --resume or --continue)\n  --forward-subagent-text               Forward subagent text and thinking\n                                        blocks as assistant/user messages with\n                                        parent_tool_use_id set (only works with\n                                        --print and --output-format=stream-json)\n  --from-pr [value]                     Resume a session linked to a PR by PR\n                                        number/URL, or open interactive picker\n                                        with optional search term\n  -h, --help                            Display help for command\n  --ide                                 Automatically connect to IDE on startup\n                                        if exactly one valid IDE is available\n  --include-hook-events                 Include all hook lifecycle events in the\n                                        output stream (only works with\n                                        --output-format=stream-json)\n  --include-partial-messages            Include partial message chunks as they\n                                        arrive (only works with --print and\n                                        --output-format=stream-json)\n  --input-format <format>               Input format (only works with --print):\n                                        \"text\" (default), or \"stream-json\"\n                                        (realtime streaming input) (choices:\n                                        \"text\", \"stream-json\")\n  --json-schema <schema>                JSON Schema for structured output\n                                        validation. Example:\n                                        {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]}\n  --max-budget-usd <amount>             Maximum dollar amount to spend on API\n                                        calls (only works with --print)\n  --mcp-config <configs...>             Load MCP servers from JSON files or\n                                        strings (space-separated)\n  --model <model>                       Model for the current session. Provide\n                                        an alias for the latest model (e.g.\n                                        'fable', 'opus', or 'sonnet') or a\n                                        model's full name (e.g.\n                                        'claude-fable-5').\n  -n, --name <name>                     Set a display name for this session\n                                        (shown in the prompt box, /resume\n                                        picker, and terminal title)\n  --no-chrome                           Disable Claude in Chrome integration\n  --no-session-persistence              Disable session persistence - sessions\n                                        will not be saved to disk and cannot be\n                                        resumed (only works with --print)\n  --output-format <format>              Output format (only works with --print):\n                                        \"text\" (default), \"json\" (single\n                                        result), or \"stream-json\" (realtime\n                                        streaming) (choices: \"text\", \"json\",\n                                        \"stream-json\")\n  --permission-mode <mode>              Permission mode to use for the session\n                                        (choices: \"acceptEdits\", \"auto\",\n                                        \"bypassPermissions\", \"manual\",\n                                        \"dontAsk\", \"plan\")\n  --plugin-dir <path>                   Load a plugin from a directory or .zip\n                                        for this session only (repeatable:\n                                        --plugin-dir A --plugin-dir B.zip)\n                                        (default: [])\n  --plugin-url <url>                    Fetch a plugin .zip from a URL for this\n                                        session only (repeatable: --plugin-url A\n                                        --plugin-url B) (default: [])\n  -p, --print                           Print response and exit (useful for\n                                        pipes). Note: The workspace trust dialog\n                                        is skipped when Claude is run in\n                                        non-interactive mode (via -p, or when\n                                        stdout is not a TTY, e.g. piped or\n                                        redirected output). Only use this in\n                                        directories you trust. Settings files\n                                        that fail validation are silently\n                                        ignored in this mode (no error dialog is\n                                        shown).\n  --prompt-suggestions [value]          Enable prompt suggestions. In print/SDK\n                                        mode, emits a prompt_suggestion message\n                                        after each turn with a predicted next\n                                        user prompt (choices: \"true\", \"false\",\n                                        \"1\", \"0\", \"yes\", \"no\", \"on\", \"off\",\n                                        preset: \"true\")\n  --remote-control [name]               Start an interactive session with Remote\n                                        Control enabled (optionally named)\n  --remote-control-session-name-prefix <prefix>\n      Prefix for auto-generated Remote Control session names (default: hostname)\n  --replay-user-messages                Re-emit user messages from stdin back on\n                   ",
+          "stderr": "",
+          "durationMs": 1132
+        }
+      },
+      "claude": {
+        "name": "claude",
+        "found": true,
+        "paths": [
+          "C:\\Users\\HP\\.local\\bin\\claude.exe",
+          "C:\\Users\\HP\\.local\\bin\\claude.EXE"
+        ],
+        "version": {
+          "command": [
+            "C:\\Users\\HP\\.local\\bin\\claude.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "2.1.251 (Claude Code)\n",
+          "stderr": "",
+          "durationMs": 75
+        },
+        "help": {
+          "command": [
+            "C:\\Users\\HP\\.local\\bin\\claude.exe",
+            "--help"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "Usage: claude [options] [command] [prompt]\n\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\n\nArguments:\n  prompt                                Your prompt\n\nOptions:\n  --add-dir <directories...>            Additional directories to allow tool\n                                        access to\n  --agent <agent>                       Agent for the current session. Overrides\n                                        the 'agent' setting.\n  --agents <json>                       JSON object defining custom agents (e.g.\n                                        '{\"reviewer\": {\"description\": \"Reviews\n                                        code\", \"prompt\": \"You are a code\n                                        reviewer\"}}')\n  --allow-dangerously-skip-permissions  Enable bypassing all permission checks\n                                        as an option, without it being enabled\n                                        by default. Recommended only for\n                                        sandboxes with no internet access.\n  --allowedTools, --allowed-tools <tools...>\n      Comma or space-separated list of tool names to allow (e.g. \"Bash(git *)\n      Edit\")\n  --append-system-prompt <prompt>       Append a system prompt to the default\n                                        system prompt\n  --autocompact <auto|tokens>           Auto-compact window size (auto, or\n                                        100k–1M tokens)\n  --ax-screen-reader                    Render screen-reader friendly output\n                                        (flat text, no decorative borders or\n                                        animations).\n  --bg, --background                    Start the session in the background and\n                                        return immediately. Prints the id that\n                                        `claude attach`, `logs`, `stop` and `rm`\n                                        take; `claude agents` lists them\n  --bare                                Minimal mode: skip hooks, LSP, plugin\n                                        sync, attribution, auto-memory,\n                                        background prefetches, keychain reads,\n                                        and CLAUDE.md auto-discovery. Sets\n                                        CLAUDE_CODE_SIMPLE=1. Anthropic auth is\n                                        strictly ANTHROPIC_API_KEY or\n                                        apiKeyHelper via --settings (OAuth and\n                                        keychain are never read). 3P providers\n                                        (Bedrock/Vertex/Foundry) use their own\n                                        credentials. Skills still resolve via\n                                        /skill-name. Explicitly provide context\n                                        via: --system-prompt[-file],\n                                        --append-system-prompt[-file], --add-dir\n                                        (CLAUDE.md dirs), --mcp-config,\n                                        --settings, --agents, --plugin-dir.\n  --betas <betas...>                    Beta headers to include in API requests\n                                        (API key users only)\n  --brief                               Enable SendUserMessage tool for\n                                        agent-to-user communication\n  --chrome                              Enable Claude in Chrome integration\n  --cloud [description|session_id|url]  Create a cloud session with the given\n                                        description, or attach to an existing\n                                        one by session ID or claude.ai/code URL\n  -c, --continue                        Continue the most recent conversation in\n                                        the current directory\n  --dangerously-skip-permissions        Bypass all permission checks.\n                                        Recommended only for sandboxes with no\n                                        internet access.\n  -d, --debug [filter]                  Enable debug mode with optional category\n                                        filtering (e.g., \"api,hooks\" or\n                                        \"!1p,!file\")\n  --debug-file <path>                   Write debug logs to a specific file path\n                                        (implicitly enables debug mode)\n  --disable-slash-commands              Disable all skills\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny (e.g. \"Bash(git *)\n      Edit\")\n  --effort <level>                      Effort level for the current session\n                                        (low, medium, high, xhigh, max)\n  --environment <environment_id>        Create a new cloud session that runs on\n                                        the given self-hosted environment\n                                        (ccpool_...).\n  --exclude-dynamic-system-prompt-sections\n      Move per-machine sections (cwd, env info, memory paths, git status) from\n      the system prompt into the first user message. Improves cross-user\n      prompt-cache reuse. Only applies with the default system prompt (ignored\n      with --system-prompt). (default: false)\n  --fallback-model <model>              Enable automatic fallback to specified\n                                        model(s) when the default model is\n                                        overloaded or not available. Accepts a\n                                        comma-separated list to try each in\n                                        order. Re-tries the primary at the start\n                                        of each user turn. (only works with\n                                        --print)\n  --file <specs...>                     File resources to download at startup.\n                                        Format: file_id:relative_path (e.g.,\n                                        --file file_abc:doc.txt\n                                        file_def:img.png)\n  --fork-session                        When resuming, create a new session ID\n                                        instead of reusing the original (use\n                                        with --resume or --continue)\n  --forward-subagent-text               Forward subagent text and thinking\n                                        blocks as assistant/user messages with\n                                        parent_tool_use_id set (only works with\n                                        --print and --output-format=stream-json)\n  --from-pr [value]                     Resume a session linked to a PR by PR\n                                        number/URL, or open interactive picker\n                                        with optional search term\n  -h, --help                            Display help for command\n  --ide                                 Automatically connect to IDE on startup\n                                        if exactly one valid IDE is available\n  --include-hook-events                 Include all hook lifecycle events in the\n                                        output stream (only works with\n                                        --output-format=stream-json)\n  --include-partial-messages            Include partial message chunks as they\n                                        arrive (only works with --print and\n                                        --output-format=stream-json)\n  --input-format <format>               Input format (only works with --print):\n                                        \"text\" (default), or \"stream-json\"\n                                        (realtime streaming input) (choices:\n                                        \"text\", \"stream-json\")\n  --json-schema <schema>                JSON Schema for structured output\n                                        validation. Example:\n                                        {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]}\n  --max-budget-usd <amount>             Maximum dollar amount to spend on API\n                                        calls (only works with --print)\n  --mcp-config <configs...>             Load MCP servers from JSON files or\n                                        strings (space-separated)\n  --model <model>                       Model for the current session. Provide\n                                        an alias for the latest model (e.g.\n                                        'fable', 'opus', or 'sonnet') or a\n                                        model's full name (e.g.\n                                        'claude-fable-5').\n  -n, --name <name>                     Set a display name for this session\n                                        (shown in the prompt box, /resume\n                                        picker, and terminal title)\n  --no-chrome                           Disable Claude in Chrome integration\n  --no-session-persistence              Disable session persistence - sessions\n                                        will not be saved to disk and cannot be\n                                        resumed (only works with --print)\n  --output-format <format>              Output format (only works with --print):\n                                        \"text\" (default), \"json\" (single\n                                        result), or \"stream-json\" (realtime\n                                        streaming) (choices: \"text\", \"json\",\n                                        \"stream-json\")\n  --permission-mode <mode>              Permission mode to use for the session\n                                        (choices: \"acceptEdits\", \"auto\",\n                                        \"bypassPermissions\", \"manual\",\n                                        \"dontAsk\", \"plan\")\n  --plugin-dir <path>                   Load a plugin from a directory or .zip\n                                        for this session only (repeatable:\n                                        --plugin-dir A --plugin-dir B.zip)\n                                        (default: [])\n  --plugin-url <url>                    Fetch a plugin .zip from a URL for this\n                                        session only (repeatable: --plugin-url A\n                                        --plugin-url B) (default: [])\n  -p, --print                           Print response and exit (useful for\n                                        pipes). Note: The workspace trust dialog\n                                        is skipped when Claude is run in\n                                        non-interactive mode (via -p, or when\n                                        stdout is not a TTY, e.g. piped or\n                                        redirected output). Only use this in\n                                        directories you trust. Settings files\n                                        that fail validation are silently\n                                        ignored in this mode (no error dialog is\n                                        shown).\n  --prompt-suggestions [value]          Enable prompt suggestions. In print/SDK\n                                        mode, emits a prompt_suggestion message\n                                        after each turn with a predicted next\n                                        user prompt (choices: \"true\", \"false\",\n                                        \"1\", \"0\", \"yes\", \"no\", \"on\", \"off\",\n                                        preset: \"true\")\n  --remote-control [name]               Start an interactive session with Remote\n                                        Control enabled (optionally named)\n  --remote-control-session-name-prefix <prefix>\n      Prefix for auto-generated Remote Control session names (default: hostname)\n  --replay-user-messages                Re-emit user messages from stdin back on\n                   ",
+          "stderr": "",
+          "durationMs": 363
+        }
+      }
+    },
+    "configMetadata": [
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\.fcc",
+        "exists": true,
+        "type": "directory",
+        "size": null,
+        "children": [
+          {
+            "name": ".env",
+            "type": "file"
+          },
+          {
+            "name": "app-icon.ico",
+            "type": "file"
+          },
+          {
+            "name": "chat",
+            "type": "directory"
+          },
+          {
+            "name": "codex-model-catalog.json",
+            "type": "file"
+          },
+          {
+            "name": "config.lock",
+            "type": "file"
+          },
+          {
+            "name": "logs",
+            "type": "directory"
+          }
+        ]
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\fcc-claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\.claude",
+        "exists": true,
+        "type": "directory",
+        "size": null,
+        "children": [
+          {
+            "name": ".last-cleanup",
+            "type": "file"
+          },
+          {
+            "name": "backups",
+            "type": "directory"
+          },
+          {
+            "name": "cache",
+            "type": "directory"
+          },
+          {
+            "name": "CLAUDE.md",
+            "type": "file"
+          },
+          {
+            "name": "downloads",
+            "type": "directory"
+          },
+          {
+            "name": "projects",
+            "type": "directory"
+          },
+          {
+            "name": "RTK.md",
+            "type": "file"
+          },
+          {
+            "name": "sessions",
+            "type": "directory"
+          },
+          {
+            "name": "settings.json",
+            "type": "file"
+          },
+          {
+            "name": "settings.json.bak",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Roaming\\.fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Roaming\\fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Roaming\\fcc-claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Roaming\\.claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Roaming\\claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Local\\.fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Local\\fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Local\\fcc-claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Local\\.claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\HP\\AppData\\Local\\claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\.fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\fcc-claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\.claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\claude",
+        "exists": false
+      }
+    ],
+    "environmentVariablePresence": [],
+    "relevantProcesses": {
+      "source": "Win32_Process",
+      "error": "Unable to parse process snapshot: SyntaxError: Unterminated string in JSON at position 12000",
+      "processes": []
+    },
+    "listeningPorts": {
+      "source": null,
+      "listeners": []
+    },
+    "fccPort": {
+      "fromEnvironment": null,
+      "processCorrelated": []
+    },
+    "health": {
+      "mode": "explicit",
+      "results": [
+        {
+          "attempted": true,
+          "url": "http://127.0.0.1:8082/health",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "status": "healthy"
+          }
+        }
+      ]
+    },
+    "secretsPolicy": "[REDACTED]"
+  },
+  "cli": null
+}
