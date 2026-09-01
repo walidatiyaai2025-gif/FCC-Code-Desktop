@@ -167,3 +167,13 @@ Dangerous Git/file/asset operations require safeguards; pre-existing user work i
 Completion state is driven by exact-head tests and acceptance evidence. File counts, screenshots, code volume and estimates do not establish verified completion.
 
 **Reason:** Prevent false progress and release surprises.
+## ADR-017 — Primary runtime uses observed structured `fcc-claude` process contract
+
+**Status:** Accepted  
+**Date:** 2026-09-02
+
+P04 will implement the primary `IAgentRuntime` adapter as an owned `fcc-claude` process using the target-observed noninteractive `--print --output-format stream-json --verbose` surface. Newline-delimited JSON is normalized into project-owned events; unknown event types remain preserved. FCC loopback health is a separate readiness signal and cannot stand in for provider readiness.
+
+The plain print/single-result CLI path remains the compatibility fallback. Successful completion and resume behavior remain P00 blockers while the configured upstream emits HTTP 503 retries. See `docs/contracts/P00_RUNTIME_AND_COMPATIBILITY_BASELINE.md`.
+
+---

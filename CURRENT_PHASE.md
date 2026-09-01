@@ -10,7 +10,7 @@ CURRENT_PHASE_NAME: Constitution + external-contract de-risking
 CURRENT_PHASE_STATE: IN_PROGRESS
 NEXT_PHASE: P01
 PHASE_EXIT_GATE: NOT_RUN
-KNOWN_PHASE_BLOCKERS: 6
+KNOWN_PHASE_BLOCKERS: 4
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
 LAST_RECONCILED: 2026-09-01
@@ -27,14 +27,14 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 ## Current status
 
 - `FCCD-P00-001` — CLOSED.
-- `FCCD-P00-002` — BLOCKED only on real target-machine FCC/fcc-claude evidence after probe infrastructure was merged by PR #1.
-- `FCCD-P00-003` — BLOCKED only on real target-machine structured-stream evidence after reusable recorder/parser/self-tests and target-runner integration were implemented by Worker 2.
+- `FCCD-P00-002` — CLOSED from Windows executable/version/help and live loopback health evidence.
+- `FCCD-P00-003` — CLOSED from real structured `system/init` and `system/api_retry` target frames with sanitized raw/parsed evidence.
 - `FCCD-P00-004` — BLOCKED only on real target-machine session/resume evidence after reusable session extraction/resume probes and self-tests were implemented by Worker 2.
-- `FCCD-P00-005` — BLOCKED only on real target-machine cancellation/failure evidence after reusable failure/cancellation probes and self-tests were implemented by Worker 2.
+- `FCCD-P00-005` — VERIFIED from real provider 503, timeout, cancellation, and owned-process evidence; natural rate limiting remains not observed and was not forced.
 - `FCCD-P00-007` — BLOCKED only on real target-machine CLI fallback evidence after probe infrastructure was merged by PR #1.
 - `FCCD-P00-008` — CLOSED after abandoned Worker 3 work was recovered, Windows probe defects were repaired, and the complete real Unity target contract passed.
 - `FCCD-P00-009` — BLOCKED only on real target Blender execution after reusable probe infrastructure, 15/15 self-tests, contract docs, evidence, and unified-runner integration were completed on this Windows host where Blender is not installed.
-- `FCCD-P00-006`, `010` — still require legitimate P00 convergence work.
+- `FCCD-P00-006`, `010` — IMPLEMENTED from target evidence; closure awaits the remaining P00 blockers and exact-head gate.
 - PR #1 FCC/CLI probe infrastructure and Worker 2 streaming/session/failure infrastructure remain preserved.
 
 ## Current objective
@@ -54,9 +54,9 @@ LOCAL TARGET VALIDATION WORKER
   rerun Blender target evidence after Blender becomes available
 
 W5 CONVERGENCE
-  reconcile FCCD-P00-002/003/004/005/007 target evidence,
-  close eligible blocked tasks,
-  complete FCCD-P00-006 + FCCD-P00-010,
+  rerun FCCD-P00-004/007 after provider recovery,
+  reconcile FCCD-P00-005 rate-limit closure boundary,
+  close FCCD-P00-006 + FCCD-P00-010 after remaining evidence,
   run full P00 exit gate.
 ```
 

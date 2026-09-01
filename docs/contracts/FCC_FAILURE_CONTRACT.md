@@ -86,3 +86,9 @@ The probe does not:
 - spam providers,
 - terminate unrelated processes,
 - mutate valuable repositories.
+
+## Target observation — 2026-09-02
+
+The real target produced structured provider-failure events with HTTP status `503`, retry attempt/count, retry delay, session ID, and UUID. The probe also verified timeout escalation and explicit cancellation of the owned `fcc-claude` process, with no kill-by-name behavior. The health endpoint stayed available while the configured upstream provider was unavailable, establishing that FCC health and provider readiness are distinct states.
+
+This verifies real cancellation, timeout, and provider-unavailable behavior. Rate limiting remains `NOT_OBSERVED_ON_TARGET` because the probe correctly did not generate artificial load. `FCCD-P00-005` is `VERIFIED` but not closed until the phase controller accepts the documented safe rate-limit boundary or a natural target observation exists.

@@ -54,3 +54,9 @@ The actual target still must establish:
 - whether model/provider changes affect resume.
 
 The probe deliberately does not restart FCC, corrupt a session, or disconnect providers solely to manufacture negative evidence.
+
+## Target observation — 2026-09-02
+
+Real `system/init` and `system/api_retry` events consistently exposed UUID-shaped `session_id` values, and target help exposed `--session-id`, `--resume`, and `--continue`. This proves session identifier exposure and documents the invocation surface.
+
+The upstream provider returned HTTP 503 retries before any successful first turn. A successful resumable session and continuation marker therefore could not be established. `FCCD-P00-004` remains `BLOCKED` on provider availability rather than probe implementation.
