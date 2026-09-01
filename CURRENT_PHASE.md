@@ -10,7 +10,7 @@ CURRENT_PHASE_NAME: Constitution + external-contract de-risking
 CURRENT_PHASE_STATE: IN_PROGRESS
 NEXT_PHASE: P01
 PHASE_EXIT_GATE: NOT_RUN
-KNOWN_PHASE_BLOCKERS: 5
+KNOWN_PHASE_BLOCKERS: 6
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
 LAST_RECONCILED: 2026-09-01
@@ -33,30 +33,26 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 - `FCCD-P00-005` — BLOCKED only on real target-machine cancellation/failure evidence after reusable failure/cancellation probes and self-tests were implemented by Worker 2.
 - `FCCD-P00-007` — BLOCKED only on real target-machine CLI fallback evidence after probe infrastructure was merged by PR #1.
 - `FCCD-P00-008` — CLOSED after abandoned Worker 3 work was recovered, Windows probe defects were repaired, and the complete real Unity target contract passed.
-- `FCCD-P00-006`, `009`, `010` — still require legitimate P00 work.
+- `FCCD-P00-009` — BLOCKED only on real target Blender execution after reusable probe infrastructure, 15/15 self-tests, contract docs, evidence, and unified-runner integration were completed on this Windows host where Blender is not installed.
+- `FCCD-P00-006`, `010` — still require legitimate P00 convergence work.
 - PR #1 FCC/CLI probe infrastructure and Worker 2 streaming/session/failure infrastructure remain preserved.
 
 ## Current objective
 
 Complete P00 by:
 
-1. building/self-testing the remaining non-overlapping Blender P00 probe,
-2. integrating the Blender lane into `tools/contract-probes/run-target-validation.ps1`, which now orchestrates FCC discovery/CLI, streaming/session/failure, and Unity,
-3. running that unified probe suite once on the actual target Windows environment with the required FCC/Unity/Blender tools installed,
-4. integrating sanitized target evidence,
-5. reconciling the primary runtime decision and compatibility baseline,
-6. running the complete P00 exit gate and fixing every failure before closure.
+1. obtaining real Blender target execution on a host with Blender installed,
+2. reconciling the observed FCC/provider 503 evidence and closing eligible FCC contract tasks,
+3. reconciling the primary runtime decision and compatibility baseline,
+4. rerunning the complete unified suite when the external Blender/provider prerequisites are available,
+5. running the complete P00 exit gate and fixing every failure before closure.
 
 ## Recommended remaining worker lanes inside P00
 
 ```text
-W4  FCCD-P00-009
-
-Then:
 LOCAL TARGET VALIDATION WORKER
-  unified target evidence pass on owner's Windows machine
+  rerun Blender target evidence after Blender becomes available
 
-Then:
 W5 CONVERGENCE
   reconcile FCCD-P00-002/003/004/005/007 target evidence,
   close eligible blocked tasks,

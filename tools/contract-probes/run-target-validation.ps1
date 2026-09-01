@@ -14,7 +14,12 @@ param(
     [string]$UnityFixtureRoot,
     [int]$UnityTimeoutMs = 300000,
     [int]$UnityCancelAfterMs = 3000,
-    [switch]$KeepUnityFixture
+    [switch]$KeepUnityFixture,
+    [string]$BlenderExecutable,
+    [string]$BlenderFixtureRoot,
+    [int]$BlenderTimeoutMs = 180000,
+    [int]$BlenderCancelAfterMs = 2500,
+    [switch]$KeepBlenderFixture
 )
 
 Set-StrictMode -Version Latest
@@ -80,9 +85,15 @@ try {
     [void](Invoke-NodeStep -Name 'unity-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\unity\probe.mjs') -Arguments $unityArgs -EvidencePath $unityOutput)
     $unityIntegrated = $true
 
-    # Blender remains FCCD-P00-009. Preserve only the existing hook/blocked step here.
-    $blenderIntegrated = $false
-    Add-StepResult -Name 'blender-target-probe-integration' -Status 'BLOCKED' -ExitCode 2 -EvidencePath '' -Note 'Separate FCCD-P00-009 worker must integrate its target invocation into this runner.'
+    # FCCD-P00-009: repository logic is self-tested separately from real target evidence.
+    [void](Invoke-NodeStep -Name 'blender-contract-self-test' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\blender\self-test.mjs') -Arguments @() -EvidencePath '')
+    $blenderOutput = Join-Path $TargetDir 'blender-contract.json'
+    $blenderArgs = @('--mode', 'all', '--json', $blenderOutput, '--timeout-ms', [string]$BlenderTimeoutMs, '--cancel-after-ms', [string]$BlenderCancelAfterMs)
+    if ($BlenderExecutable) { $blenderArgs += @('--blender', $BlenderExecutable) }
+    if ($BlenderFixtureRoot) { $blenderArgs += @('--fixture-root', $BlenderFixtureRoot) }
+    if ($KeepBlenderFixture) { $blenderArgs += '--keep-fixture' }
+    [void](Invoke-NodeStep -Name 'blender-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\blender\probe.mjs') -Arguments $blenderArgs -EvidencePath $blenderOutput)
+    $blenderIntegrated = $true
 
     $manifest = [ordered]@{
         schemaVersion = 1

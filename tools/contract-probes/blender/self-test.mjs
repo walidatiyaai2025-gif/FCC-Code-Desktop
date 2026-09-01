@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'; import assert from 'node:assert/strict';
+import { buildArgs, discoverBlender, disposableRoot, redact, validateArtifact, writeFixtureScript } from './lib.mjs';
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'fccd-blender-selftest-'));let pass=0,fail=0;const test=async(n,f)=>{try{await f();console.log(`PASS ${n}`);pass++}catch(e){console.error(`FAIL ${n}: ${e}`);fail++}};
+await test('explicit missing executable is classified',()=>assert.equal(discoverBlender(path.join(root,'missing','blender.exe')).found,false));
+await test('argument builder preserves Unicode paths',()=>assert.deepEqual(buildArgs({script:'a b.py',result:'نتيجة.json',scene:'s.blend',render:'r.png',exported:'m.obj'}).slice(0,4),['--background','--factory-startup','--python','a b.py']));
+await test('redaction removes key-shaped fields',()=>assert.equal(redact({apiKey:'secret-value'}).apiKey,'[REDACTED]'));
+await test('redaction removes bearer values',()=>assert(!redact('Bearer ABCDEFGHIJK').includes('ABCDEFGHIJK')));
+await test('disposable root stays below requested root',()=>assert(disposableRoot(root).startsWith(root)));
+await test('fixture script is nonempty',()=>assert(writeFixtureScript(path.join(root,'x','fixture.py')).size>0));
+await test('missing blend rejected',()=>assert.equal(validateArtifact(path.join(root,'none.blend'),'blend').valid,false));
+await test('blend header accepted',()=>{const p=path.join(root,'ok.blend');fs.writeFileSync(p,'BLENDER-v300');assert(validateArtifact(p,'blend').valid)});
+await test('PNG signature accepted',()=>{const p=path.join(root,'ok.png');fs.writeFileSync(p,Buffer.from([137,80,78,71,1]));assert(validateArtifact(p,'png').valid)});
+await test('empty PNG rejected',()=>{const p=path.join(root,'empty.png');fs.writeFileSync(p,'');assert.equal(validateArtifact(p,'png').valid,false)});
+await test('OBJ geometry accepted',()=>{const p=path.join(root,'ok.obj');fs.writeFileSync(p,'o Cube\nv 0 0 0\nf 1 1 1\n');assert(validateArtifact(p,'obj').valid)});
+await test('OBJ without geometry rejected',()=>{const p=path.join(root,'bad.obj');fs.writeFileSync(p,'# comment');assert.equal(validateArtifact(p,'obj').valid,false)});
+await test('fixture uses factory startup',()=>assert(buildArgs({script:'s',result:'r',scene:'b',render:'p',exported:'o'}).includes('--factory-startup')));
+await test('fixture uses background mode',()=>assert.equal(buildArgs({script:'s',result:'r',scene:'b',render:'p',exported:'o'})[0],'--background'));
+await test('fixture script covers save render export',()=>{const t=fs.readFileSync(path.join(root,'x','fixture.py'),'utf8');assert(t.includes('save_as_mainfile')&&t.includes('render(write_still=True)')&&t.includes('obj_export'))});
+fs.rmSync(root,{recursive:true,force:true});console.log(fail?`SELF_TEST_FAILED ${pass}/${pass+fail}`:`SELF_TEST_VERIFIED ${pass}/${pass+fail}`);process.exit(fail?1:0);
