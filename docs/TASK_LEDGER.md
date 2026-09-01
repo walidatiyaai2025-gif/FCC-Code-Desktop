@@ -32,15 +32,17 @@ Multiple workers may claim non-overlapping tasks only inside the same current ph
 | ID | Task | State |
 |---|---|---|
 | FCCD-P00-001 | Establish repository constitution/source-of-truth docs | CLOSED |
-| FCCD-P00-002 | Probe installed FCC/`fcc-claude` discovery/version/health behavior | PENDING |
+| FCCD-P00-002 | Probe installed FCC/`fcc-claude` discovery/version/health behavior | BLOCKED |
 | FCCD-P00-003 | Probe real structured streaming contract | PENDING |
 | FCCD-P00-004 | Probe session ID/resume behavior | PENDING |
 | FCCD-P00-005 | Probe interrupt/cancel/error/rate-limit behavior | PENDING |
 | FCCD-P00-006 | Determine primary runtime adapter contract from evidence | PENDING |
-| FCCD-P00-007 | Prove CLI fallback contract | PENDING |
+| FCCD-P00-007 | Prove CLI fallback contract | BLOCKED |
 | FCCD-P00-008 | Probe Unity current project/version/CLI/test/build contracts on target environment | PENDING |
 | FCCD-P00-009 | Probe Blender current CLI/background/Python/render/export contracts on target environment | PENDING |
 | FCCD-P00-010 | Record supported version/compatibility baseline | PENDING |
+
+Blocker evidence for `FCCD-P00-002` and `FCCD-P00-007`: the reusable probes are implemented and self-tested, but this worker execution environment cannot access the owner's required Windows FCC/`fcc-claude` installation. See `docs/contracts/FCC_CLI_CONTRACT.md`, `evidence/phases/P00/fcc-discovery/PROBE_HOST_2026-09-01.md`, and `evidence/phases/P00/cli-fallback/PROBE_HOST_2026-09-01.md`.
 
 ## P01 — Solution foundation / CI
 
@@ -340,4 +342,4 @@ Multiple workers may claim non-overlapping tasks only inside the same current ph
 
 `FCCD-P00-001` is closed: the canonical constitution, source-of-truth hierarchy, strict execution plan, current-phase checkpoint, quality/release standards and phase-evidence template are established.
 
-The next authorized work is `FCCD-P00-002` onward: real external-contract probing. Do not start P01 until every P00 task is `CLOSED` and the P00 exit gate is `PASS` with exact-head evidence.
+`FCCD-P00-002` and `FCCD-P00-007` are now blocked specifically on real target Windows FCC/`fcc-claude` execution evidence; their reusable probes and probe-host evidence are integrated on the worker branch. Other P00 work remains governed by live claim/recovery state. Do not start P01 until every P00 task is `CLOSED` and the P00 exit gate is `PASS` with exact-head evidence.
