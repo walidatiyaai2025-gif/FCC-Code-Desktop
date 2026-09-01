@@ -217,3 +217,27 @@ PR #1 validly created the FCC discovery/CLI fallback probe infrastructure and co
 That result should be preserved.
 
 The project should now continue building the remaining non-overlapping P00 probes (streaming/session/failure, Unity, Blender), converge them behind the unified target runner, and perform one consolidated local target-validation pass rather than repeatedly discovering the same remote-environment limitation worker by worker.
+
+---
+
+## 12. Current unified-runner integration after Worker 2
+
+The repository-owned entry point now exists at:
+
+```text
+tools/contract-probes/run-target-validation.ps1
+```
+
+Worker 2 integrates the following existing/current probe lanes into that one command:
+
+- PR #1 FCC discovery/health self-test and target probe,
+- PR #1 CLI fallback target probe,
+- `FCCD-P00-003` streaming recorder/parser self-test and target probe,
+- `FCCD-P00-004` session/resume self-test and target probe,
+- `FCCD-P00-005` cancellation/failure self-test and target probe.
+
+The runner accepts explicit target-observed argument templates through `-CliArgsJson`, `-StreamArgsJson`, and `-ResumeArgsJson`. It does not guess structured-stream or resume syntax.
+
+Unity and Blender remain separate authorized worker scopes. Until `FCCD-P00-008` and `FCCD-P00-009` integrate their real target invocations into this same entry point, the unified runner records those steps as `BLOCKED` and returns non-zero. Directory existence alone is not treated as integration or evidence.
+
+Worker 2 could not execute the PowerShell runner on its Linux probe host because PowerShell is absent there. Node probe modules and self-tests were executed on the remote host; Windows runner execution remains part of target validation.
