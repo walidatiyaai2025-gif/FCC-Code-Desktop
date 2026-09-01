@@ -4,8 +4,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
-const probe = path.join(path.dirname(new URL(import.meta.url).pathname), 'probe.mjs');
+const probe = path.join(path.dirname(fileURLToPath(import.meta.url)), 'probe.mjs');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'fcc-probe-self-test-'));
 const out = path.join(root, 'result.json');
 const missing = path.join(root, 'not installed', 'fcc-claude.exe');
