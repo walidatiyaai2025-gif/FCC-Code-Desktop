@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "probe": "FCCD_P00_008_UNITY_CONTRACT",
+  "capturedAtUtc": "2026-09-01T07:48:35.560Z",
+  "host": {"platform":"linux","arch":"x64","osRelease":"6.18.35","node":"v22.16.0"},
+  "evidenceState": "TARGET_UNVERIFIED",
+  "discovery": {
+    "hub": {"found":false,"candidates":[]},
+    "editors": {"found":false,"editors":[]}
+  },
+  "suppliedProject": null,
+  "versionResolution": null,
+  "fixture": null,
+  "steps": [
+    {"name":"unity-hub-discovery","status":"NOT_OBSERVED","classification":"UNITY_HUB_NOT_FOUND","evidenceState":"NOT_OBSERVED"},
+    {"name":"unity-editor-discovery","status":"BLOCKED","classification":"BLOCKED_UNITY_NOT_FOUND","evidenceState":"NOT_OBSERVED"}
+  ],
+  "operations": [],
+  "targetUnverifiedItems": ["Unity CLI launch","log capture","compile","EditMode tests","PlayMode tests","executeMethod","build","project-lock behavior","Unity-specific cancellation/process cleanup","failure behavior"],
+  "overallStatus": "BLOCKED_UNITY_NOT_FOUND"
+}
