@@ -38,13 +38,15 @@ Multiple workers may claim non-overlapping tasks only inside the same current ph
 | FCCD-P00-005 | Probe interrupt/cancel/error/rate-limit behavior | BLOCKED |
 | FCCD-P00-006 | Determine primary runtime adapter contract from evidence | PENDING |
 | FCCD-P00-007 | Prove CLI fallback contract | BLOCKED |
-| FCCD-P00-008 | Probe Unity current project/version/CLI/test/build contracts on target environment | PENDING |
+| FCCD-P00-008 | Probe Unity current project/version/CLI/test/build contracts on target environment | BLOCKED |
 | FCCD-P00-009 | Probe Blender current CLI/background/Python/render/export contracts on target environment | PENDING |
 | FCCD-P00-010 | Record supported version/compatibility baseline | PENDING |
 
 Blocker evidence for `FCCD-P00-002` and `FCCD-P00-007`: the reusable probes are implemented and self-tested, but this worker execution environment cannot access the owner's required Windows FCC/`fcc-claude` installation. See `docs/contracts/FCC_CLI_CONTRACT.md`, `evidence/phases/P00/fcc-discovery/PROBE_HOST_2026-09-01.md`, and `evidence/phases/P00/cli-fallback/PROBE_HOST_2026-09-01.md`.
 
 Blocker evidence for `FCCD-P00-003`, `FCCD-P00-004`, and `FCCD-P00-005`: reusable streaming/session/failure probes, deterministic `SELF_TEST_ONLY` fixtures, contract docs, remote-host evidence, and unified target-runner integration are implemented. The remote worker host does not contain the owner's Windows FCC/`fcc-claude` environment, so real streaming schemas, session/resume semantics, and real cancellation/provider/failure behavior remain target-unverified. See `docs/contracts/FCC_STREAMING_CONTRACT.md`, `docs/contracts/FCC_SESSION_CONTRACT.md`, `docs/contracts/FCC_FAILURE_CONTRACT.md`, and `evidence/phases/P00/{streaming,sessions,failures}/PROBE_HOST_2026-09-01.md`.
+
+Blocker evidence for `FCCD-P00-008`: reusable Unity discovery/project/version/argument/process/log/test/build/artifact probe infrastructure, deterministic self-tests, contract documentation, remote-host evidence, and unified target-runner integration are implemented. The remote worker host is Linux and does not contain the owner's Windows Unity Editor/Hub or PowerShell environment, so real Unity CLI launch, log, compile, EditMode/PlayMode, `-executeMethod`, build, same-project locking, and Unity-specific cancellation/failure behavior remain target-unverified. See `docs/contracts/UNITY_AUTOMATION_CONTRACT.md` and `evidence/phases/P00/unity/`.
 
 ## P01 — Solution foundation / CI
 
@@ -344,4 +346,4 @@ Blocker evidence for `FCCD-P00-003`, `FCCD-P00-004`, and `FCCD-P00-005`: reusabl
 
 `FCCD-P00-001` is closed: the canonical constitution, source-of-truth hierarchy, strict execution plan, current-phase checkpoint, quality/release standards and phase-evidence template are established.
 
-`FCCD-P00-002`, `FCCD-P00-003`, `FCCD-P00-004`, `FCCD-P00-005`, and `FCCD-P00-007` have reusable remote probe infrastructure but remain blocked on required real target Windows FCC/`fcc-claude` evidence. Continue non-overlapping P00 probe work for Unity/Blender according to live claims, integrate those lanes into the unified target runner, then perform the consolidated local target-validation pass and convergence. Do not start P01 until every P00 task is `CLOSED` and the P00 exit gate is `PASS` with exact-head evidence.
+`FCCD-P00-002`, `FCCD-P00-003`, `FCCD-P00-004`, `FCCD-P00-005`, `FCCD-P00-007`, and `FCCD-P00-008` now have reusable remote probe infrastructure but remain blocked on required real target-machine evidence. `FCCD-P00-008` is specifically waiting on the owner's Windows Unity environment. Continue only non-overlapping remaining P00 work such as the separate `FCCD-P00-009` Blender lane, then run the consolidated local target-validation pass and convergence for `FCCD-P00-006`/`FCCD-P00-010`. Do not start P01 until every P00 task is `CLOSED` and the P00 exit gate is `PASS` with exact-head evidence.
