@@ -126,8 +126,8 @@ try {
     $lines.Add('')
     foreach ($step in $steps) {
         $line = "- $($step.name): **$($step.status)** (exit $($step.exitCode))"
-        if ($step.evidencePath) { $line += " — $($step.evidencePath)" }
-        if ($step.note) { $line += " — $($step.note)" }
+        if ($step.evidencePath) { $line += " - $($step.evidencePath)" }
+        if ($step.note) { $line += " - $($step.note)" }
         $lines.Add($line)
     }
     $lines.Add('')

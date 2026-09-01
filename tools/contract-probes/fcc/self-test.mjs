@@ -16,10 +16,12 @@ const fakeToken = 'Bearer SELF_TEST_TOKEN_MUST_NOT_APPEAR';
 try {
   const run = spawnSync(process.execPath, [probe, '--mode', 'all', '--fcc-claude', missing, '--json', out], {
     encoding: 'utf8',
-    env: { ...process.env, FCC_API_KEY: fakeKey, ANTHROPIC_AUTH_TOKEN: fakeToken },
+    // Keep this deterministic even on a target machine with FCC/Claude tools installed.
+    // The probe under test still launches through the absolute Node executable.
+    env: { ...process.env, PATH: path.dirname(process.execPath), FCC_API_KEY: fakeKey, ANTHROPIC_AUTH_TOKEN: fakeToken },
     timeout: 15000,
   });
-  if (run.status !== 2) throw new Error(`Expected exit 2 for explicit missing runtime, got ${run.status}. stderr=${run.stderr}`);
+  if (run.status !== 2) throw new Error(`Expected exit 2 for explicit missing runtime, got ${run.status}. error=${run.error?.message ?? 'none'} stderr=${run.stderr}`);
   const raw = fs.readFileSync(out, 'utf8');
   if (raw.includes(fakeKey) || raw.includes('SELF_TEST_TOKEN_MUST_NOT_APPEAR')) throw new Error('Secret redaction failed.');
   const parsed = JSON.parse(raw);

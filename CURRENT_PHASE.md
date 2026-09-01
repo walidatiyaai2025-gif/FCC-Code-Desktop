@@ -10,7 +10,7 @@ CURRENT_PHASE_NAME: Constitution + external-contract de-risking
 CURRENT_PHASE_STATE: IN_PROGRESS
 NEXT_PHASE: P01
 PHASE_EXIT_GATE: NOT_RUN
-KNOWN_PHASE_BLOCKERS: 6
+KNOWN_PHASE_BLOCKERS: 5
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
 LAST_RECONCILED: 2026-09-01
@@ -32,7 +32,7 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 - `FCCD-P00-004` — BLOCKED only on real target-machine session/resume evidence after reusable session extraction/resume probes and self-tests were implemented by Worker 2.
 - `FCCD-P00-005` — BLOCKED only on real target-machine cancellation/failure evidence after reusable failure/cancellation probes and self-tests were implemented by Worker 2.
 - `FCCD-P00-007` — BLOCKED only on real target-machine CLI fallback evidence after probe infrastructure was merged by PR #1.
-- `FCCD-P00-008` — BLOCKED only on real target-machine Windows/Unity evidence after reusable Unity discovery/project/version/CLI/log/compile/test/automation/build/artifact/cancellation probes, self-tests, contract docs, evidence, and unified target-runner integration were implemented by Worker 3.
+- `FCCD-P00-008` — CLOSED after abandoned Worker 3 work was recovered, Windows probe defects were repaired, and the complete real Unity target contract passed.
 - `FCCD-P00-006`, `009`, `010` — still require legitimate P00 work.
 - PR #1 FCC/CLI probe infrastructure and Worker 2 streaming/session/failure infrastructure remain preserved.
 
@@ -58,7 +58,7 @@ LOCAL TARGET VALIDATION WORKER
 
 Then:
 W5 CONVERGENCE
-  reconcile FCCD-P00-002/003/004/005/007/008 target evidence,
+  reconcile FCCD-P00-002/003/004/005/007 target evidence,
   close eligible blocked tasks,
   complete FCCD-P00-006 + FCCD-P00-010,
   run full P00 exit gate.

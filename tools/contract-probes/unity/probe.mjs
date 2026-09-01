@@ -149,7 +149,15 @@ async function main() {
   } catch (error) {
     addStep(manifest, { name: 'probe-orchestration', status: 'FAIL', classification: 'PROBE_ABORTED', error: String(error), evidenceState: EVIDENCE.VERIFIED_ON_AVAILABLE_UNITY_HOST }); manifest.overallStatus = 'FAIL'; manifest.evidenceState = EVIDENCE.VERIFIED_ON_AVAILABLE_UNITY_HOST;
   } finally {
-    if (!args.keepFixture) { try { fs.rmSync(fixture, { recursive: true, force: true }); manifest.fixture.cleanup = 'REMOVED'; } catch (error) { manifest.fixture.cleanup = `FAILED:${String(error)}`; manifest.overallStatus = 'FAIL'; } } else manifest.fixture.cleanup = 'KEPT_BY_EXPLICIT_OPTION';
+    if (!args.keepFixture) {
+      let cleanupError = null;
+      for (let attempt = 0; attempt < 12; attempt++) {
+        try { fs.rmSync(fixture, { recursive: true, force: true }); cleanupError = null; break; }
+        catch (error) { cleanupError = error; await new Promise((resolve) => setTimeout(resolve, 250)); }
+      }
+      if (cleanupError) { manifest.fixture.cleanup = `FAILED:${String(cleanupError)}`; manifest.overallStatus = 'FAIL'; }
+      else manifest.fixture.cleanup = 'REMOVED';
+    } else manifest.fixture.cleanup = 'KEPT_BY_EXPLICIT_OPTION';
   }
   writeJson(args.json, manifest); console.log(`UNITY_CONTRACT_${manifest.overallStatus}`); if (manifest.overallStatus === 'PASS') process.exit(EXIT.PASS); if (manifest.overallStatus === 'BLOCKED') process.exit(EXIT.BLOCKED_OR_INCOMPLETE); process.exit(EXIT.ERROR);
 }

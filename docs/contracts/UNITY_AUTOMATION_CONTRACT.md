@@ -2,7 +2,7 @@
 
 **Task:** `FCCD-P00-008`  
 **Phase:** P00  
-**Status:** reusable probe infrastructure implemented; real target-machine Unity execution still required.  
+**Status:** verified on the target Windows/Unity host on 2026-09-02.  
 **Boundary:** this contract informs future P10 design but does not implement the P10 Unity adapter.
 
 ## Evidence states
@@ -216,4 +216,8 @@ The global runner still cannot PASS until every required lane is integrated and 
 
 ## Closure rule
 
-`FCCD-P00-008` remains `BLOCKED` until sufficient real target evidence proves the mandatory Unity discovery/version/project/CLI/log/compile/EditMode/PlayMode/Editor automation/build/artifact/cancellation/failure/concurrency contract. Reusable probe implementation plus self-tests is worker success, not P00 task closure.
+Target execution discovered Unity Hub plus Editors `6000.5.8f1` and `2022.3.75f1`. The disposable Unicode/Arabic-path fixture passed project creation and exact-version selection, positive compile, controlled compile failure and recovery, EditMode and PlayMode tests, `-executeMethod` positive/negative behavior, Windows x64 build with artifact validation, same-project lock collision, owned-process cancellation, and cleanup. The target run also exposed and drove fixes for the Unity 6 blank-project test-framework dependency and EditMode assembly platform classification.
+
+The authoritative machine-readable record is `evidence/phases/P00/target/unity-contract.json`; the reconciliation summary is `evidence/phases/P00/unity/TARGET_VALIDATION_2026-09-02.md`.
+
+`FCCD-P00-008` is `CLOSED` because reusable infrastructure, deterministic self-tests, real target evidence, negative/recovery behavior, artifacts, cleanup, contract reconciliation, and canonical integration are all present.
