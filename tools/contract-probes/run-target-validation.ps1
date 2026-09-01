@@ -7,7 +7,14 @@ param(
     [string]$ResumeArgsJson,
     [int]$TimeoutMs = 45000,
     [int]$CancelAfterMs = 2000,
-    [switch]$ExerciseDuplicateResume
+    [switch]$ExerciseDuplicateResume,
+    [string]$UnityEditor,
+    [string]$UnityHub,
+    [string]$UnityProject,
+    [string]$UnityFixtureRoot,
+    [int]$UnityTimeoutMs = 300000,
+    [int]$UnityCancelAfterMs = 3000,
+    [switch]$KeepUnityFixture
 )
 
 Set-StrictMode -Version Latest
@@ -21,36 +28,16 @@ Push-Location $RepoRoot
 
 try {
     $repoSha = (& git rev-parse HEAD).Trim()
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoSha)) {
-        throw 'Unable to resolve repository HEAD.'
-    }
-
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoSha)) { throw 'Unable to resolve repository HEAD.' }
     $steps = [System.Collections.Generic.List[object]]::new()
 
     function Add-StepResult {
-        param(
-            [string]$Name,
-            [string]$Status,
-            [int]$ExitCode,
-            [string]$EvidencePath,
-            [string]$Note
-        )
-        $steps.Add([ordered]@{
-            name = $Name
-            status = $Status
-            exitCode = $ExitCode
-            evidencePath = $EvidencePath
-            note = $Note
-        })
+        param([string]$Name, [string]$Status, [int]$ExitCode, [string]$EvidencePath, [string]$Note)
+        $steps.Add([ordered]@{ name = $Name; status = $Status; exitCode = $ExitCode; evidencePath = $EvidencePath; note = $Note })
     }
 
     function Invoke-NodeStep {
-        param(
-            [string]$Name,
-            [string]$ScriptPath,
-            [string[]]$Arguments,
-            [string]$EvidencePath
-        )
+        param([string]$Name, [string]$ScriptPath, [string[]]$Arguments, [string]$EvidencePath)
         & node $ScriptPath @Arguments
         $code = $LASTEXITCODE
         $status = if ($code -eq 0) { 'PASS' } elseif ($code -eq 2) { 'BLOCKED' } else { 'FAIL' }
@@ -80,15 +67,21 @@ try {
     if ($ExerciseDuplicateResume) { $runtimeArgs += '--exercise-duplicate-resume' }
     [void](Invoke-NodeStep -Name 'fcc-stream-session-failure-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc-runtime\probe.mjs') -Arguments $runtimeArgs -EvidencePath $runtimeOutput)
 
-    # Unity and Blender are separate P00 worker scopes. Their workers must integrate
-    # their target invocations into this canonical runner rather than Worker 2 guessing
-    # executable paths, arguments, or evidence schemas for them.
-    # These remain false until the separately authorized FCCD-P00-008 and FCCD-P00-009
-    # workers explicitly add their invocations to this runner. Directory existence alone
-    # is not treated as proof of unified-runner integration.
-    $unityIntegrated = $false
+    # FCCD-P00-008: self-test proves repository-owned logic only; target probe returns exit 2 if Unity is missing or mandatory evidence is incomplete.
+    [void](Invoke-NodeStep -Name 'unity-contract-self-test' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\unity\self-test.mjs') -Arguments @() -EvidencePath '')
+
+    $unityOutput = Join-Path $TargetDir 'unity-contract.json'
+    $unityArgs = @('--mode', 'all', '--json', $unityOutput, '--timeout-ms', [string]$UnityTimeoutMs, '--cancel-after-ms', [string]$UnityCancelAfterMs)
+    if ($UnityEditor) { $unityArgs += @('--unity', $UnityEditor) }
+    if ($UnityHub) { $unityArgs += @('--hub', $UnityHub) }
+    if ($UnityProject) { $unityArgs += @('--project', $UnityProject) }
+    if ($UnityFixtureRoot) { $unityArgs += @('--fixture-root', $UnityFixtureRoot) }
+    if ($KeepUnityFixture) { $unityArgs += '--keep-fixture' }
+    [void](Invoke-NodeStep -Name 'unity-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\unity\probe.mjs') -Arguments $unityArgs -EvidencePath $unityOutput)
+    $unityIntegrated = $true
+
+    # Blender remains FCCD-P00-009. Preserve only the existing hook/blocked step here.
     $blenderIntegrated = $false
-    Add-StepResult -Name 'unity-target-probe-integration' -Status 'BLOCKED' -ExitCode 2 -EvidencePath '' -Note 'Separate FCCD-P00-008 worker must integrate its target invocation into this runner.'
     Add-StepResult -Name 'blender-target-probe-integration' -Status 'BLOCKED' -ExitCode 2 -EvidencePath '' -Note 'Separate FCCD-P00-009 worker must integrate its target invocation into this runner.'
 
     $manifest = [ordered]@{
@@ -133,8 +126,8 @@ try {
     $lines.Add('')
     foreach ($step in $steps) {
         $line = "- $($step.name): **$($step.status)** (exit $($step.exitCode))"
-        if ($step.evidencePath) { $line += " — $($step.evidencePath)" }
-        if ($step.note) { $line += " — $($step.note)" }
+        if ($step.evidencePath) { $line += " - $($step.evidencePath)" }
+        if ($step.note) { $line += " - $($step.note)" }
         $lines.Add($line)
     }
     $lines.Add('')
@@ -149,6 +142,4 @@ try {
     if ($manifest.overallStatus -eq 'FAIL') { exit 1 }
     exit 2
 }
-finally {
-    Pop-Location
-}
+finally { Pop-Location }

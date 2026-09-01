@@ -1,0 +1,912 @@
+{
+  "schemaVersion": 1,
+  "probe": "FCCD_P00_008_UNITY_CONTRACT",
+  "capturedAtUtc": "2026-09-01T20:58:54.817Z",
+  "host": {
+    "platform": "win32",
+    "arch": "x64",
+    "osRelease": "10.0.19045",
+    "node": "v20.11.1"
+  },
+  "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST",
+  "discovery": {
+    "hub": {
+      "found": true,
+      "candidates": [
+        {
+          "path": "C:\\Program Files\\Unity Hub\\Unity Hub.exe",
+          "source": "standard-location"
+        }
+      ]
+    },
+    "editors": {
+      "found": true,
+      "editors": [
+        {
+          "path": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+          "source": "hub-default-root",
+          "versionHint": "6000.5.8f1",
+          "version": "6000.5.8f1",
+          "parsedVersion": {
+            "raw": "6000.5.8f1",
+            "valid": true,
+            "major": 6000,
+            "minor": 5,
+            "patch": 8,
+            "stream": "f",
+            "build": 1
+          },
+          "architecture": "x64",
+          "versionProbe": {
+            "command": [
+              "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+              "-version"
+            ],
+            "exitCode": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "6000.5.8f1\r\n",
+            "stderr": "",
+            "durationMs": 143
+          }
+        },
+        {
+          "path": "C:\\Program Files\\Unity\\Hub\\Editor\\2022.3.75f1\\Editor\\Unity.exe",
+          "source": "hub-default-root",
+          "versionHint": "2022.3.75f1",
+          "version": "2022.3.75f1",
+          "parsedVersion": {
+            "raw": "2022.3.75f1",
+            "valid": true,
+            "major": 2022,
+            "minor": 3,
+            "patch": 75,
+            "stream": "f",
+            "build": 1
+          },
+          "architecture": "x64",
+          "versionProbe": {
+            "command": [
+              "C:\\Program Files\\Unity\\Hub\\Editor\\2022.3.75f1\\Editor\\Unity.exe",
+              "-version"
+            ],
+            "exitCode": null,
+            "signal": null,
+            "error": {
+              "code": "UNKNOWN",
+              "message": "spawnSync C:\\Program Files\\Unity\\Hub\\Editor\\2022.3.75f1\\Editor\\Unity.exe UNKNOWN"
+            },
+            "stdout": "",
+            "stderr": "",
+            "durationMs": 2
+          }
+        },
+        {
+          "path": "C:\\Program Files\\Unity 2022.3.75f1\\Editor\\Unity.exe",
+          "source": "program-files-scan",
+          "versionHint": "2022.3.75f1",
+          "version": "2022.3.75f1",
+          "parsedVersion": {
+            "raw": "2022.3.75f1",
+            "valid": true,
+            "major": 2022,
+            "minor": 3,
+            "patch": 75,
+            "stream": "f",
+            "build": 1
+          },
+          "architecture": "x64",
+          "versionProbe": {
+            "command": [
+              "C:\\Program Files\\Unity 2022.3.75f1\\Editor\\Unity.exe",
+              "-version"
+            ],
+            "exitCode": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "2022.3.75f1\r\n",
+            "stderr": "",
+            "durationMs": 135
+          }
+        }
+      ]
+    }
+  },
+  "suppliedProject": null,
+  "versionResolution": null,
+  "fixture": {
+    "root": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8",
+    "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+    "disposable": true,
+    "kept": false,
+    "selectedEditorVersion": "6000.5.8f1",
+    "selectedEditorPath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+    "cleanup": "REMOVED"
+  },
+  "steps": [
+    {
+      "name": "unity-hub-discovery",
+      "status": "PASS",
+      "classification": "UNITY_HUB_FOUND",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "unity-editor-discovery",
+      "status": "PASS",
+      "classification": "UNITY_EDITOR_FOUND",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "disposable-project-create",
+      "status": "PASS",
+      "classification": "PROJECT_CREATE_PASS",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "fixture-project-detection",
+      "status": "PASS",
+      "classification": "VALID_UNITY_PROJECT",
+      "details": {
+        "projectRoot": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "valid": true,
+        "classification": "VALID_UNITY_PROJECT",
+        "requiredVersion": "6000.5.8f1",
+        "revision": "5cb7df797b7d",
+        "markers": {
+          "root": true,
+          "assets": true,
+          "packages": true,
+          "projectSettings": true,
+          "projectVersion": true
+        },
+        "parseError": null
+      },
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "fixture-version-resolution",
+      "status": "PASS",
+      "classification": "EXACT_MATCH",
+      "details": {
+        "projectRequiredVersion": "6000.5.8f1",
+        "installedMatchingVersion": "6000.5.8f1",
+        "installedOtherVersions": [
+          "2022.3.75f1",
+          "2022.3.75f1"
+        ],
+        "selectedEditor": {
+          "path": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+          "source": "hub-default-root",
+          "versionHint": "6000.5.8f1",
+          "version": "6000.5.8f1",
+          "parsedVersion": {
+            "raw": "6000.5.8f1",
+            "valid": true,
+            "major": 6000,
+            "minor": 5,
+            "patch": 8,
+            "stream": "f",
+            "build": 1
+          },
+          "architecture": "x64",
+          "versionProbe": {
+            "command": [
+              "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+              "-version"
+            ],
+            "exitCode": 0,
+            "signal": null,
+            "error": null,
+            "stdout": "6000.5.8f1\r\n",
+            "stderr": "",
+            "durationMs": 143
+          }
+        },
+        "compatibilityStatus": "EXACT_MATCH"
+      },
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "invalid-project-classification",
+      "status": "PASS",
+      "classification": "NOT_UNITY_PROJECT",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "fixture-bootstrap",
+      "status": "PASS",
+      "classification": "FIXTURE_SOURCES_WRITTEN",
+      "artifacts": [
+        {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω\\Assets\\Editor\\FccUnityProbe.cs",
+          "exists": true,
+          "kind": "file",
+          "size": 3007,
+          "sha256": "9a585921751346930e5042677780aff5ba55720569151d75bf47f097b1208ddf"
+        },
+        {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω\\Assets\\Tests\\EditMode\\FccProbe.EditMode.asmdef",
+          "exists": true,
+          "kind": "file",
+          "size": 377,
+          "sha256": "748dae5491856e3ee6265da6a38602d1256f1cde291ecbe547b89d3c9123788e"
+        },
+        {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω\\Assets\\Tests\\EditMode\\FccProbeEditModeTests.cs",
+          "exists": true,
+          "kind": "file",
+          "size": 140,
+          "sha256": "c03a88d9456c3e0127e1222a310f944b54bc0b5faa2051c67c6c5a85db64da71"
+        },
+        {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω\\Assets\\Tests\\PlayMode\\FccProbe.PlayMode.asmdef",
+          "exists": true,
+          "kind": "file",
+          "size": 361,
+          "sha256": "1f9affa50b3d3b4b2f25e1226011bbf3e655ae68b84133241c7ebd3458ac2fc9"
+        },
+        {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω\\Assets\\Tests\\PlayMode\\FccProbePlayModeTests.cs",
+          "exists": true,
+          "kind": "file",
+          "size": 220,
+          "sha256": "f54a1019e3d6114776f4acca1a860002d873ef9f05cd4562cb922760f761ad50"
+        }
+      ],
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "compile-positive",
+      "status": "PASS",
+      "classification": "COMPILE_PASS",
+      "artifact": {
+        "valid": true,
+        "classification": "RESULT_VALID",
+        "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile-result.json",
+        "value": {
+          "success": true,
+          "operation": "compile-marker",
+          "unityVersion": "6000.5.8f1"
+        },
+        "artifact": {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile-result.json",
+          "exists": true,
+          "kind": "file",
+          "size": 73,
+          "sha256": "bf4de46187437ac2804ff172ed27ea9c5562a9a768e1919af79f9103fbddf4b9"
+        }
+      },
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "compile-negative-controlled",
+      "status": "PASS",
+      "classification": "COMPILE_ERROR",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "compile-recovery-after-negative",
+      "status": "PASS",
+      "classification": "COMPILE_PASS",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "editmode-tests",
+      "status": "PASS",
+      "classification": "TEST_PASS",
+      "artifactValidation": {
+        "valid": true,
+        "classification": "TEST_PASS",
+        "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\editmode-results.xml",
+        "root": "test-run",
+        "result": "Passed",
+        "counts": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "inconclusive": 0
+        },
+        "artifact": {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\editmode-results.xml",
+          "exists": true,
+          "kind": "file",
+          "size": 2620,
+          "sha256": "762339f5c3694d031c4b12ac29a9d4997f8b6de6dc5244e9c341b727d8602cd2"
+        }
+      },
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "playmode-tests",
+      "status": "PASS",
+      "classification": "TEST_PASS",
+      "artifactValidation": {
+        "valid": true,
+        "classification": "TEST_PASS",
+        "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\playmode-results.xml",
+        "root": "test-run",
+        "result": "Passed",
+        "counts": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "inconclusive": 0
+        },
+        "artifact": {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\playmode-results.xml",
+          "exists": true,
+          "kind": "file",
+          "size": 2692,
+          "sha256": "cbec421cf61f619633ce018d2b8e6064d89890866a26bc225d11e603c424028e"
+        }
+      },
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "editor-automation-execute-method",
+      "status": "PASS",
+      "classification": "EXECUTE_METHOD_PASS",
+      "artifact": {
+        "valid": true,
+        "classification": "RESULT_VALID",
+        "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\automation-marker.json",
+        "value": {
+          "success": true,
+          "operation": "automation-marker",
+          "unityVersion": "6000.5.8f1",
+          "productName": "Unity Project عربي Ω"
+        },
+        "artifact": {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\automation-marker.json",
+          "exists": true,
+          "kind": "file",
+          "size": 118,
+          "sha256": "685042871b7926456fc9dacd71dd336c6d37e2838aa27deb069515fc04b5cd94"
+        }
+      },
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "execute-method-negative",
+      "status": "PASS",
+      "classification": "EXPECTED_EXECUTE_METHOD_FAILURE_OBSERVED",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "build-and-artifact-validation",
+      "status": "PASS",
+      "classification": "BUILD_PASS",
+      "artifactValidation": {
+        "valid": true,
+        "classification": "BUILD_PASS",
+        "buildResult": {
+          "valid": true,
+          "classification": "RESULT_VALID",
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\build-result.json",
+          "value": {
+            "success": true,
+            "result": "Succeeded",
+            "totalErrors": 0,
+            "totalWarnings": 0,
+            "totalSize": 93255372,
+            "outputPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\build output عربي\\FccProbe.exe"
+          },
+          "artifact": {
+            "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\build-result.json",
+            "exists": true,
+            "kind": "file",
+            "size": 253,
+            "sha256": "cf8c62c82321b9fd6598332ce783e7502188913e9b712f318ae62248ae97b1a4"
+          }
+        },
+        "executable": {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\build output عربي\\FccProbe.exe",
+          "exists": true,
+          "kind": "file",
+          "size": 667648,
+          "sha256": "ed6bda55ad55566d1c4e1af4498a0907fc2a7545a77a1651d08ac01026f402d3"
+        }
+      },
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "same-project-concurrency",
+      "status": "PASS",
+      "classification": "PROJECT_LOCK_COLLISION_OBSERVED",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "name": "cancellation-owned-process-tree",
+      "status": "PASS",
+      "classification": "CANCELLED_OWNED_PROCESS_EXITED",
+      "processCleanup": {
+        "gracefulResult": {
+          "pid": 17604,
+          "gracefulAttempted": true,
+          "forcedTreeAttempted": false,
+          "errors": []
+        },
+        "forceResult": null
+      },
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    }
+  ],
+  "operations": [
+    {
+      "operationId": "unity-create-project",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-createProject",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\create-project.log",
+        "-timestamps"
+      ],
+      "startTime": "2026-09-01T20:58:55.115Z",
+      "endTime": "2026-09-01T20:59:14.140Z",
+      "durationMs": 19025,
+      "pid": 26176,
+      "exitCode": 0,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\create-project.log",
+      "testResultPath": null,
+      "buildOutputPath": null,
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "PROJECT_CREATE_PASS",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-compile-positive",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile.log",
+        "-timestamps",
+        "-executeMethod",
+        "FccUnityProbe.WriteCompileResult",
+        "--fcc-result",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile-result.json"
+      ],
+      "startTime": "2026-09-01T20:59:14.240Z",
+      "endTime": "2026-09-01T20:59:32.308Z",
+      "durationMs": 18068,
+      "pid": 27172,
+      "exitCode": 0,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile.log",
+      "testResultPath": null,
+      "buildOutputPath": null,
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "COMPILE_PASS",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-compile-negative",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile-negative.log",
+        "-timestamps",
+        "-executeMethod",
+        "FccUnityProbe.WriteCompileResult",
+        "--fcc-result",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\negative-compile-marker.json"
+      ],
+      "startTime": "2026-09-01T20:59:32.367Z",
+      "endTime": "2026-09-01T20:59:37.732Z",
+      "durationMs": 5365,
+      "pid": 17884,
+      "exitCode": 1,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile-negative.log",
+      "testResultPath": null,
+      "buildOutputPath": null,
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "COMPILE_ERROR",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-compile-recovery",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile-recovery.log",
+        "-timestamps",
+        "-executeMethod",
+        "FccUnityProbe.WriteCompileResult",
+        "--fcc-result",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile-recovery.json"
+      ],
+      "startTime": "2026-09-01T20:59:37.783Z",
+      "endTime": "2026-09-01T20:59:47.850Z",
+      "durationMs": 10067,
+      "pid": 27296,
+      "exitCode": 0,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\compile-recovery.log",
+      "testResultPath": null,
+      "buildOutputPath": null,
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "COMPILE_PASS",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-editmode-tests",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\editmode-tests.log",
+        "-timestamps",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\editmode-results.xml"
+      ],
+      "startTime": "2026-09-01T20:59:47.900Z",
+      "endTime": "2026-09-01T20:59:57.588Z",
+      "durationMs": 9688,
+      "pid": 24380,
+      "exitCode": 0,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\editmode-tests.log",
+      "testResultPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\editmode-results.xml",
+      "buildOutputPath": null,
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "TEST_PASS",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-playmode-tests",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\playmode-tests.log",
+        "-timestamps",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\playmode-results.xml"
+      ],
+      "startTime": "2026-09-01T20:59:57.627Z",
+      "endTime": "2026-09-01T21:00:08.854Z",
+      "durationMs": 11227,
+      "pid": 26364,
+      "exitCode": 0,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\playmode-tests.log",
+      "testResultPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\playmode-results.xml",
+      "buildOutputPath": null,
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "TEST_PASS",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-execute-method",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\automation.log",
+        "-timestamps",
+        "-executeMethod",
+        "FccUnityProbe.AutomationMarker",
+        "--fcc-result",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\automation-marker.json"
+      ],
+      "startTime": "2026-09-01T21:00:08.902Z",
+      "endTime": "2026-09-01T21:00:17.864Z",
+      "durationMs": 8962,
+      "pid": 1596,
+      "exitCode": 0,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\automation.log",
+      "testResultPath": null,
+      "buildOutputPath": null,
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "EXECUTE_METHOD_PASS",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-execute-method-negative",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\execute-method-failure.log",
+        "-timestamps",
+        "-executeMethod",
+        "FccUnityProbe.ThrowExpectedFailure"
+      ],
+      "startTime": "2026-09-01T21:00:17.899Z",
+      "endTime": "2026-09-01T21:00:23.252Z",
+      "durationMs": 5353,
+      "pid": 7692,
+      "exitCode": 1,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\execute-method-failure.log",
+      "testResultPath": null,
+      "buildOutputPath": null,
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "EXPECTED_EXECUTE_METHOD_FAILURE_OBSERVED",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-build",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\build.log",
+        "-timestamps",
+        "-executeMethod",
+        "FccUnityProbe.BuildWindows64",
+        "-buildTarget",
+        "StandaloneWindows64",
+        "--fcc-build-output",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\build output عربي\\FccProbe.exe",
+        "--fcc-result",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\build-result.json"
+      ],
+      "startTime": "2026-09-01T21:00:23.291Z",
+      "endTime": "2026-09-01T21:00:51.112Z",
+      "durationMs": 27821,
+      "pid": 22668,
+      "exitCode": 0,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\build.log",
+      "testResultPath": null,
+      "buildOutputPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\build output عربي\\FccProbe.exe",
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "BUILD_PASS",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-project-lock-collision",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\collision.log",
+        "-timestamps",
+        "-executeMethod",
+        "FccUnityProbe.AutomationMarker",
+        "--fcc-result",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\collision-result.json"
+      ],
+      "startTime": "2026-09-01T21:00:56.605Z",
+      "endTime": "2026-09-01T21:00:56.933Z",
+      "durationMs": 328,
+      "pid": 25552,
+      "exitCode": 1,
+      "timeout": false,
+      "cancellation": false,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\collision.log",
+      "testResultPath": null,
+      "buildOutputPath": null,
+      "producedArtifacts": [],
+      "processCleanup": {
+        "gracefulResult": null,
+        "forceResult": null
+      },
+      "finalClassification": "PROJECT_LOCK_COLLISION_OBSERVED",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-project-lock-holder",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\hold.log",
+        "-timestamps",
+        "-executeMethod",
+        "FccUnityProbe.HoldOpen",
+        "--fcc-result",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\hold-ready.json",
+        "--fcc-hold-ms",
+        "60000"
+      ],
+      "startTime": "2026-09-01T21:00:51.296Z",
+      "endTime": "2026-09-01T21:01:36.418Z",
+      "durationMs": 45122,
+      "pid": 27568,
+      "exitCode": null,
+      "timeout": false,
+      "cancellation": true,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\hold.log",
+      "testResultPath": null,
+      "buildOutputPath": null,
+      "producedArtifacts": [
+        {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\hold-ready.json",
+          "exists": true,
+          "kind": "file",
+          "size": 53,
+          "sha256": "ad8388542131bd80dbf08768b6b4ac435542b4bf876896463014b3ca8d921612"
+        }
+      ],
+      "processCleanup": {
+        "gracefulResult": {
+          "pid": 27568,
+          "gracefulAttempted": true,
+          "forcedTreeAttempted": false,
+          "errors": []
+        },
+        "forceResult": null
+      },
+      "finalClassification": "HOLDER_CANCELLED_AFTER_COLLISION_PROBE",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    },
+    {
+      "operationId": "unity-cancellation",
+      "unityVersion": "6000.5.8f1",
+      "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+      "projectPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+      "args": [
+        "-quit",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\Unity Project عربي Ω",
+        "-logFile",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\cancel.log",
+        "-timestamps",
+        "-executeMethod",
+        "FccUnityProbe.HoldOpen",
+        "--fcc-result",
+        "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\cancel-ready.json",
+        "--fcc-hold-ms",
+        "60000"
+      ],
+      "startTime": "2026-09-01T21:01:36.420Z",
+      "endTime": "2026-09-01T21:01:39.490Z",
+      "durationMs": 3070,
+      "pid": 17604,
+      "exitCode": null,
+      "timeout": false,
+      "cancellation": true,
+      "logPath": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\cancel.log",
+      "testResultPath": null,
+      "buildOutputPath": null,
+      "producedArtifacts": [
+        {
+          "path": "<HOME>\\AppData\\Local\\Temp\\fcc unity probe مسار 320ae6e9-b747-4d8b-a419-097b2a34f0b8\\evidence\\cancel-ready.json",
+          "exists": false,
+          "kind": null,
+          "size": null,
+          "sha256": null
+        }
+      ],
+      "processCleanup": {
+        "gracefulResult": {
+          "pid": 17604,
+          "gracefulAttempted": true,
+          "forcedTreeAttempted": false,
+          "errors": []
+        },
+        "forceResult": null
+      },
+      "finalClassification": "CANCELLED_OWNED_PROCESS_EXITED",
+      "evidenceState": "VERIFIED_ON_AVAILABLE_UNITY_HOST"
+    }
+  ],
+  "targetUnverifiedItems": [],
+  "overallStatus": "PASS"
+}
