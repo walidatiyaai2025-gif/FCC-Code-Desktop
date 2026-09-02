@@ -151,10 +151,21 @@ async function main() {
   } finally {
     if (!args.keepFixture) {
       let cleanupError = null;
-      for (let attempt = 0; attempt < 12; attempt++) {
-        try { fs.rmSync(fixture, { recursive: true, force: true }); cleanupError = null; break; }
-        catch (error) { cleanupError = error; await new Promise((resolve) => setTimeout(resolve, 250)); }
+      let cleanupAttempts = 0;
+      for (let attempt = 0; attempt < 60; attempt++) {
+        cleanupAttempts = attempt + 1;
+        try {
+          fs.rmSync(fixture, { recursive: true, force: true });
+          cleanupError = null;
+          break;
+        } catch (error) {
+          cleanupError = error;
+          const retryable = ['EBUSY', 'EPERM', 'ENOTEMPTY'].includes(error?.code);
+          if (!retryable) break;
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
       }
+      manifest.fixture.cleanupAttempts = cleanupAttempts;
       if (cleanupError) { manifest.fixture.cleanup = `FAILED:${String(cleanupError)}`; manifest.overallStatus = 'FAIL'; }
       else manifest.fixture.cleanup = 'REMOVED';
     } else manifest.fixture.cleanup = 'KEPT_BY_EXPLICIT_OPTION';

@@ -113,6 +113,12 @@ await test('valid Blender header accepted', () => {
   assert(validateArtifact(p, 'blend').valid);
 });
 
+await test('modern 17-byte Blender header accepted', () => {
+  const p = path.join(root, 'modern.blend');
+  fs.writeFileSync(p, 'BLENDER17-01v0520');
+  assert(validateArtifact(p, 'blend').valid);
+});
+
 await test('malformed Blender header rejected', () => {
   const p = path.join(root, 'bad-header.blend');
   fs.writeFileSync(p, 'BLENDERgarbage');
@@ -197,6 +203,11 @@ await test('controlled error requires a real nonzero integer exit', () => {
   assert.equal(isControlledNonZeroExit(undefined), false);
 });
 
+await test('controlled Blender Python failure requests explicit nonzero exit', () => {
+  const source = fs.readFileSync(new URL('./probe.mjs', import.meta.url), 'utf8');
+  assert(source.includes("'--python-exit-code', '17'"));
+});
+
 await test('owned cancellation verifies root exit and preserves unrelated process', async () => {
   const unrelated = spawn(process.execPath, ['-e', 'setTimeout(() => {}, 60000)'], {
     shell: false,
@@ -225,7 +236,7 @@ await test('fixture uses background mode', () =>
 
 await test('fixture script covers save render export', () => {
   const t = fs.readFileSync(path.join(root, 'x', 'fixture.py'), 'utf8');
-  assert(t.includes('save_as_mainfile') && t.includes('render(write_still=True)') && t.includes('obj_export'));
+  assert(t.includes('save_as_mainfile') && t.includes('compress=False') && t.includes('render(write_still=True)') && t.includes('obj_export'));
 });
 
 await test('cancellation implementation contains no kill-by-name', () => {
