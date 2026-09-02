@@ -201,8 +201,14 @@ export async function captureProcess(executable, args, options = {}) {
     child.once('exit', (exitCode, signal) => resolve({ exitCode, signal, launchError: null }));
   });
   await new Promise((resolve) => setTimeout(resolve, options.snapshotDelayMs ?? 150));
-  const initialSnapshot = processSnapshot();
-  const observedProcessTree = [{ pid: child.pid, ppid: null, name: path.basename(launch.file), role: launch.wrapper ? 'launcher-wrapper' : 'launcher' }, ...descendantsOf(initialSnapshot, child.pid).map((x) => ({ ...x, role: 'descendant' }))];
+  const observedProcessByPid = new Map();
+  observedProcessByPid.set(child.pid, { pid: child.pid, ppid: null, name: path.basename(launch.file), role: launch.wrapper ? 'launcher-wrapper' : 'launcher' });
+  const recordOwnedSnapshot = (snapshot) => {
+    for (const row of descendantsOf(snapshot, child.pid)) {
+      if (!observedProcessByPid.has(row.pid)) observedProcessByPid.set(row.pid, { ...row, role: 'descendant' });
+    }
+  };
+  recordOwnedSnapshot(processSnapshot());
   let timedOut = false;
   let cancelled = false;
   let gracefulInterruptAttempted = false;
@@ -214,6 +220,7 @@ export async function captureProcess(executable, args, options = {}) {
   const watcher = setInterval(async () => {
     if ((timedOut || cancelled) && !escalationRunning && child.exitCode == null) {
       escalationRunning = true;
+      recordOwnedSnapshot(processSnapshot());
       gracefulInterruptAttempted = true;
       try { child.kill('SIGINT'); } catch {}
       await new Promise((r) => setTimeout(r, options.gracefulWaitMs ?? 700));
@@ -241,6 +248,7 @@ export async function captureProcess(executable, args, options = {}) {
   const stderrRaw = rawFramesInternal.filter((x) => x.stream === 'stderr').map((x) => x.decodedText).join('');
   const lineEvents = buildLineAnalysis(rawFramesInternal.map((x) => ({ ...x })));
   const rawFrames = finalizeFrames(rawFramesInternal);
+  const observedProcessTree = [...observedProcessByPid.values()];
   const observedPids = new Set(observedProcessTree.map((x) => x.pid));
   let finalSnapshot = processSnapshot();
   let remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter((x) => observedPids.has(x.pid));
