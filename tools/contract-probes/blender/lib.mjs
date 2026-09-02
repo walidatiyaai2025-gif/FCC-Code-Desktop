@@ -11,7 +11,7 @@ export function redact(value, key = '') {
   if (Array.isArray(value)) return value.map((x) => redact(x));
   if (typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, redact(v, k)]));
   if (typeof value !== 'string') return value;
-  return value.replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[REDACTED]').replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]{8,}/gi, '$1[REDACTED]');
+  return value.replace(/\bsk-[A-Za-z0-9_-]{8,}\b/g, '[REDACTED]').replace(/(Authorization\s*[:=]\s*)[^\r\n,;]+/gi, '$1[REDACTED]').replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]{8,}/gi, '$1[REDACTED]');
 }
 
 export function sha256(file) { const h = createHash('sha256'); h.update(fs.readFileSync(file)); return h.digest('hex'); }
