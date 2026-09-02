@@ -48,11 +48,16 @@ foreach ($testProjectPath in @($unitProject, $integrationProject)) {
     $packageReferences = @($project.SelectNodes('//PackageReference'))
     $packageIds = @()
     foreach ($packageReference in $packageReferences) {
-        $packageId = [string]$packageReference.Include
+        $packageId = [string]$packageReference.Attributes['Include'].Value
         if (-not $packageId) {
             throw "PackageReference is missing Include in $testProjectPath"
         }
-        if ($packageReference.Version -or $packageReference.VersionOverride) {
+
+        $versionAttribute = $packageReference.Attributes['Version']
+        $versionOverrideAttribute = $packageReference.Attributes['VersionOverride']
+        $versionNode = $packageReference.SelectSingleNode('Version')
+        $versionOverrideNode = $packageReference.SelectSingleNode('VersionOverride')
+        if ($null -ne $versionAttribute -or $null -ne $versionOverrideAttribute -or $null -ne $versionNode -or $null -ne $versionOverrideNode) {
             throw "Test package '$packageId' must use central version ownership in $testProjectPath"
         }
         $packageIds += $packageId
