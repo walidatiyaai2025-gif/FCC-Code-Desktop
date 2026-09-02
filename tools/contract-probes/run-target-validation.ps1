@@ -65,6 +65,25 @@ try {
     $nodeVersion = (& node --version).Trim()
     if ($LASTEXITCODE -ne 0) { throw 'Unable to resolve Node.js version.' }
 
+    # P00-005 is already closed from integrated exact-head Windows evidence. The final
+    # target manifest may reuse it only when its tested source commit remains in the
+    # ancestry of the exact current HEAD. Missing/malformed/non-ancestor evidence is
+    # deliberately passed to the summarizer as unsatisfied rather than silently trusted.
+    $integratedFailureOutput = Join-Path $RepoRoot 'evidence\phases\P00\failure\fcc-failure-target-exact-head.json'
+    $integratedFailureSourceIsAncestor = $false
+    if (Test-Path $integratedFailureOutput) {
+        try {
+            $integratedFailureEvidence = Get-Content -Raw -Path $integratedFailureOutput | ConvertFrom-Json
+            $integratedFailureSourceSha = [string]$integratedFailureEvidence.testedSourceSha
+            if ($integratedFailureSourceSha -match '^[0-9a-fA-F]{40}$') {
+                & git merge-base --is-ancestor $integratedFailureSourceSha $repoSha
+                $integratedFailureSourceIsAncestor = ($LASTEXITCODE -eq 0)
+            }
+        } catch {
+            $integratedFailureSourceIsAncestor = $false
+        }
+    }
+
     $TargetDir = Join-Path $RepoRoot 'evidence\phases\P00\target'
     New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
     $steps = [System.Collections.Generic.List[object]]::new()
@@ -135,9 +154,9 @@ try {
     $blenderTargetCode = [int]$steps[$steps.Count - 1].exitCode
     $blenderIntegrated = $true
 
-    # Build a compact contract summary from sanitized tool-specific evidence. Exit codes remain
-    # authoritative for PASS/BLOCKED/FAIL; the summary preserves exact reasons, versions and
-    # target-observation distinctions required by the binding P00 target-validation contract.
+    # Build a compact contract summary from sanitized tool-specific evidence. Probe exit
+    # codes are inputs, but readable mandatory evidence may still fail closed when its
+    # content contradicts those exits (for example missing Blender with an impossible 0).
     $contractSummaryPath = Join-Path $TargetDir 'P00_TARGET_CONTRACT_SUMMARY.json'
     $contractSummaryScript = Join-Path $RepoRoot 'tools\contract-probes\target-evidence-summary.mjs'
     $contractSummaryArgs = @(
@@ -147,15 +166,28 @@ try {
         '--runtime-file', $runtimeOutput, '--runtime-exit', [string]$runtimeTargetCode,
         '--unity-file', $unityOutput, '--unity-exit', [string]$unityTargetCode,
         '--blender-file', $blenderOutput, '--blender-exit', [string]$blenderTargetCode,
+        '--integrated-failure-file', $integratedFailureOutput,
         '--output', $contractSummaryPath
     )
+    if ($integratedFailureSourceIsAncestor) { $contractSummaryArgs += '--integrated-failure-source-is-ancestor' }
     & node $contractSummaryScript @contractSummaryArgs
     $contractSummaryExit = $LASTEXITCODE
     if ($contractSummaryExit -ne 0) {
         throw "TARGET_EVIDENCE_SUMMARY_FAILED: summarizer exit $contractSummaryExit."
     }
     $contractSummary = Get-Content -Raw -Path $contractSummaryPath | ConvertFrom-Json
-    Add-StepResult -Name 'target-evidence-summary' -Status 'PASS' -ExitCode 0 -EvidencePath $contractSummaryPath -Note 'schemaVersion=2; compact sanitized contract metadata'
+
+    # The summary generator itself can execute successfully while reporting fail-closed
+    # contract/readiness states. Those states must affect the unified runner result.
+    $contractStatuses = @($contractSummary.contracts.PSObject.Properties | ForEach-Object { [string]$_.Value.status })
+    $summaryStatus = 'PASS'
+    if (($contractStatuses -contains 'FAIL') -or ([string]$contractSummary.p00Readiness.p00_005.status -eq 'FAIL') -or ([string]$contractSummary.p00Readiness.pg_002.status -ne 'RESOLVED')) {
+        $summaryStatus = 'FAIL'
+    } elseif (($contractStatuses -contains 'BLOCKED') -or ([string]$contractSummary.p00Readiness.p00_009.status -eq 'BLOCKED')) {
+        $summaryStatus = 'BLOCKED'
+    }
+    $summaryExitCode = if ($summaryStatus -eq 'PASS') { 0 } elseif ($summaryStatus -eq 'BLOCKED') { 2 } else { 1 }
+    Add-StepResult -Name 'target-evidence-summary' -Status $summaryStatus -ExitCode $summaryExitCode -EvidencePath $contractSummaryPath -Note 'schemaVersion=2; fail-closed contract and P00 readiness metadata'
 
     $manifest = [ordered]@{
         schemaVersion = 2
@@ -178,12 +210,13 @@ try {
         }
         contractSummarySchemaVersion = $contractSummary.schemaVersion
         contracts = $contractSummary.contracts
+        p00Readiness = $contractSummary.p00Readiness
         steps = $steps
     }
 
     $allPass = ($steps.Count -gt 0) -and (($steps | Where-Object { $_.status -ne 'PASS' }).Count -eq 0)
     $suiteComplete = $unityIntegrated -and $blenderIntegrated
-    $manifest.overallStatus = if ($allPass -and $suiteComplete) { 'PASS' } elseif (($steps | Where-Object { $_.status -eq 'FAIL' }).Count -gt 0) { 'FAIL' } else { 'BLOCKED' }
+    $manifest.overallStatus = if ($allPass -and $suiteComplete -and $contractSummary.p00Readiness.p00TargetValidationComplete) { 'PASS' } elseif (($steps | Where-Object { $_.status -eq 'FAIL' }).Count -gt 0) { 'FAIL' } else { 'BLOCKED' }
 
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     $jsonPath = Join-Path $TargetDir 'P00_TARGET_EVIDENCE.json'
@@ -198,6 +231,9 @@ try {
     $lines.Add("- Captured UTC: ``$($manifest.capturedAtUtc)``")
     $lines.Add("- Overall status: **$($manifest.overallStatus)**")
     $lines.Add("- Live provider-backed prompt authorized: ``$([bool]$AllowLivePrompt)``")
+    $lines.Add("- P00-005 integrated exact-head evidence: **$($contractSummary.p00Readiness.p00_005.status)** - ``$($contractSummary.p00Readiness.p00_005.artifactPath)``")
+    $lines.Add("- PG-002 policy: **$($contractSummary.p00Readiness.pg_002.status)** / ``$($contractSummary.p00Readiness.pg_002.observationState)`` - actual 429 observed: ``$($contractSummary.p00Readiness.pg_002.actual429Observed)``")
+    $lines.Add("- P00-009 closure support: **$($contractSummary.p00Readiness.p00_009.status)** - ``$($contractSummary.p00Readiness.p00_009.artifactPath)``")
     $lines.Add('')
     $lines.Add('## Contract summary')
     $lines.Add('')
