@@ -1,0 +1,51 @@
+name: P01-003 Final Lock Generation
+
+on:
+  push:
+    branches:
+      - validation/p01-003-final-lock-generation-20c45fa
+
+permissions:
+  contents: read
+
+jobs:
+  generate-and-prove-locks:
+    runs-on: windows-2025
+    steps:
+      - name: Checkout exact policy candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 20c45fa2f87e94a2da0eddebfd08eb92f8ba83ad
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Regenerate locks from final policy
+        shell: pwsh
+        run: |
+          dotnet restore .\FCCCodeDesktop.sln -p:RestoreLockedMode=false --force-evaluate --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Final lock regeneration failed.' }
+
+      - name: Prove regenerated locks are internally consistent
+        shell: pwsh
+        run: |
+          dotnet restore .\FCCCodeDesktop.sln --locked-mode --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Locked restore failed immediately after final lock regeneration.' }
+
+      - name: Print exact regenerated locks
+        shell: pwsh
+        run: |
+          $locks = @(Get-ChildItem -Path .\src -Filter packages.lock.json -Recurse -File | Sort-Object FullName)
+          Write-Host "LOCK_COUNT=$($locks.Count)"
+          foreach ($lock in $locks) {
+            $relative = [System.IO.Path]::GetRelativePath((Get-Location).Path, $lock.FullName).Replace('\','/')
+            $bytes = [System.IO.File]::ReadAllBytes($lock.FullName)
+            $base64 = [Convert]::ToBase64String($bytes)
+            Write-Host "LOCK_BEGIN=$relative"
+            Write-Host "LOCK_BASE64=$base64"
+            Write-Host "LOCK_END=$relative"
+          }
+          git status --short
