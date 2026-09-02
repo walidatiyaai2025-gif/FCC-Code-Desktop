@@ -90,7 +90,9 @@ The implementation may internally call Node/PowerShell/Python or tool-specific m
 The runner must:
 
 - run only on Windows for authoritative P00 target evidence,
-- refuse a dirty Git worktree before evidence generation so the evidence can be attributed to the recorded exact HEAD SHA,
+- refuse uncommitted source/configuration/probe changes that would make executable inputs differ from the recorded exact HEAD SHA,
+- permit pre-existing changes only inside the repository-owned `evidence/phases/P00/target/**` output subtree so a prior run does not prevent a deterministic rerun,
+- never treat permitted prior evidence-output dirtiness as permission for source/configuration dirtiness elsewhere,
 - verify that the checkout resolved by Git is the repository containing the runner,
 - verify required probe prerequisites such as Git and Node before execution,
 - perform no destructive workspace operations,
@@ -107,7 +109,7 @@ The runner must:
 - record command/probe versions and timestamps,
 - clean up owned temporary processes/files.
 
-PR #6 hardened these provenance requirements in the canonical runner by rejecting non-Windows execution, dirty worktrees, wrong repository roots, and missing Git/Node prerequisites before target evidence is written.
+PR #6 introduced the Windows, repository-identity, prerequisite, and exact-head source-input provenance guards. PR #13 refined the worktree guard so repository-owned target-evidence outputs from a previous run may be overwritten safely while any source/configuration change outside that output subtree still blocks authoritative evidence generation.
 
 ---
 
@@ -230,8 +232,9 @@ Historical milestones such as PR #1 and Worker 2 remain useful provenance, but t
 
 The most recent cloud hardening relevant to target execution includes:
 
-- PR #6 — target-runner provenance guards for Windows, exact clean HEAD, repository identity, Git and Node;
-- PR #9 — FCC runtime ownership evidence refreshes descendants immediately before cancellation/timeout escalation and covers late-spawned children with deterministic regression tests.
+- PR #6 — target-runner provenance guards for Windows, exact HEAD source/configuration inputs, repository identity, Git and Node;
+- PR #9 — FCC runtime ownership evidence refreshes descendants immediately before cancellation/timeout escalation and covers late-spawned children with deterministic regression tests;
+- PR #13 — target-runner rerun safety permits only repository-owned target-evidence output dirtiness while continuing to reject uncommitted executable-input changes.
 
 Because PR #9 changed the evidence-producing cancellation/process-ownership probe after the last Windows run, `FCCD-P00-005` requires a new exact-head Windows target run before it may regain `VERIFIED` status.
 
@@ -247,4 +250,4 @@ At the current P00 state:
 - `FCCD-P00-009` requires real Blender execution on the authoritative Windows target;
 - `FCCD-P00-006` and `FCCD-P00-010` remain convergence-dependent until the target blockers are removed.
 
-The next authoritative local run must use a clean checkout of the current canonical `main`, the one-command runner, bounded provider traffic, sanitized evidence, and no fabricated replacement for unavailable provider or Blender behavior. After evidence is integrated, a convergence worker reconciles all affected contracts/task states and only then evaluates the P00 exit gate.
+The next authoritative local run must use the current canonical `main` with no uncommitted source/configuration/probe changes, the one-command runner, bounded provider traffic, sanitized evidence, and no fabricated replacement for unavailable provider or Blender behavior. Existing files under the runner-owned target-evidence output subtree may be overwritten by the rerun. After evidence is integrated, a convergence worker reconciles all affected contracts/task states and only then evaluates the P00 exit gate.
