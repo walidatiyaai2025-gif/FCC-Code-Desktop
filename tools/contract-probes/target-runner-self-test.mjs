@@ -72,6 +72,12 @@ function assertStaticRunnerPolicy(runnerText) {
     "fcc-stream-session-failure-target",
     "unity-contract-target",
     "blender-contract-target",
+    "target-evidence-summary-self-test",
+    "target-evidence-summary.mjs",
+    "P00_TARGET_CONTRACT_SUMMARY.json",
+    "contractSummarySchemaVersion = $contractSummary.schemaVersion",
+    "contracts = $contractSummary.contracts",
+    "schemaVersion = 2",
   ];
   for (const marker of required) {
     assert(runnerText.includes(marker), `Runner policy marker missing: ${marker}`);
@@ -140,16 +146,21 @@ function main() {
     ? path.resolve(process.env.FCC_P00_REPO_ROOT)
     : path.resolve(scriptDir, '..', '..');
   const runnerPath = path.join(repoRoot, 'tools', 'contract-probes', 'run-target-validation.ps1');
+  const summarySelfTestPath = path.join(repoRoot, 'tools', 'contract-probes', 'target-evidence-summary-self-test.mjs');
 
   assert(fs.existsSync(runnerPath), `Runner not found: ${runnerPath}`);
+  assert(fs.existsSync(summarySelfTestPath), `Summary self-test not found: ${summarySelfTestPath}`);
   const runnerText = fs.readFileSync(runnerPath, 'utf8');
   assertStaticRunnerPolicy(runnerText);
+  const summaryResult = run(process.execPath, [summarySelfTestPath], { cwd: repoRoot });
+  assert(summaryResult.status === 0 && summaryResult.stdout.includes('SELF_TEST_VERIFIED'), `Target evidence summary self-test failed: ${summaryResult.stderr || summaryResult.stdout}`);
   const mechanics = runGitPathspecRegression();
 
   const summary = {
     status: 'SELF_TEST_VERIFIED',
     runner: path.relative(repoRoot, runnerPath).replaceAll('\\', '/'),
     staticPolicyMarkers: 'PASS',
+    targetEvidenceSummary: 'PASS',
     gitPathspecMechanics: mechanics,
     targetEvidenceClaimed: false,
   };
