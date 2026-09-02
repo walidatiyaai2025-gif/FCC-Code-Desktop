@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 1,
+  "probe": "fcc-p00-contract",
+  "requestedMode": "all",
+  "capturedAtUtc": "2026-09-02T09:52:45.364Z",
+  "discovery": {
+    "schemaVersion": 1,
+    "probeId": "4c522fe6-fee8-437c-a7ce-9b52c1b7b0ea",
+    "capturedAtUtc": "2026-09-02T09:52:53.815Z",
+    "host": {
+      "platform": "win32",
+      "osType": "Windows_NT",
+      "osRelease": "10.0.26100",
+      "osVersion": "Windows 11 Pro",
+      "arch": "x64",
+      "node": "v22.23.2",
+      "powershell": {
+        "command": [
+          "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+          "-NoProfile",
+          "-Command",
+          "$PSVersionTable.PSVersion.ToString()"
+        ],
+        "wrapper": null,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "5.1.26100.8875\r\n",
+        "stderr": "",
+        "durationMs": 692
+      },
+      "git": {
+        "found": true,
+        "paths": [
+          "C:\\Program Files\\Git\\cmd\\git.exe",
+          "C:\\Program Files\\Git\\cmd\\git.EXE"
+        ],
+        "result": {
+          "command": [
+            "C:\\Program Files\\Git\\cmd\\git.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "git version 2.51.0.windows.1\n",
+          "stderr": "",
+          "durationMs": 133
+        }
+      },
+      "dotnet": {
+        "found": true,
+        "paths": [
+          "C:\\Program Files\\dotnet\\dotnet.exe",
+          "C:\\Program Files\\dotnet\\dotnet.EXE"
+        ],
+        "result": {
+          "command": [
+            "C:\\Program Files\\dotnet\\dotnet.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "10.0.400\r\n",
+          "stderr": "",
+          "durationMs": 310
+        }
+      },
+      "python": {
+        "found": false,
+        "paths": []
+      }
+    },
+    "executables": {
+      "fcc": {
+        "name": "fcc",
+        "found": false,
+        "paths": [],
+        "version": null,
+        "help": null
+      },
+      "fccServer": {
+        "name": "fcc-server",
+        "found": true,
+        "paths": [
+          "C:\\Users\\Waleed\\.local\\bin\\fcc-server.exe",
+          "C:\\Users\\Waleed\\.local\\bin\\fcc-server.EXE"
+        ],
+        "version": {
+          "command": [
+            "C:\\Users\\Waleed\\.local\\bin\\fcc-server.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "free-claude-code 5.18.11\r\n",
+          "stderr": "",
+          "durationMs": 410
+        },
+        "help": {
+          "command": [
+            "C:\\Users\\Waleed\\.local\\bin\\fcc-server.exe",
+            "--help"
+          ],
+          "wrapper": null,
+          "exitCode": 3,
+          "signal": null,
+          "error": null,
+          "stdout": "",
+          "stderr": "INFO:     Started server process [50728]\r\nINFO:     Waiting for application startup.\r\nINFO:     Admin UI: http://127.0.0.1:8082/admin (local-only)\r\nINFO:     Application startup complete.\r\nERROR:    [Errno 10048] error while attempting to bind on address ('0.0.0.0', 8082): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted\r\nINFO:     Waiting for application shutdown.\r\nINFO:     Application shutdown complete.\r\n",
+          "durationMs": 3358
+        }
+      },
+      "fccClaude": {
+        "name": "fcc-claude",
+        "found": true,
+        "paths": [
+          "C:\\Users\\Waleed\\.local\\bin\\fcc-claude.exe"
+        ],
+        "version": {
+          "command": [
+            "C:\\Users\\Waleed\\.local\\bin\\fcc-claude.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "2.1.251 (Claude Code)\n",
+          "stderr": "",
+          "durationMs": 881
+        },
+        "help": {
+          "command": [
+            "C:\\Users\\Waleed\\.local\\bin\\fcc-claude.exe",
+            "--help"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "Usage: claude [options] [command] [prompt]\n\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\n\nArguments:\n  prompt                                Your prompt\n\nOptions:\n  --add-dir <directories...>            Additional directories to allow tool\n                                        access to\n  --agent <agent>                       Agent for the current session. Overrides\n                                        the 'agent' setting.\n  --agents <json>                       JSON object defining custom agents (e.g.\n                                        '{\"reviewer\": {\"description\": \"Reviews\n                                        code\", \"prompt\": \"You are a code\n                                        reviewer\"}}')\n  --allow-dangerously-skip-permissions  Enable bypassing all permission checks\n                                        as an option, without it being enabled\n                                        by default. Recommended only for\n                                        sandboxes with no internet access.\n  --allowedTools, --allowed-tools <tools...>\n      Comma or space-separated list of tool names to allow (e.g. \"Bash(git *)\n      Edit\")\n  --append-system-prompt <prompt>       Append a system prompt to the default\n                                        system prompt\n  --autocompact <auto|tokens>           Auto-compact window size (auto, or\n                                        100k–1M tokens)\n  --ax-screen-reader                    Render screen-reader friendly output\n                                        (flat text, no decorative borders or\n                                        animations).\n  --bg, --background                    Start the session in the background and\n                                        return immediately. Prints the id that\n                                        `claude attach`, `logs`, `stop` and `rm`\n                                        take; `claude agents` lists them\n  --bare                                Minimal mode: skip hooks, LSP, plugin\n                                        sync, attribution, auto-memory,\n                                        background prefetches, keychain reads,\n                                        and CLAUDE.md auto-discovery. Sets\n                                        CLAUDE_CODE_SIMPLE=1. Anthropic auth is\n                                        strictly ANTHROPIC_API_KEY or\n                                        apiKeyHelper via --settings (OAuth and\n                                        keychain are never read). 3P providers\n                                        (Bedrock/Vertex/Foundry) use their own\n                                        credentials. Skills still resolve via\n                                        /skill-name. Explicitly provide context\n                                        via: --system-prompt[-file],\n                                        --append-system-prompt[-file], --add-dir\n                                        (CLAUDE.md dirs), --mcp-config,\n                                        --settings, --agents, --plugin-dir.\n  --betas <betas...>                    Beta headers to include in API requests\n                                        (API key users only)\n  --brief                               Enable SendUserMessage tool for\n                                        agent-to-user communication\n  --chrome                              Enable Claude in Chrome integration\n  --cloud [description|session_id|url]  Create a cloud session with the given\n                                        description, or attach to an existing\n                                        one by session ID or claude.ai/code URL\n  -c, --continue                        Continue the most recent conversation in\n                                        the current directory\n  --dangerously-skip-permissions        Bypass all permission checks.\n                                        Recommended only for sandboxes with no\n                                        internet access.\n  -d, --debug [filter]                  Enable debug mode with optional category\n                                        filtering (e.g., \"api,hooks\" or\n                                        \"!1p,!file\")\n  --debug-file <path>                   Write debug logs to a specific file path\n                                        (implicitly enables debug mode)\n  --disable-slash-commands              Disable all skills\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny (e.g. \"Bash(git *)\n      Edit\")\n  --effort <level>                      Effort level for the current session\n                                        (low, medium, high, xhigh, max)\n  --environment <environment_id>        Create a new cloud session that runs on\n                                        the given self-hosted environment\n                                        (ccpool_...).\n  --exclude-dynamic-system-prompt-sections\n      Move per-machine sections (cwd, env info, memory paths, git status) from\n      the system prompt into the first user message. Improves cross-user\n      prompt-cache reuse. Only applies with the default system prompt (ignored\n      with --system-prompt). (default: false)\n  --fallback-model <model>              Enable automatic fallback to specified\n                                        model(s) when the default model is\n                                        overloaded or not available. Accepts a\n                                        comma-separated list to try each in\n                                        order. Re-tries the primary at the start\n                                        of each user turn. (only works with\n                                        --print)\n  --file <specs...>                     File resources to download at startup.\n                                        Format: file_id:relative_path (e.g.,\n                                        --file file_abc:doc.txt\n                                        file_def:img.png)\n  --fork-session                        When resuming, create a new session ID\n                                        instead of reusing the original (use\n                                        with --resume or --continue)\n  --forward-subagent-text               Forward subagent text and thinking\n                                        blocks as assistant/user messages with\n                                        parent_tool_use_id set (only works with\n                                        --print and --output-format=stream-json)\n  --from-pr [value]                     Resume a session linked to a PR by PR\n                                        number/URL, or open interactive picker\n                                        with optional search term\n  -h, --help                            Display help for command\n  --ide                                 Automatically connect to IDE on startup\n                                        if exactly one valid IDE is available\n  --include-hook-events                 Include all hook lifecycle events in the\n                                        output stream (only works with\n                                        --output-format=stream-json)\n  --include-partial-messages            Include partial message chunks as they\n                                        arrive (only works with --print and\n                                        --output-format=stream-json)\n  --input-format <format>               Input format (only works with --print):\n                                        \"text\" (default), or \"stream-json\"\n                                        (realtime streaming input) (choices:\n                                        \"text\", \"stream-json\")\n  --json-schema <schema>                JSON Schema for structured output\n                                        validation. Example:\n                                        {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]}\n  --max-budget-usd <amount>             Maximum dollar amount to spend on API\n                                        calls (only works with --print)\n  --mcp-config <configs...>             Load MCP servers from JSON files or\n                                        strings (space-separated)\n  --model <model>                       Model for the current session. Provide\n                                        an alias for the latest model (e.g.\n                                        'fable', 'opus', or 'sonnet') or a\n                                        model's full name (e.g.\n                                        'claude-fable-5').\n  -n, --name <name>                     Set a display name for this session\n                                        (shown in the prompt box, /resume\n                                        picker, and terminal title)\n  --no-chrome                           Disable Claude in Chrome integration\n  --no-session-persistence              Disable session persistence - sessions\n                                        will not be saved to disk and cannot be\n                                        resumed (only works with --print)\n  --output-format <format>              Output format (only works with --print):\n                                        \"text\" (default), \"json\" (single\n                                        result), or \"stream-json\" (realtime\n                                        streaming) (choices: \"text\", \"json\",\n                                        \"stream-json\")\n  --permission-mode <mode>              Permission mode to use for the session\n                                        (choices: \"acceptEdits\", \"auto\",\n                                        \"bypassPermissions\", \"manual\",\n                                        \"dontAsk\", \"plan\")\n  --plugin-dir <path>                   Load a plugin from a directory or .zip\n                                        for this session only (repeatable:\n                                        --plugin-dir A --plugin-dir B.zip)\n                                        (default: [])\n  --plugin-url <url>                    Fetch a plugin .zip from a URL for this\n                                        session only (repeatable: --plugin-url A\n                                        --plugin-url B) (default: [])\n  -p, --print                           Print response and exit (useful for\n                                        pipes). Note: The workspace trust dialog\n                                        is skipped when Claude is run in\n                                        non-interactive mode (via -p, or when\n                                        stdout is not a TTY, e.g. piped or\n                                        redirected output). Only use this in\n                                        directories you trust. Settings files\n                                        that fail validation are silently\n                                        ignored in this mode (no error dialog is\n                                        shown).\n  --prompt-suggestions [value]          Enable prompt suggestions. In print/SDK\n                                        mode, emits a prompt_suggestion message\n                                        after each turn with a predicted next\n                                        user prompt (choices: \"true\", \"false\",\n                                        \"1\", \"0\", \"yes\", \"no\", \"on\", \"off\",\n                                        preset: \"true\")\n  --remote-control [name]               Start an interactive session with Remote\n                                        Control enabled (optionally named)\n  --remote-control-session-name-prefix <prefix>\n      Prefix for auto-generated Remote Control session names (default: hostname)\n  --replay-user-messages                Re-emit user messages from stdin back on\n                   ",
+          "stderr": "",
+          "durationMs": 976
+        }
+      },
+      "claude": {
+        "name": "claude",
+        "found": true,
+        "paths": [
+          "C:\\Users\\Waleed\\.local\\bin\\claude.exe",
+          "C:\\Users\\Waleed\\.local\\bin\\claude.EXE"
+        ],
+        "version": {
+          "command": [
+            "C:\\Users\\Waleed\\.local\\bin\\claude.exe",
+            "--version"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "2.1.251 (Claude Code)\n",
+          "stderr": "",
+          "durationMs": 107
+        },
+        "help": {
+          "command": [
+            "C:\\Users\\Waleed\\.local\\bin\\claude.exe",
+            "--help"
+          ],
+          "wrapper": null,
+          "exitCode": 0,
+          "signal": null,
+          "error": null,
+          "stdout": "Usage: claude [options] [command] [prompt]\n\nClaude Code - starts an interactive session by default, use -p/--print for\nnon-interactive output\n\nArguments:\n  prompt                                Your prompt\n\nOptions:\n  --add-dir <directories...>            Additional directories to allow tool\n                                        access to\n  --agent <agent>                       Agent for the current session. Overrides\n                                        the 'agent' setting.\n  --agents <json>                       JSON object defining custom agents (e.g.\n                                        '{\"reviewer\": {\"description\": \"Reviews\n                                        code\", \"prompt\": \"You are a code\n                                        reviewer\"}}')\n  --allow-dangerously-skip-permissions  Enable bypassing all permission checks\n                                        as an option, without it being enabled\n                                        by default. Recommended only for\n                                        sandboxes with no internet access.\n  --allowedTools, --allowed-tools <tools...>\n      Comma or space-separated list of tool names to allow (e.g. \"Bash(git *)\n      Edit\")\n  --append-system-prompt <prompt>       Append a system prompt to the default\n                                        system prompt\n  --autocompact <auto|tokens>           Auto-compact window size (auto, or\n                                        100k–1M tokens)\n  --ax-screen-reader                    Render screen-reader friendly output\n                                        (flat text, no decorative borders or\n                                        animations).\n  --bg, --background                    Start the session in the background and\n                                        return immediately. Prints the id that\n                                        `claude attach`, `logs`, `stop` and `rm`\n                                        take; `claude agents` lists them\n  --bare                                Minimal mode: skip hooks, LSP, plugin\n                                        sync, attribution, auto-memory,\n                                        background prefetches, keychain reads,\n                                        and CLAUDE.md auto-discovery. Sets\n                                        CLAUDE_CODE_SIMPLE=1. Anthropic auth is\n                                        strictly ANTHROPIC_API_KEY or\n                                        apiKeyHelper via --settings (OAuth and\n                                        keychain are never read). 3P providers\n                                        (Bedrock/Vertex/Foundry) use their own\n                                        credentials. Skills still resolve via\n                                        /skill-name. Explicitly provide context\n                                        via: --system-prompt[-file],\n                                        --append-system-prompt[-file], --add-dir\n                                        (CLAUDE.md dirs), --mcp-config,\n                                        --settings, --agents, --plugin-dir.\n  --betas <betas...>                    Beta headers to include in API requests\n                                        (API key users only)\n  --brief                               Enable SendUserMessage tool for\n                                        agent-to-user communication\n  --chrome                              Enable Claude in Chrome integration\n  --cloud [description|session_id|url]  Create a cloud session with the given\n                                        description, or attach to an existing\n                                        one by session ID or claude.ai/code URL\n  -c, --continue                        Continue the most recent conversation in\n                                        the current directory\n  --dangerously-skip-permissions        Bypass all permission checks.\n                                        Recommended only for sandboxes with no\n                                        internet access.\n  -d, --debug [filter]                  Enable debug mode with optional category\n                                        filtering (e.g., \"api,hooks\" or\n                                        \"!1p,!file\")\n  --debug-file <path>                   Write debug logs to a specific file path\n                                        (implicitly enables debug mode)\n  --disable-slash-commands              Disable all skills\n  --disallowedTools, --disallowed-tools <tools...>\n      Comma or space-separated list of tool names to deny (e.g. \"Bash(git *)\n      Edit\")\n  --effort <level>                      Effort level for the current session\n                                        (low, medium, high, xhigh, max)\n  --environment <environment_id>        Create a new cloud session that runs on\n                                        the given self-hosted environment\n                                        (ccpool_...).\n  --exclude-dynamic-system-prompt-sections\n      Move per-machine sections (cwd, env info, memory paths, git status) from\n      the system prompt into the first user message. Improves cross-user\n      prompt-cache reuse. Only applies with the default system prompt (ignored\n      with --system-prompt). (default: false)\n  --fallback-model <model>              Enable automatic fallback to specified\n                                        model(s) when the default model is\n                                        overloaded or not available. Accepts a\n                                        comma-separated list to try each in\n                                        order. Re-tries the primary at the start\n                                        of each user turn. (only works with\n                                        --print)\n  --file <specs...>                     File resources to download at startup.\n                                        Format: file_id:relative_path (e.g.,\n                                        --file file_abc:doc.txt\n                                        file_def:img.png)\n  --fork-session                        When resuming, create a new session ID\n                                        instead of reusing the original (use\n                                        with --resume or --continue)\n  --forward-subagent-text               Forward subagent text and thinking\n                                        blocks as assistant/user messages with\n                                        parent_tool_use_id set (only works with\n                                        --print and --output-format=stream-json)\n  --from-pr [value]                     Resume a session linked to a PR by PR\n                                        number/URL, or open interactive picker\n                                        with optional search term\n  -h, --help                            Display help for command\n  --ide                                 Automatically connect to IDE on startup\n                                        if exactly one valid IDE is available\n  --include-hook-events                 Include all hook lifecycle events in the\n                                        output stream (only works with\n                                        --output-format=stream-json)\n  --include-partial-messages            Include partial message chunks as they\n                                        arrive (only works with --print and\n                                        --output-format=stream-json)\n  --input-format <format>               Input format (only works with --print):\n                                        \"text\" (default), or \"stream-json\"\n                                        (realtime streaming input) (choices:\n                                        \"text\", \"stream-json\")\n  --json-schema <schema>                JSON Schema for structured output\n                                        validation. Example:\n                                        {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}},\"required\":[\"name\"]}\n  --max-budget-usd <amount>             Maximum dollar amount to spend on API\n                                        calls (only works with --print)\n  --mcp-config <configs...>             Load MCP servers from JSON files or\n                                        strings (space-separated)\n  --model <model>                       Model for the current session. Provide\n                                        an alias for the latest model (e.g.\n                                        'fable', 'opus', or 'sonnet') or a\n                                        model's full name (e.g.\n                                        'claude-fable-5').\n  -n, --name <name>                     Set a display name for this session\n                                        (shown in the prompt box, /resume\n                                        picker, and terminal title)\n  --no-chrome                           Disable Claude in Chrome integration\n  --no-session-persistence              Disable session persistence - sessions\n                                        will not be saved to disk and cannot be\n                                        resumed (only works with --print)\n  --output-format <format>              Output format (only works with --print):\n                                        \"text\" (default), \"json\" (single\n                                        result), or \"stream-json\" (realtime\n                                        streaming) (choices: \"text\", \"json\",\n                                        \"stream-json\")\n  --permission-mode <mode>              Permission mode to use for the session\n                                        (choices: \"acceptEdits\", \"auto\",\n                                        \"bypassPermissions\", \"manual\",\n                                        \"dontAsk\", \"plan\")\n  --plugin-dir <path>                   Load a plugin from a directory or .zip\n                                        for this session only (repeatable:\n                                        --plugin-dir A --plugin-dir B.zip)\n                                        (default: [])\n  --plugin-url <url>                    Fetch a plugin .zip from a URL for this\n                                        session only (repeatable: --plugin-url A\n                                        --plugin-url B) (default: [])\n  -p, --print                           Print response and exit (useful for\n                                        pipes). Note: The workspace trust dialog\n                                        is skipped when Claude is run in\n                                        non-interactive mode (via -p, or when\n                                        stdout is not a TTY, e.g. piped or\n                                        redirected output). Only use this in\n                                        directories you trust. Settings files\n                                        that fail validation are silently\n                                        ignored in this mode (no error dialog is\n                                        shown).\n  --prompt-suggestions [value]          Enable prompt suggestions. In print/SDK\n                                        mode, emits a prompt_suggestion message\n                                        after each turn with a predicted next\n                                        user prompt (choices: \"true\", \"false\",\n                                        \"1\", \"0\", \"yes\", \"no\", \"on\", \"off\",\n                                        preset: \"true\")\n  --remote-control [name]               Start an interactive session with Remote\n                                        Control enabled (optionally named)\n  --remote-control-session-name-prefix <prefix>\n      Prefix for auto-generated Remote Control session names (default: hostname)\n  --replay-user-messages                Re-emit user messages from stdin back on\n                   ",
+          "stderr": "",
+          "durationMs": 336
+        }
+      }
+    },
+    "configMetadata": [
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\.fcc",
+        "exists": true,
+        "type": "directory",
+        "size": null,
+        "children": [
+          {
+            "name": ".env",
+            "type": "file"
+          },
+          {
+            "name": "app-icon.ico",
+            "type": "file"
+          },
+          {
+            "name": "auth",
+            "type": "directory"
+          },
+          {
+            "name": "chat",
+            "type": "directory"
+          },
+          {
+            "name": "codex-model-catalog.json",
+            "type": "file"
+          },
+          {
+            "name": "config.lock",
+            "type": "file"
+          },
+          {
+            "name": "logs",
+            "type": "directory"
+          }
+        ]
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\fcc-claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\.claude",
+        "exists": true,
+        "type": "directory",
+        "size": null,
+        "children": [
+          {
+            "name": ".last-cleanup",
+            "type": "file"
+          },
+          {
+            "name": "backups",
+            "type": "directory"
+          },
+          {
+            "name": "cache",
+            "type": "directory"
+          },
+          {
+            "name": "downloads",
+            "type": "directory"
+          },
+          {
+            "name": "history.jsonl",
+            "type": "file"
+          },
+          {
+            "name": "paste-cache",
+            "type": "directory"
+          },
+          {
+            "name": "plugins",
+            "type": "directory"
+          },
+          {
+            "name": "projects",
+            "type": "directory"
+          },
+          {
+            "name": "session-env",
+            "type": "directory"
+          },
+          {
+            "name": "sessions",
+            "type": "directory"
+          },
+          {
+            "name": "settings.json",
+            "type": "file"
+          }
+        ]
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Roaming\\.fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Roaming\\fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Roaming\\fcc-claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Roaming\\.claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Roaming\\claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\.fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\fcc-claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\.claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\.fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\fcc",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\fcc-claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\.claude",
+        "exists": false
+      },
+      {
+        "source": "common-location",
+        "path": "C:\\ProgramData\\claude",
+        "exists": true,
+        "type": "directory",
+        "size": null,
+        "children": [
+          {
+            "name": "Logs",
+            "type": "directory"
+          }
+        ]
+      }
+    ],
+    "environmentVariablePresence": [],
+    "relevantProcesses": {
+      "source": "Win32_Process",
+      "error": "Unable to parse process snapshot: SyntaxError: Unterminated string in JSON at position 12000 (line 1 column 12001)",
+      "processes": []
+    },
+    "listeningPorts": {
+      "source": null,
+      "listeners": []
+    },
+    "fccPort": {
+      "fromEnvironment": null,
+      "processCorrelated": []
+    },
+    "health": {
+      "mode": "explicit",
+      "results": [
+        {
+          "attempted": true,
+          "url": "http://127.0.0.1:8082/health",
+          "status": 200,
+          "ok": true,
+          "body": {
+            "status": "healthy"
+          }
+        }
+      ]
+    },
+    "secretsPolicy": "[REDACTED]"
+  },
+  "cli": {
+    "schemaVersion": 1,
+    "capturedAtUtc": "2026-09-02T09:52:54.421Z",
+    "runtimeFound": true,
+    "executable": "C:\\Users\\Waleed\\.local\\bin\\fcc-claude.exe",
+    "livePromptAllowed": true,
+    "invocationStrategy": {
+      "strategy": "--print",
+      "args": [
+        "--print",
+        "Reply with exactly FCC_CLI_FALLBACK_OK and nothing else."
+      ]
+    },
+    "workspaceCases": [
+      {
+        "cwdCase": "normal",
+        "cwd": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc-contract-probe-4uxxHp\\normal",
+        "run": {
+          "pid": 40452,
+          "wrapper": null,
+          "observedProcessTree": [
+            {
+              "pid": 40452,
+              "role": "launcher",
+              "name": "fcc-claude.exe"
+            }
+          ],
+          "remainingOwnedProcesses": [],
+          "processTreeCleanupObserved": true,
+          "exitCode": 0,
+          "signal": null,
+          "launchError": null,
+          "durationMs": 29555,
+          "timedOut": false,
+          "cancelled": false,
+          "gracefulSignalAttempted": false,
+          "forcedTreeKill": false,
+          "stdout": "FCC_CLI_FALLBACK_OK\n",
+          "stderr": "",
+          "events": [
+            {
+              "atMs": 27477,
+              "stream": "stdout",
+              "text": "FCC_CLI_FALLBACK_OK\n"
+            }
+          ],
+          "classification": "SUCCESS",
+          "sessionIds": []
+        }
+      },
+      {
+        "cwdCase": "path with spaces",
+        "cwd": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc-contract-probe-4uxxHp\\path with spaces",
+        "run": {
+          "pid": 19296,
+          "wrapper": null,
+          "observedProcessTree": [
+            {
+              "pid": 19296,
+              "role": "launcher",
+              "name": "fcc-claude.exe"
+            }
+          ],
+          "remainingOwnedProcesses": [],
+          "processTreeCleanupObserved": true,
+          "exitCode": 0,
+          "signal": null,
+          "launchError": null,
+          "durationMs": 6582,
+          "timedOut": false,
+          "cancelled": false,
+          "gracefulSignalAttempted": false,
+          "forcedTreeKill": false,
+          "stdout": "FCC_CLI_FALLBACK_OK\n",
+          "stderr": "",
+          "events": [
+            {
+              "atMs": 4452,
+              "stream": "stdout",
+              "text": "FCC_CLI_FALLBACK_OK\n"
+            }
+          ],
+          "classification": "SUCCESS",
+          "sessionIds": []
+        }
+      },
+      {
+        "cwdCase": "مسار-اختبار",
+        "cwd": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc-contract-probe-4uxxHp\\مسار-اختبار",
+        "run": {
+          "pid": 50376,
+          "wrapper": null,
+          "observedProcessTree": [
+            {
+              "pid": 50376,
+              "role": "launcher",
+              "name": "fcc-claude.exe"
+            }
+          ],
+          "remainingOwnedProcesses": [],
+          "processTreeCleanupObserved": true,
+          "exitCode": 0,
+          "signal": null,
+          "launchError": null,
+          "durationMs": 7174,
+          "timedOut": false,
+          "cancelled": false,
+          "gracefulSignalAttempted": false,
+          "forcedTreeKill": false,
+          "stdout": "FCC_CLI_FALLBACK_OK\n",
+          "stderr": "",
+          "events": [
+            {
+              "atMs": 4848,
+              "stream": "stdout",
+              "text": "FCC_CLI_FALLBACK_OK\n"
+            }
+          ],
+          "classification": "SUCCESS",
+          "sessionIds": []
+        }
+      }
+    ],
+    "cancellationCase": {
+      "pid": 33184,
+      "wrapper": null,
+      "observedProcessTree": [
+        {
+          "pid": 33184,
+          "role": "launcher",
+          "name": "fcc-claude.exe"
+        }
+      ],
+      "remainingOwnedProcesses": [],
+      "processTreeCleanupObserved": true,
+      "exitCode": null,
+      "signal": "SIGINT",
+      "launchError": null,
+      "durationMs": 4345,
+      "timedOut": false,
+      "cancelled": true,
+      "gracefulSignalAttempted": true,
+      "forcedTreeKill": false,
+      "stdout": "",
+      "stderr": "",
+      "events": [],
+      "classification": "CANCELLED",
+      "sessionIds": []
+    },
+    "fallbackAssessment": "VERIFIED_FOR_TESTED_RUNTIME",
+    "unsupportedOrNotVerified": [
+      "session identifier not observed",
+      "resume/continuation is not auto-attempted unless a stable tested CLI contract is documented from observed help/runtime behavior"
+    ],
+    "summary": {
+      "runtimeLaunch": "PASS",
+      "promptTransmission": "PASS",
+      "workingDirectoryCases": "PASS",
+      "outputObservability": "PASS",
+      "cancellation": "PASS",
+      "sessionIdsObserved": [],
+      "rateLimitObserved": false
+    }
+  }
+}
