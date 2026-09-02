@@ -1,0 +1,93 @@
+name: P01-004 Integrate And Validate
+
+on:
+  push:
+    branches:
+      - validation/p01-004-integrate-b283fe7
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: windows-2025
+    steps:
+      - name: Checkout exact worker branch
+        uses: actions/checkout@v4
+        with:
+          ref: worker/fccd-p01-004-test-infrastructure
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Verify worker head
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD) -ne 'b283fe77dcf616af20ec00f72c7428213b387168') { throw 'Worker branch moved unexpectedly.' }
+          if ((dotnet --version) -ne '10.0.400') { throw 'SDK mismatch.' }
+
+      - name: Add test projects to solution
+        shell: pwsh
+        run: |
+          dotnet sln .\FCCCodeDesktop.sln add .\tests\FCCCodeDesktop.Testing\FCCCodeDesktop.Testing.csproj --solution-folder tests
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to add shared test support project.' }
+          dotnet sln .\FCCCodeDesktop.sln add .\tests\FCCCodeDesktop.UnitTests\FCCCodeDesktop.UnitTests.csproj --solution-folder tests
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to add unit test project.' }
+          dotnet sln .\FCCCodeDesktop.sln add .\tests\FCCCodeDesktop.IntegrationTests\FCCCodeDesktop.IntegrationTests.csproj --solution-folder tests
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to add integration test project.' }
+
+      - name: Regenerate lock graph
+        shell: pwsh
+        run: |
+          dotnet restore .\FCCCodeDesktop.sln -p:RestoreLockedMode=false --force-evaluate --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Lock regeneration failed.' }
+          $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+          Get-ChildItem -Path .\src,.\tests -Filter packages.lock.json -Recurse -File | ForEach-Object {
+            $text = [System.IO.File]::ReadAllText($_.FullName).Replace("`r`n", "`n")
+            [System.IO.File]::WriteAllText($_.FullName, $text, $utf8NoBom)
+          }
+
+      - name: Locked restore
+        shell: pwsh
+        run: dotnet restore .\FCCCodeDesktop.sln --locked-mode --nologo
+
+      - name: Formatting
+        shell: pwsh
+        run: dotnet format .\FCCCodeDesktop.sln --verify-no-changes --no-restore
+
+      - name: Release build
+        shell: pwsh
+        run: dotnet build .\FCCCodeDesktop.sln -c Release --no-restore --nologo
+
+      - name: Validate test infrastructure
+        shell: pwsh
+        run: .\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet
+
+      - name: Validate dependency policy
+        shell: pwsh
+        run: .\tools\dependencies\validate-dependency-policy.ps1 -RequireDotNet
+
+      - name: Validate quality policy
+        shell: pwsh
+        run: .\tools\quality\validate-quality-policy.ps1 -RequireDotNet
+
+      - name: Diff hygiene
+        shell: pwsh
+        run: |
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+
+      - name: Commit generated solution and locks
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- FCCCodeDesktop.sln 'src/*/packages.lock.json' 'tests/*/packages.lock.json'
+          $staged = git diff --cached --name-only
+          if (-not $staged) { throw 'Expected generated solution/lock changes.' }
+          git commit -m 'P01-004: integrate test projects and lock graph'
+          git push origin HEAD:refs/heads/worker/fccd-p01-004-test-infrastructure
+          Write-Host "INTEGRATED_HEAD=$(git rev-parse HEAD)"
