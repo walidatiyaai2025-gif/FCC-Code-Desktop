@@ -134,3 +134,4 @@ if ($invalidSuiteExitCode -eq 0) {
 
 Write-Host 'Executable test-infrastructure validation: PASS.'
 Write-Host 'Unit/integration discovery, happy/negative/cancellation/recovery tests, and invalid-runner-input rejection are verified.'
+exit 0
