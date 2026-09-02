@@ -28,7 +28,9 @@ function Get-CentralProperty {
 
     $matches = @()
     foreach ($group in @($Document.Project.PropertyGroup)) {
-        $groupCondition = [string]$group.Condition
+        $conditionAttribute = $group.Attributes['Condition']
+        $groupCondition = if ($null -eq $conditionAttribute) { '' } else { [string]$conditionAttribute.Value }
+
         if ($Condition -and $groupCondition -ne $Condition) {
             continue
         }
