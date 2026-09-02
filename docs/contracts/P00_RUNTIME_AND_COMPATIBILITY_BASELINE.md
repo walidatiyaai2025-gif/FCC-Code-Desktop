@@ -1,7 +1,7 @@
 # P00 Runtime and Compatibility Baseline
 
 **Tasks:** `FCCD-P00-006`, `FCCD-P00-010`  
-**State:** VERIFIED from the complete P00 evidence set; final CLOSED transition awaits the exact-head P00 exit gate.
+**State:** CLOSED from the complete P00 evidence set and exact-head exit-gate verification.
 
 ## Primary runtime contract
 
@@ -52,8 +52,8 @@ No component is classified `UNSUPPORTED` by current P00 evidence. No broader ver
 ## Open compatibility boundaries
 
 - real provider rate-limit event/output/exit/retry semantics remain `NOT_OBSERVED_ON_TARGET`; the classifier mechanics are verified, and `PG-002-P00-RATE-LIMIT-CLOSURE` is resolved without manufacturing a 429;
-- Blender `5.2.0` is now `TESTED` for the complete exercised P00 target contract; broader Blender version ranges remain intentionally undeclared;
-- successful provider-backed structured execution is now observed, but P00 does not claim exhaustive coverage of every possible assistant/tool/result event variant; unknown event types remain an additive compatibility case that the adapter must preserve;
-- the exact product `SUPPORTED` version ranges remain intentionally undeclared until the remaining target evidence and P00 closure criteria justify a support decision.
+- Blender `5.2.0` is `TESTED` for the complete exercised P00 target contract; broader Blender version ranges remain intentionally undeclared;
+- successful provider-backed structured execution is observed, but P00 does not claim exhaustive coverage of every possible assistant/tool/result event variant; unknown event types remain an additive compatibility case that the adapter must preserve;
+- the exact product `SUPPORTED` version ranges remain intentionally undeclared until later release phases establish evidence-backed support commitments.
 
-The baseline is intentionally evidence-based and does not claim broader supported version ranges. `FCCD-P00-006` and `FCCD-P00-010` are now `VERIFIED`: all task-local evidence dependencies, including real Blender execution, are resolved. Their final transition to `CLOSED` is reserved for the exact-head P00 exit-gate closure record.
+The baseline is intentionally evidence-based and does not claim broader supported version ranges. `FCCD-P00-006` and `FCCD-P00-010` are CLOSED after all task-local evidence dependencies, including real Blender execution, were resolved and the non-provider exact-head P00 pre-closure gate passed on candidate SHA `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`. P00 closure is recorded in `evidence/phases/P00/CLOSURE.md`.
