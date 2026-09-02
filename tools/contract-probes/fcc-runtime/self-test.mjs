@@ -73,13 +73,21 @@ try {
   assert.ok(cancelled.observedProcessTree.length >= 1);
   pass('graceful-forced-owned-process-tree-cancellation');
 
+  const lateTree = await captureProcess(process.execPath, [fixture, '--mode', 'late-tree'], { cwd: temp, timeoutMs: 5000, cancelAfterMs: 1000, gracefulWaitMs: 200, snapshotDelayMs: 100 });
+  assert.equal(lateTree.cancelled, true);
+  assert.equal(lateTree.classification, 'INTERRUPTED');
+  assert.equal(lateTree.gracefulInterruptAttempted, true);
+  assert.ok(lateTree.observedProcessTree.some((x) => x.role === 'descendant'));
+  assert.equal(lateTree.processTreeCleanupObserved, true);
+  pass('late-spawn-owned-descendant-observation-and-cleanup');
+
   const missing = await captureMissingRuntime(path.join(temp, 'definitely-missing', 'fcc-claude'));
   assert.equal(missing.classification, 'RUNTIME_NOT_FOUND');
   assert.equal(classifyFailure(missing).category, 'RUNTIME_NOT_FOUND');
   pass('target-unavailable-classification');
 
   const outputPath = path.join(temp, 'self-test-output.json');
-  fs.writeFileSync(outputPath, JSON.stringify({ checks, stream, nonzero, rate, timeout, cancelled, missing }, null, 2));
+  fs.writeFileSync(outputPath, JSON.stringify({ checks, stream, nonzero, rate, timeout, cancelled, lateTree, missing }, null, 2));
   const raw = fs.readFileSync(outputPath, 'utf8');
   assert.equal(raw.includes(fakeSecret), false);
   pass('persisted-secret-scan');
