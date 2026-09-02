@@ -361,6 +361,10 @@ try {
     Assert-FailedWith $localVersionFailure 'NU1008'
 
     Set-Content -LiteralPath $consumerProjectPath -Value $consumerProject -Encoding utf8NoBOM
+    $recoverAfterInvalidProject = Invoke-DotNet @('restore', '.\DependencyConsumer.csproj', '-p:RestoreLockedMode=false', '--force-evaluate', '--nologo') $consumerDir
+    Assert-Succeeded $recoverAfterInvalidProject
+    Assert-Equal (Get-LockResolvedVersion $consumerLockPath 'Fccd.DependencyPolicy.Fixture') '1.0.1' 'Fixture lock after invalid-project recovery'
+
     $finalLockedRestore = Invoke-DotNet @('restore', '.\DependencyConsumer.csproj', '--locked-mode', '--nologo') $consumerDir
     Assert-Succeeded $finalLockedRestore
 
@@ -372,4 +376,4 @@ finally {
 }
 
 Write-Host 'Executable dependency-policy validation: PASS.'
-Write-Host 'Fixtures verified initial lock creation, stale-lock rejection, project-local version rejection, and explicit lock regeneration/recovery.'
+Write-Host 'Fixtures verified initial lock creation, stale-lock rejection, project-local version rejection, and explicit lock regeneration/recovery after negative cases.'
