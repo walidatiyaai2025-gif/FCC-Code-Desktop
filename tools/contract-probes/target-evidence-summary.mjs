@@ -16,6 +16,10 @@ function versionFromRun(run) {
   return firstLine(run?.stdout) ?? firstLine(run?.stderr);
 }
 
+function versionFromHostProbe(probe) {
+  return versionFromRun(probe?.result ?? probe);
+}
+
 function readEvidence(filePath) {
   if (!filePath) return { data: null, state: 'EVIDENCE_PATH_NOT_SUPPLIED' };
   try {
@@ -105,10 +109,10 @@ function fccSummary(record, exitCode, artifactPath, authoritativeTarget) {
       compactTool({ name: 'fcc-server', found: fccServer?.found, executablePath: fccServer?.paths?.[0], version: versionFromRun(fccServer?.version), evidence: 'discovery.executables.fccServer' }),
       compactTool({ name: 'claude', found: claude?.found, executablePath: claude?.paths?.[0], version: versionFromRun(claude?.version), evidence: 'discovery.executables.claude' }),
       compactTool({ name: 'Node.js', found: Boolean(discovery?.host?.node), executablePath: null, version: firstLine(discovery?.host?.node), evidence: 'discovery.host.node' }),
-      compactTool({ name: 'Git', found: Boolean(versionFromRun(discovery?.host?.git)), executablePath: null, version: versionFromRun(discovery?.host?.git), evidence: 'discovery.host.git' }),
-      compactTool({ name: '.NET SDK', found: Boolean(versionFromRun(discovery?.host?.dotnet)), executablePath: null, version: versionFromRun(discovery?.host?.dotnet), evidence: 'discovery.host.dotnet' }),
-      compactTool({ name: 'Python', found: Boolean(versionFromRun(discovery?.host?.python)), executablePath: null, version: versionFromRun(discovery?.host?.python), evidence: 'discovery.host.python' }),
-      compactTool({ name: 'PowerShell', found: Boolean(versionFromRun(discovery?.host?.powershell)), executablePath: null, version: versionFromRun(discovery?.host?.powershell), evidence: 'discovery.host.powershell' }),
+      compactTool({ name: 'Git', found: Boolean(discovery?.host?.git?.found ?? versionFromHostProbe(discovery?.host?.git)), executablePath: discovery?.host?.git?.paths?.[0] ?? null, version: versionFromHostProbe(discovery?.host?.git), evidence: 'discovery.host.git' }),
+      compactTool({ name: '.NET SDK', found: Boolean(discovery?.host?.dotnet?.found ?? versionFromHostProbe(discovery?.host?.dotnet)), executablePath: discovery?.host?.dotnet?.paths?.[0] ?? null, version: versionFromHostProbe(discovery?.host?.dotnet), evidence: 'discovery.host.dotnet' }),
+      compactTool({ name: 'Python', found: Boolean(discovery?.host?.python?.found ?? versionFromHostProbe(discovery?.host?.python)), executablePath: discovery?.host?.python?.paths?.[0] ?? null, version: versionFromHostProbe(discovery?.host?.python), evidence: 'discovery.host.python' }),
+      compactTool({ name: 'PowerShell (FCC probe)', found: Boolean(versionFromHostProbe(discovery?.host?.powershell)), executablePath: discovery?.host?.powershell?.command?.[0] ?? null, version: versionFromHostProbe(discovery?.host?.powershell), evidence: 'discovery.host.powershell' }),
     ],
   };
 }
