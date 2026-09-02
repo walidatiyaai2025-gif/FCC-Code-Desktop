@@ -135,28 +135,34 @@ export function discoverBlender(explicit = null) {
     if (p) candidates.push({ path: path.resolve(p), source });
   };
 
-  add(explicit, 'explicit');
-  add(process.env.BLENDER_PATH, 'environment');
-  add(which('blender'), 'PATH');
+  if (explicit) {
+    // An explicitly requested executable is authoritative. Do not silently
+    // fall through to another installed Blender when the supplied path is
+    // missing or invalid; exact target attribution depends on this.
+    add(explicit, 'explicit');
+  } else {
+    add(process.env.BLENDER_PATH, 'environment');
+    add(which('blender'), 'PATH');
 
-  if (process.platform === 'win32') {
-    for (const root of [
-      process.env.ProgramFiles,
-      process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, 'Programs')
-    ].filter(Boolean)) {
-      try {
-        for (const d of fs.readdirSync(root, { withFileTypes: true })) {
-          if (!/^Blender/i.test(d.name)) continue;
-          const base = path.join(root, d.name);
-          if (/Foundation/i.test(d.name)) {
-            for (const v of fs.readdirSync(base, { withFileTypes: true })) {
-              if (v.isDirectory()) add(path.join(base, v.name, 'blender.exe'), 'standard-location');
+    if (process.platform === 'win32') {
+      for (const root of [
+        process.env.ProgramFiles,
+        process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, 'Programs')
+      ].filter(Boolean)) {
+        try {
+          for (const d of fs.readdirSync(root, { withFileTypes: true })) {
+            if (!/^Blender/i.test(d.name)) continue;
+            const base = path.join(root, d.name);
+            if (/Foundation/i.test(d.name)) {
+              for (const v of fs.readdirSync(base, { withFileTypes: true })) {
+                if (v.isDirectory()) add(path.join(base, v.name, 'blender.exe'), 'standard-location');
+              }
+            } else {
+              add(path.join(base, 'blender.exe'), 'standard-location');
             }
-          } else {
-            add(path.join(base, 'blender.exe'), 'standard-location');
           }
-        }
-      } catch {}
+        } catch {}
+      }
     }
   }
 
