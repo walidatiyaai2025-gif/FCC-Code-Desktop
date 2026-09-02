@@ -65,23 +65,44 @@ function assertStaticRunnerPolicy(runnerText) {
     "TARGET_PREREQUISITE_MISSING: git is required for exact-head target evidence.",
     "TARGET_PREREQUISITE_MISSING: node is required to execute the canonical P00 probes.",
     "WRONG_REPOSITORY_CHECKOUT:",
+    "$repoSha = (& git rev-parse HEAD).Trim()",
     "$runnerEvidenceExclude = ':(exclude)evidence/phases/P00/target/**'",
     "git status --porcelain=v1 --untracked-files=all -- . $runnerEvidenceExclude",
     "EXACT_HEAD_REQUIRED: target validation refuses source/configuration worktree changes outside repository-owned target-evidence outputs",
+    "evidence\\phases\\P00\\failure\\fcc-failure-target-exact-head.json",
+    "git merge-base --is-ancestor $integratedFailureSourceSha $repoSha",
     "fcc-discovery-cli-target",
     "fcc-stream-session-failure-target",
     "unity-contract-target",
     "blender-contract-target",
     "target-evidence-summary-self-test",
     "target-evidence-summary.mjs",
+    "--integrated-failure-file",
+    "--integrated-failure-source-is-ancestor",
     "P00_TARGET_CONTRACT_SUMMARY.json",
-    "contractSummarySchemaVersion = $contractSummary.schemaVersion",
-    "contracts = $contractSummary.contracts",
+    "$contractStatuses = @($contractSummary.contracts.PSObject.Properties",
+    "$summaryStatus = 'PASS'",
+    "[string]$contractSummary.p00Readiness.p00_005.status -eq 'FAIL'",
+    "[string]$contractSummary.p00Readiness.pg_002.status -ne 'RESOLVED'",
+    "[string]$contractSummary.p00Readiness.p00_009.status -eq 'BLOCKED'",
+    "p00Readiness = $contractSummary.p00Readiness",
+    "$contractSummary.p00Readiness.p00TargetValidationComplete",
     "schemaVersion = 2",
   ];
   for (const marker of required) {
     assert(runnerText.includes(marker), `Runner policy marker missing: ${marker}`);
   }
+  const forbidden = [
+    'git reset --hard',
+    'git clean -f',
+    'git clean -fd',
+    'Remove-Item -Recurse',
+    'git checkout -- .',
+  ];
+  for (const marker of forbidden) {
+    assert(!runnerText.includes(marker), `Runner must not contain destructive workspace operation: ${marker}`);
+  }
+  assert(!runnerText.includes("Add-StepResult -Name 'target-evidence-summary' -Status 'PASS' -ExitCode 0"), 'Summary step must not be unconditionally recorded as PASS.');
 }
 
 function runGitPathspecRegression() {
@@ -140,6 +161,30 @@ function runGitPathspecRegression() {
   }
 }
 
+function runAncestryRegression() {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'fcc-p00-ancestry-selftest-'));
+  try {
+    git(temp, ['init', '--quiet']);
+    git(temp, ['config', 'user.email', 'selftest@example.invalid']);
+    git(temp, ['config', 'user.name', 'FCC P00 Self Test']);
+    write(temp, 'baseline.txt', 'one\n');
+    git(temp, ['add', '.']);
+    git(temp, ['commit', '--quiet', '-m', 'evidence source']);
+    const sourceSha = git(temp, ['rev-parse', 'HEAD']).trim();
+    write(temp, 'later.txt', 'two\n');
+    git(temp, ['add', '.']);
+    git(temp, ['commit', '--quiet', '-m', 'current head']);
+    const headSha = git(temp, ['rev-parse', 'HEAD']).trim();
+    const ancestor = run('git', ['merge-base', '--is-ancestor', sourceSha, headSha], { cwd: temp });
+    assert(ancestor.status === 0, 'Integrated tested source must be accepted when it is an ancestor of current HEAD.');
+    const reverse = run('git', ['merge-base', '--is-ancestor', headSha, sourceSha], { cwd: temp });
+    assert(reverse.status !== 0, 'Non-ancestor provenance must not be accepted.');
+    return { ancestorAccepted: true, nonAncestorRejected: true };
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
 function main() {
   const scriptDir = path.dirname(fileURLToPath(import.meta.url));
   const repoRoot = process.env.FCC_P00_REPO_ROOT
@@ -155,13 +200,16 @@ function main() {
   const summaryResult = run(process.execPath, [summarySelfTestPath], { cwd: repoRoot });
   assert(summaryResult.status === 0 && summaryResult.stdout.includes('SELF_TEST_VERIFIED'), `Target evidence summary self-test failed: ${summaryResult.stderr || summaryResult.stdout}`);
   const mechanics = runGitPathspecRegression();
+  const ancestry = runAncestryRegression();
 
   const summary = {
     status: 'SELF_TEST_VERIFIED',
     runner: path.relative(repoRoot, runnerPath).replaceAll('\\', '/'),
     staticPolicyMarkers: 'PASS',
+    nonDestructiveWorkspacePolicy: 'PASS',
     targetEvidenceSummary: 'PASS',
     gitPathspecMechanics: mechanics,
+    integratedEvidenceAncestryMechanics: ancestry,
     targetEvidenceClaimed: false,
   };
   console.log(JSON.stringify(summary, null, 2));
