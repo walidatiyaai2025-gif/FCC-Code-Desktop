@@ -49,6 +49,18 @@ if (mode === 'late-tree') {
   setInterval(() => {}, 1000);
 }
 
+if (mode === 'orphan-tree') {
+  const child = spawn(process.execPath, [fileURLToPath(import.meta.url), '--mode', 'sleep-child'], {
+    stdio: 'ignore',
+    windowsHide: true,
+    detached: true,
+  });
+  child.unref();
+  process.stdout.write(`orphan_child_pid=${child.pid}\n`);
+  process.on('SIGINT', () => process.exit(0));
+  setInterval(() => {}, 1000);
+}
+
 if (mode === 'tree') {
   const child = spawn(process.execPath, [fileURLToPath(import.meta.url), '--mode', 'sleep-child'], { stdio: 'ignore', windowsHide: true });
   process.stdout.write(`child_pid=${child.pid}\n`);
