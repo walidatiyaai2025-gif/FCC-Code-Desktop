@@ -13,6 +13,7 @@ Repository-owned fixture processes prove the mechanics for:
 - forced owned-tree termination fallback,
 - post-exit polling until observed owned PIDs disappear,
 - ownership observation for descendants created after the initial process snapshot,
+- post-launcher-exit cleanup of residual descendants by previously observed PID/identity,
 - timeout classification,
 - interrupted-stream handling,
 - non-zero exit classification,
@@ -71,7 +72,7 @@ Existing target observations are evidence only for the behaviors actually exerci
 
 No artificial traffic is generated to force HTTP/provider 429 behavior.
 
-Until naturally observed on the target:
+When no natural rate-limit event occurs on the target:
 
 ```text
 RATE_LIMIT = NOT_OBSERVED_ON_TARGET
@@ -79,7 +80,7 @@ RATE_LIMIT = NOT_OBSERVED_ON_TARGET
 
 Synthetic `429 Too Many Requests` fixture output proves classifier mechanics only and is labeled `SELF_TEST_ONLY`.
 
-`PG-002-P00-RATE-LIMIT-CLOSURE` records the unresolved planning question of whether this safe `NOT_OBSERVED_ON_TARGET` boundary can satisfy P00 closure or whether a natural observation remains mandatory. Ordinary workers must not decide that policy implicitly.
+Planning/reconciliation decision `PG-002-P00-RATE-LIMIT-CLOSURE` is RESOLVED by `docs/contracts/FCC_RATE_LIMIT_CLOSURE_POLICY.md`: for P00-005, `NOT_OBSERVED_ON_TARGET` plus verified deterministic rate-limit classifier mechanics is an acceptable safe closure boundary when the rest of the exact-head target contract passes and no artificial provider load is generated solely to obtain a 429. `NOT_OBSERVED_ON_TARGET` remains distinct from `PASS` and must never be represented as an actual provider rate-limit observation.
 
 ## Unsafe negative cases deliberately skipped
 
@@ -100,9 +101,36 @@ Those observations remain useful historical evidence, but they predate PR #9's s
 
 ## Probe hardening after target observation
 
-PR #9 changed the target-relevant ownership evidence contract: `captureProcess` now refreshes the descendant set immediately before cancellation/timeout escalation, and a deterministic late-spawn fixture requires such descendants to be observed and cleaned. Because this changes the evidence-producing probe after the previous Windows run, the exact-head rule requires a new authoritative Windows target rerun before `FCCD-P00-005` can be considered VERIFIED again.
+PR #9 changed the target-relevant ownership evidence contract: `captureProcess` refreshes the descendant set immediately before cancellation/timeout escalation, and a deterministic late-spawn fixture requires such descendants to be observed and cleaned.
 
-Current task state is therefore `BLOCKED` on:
+The authoritative target rerun then exposed a Windows-specific residual-process case: the launcher could exit while previously observed descendants remained alive beyond the original cleanup window. The probe was hardened again to use a bounded Windows post-exit settling window and, only when required, terminate residual processes by previously observed PID/identity rather than executable name. Deterministic self-tests now include `post-exit-owned-descendant-residual-cleanup`.
 
-1. an exact-head Windows rerun of the hardened cancellation/failure probe, and
-2. planning/reconciliation resolution of `PG-002-P00-RATE-LIMIT-CLOSURE` unless a natural rate-limit event is observed first.
+## VERIFIED_ON_WINDOWS_TARGET — 2026-09-02
+
+Authoritative exact-head target validation completed at tested source SHA `015ffd8c0e2a6e725e33ed153441ff51e7952556`.
+
+Evidence:
+
+- `evidence/phases/P00/failure/fcc-failure-target-exact-head.json`
+- `evidence/phases/P00/failure/P00_005_TARGET_RERUN_2026-09-02.md`
+
+Verified target observations:
+
+- Windows x64 execution host,
+- real `fcc-claude` runtime found,
+- provider-backed baseline classification `SUCCESS`,
+- cancellation triggered,
+- cancellation classification `INTERRUPTED`,
+- graceful interrupt attempted,
+- five owned descendants observed,
+- residual termination exercised against previously observed PID/identity,
+- zero remaining owned processes,
+- `processTreeCleanupObserved: true`,
+- missing-runtime classification `RUNTIME_NOT_FOUND`,
+- persisted secret scan PASS,
+- `RATE_LIMIT = NOT_OBSERVED_ON_TARGET`,
+- no artificial provider load generated to force rate limiting.
+
+The rate-limit non-observation is accepted under the explicit PG-002 closure policy and is not represented as a real 429 observation.
+
+`FCCD-P00-005` is CLOSED.
