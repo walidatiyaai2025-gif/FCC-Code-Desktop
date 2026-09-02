@@ -20,7 +20,7 @@ EndProject
 '@
 $projectMarker = "EndProject`nGlobal"
 if (-not $text.Contains($projectMarker)) { throw 'Could not locate solution project/global boundary.' }
-$text = $text.Replace($projectMarker, "EndProject`n$projectBlock" + 'Global')
+$text = $text.Replace($projectMarker, "EndProject`n$projectBlock`nGlobal")
 
 $testConfigs = @'
 		{6433EEF5-263A-4E38-AAB1-BB2E67EC114F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -39,7 +39,7 @@ $testConfigs = @'
 $configMatch = [regex]::Match($text, '(?ms)\tGlobalSection\(ProjectConfigurationPlatforms\) = postSolution\n.*?\tEndGlobalSection')
 if (-not $configMatch.Success) { throw 'Could not locate ProjectConfigurationPlatforms section.' }
 $configEnd = $configMatch.Index + $configMatch.Length - "`tEndGlobalSection".Length
-$text = $text.Insert($configEnd, $testConfigs)
+$text = $text.Insert($configEnd, $testConfigs + "`n")
 
 $testNested = "`t`t{6433EEF5-263A-4E38-AAB1-BB2E67EC114F} = {0AB3BF05-4346-4AA6-1389-037BE0695223}`n`t`t{269C3259-7F9A-4DB1-B474-534FCBFC2779} = {0AB3BF05-4346-4AA6-1389-037BE0695223}`n`t`t{86983556-6FCD-468C-A6DE-77097534C8EC} = {0AB3BF05-4346-4AA6-1389-037BE0695223}`n"
 $nestedMatch = [regex]::Match($text, '(?ms)\tGlobalSection\(NestedProjects\) = preSolution\n.*?\tEndGlobalSection')
