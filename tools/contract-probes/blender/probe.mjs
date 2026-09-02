@@ -143,7 +143,7 @@ async function main() {
 
     const bad = await runOwned(
       exe,
-      ['--background', '--factory-startup', '--python', path.join(root, 'missing script عربي.py')],
+      ['--background', '--factory-startup', '--python-exit-code', '17', '--python', path.join(root, 'missing script عربي.py')],
       { cwd: root, timeoutMs: 30000 }
     );
     out.operations.push({ name: 'controlled-python-failure', run: bad });

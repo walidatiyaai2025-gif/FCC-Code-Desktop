@@ -44,8 +44,14 @@ export function validateArtifact(file, kind) {
   let valid = a.exists && a.kind === 'file' && a.size > 0;
 
   if (valid && kind === 'blend') {
-    const header = fs.readFileSync(file).subarray(0, 12).toString('ascii');
-    valid = /^BLENDER[_-][vV][0-9]{3}$/.test(header);
+    const headerBytes = fs.readFileSync(file).subarray(0, 17);
+    const legacyHeader = headerBytes.subarray(0, 12).toString('ascii');
+    const modernHeader = headerBytes.toString('ascii');
+
+    const legacyValid = /^BLENDER[_-][vV][0-9]{3}$/.test(legacyHeader);
+    const modernValid = /^BLENDER17-01v[0-9]{4}$/.test(modernHeader);
+
+    valid = legacyValid || modernValid;
   }
 
   if (valid && kind === 'png') {
@@ -228,7 +234,7 @@ bpy.ops.object.camera_add(location=(5,-5,4)); cam=bpy.context.object; bpy.contex
 def track(o,p): o.rotation_euler=(Vector(p)-o.location).to_track_quat('-Z','Y').to_euler()
 track(cam,(0,0,0)); bpy.ops.object.light_add(type='AREA',location=(3,-2,5)); bpy.context.object.data.energy=1200
 bpy.context.scene.render.engine='BLENDER_WORKBENCH'; bpy.context.scene.render.resolution_x=96; bpy.context.scene.render.resolution_y=96; bpy.context.scene.render.resolution_percentage=100; bpy.context.scene.render.filepath=render
-bpy.ops.wm.save_as_mainfile(filepath=scene); bpy.ops.wm.obj_export(filepath=exported,export_selected_objects=False); bpy.ops.render.render(write_still=True)
+bpy.ops.wm.save_as_mainfile(filepath=scene, compress=False); bpy.ops.wm.obj_export(filepath=exported,export_selected_objects=False); bpy.ops.render.render(write_still=True)
 with open(result,'w',encoding='utf-8') as f: json.dump({'success':True,'blender':bpy.app.version_string,'object':cube.name,'scene':scene,'render':render,'export':exported},f)
 print('FCCD_BLENDER_PROBE_OK')
 `, 'utf8');
