@@ -44,23 +44,23 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 
 Complete P00 by:
 
-1. reconciling the now-integrated authoritative Blender target success into the final runtime/compatibility baseline,
-2. running the complete non-provider P00 convergence verification on the exact candidate head,
-3. recording the exact-head P00 exit gate,
-4. transitioning `FCCD-P00-006` and `FCCD-P00-010` from VERIFIED to CLOSED only after that gate passes.
+1. integrating the Blender and compatibility reconciliation candidate;
+2. running the complete non-provider P00 exit gate on the exact merged candidate head;
+3. transitioning FCCD-P00-006 and FCCD-P00-010 to CLOSED only if that gate passes;
+4. recording evidence/phases/P00/CLOSURE.md with the exact candidate SHA;
+5. opening P01 only after every mandatory P00 task is CLOSED and the phase exit gate is PASS.
 
-## Recommended remaining worker lanes inside P00
+## Recommended remaining worker lane inside P00
 
-```text
-LOCAL TARGET VALIDATION WORKER
-  rerun Blender target evidence after Blender becomes available
+W5 FINAL P00 EXIT GATE:
+- verify exact candidate head;
+- run the complete non-provider P00 verification suite;
+- verify integrated target evidence and provenance;
+- close P00-006 and P00-010 only if the gate passes;
+- write P00 CLOSURE.md;
+- transition the phase only with zero blockers and regressions.
 
-W5 CONVERGENCE
-  reconcile Blender target evidence,
-  close eligible P00-009,
-  close P00-006 + P00-010 after dependencies are satisfied,
-  run full P00 exit gate.
-```
+No additional provider, Unity, or Blender target rerun is required solely for this convergence step.
 
 Workers must inspect live claims before taking a lane and must not duplicate active work.
 

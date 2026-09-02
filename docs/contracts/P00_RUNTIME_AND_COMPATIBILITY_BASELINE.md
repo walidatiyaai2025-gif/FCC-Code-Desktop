@@ -17,11 +17,11 @@ The failure/cancellation contract is also exact-head verified for its exercised 
 
 P00 compatibility evidence uses these terms deliberately:
 
-- `TESTED` â€” the stated component/version/behavior was exercised on the authoritative Windows target for the described scope.
-- `DETECTED` â€” the component/version was discovered or reported by authoritative target evidence, but the relevant end-to-end behavior was not fully exercised for that row.
-- `UNVERIFIED` â€” required compatibility behavior is not yet established by authoritative target evidence.
-- `SUPPORTED` â€” an explicit product support commitment, not merely an observation from one target machine.
-- `UNSUPPORTED` â€” authoritative evidence proves the component/version/behavior is incompatible with the declared contract.
+- `TESTED` — the stated component/version/behavior was exercised on the authoritative Windows target for the described scope.
+- `DETECTED` — the component/version was discovered or reported by authoritative target evidence, but the relevant end-to-end behavior was not fully exercised for that row.
+- `UNVERIFIED` — required compatibility behavior is not yet established by authoritative target evidence.
+- `SUPPORTED` — an explicit product support commitment, not merely an observation from one target machine.
+- `UNSUPPORTED` — authoritative evidence proves the component/version/behavior is incompatible with the declared contract.
 
 `TESTED` is not a synonym for `SUPPORTED`. P00 records narrow, scope-specific tested/detected observations and must not silently turn one-machine observations into broader support ranges. Explicit supported ranges may be declared only when the evidence and closure criteria justify them.
 
