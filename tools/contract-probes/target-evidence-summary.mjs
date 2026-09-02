@@ -45,6 +45,22 @@ function statusFromExit(exitCode) {
   return 'FAIL';
 }
 
+function unavailableEvidenceSummary(record, artifactPath) {
+  if (record.state === 'READ') return null;
+  return {
+    status: 'FAIL',
+    resultState: 'FAIL',
+    reason: record.state,
+    errorSummary: record.state,
+    artifactPath,
+    executedOnAuthoritativeTarget: false,
+    targetBehaviorObserved: false,
+    observationState: 'TARGET_UNVERIFIED',
+    observations: {},
+    tools: [],
+  };
+}
+
 function hasWindowsHost(data) {
   const platform = data?.host?.platform ?? data?.discovery?.host?.platform;
   return String(platform ?? '').toLowerCase() === 'win32';
@@ -61,6 +77,8 @@ function compactTool({ name, found, executablePath, version, evidence = null }) 
 }
 
 function fccSummary(record, exitCode, artifactPath, authoritativeTarget) {
+  const unavailable = unavailableEvidenceSummary(record, artifactPath);
+  if (unavailable) return unavailable;
   const data = record.data;
   const discovery = data?.discovery;
   const executables = discovery?.executables ?? {};
@@ -118,6 +136,8 @@ function fccSummary(record, exitCode, artifactPath, authoritativeTarget) {
 }
 
 function runtimeSummary(record, exitCode, artifactPath, authoritativeTarget) {
+  const unavailable = unavailableEvidenceSummary(record, artifactPath);
+  if (unavailable) return unavailable;
   const data = record.data;
   const runtime = data?.runtime;
   const executedOnTarget = Boolean(authoritativeTarget && hasWindowsHost(data) && data?.evidenceStatus === 'EXECUTION_HOST_WINDOWS');
@@ -159,6 +179,8 @@ function runtimeSummary(record, exitCode, artifactPath, authoritativeTarget) {
 }
 
 function unitySummary(record, exitCode, artifactPath, authoritativeTarget) {
+  const unavailable = unavailableEvidenceSummary(record, artifactPath);
+  if (unavailable) return unavailable;
   const data = record.data;
   const executedOnTarget = Boolean(authoritativeTarget && hasWindowsHost(data));
   const editors = data?.discovery?.editors?.editors ?? [];
@@ -191,6 +213,8 @@ function unitySummary(record, exitCode, artifactPath, authoritativeTarget) {
 }
 
 function blenderSummary(record, exitCode, artifactPath, authoritativeTarget) {
+  const unavailable = unavailableEvidenceSummary(record, artifactPath);
+  if (unavailable) return unavailable;
   const data = record.data;
   const executedOnTarget = Boolean(authoritativeTarget && hasWindowsHost(data));
   const found = Boolean(data?.discovery?.found);
