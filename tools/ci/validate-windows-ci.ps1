@@ -1,0 +1,136 @@
+[CmdletBinding()]
+param(
+    [string]$RepositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    [switch]$RequireDotNet
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+function Assert-ContainsLiteral {
+    param(
+        [string]$Text,
+        [string]$Literal,
+        [string]$Label
+    )
+
+    if (-not $Text.Contains($Literal)) {
+        throw "$Label is missing required text: $Literal"
+    }
+}
+
+function Assert-CiPolicy {
+    param(
+        [string]$WorkflowText,
+        [string]$RunnerText
+    )
+
+    foreach ($requiredWorkflowText in @(
+        'push:',
+        'pull_request:',
+        '- main',
+        'contents: read',
+        'runs-on: windows-2025',
+        'timeout-minutes: 30',
+        'uses: actions/checkout@v4',
+        'uses: actions/setup-dotnet@v4',
+        'dotnet-version: 10.0.400',
+        '.\tools\ci\validate-windows-ci.ps1 -RequireDotNet',
+        '.\tools\ci\run-windows-ci.ps1'
+    )) {
+        Assert-ContainsLiteral $WorkflowText $requiredWorkflowText 'Windows CI workflow'
+    }
+
+    if ($WorkflowText.Contains('contents: write')) {
+        throw 'Windows CI must not request repository write permission.'
+    }
+    if ($WorkflowText -match 'runs-on:\s*(ubuntu|macos)') {
+        throw 'Canonical P01 CI must not move the Release baseline off Windows.'
+    }
+    if ($WorkflowText.Contains('continue-on-error: true')) {
+        throw 'Windows CI must not downgrade baseline failures with continue-on-error.'
+    }
+
+    foreach ($requiredRunnerText in @(
+        "if (-not `$IsWindows)",
+        "'10.0.400'",
+        'dotnet restore $solutionPath --locked-mode --nologo',
+        'dotnet format $solutionPath --verify-no-changes --no-restore',
+        'dotnet build $solutionPath -c Release --no-restore --nologo',
+        '.\tools\testing\run-tests.ps1 -Suite all -Configuration Release -NoRestore -NoBuild',
+        '.\tools\dependencies\validate-dependency-policy.ps1 -RequireDotNet',
+        '.\tools\quality\validate-quality-policy.ps1 -RequireDotNet',
+        '.\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet'
+    )) {
+        Assert-ContainsLiteral $RunnerText $requiredRunnerText 'Windows CI runner'
+    }
+
+    if ($RunnerText.Contains('-p:RestoreLockedMode=false') -or $RunnerText.Contains('--force-evaluate')) {
+        throw 'Canonical CI must not regenerate or bypass committed dependency locks.'
+    }
+}
+
+function Assert-PolicyRejects {
+    param(
+        [scriptblock]$Action,
+        [string]$Label
+    )
+
+    $rejected = $false
+    try {
+        & $Action
+    }
+    catch {
+        $rejected = $true
+    }
+
+    if (-not $rejected) {
+        throw "Negative CI policy fixture was not rejected: $Label"
+    }
+}
+
+$workflowPath = Join-Path $RepositoryRoot '.github\workflows\windows-ci.yml'
+$runnerPath = Join-Path $RepositoryRoot 'tools\ci\run-windows-ci.ps1'
+
+foreach ($requiredPath in @($workflowPath, $runnerPath)) {
+    if (-not (Test-Path -LiteralPath $requiredPath)) {
+        throw "Required CI path is missing: $requiredPath"
+    }
+}
+
+$workflowText = Get-Content -LiteralPath $workflowPath -Raw
+$runnerText = Get-Content -LiteralPath $runnerPath -Raw
+Assert-CiPolicy $workflowText $runnerText
+
+Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('windows-2025', 'ubuntu-latest')) $runnerText } 'non-Windows runner'
+Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('dotnet-version: 10.0.400', 'dotnet-version: 10.0.401')) $runnerText } 'wrong SDK'
+Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('contents: read', 'contents: write')) $runnerText } 'write permissions'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('--locked-mode', '')) } 'unlocked restore'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-c Release', '-c Debug')) } 'non-Release build'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-Suite all', '-Suite unit')) } 'incomplete test lane'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\quality\validate-quality-policy.ps1 -RequireDotNet', '.\tools\quality\validate-quality-policy.ps1')) } 'weakened quality validation'
+
+Write-Host 'Static Windows CI policy validation: PASS.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, and required quality validation enforcement.'
+
+if ($RequireDotNet) {
+    if (-not $IsWindows) {
+        throw 'Executable CI contract validation requires Windows.'
+    }
+
+    $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
+    if (-not $dotnet) {
+        throw 'dotnet was required but is not available on PATH.'
+    }
+    $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
+    if (-not $pwsh) {
+        throw 'pwsh was required but is not available on PATH.'
+    }
+
+    $sdkVersion = (& dotnet --version 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or $sdkVersion -ne '10.0.400') {
+        throw "Expected .NET SDK 10.0.400 but resolved '$sdkVersion'."
+    }
+
+    Write-Host 'Executable Windows CI prerequisites: PASS.'
+}
