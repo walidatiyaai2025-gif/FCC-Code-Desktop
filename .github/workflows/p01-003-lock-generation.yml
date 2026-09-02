@@ -1,0 +1,52 @@
+name: P01-003 Lock Generation
+
+on:
+  push:
+    branches:
+      - validation/p01-003-lock-generation-cb11161
+
+permissions:
+  contents: read
+
+jobs:
+  generate-locks:
+    runs-on: windows-2025
+    steps:
+      - name: Checkout exact dependency-policy candidate
+        uses: actions/checkout@v4
+        with:
+          ref: cb1116128eac6823ecca08d23379199a65f38ce7
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Verify SDK pin
+        shell: pwsh
+        run: |
+          $actual = dotnet --version
+          if ($actual -ne '10.0.400') {
+            throw "Expected SDK 10.0.400 but found $actual"
+          }
+
+      - name: Generate initial lock files
+        shell: pwsh
+        run: |
+          dotnet restore .\FCCCodeDesktop.sln -p:RestoreLockedMode=false --force-evaluate --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Unlocked lock generation restore failed.' }
+
+      - name: Print generated lock files
+        shell: pwsh
+        run: |
+          $locks = @(Get-ChildItem -Path .\src -Filter packages.lock.json -Recurse -File | Sort-Object FullName)
+          Write-Host "LOCK_COUNT=$($locks.Count)"
+          foreach ($lock in $locks) {
+            $relative = [System.IO.Path]::GetRelativePath((Get-Location).Path, $lock.FullName).Replace('\','/')
+            $base64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((Get-Content -LiteralPath $lock.FullName -Raw)))
+            Write-Host "LOCK_BEGIN=$relative"
+            Write-Host "LOCK_BASE64=$base64"
+            Write-Host "LOCK_END=$relative"
+          }
+          git status --short
