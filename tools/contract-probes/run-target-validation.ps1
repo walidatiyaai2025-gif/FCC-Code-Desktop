@@ -27,13 +27,42 @@ $ErrorActionPreference = 'Stop'
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = (Resolve-Path (Join-Path $ScriptDir '..\..')).Path
-$TargetDir = Join-Path $RepoRoot 'evidence\phases\P00\target'
-New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
 Push-Location $RepoRoot
 
 try {
+    if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) {
+        throw 'WRONG_EXECUTION_ENVIRONMENT: P00 target validation must run on the owner Windows target. Cloud/Linux execution must not produce target evidence.'
+    }
+
+    $gitCommand = Get-Command git -ErrorAction SilentlyContinue
+    if (-not $gitCommand) { throw 'TARGET_PREREQUISITE_MISSING: git is required for exact-head target evidence.' }
+    $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+    if (-not $nodeCommand) { throw 'TARGET_PREREQUISITE_MISSING: node is required to execute the canonical P00 probes.' }
+
+    $gitRoot = (& git rev-parse --show-toplevel).Trim()
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($gitRoot)) { throw 'Unable to resolve repository root.' }
+    $expectedRoot = [System.IO.Path]::GetFullPath($RepoRoot).TrimEnd('\')
+    $actualRoot = [System.IO.Path]::GetFullPath($gitRoot).TrimEnd('\')
+    if (-not [string]::Equals($expectedRoot, $actualRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "WRONG_REPOSITORY_CHECKOUT: expected $expectedRoot but git resolved $actualRoot."
+    }
+
     $repoSha = (& git rev-parse HEAD).Trim()
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoSha)) { throw 'Unable to resolve repository HEAD.' }
+
+    $dirtyEntries = @(& git status --porcelain --untracked-files=all)
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to verify repository worktree state.' }
+    if ($dirtyEntries.Count -gt 0) {
+        throw 'EXACT_HEAD_REQUIRED: target validation refuses a dirty worktree because uncommitted probe/evidence changes cannot be attributed to the recorded repo SHA.'
+    }
+
+    $gitVersion = (& git --version).Trim()
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to resolve git version.' }
+    $nodeVersion = (& node --version).Trim()
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to resolve Node.js version.' }
+
+    $TargetDir = Join-Path $RepoRoot 'evidence\phases\P00\target'
+    New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
     $steps = [System.Collections.Generic.List[object]]::new()
 
     function Add-StepResult {
@@ -104,6 +133,8 @@ try {
             osVersion = [Environment]::OSVersion.VersionString
             is64BitOperatingSystem = [Environment]::Is64BitOperatingSystem
             powerShellVersion = $PSVersionTable.PSVersion.ToString()
+            gitVersion = $gitVersion
+            nodeVersion = $nodeVersion
         }
         livePromptAuthorized = [bool]$AllowLivePrompt
         suiteIntegration = [ordered]@{
