@@ -1,0 +1,57 @@
+name: P01-003 Dependency Validation
+
+on:
+  push:
+    branches:
+      - validation/p01-003-policy-2bd4a43
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-policy:
+    runs-on: windows-2025
+    steps:
+      - name: Checkout exact P01-003 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 2bd4a43a015b2cbfbb990f1ff9c67c48ea6fe724
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Verify exact candidate and SDK
+        shell: pwsh
+        run: |
+          $actualHead = git rev-parse HEAD
+          if ($actualHead -ne '2bd4a43a015b2cbfbb990f1ff9c67c48ea6fe724') {
+            throw "Expected candidate 2bd4a43a015b2cbfbb990f1ff9c67c48ea6fe724 but checked out $actualHead"
+          }
+          $actualSdk = dotnet --version
+          if ($actualSdk -ne '10.0.400') {
+            throw "Expected SDK 10.0.400 but found $actualSdk"
+          }
+
+      - name: Diff hygiene
+        shell: pwsh
+        run: git diff --check 0b84859edaccc4a9bb9c407b68a8c4b842d436d1 2bd4a43a015b2cbfbb990f1ff9c67c48ea6fe724
+
+      - name: Validate dependency policy
+        shell: pwsh
+        run: .\tools\dependencies\validate-dependency-policy.ps1 -RequireDotNet
+
+      - name: Revalidate quality policy
+        shell: pwsh
+        run: .\tools\quality\validate-quality-policy.ps1 -RequireDotNet
+
+      - name: Verify worktree remains clean
+        shell: pwsh
+        run: |
+          $changes = git status --porcelain
+          if ($changes) {
+            Write-Host $changes
+            throw 'Validation modified the P01-003 candidate worktree.'
+          }
