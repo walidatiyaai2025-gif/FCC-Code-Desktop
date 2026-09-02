@@ -16,6 +16,7 @@ The binding P00 target-validation contract requires the unified manifest to iden
   - Keeps probe exit codes authoritative for PASS/BLOCKED/FAIL.
   - Preserves `NOT_INSTALLED`, `TARGET_UNVERIFIED`, and `NOT_OBSERVED_ON_TARGET` distinctions instead of promoting them to PASS.
   - Surfaces bounded discovered versions for FCC/Claude plus Node, Git, .NET SDK, Python, PowerShell, Unity Editors, and Blender when present.
+  - Handles the actual FCC discovery evidence shape where Git/.NET/Python version results are nested under `host.<tool>.result`.
   - Records controlled lane reasons/classifications without copying raw provider output.
   - Requires explicit `--authoritative-target` plus Windows-host evidence before setting `executedOnAuthoritativeTarget=true`.
 - Added `tools/contract-probes/target-evidence-summary-self-test.mjs`.
@@ -45,14 +46,14 @@ All syntax checks passed.
 {
   "status": "SELF_TEST_VERIFIED",
   "schemaVersion": 2,
-  "assertions": 14,
+  "assertions": 16,
   "cliInvocation": "PASS",
   "unicodeSpacePath": "PASS",
   "targetEvidenceClaimed": false
 }
 ```
 
-The self-test exercises the actual summarizer CLI with a fixture repository path containing spaces and Arabic text, verifies repo-relative artifact paths, version extraction, controlled missing-evidence failure, target-authorization boundaries, and Blender `NOT_INSTALLED` semantics.
+The self-test exercises the actual summarizer CLI with a fixture repository path containing spaces and Arabic text, verifies repo-relative artifact paths, actual nested host-probe version extraction, controlled missing-evidence failure, target-authorization boundaries, and Blender `NOT_INSTALLED` semantics.
 
 `node tools/contract-probes/target-runner-self-test.mjs`:
 
@@ -77,6 +78,8 @@ The self-test exercises the actual summarizer CLI with a fixture repository path
 ## Regression review
 
 During review, assigning `Invoke-NodeStep` directly to an exit-code variable was rejected because PowerShell can collect native stdout together with the function return value. The runner keeps the existing `[void](Invoke-NodeStep ...)` behavior and then reads the recorded step's integer `exitCode`, preventing stdout/exit-code coercion regressions.
+
+A second pre-merge review compared the summary parser against the current real `fcc-discovery-cli.json` shape. That review exposed and fixed a fixture/parser mismatch for Git/.NET/Python version records before integration.
 
 Existing exact-head/rerun-safety dirty-tree semantics remain covered by `target-runner-self-test.mjs`.
 
