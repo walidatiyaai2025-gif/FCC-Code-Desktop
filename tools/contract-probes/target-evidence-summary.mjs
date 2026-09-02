@@ -71,7 +71,15 @@ function fccSummary(record, exitCode, artifactPath, authoritativeTarget) {
       reason = 'BLOCKED_RUNTIME_NOT_FOUND';
       resultState = 'NOT_INSTALLED';
     } else {
-      reason = data?.cli?.fallbackAssessment ?? data?.cli?.classification ?? (exitCode === 0 ? 'REQUESTED_CONTRACT_EVIDENCE_COMPLETED' : `PROBE_EXIT_${exitCode}`);
+      const assessment = data?.cli?.fallbackAssessment ?? data?.cli?.classification ?? (exitCode === 0 ? 'REQUESTED_CONTRACT_EVIDENCE_COMPLETED' : `PROBE_EXIT_${exitCode}`);
+      const workspaceClassifications = (data?.cli?.workspaceCases ?? []).map((item) => item?.run?.classification).filter(Boolean);
+      const cancellationClassification = data?.cli?.cancellationCase?.classification ?? null;
+      const failedChecks = Object.entries(data?.cli?.summary ?? {}).filter(([, value]) => value === 'FAIL').map(([key]) => key);
+      const details = [];
+      if (workspaceClassifications.length) details.push(`workspace=${workspaceClassifications.join(',')}`);
+      if (cancellationClassification) details.push(`cancellation=${cancellationClassification}`);
+      if (failedChecks.length) details.push(`failedChecks=${failedChecks.join(',')}`);
+      reason = details.length ? `${assessment};${details.join(';')}` : assessment;
     }
   }
   const targetBehaviorObserved = executedOnTarget && Boolean(fccClaude?.found);
@@ -87,11 +95,20 @@ function fccSummary(record, exitCode, artifactPath, authoritativeTarget) {
     observations: {
       fallbackAssessment: data?.cli?.fallbackAssessment ?? null,
       livePromptAllowed: data?.cli?.livePromptAllowed ?? null,
+      workspaceClassifications: (data?.cli?.workspaceCases ?? []).map((item) => item?.run?.classification).filter(Boolean),
+      cancellationClassification: data?.cli?.cancellationCase?.classification ?? null,
+      checkSummary: data?.cli?.summary ?? null,
     },
     tools: [
+      compactTool({ name: 'fcc', found: executables.fcc?.found, executablePath: executables.fcc?.paths?.[0], version: versionFromRun(executables.fcc?.version), evidence: 'discovery.executables.fcc' }),
       compactTool({ name: 'fcc-claude', found: fccClaude?.found, executablePath: fccClaude?.paths?.[0], version: versionFromRun(fccClaude?.version), evidence: 'discovery.executables.fccClaude' }),
       compactTool({ name: 'fcc-server', found: fccServer?.found, executablePath: fccServer?.paths?.[0], version: versionFromRun(fccServer?.version), evidence: 'discovery.executables.fccServer' }),
       compactTool({ name: 'claude', found: claude?.found, executablePath: claude?.paths?.[0], version: versionFromRun(claude?.version), evidence: 'discovery.executables.claude' }),
+      compactTool({ name: 'Node.js', found: Boolean(discovery?.host?.node), executablePath: null, version: firstLine(discovery?.host?.node), evidence: 'discovery.host.node' }),
+      compactTool({ name: 'Git', found: Boolean(versionFromRun(discovery?.host?.git)), executablePath: null, version: versionFromRun(discovery?.host?.git), evidence: 'discovery.host.git' }),
+      compactTool({ name: '.NET SDK', found: Boolean(versionFromRun(discovery?.host?.dotnet)), executablePath: null, version: versionFromRun(discovery?.host?.dotnet), evidence: 'discovery.host.dotnet' }),
+      compactTool({ name: 'Python', found: Boolean(versionFromRun(discovery?.host?.python)), executablePath: null, version: versionFromRun(discovery?.host?.python), evidence: 'discovery.host.python' }),
+      compactTool({ name: 'PowerShell', found: Boolean(versionFromRun(discovery?.host?.powershell)), executablePath: null, version: versionFromRun(discovery?.host?.powershell), evidence: 'discovery.host.powershell' }),
     ],
   };
 }
