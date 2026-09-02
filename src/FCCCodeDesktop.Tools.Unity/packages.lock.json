@@ -11,7 +11,7 @@
           "FCCCodeDesktop.Core": "[1.0.0, )"
         }
       },
-      "fcccodedesktop.tools": {
+      "fccodedesktop.tools": {
         "type": "Project",
         "dependencies": {
           "FCCCodeDesktop.Core": "[1.0.0, )"

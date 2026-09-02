@@ -62,14 +62,14 @@
           "FCCCodeDesktop.Core": "[1.0.0, )"
         }
       },
-      "fcccodedesktop.security": {
+      "fccodedesktop.security": {
         "type": "Project",
         "dependencies": {
           "FCCCodeDesktop.Application": "[1.0.0, )",
           "FCCCodeDesktop.Core": "[1.0.0, )"
         }
       },
-      "fcccodedesktop.terminal": {
+      "fccodedesktop.terminal": {
         "type": "Project",
         "dependencies": {
           "FCCCodeDesktop.Application": "[1.0.0, )",
