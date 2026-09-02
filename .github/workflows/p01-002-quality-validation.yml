@@ -1,0 +1,50 @@
+name: P01-002 Quality Validation
+
+on:
+  push:
+    branches:
+      - validation/p01-002-quality-8e34efe
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Windows .NET 10 quality policy
+    runs-on: windows-2025
+    steps:
+      - name: Checkout exact P01-002 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 8e34efec12dcb439ef83ca7a926e5fb51caf62ae
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Verify exact candidate
+        shell: pwsh
+        run: |
+          $actual = git rev-parse HEAD
+          if ($actual -ne '8e34efec12dcb439ef83ca7a926e5fb51caf62ae') {
+            throw "Expected 8e34efec12dcb439ef83ca7a926e5fb51caf62ae but checked out $actual"
+          }
+
+      - name: Diff hygiene
+        shell: pwsh
+        run: git diff --check 2b94152362d59425b0bbb02f19eb7c68b8d24656 8e34efec12dcb439ef83ca7a926e5fb51caf62ae
+
+      - name: Validate quality policy
+        shell: pwsh
+        run: .\tools\quality\validate-quality-policy.ps1 -RequireDotNet
+
+      - name: Verify worktree remains clean
+        shell: pwsh
+        run: |
+          $changes = git status --porcelain
+          if ($changes) {
+            Write-Host $changes
+            throw 'Quality validation modified the candidate worktree.'
+          }
