@@ -1,0 +1,41 @@
+name: P01-001 Cloud Validation
+
+on:
+  push:
+    branches:
+      - validation/p01-001-cloud-build-83f146c
+
+permissions:
+  contents: read
+
+jobs:
+  validate-foundation:
+    name: Windows .NET 10 restore/build
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact P01-001 candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 83f146c4c6888cbc19fb0c930651a92288b1480d
+          fetch-depth: 0
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: SDK information
+        run: dotnet --info
+
+      - name: Diff hygiene
+        shell: pwsh
+        run: git diff --check b998e74ea3dc7032bc5bef76d60a4112bdf129a6 83f146c4c6888cbc19fb0c930651a92288b1480d
+
+      - name: Restore solution
+        shell: pwsh
+        run: dotnet restore .\FCCCodeDesktop.sln --nologo
+
+      - name: Build Release
+        shell: pwsh
+        run: dotnet build .\FCCCodeDesktop.sln -c Release --no-restore --nologo
