@@ -50,10 +50,14 @@ try {
     $repoSha = (& git rev-parse HEAD).Trim()
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($repoSha)) { throw 'Unable to resolve repository HEAD.' }
 
-    $dirtyEntries = @(& git status --porcelain --untracked-files=all)
+    # Exact-head attribution applies to source/configuration inputs. The runner's own
+    # target-evidence outputs are intentionally overwriteable so a previous target run
+    # does not make the next deterministic rerun impossible.
+    $runnerEvidenceExclude = ':(exclude)evidence/phases/P00/target/**'
+    $sourceDirtyEntries = @(& git status --porcelain=v1 --untracked-files=all -- . $runnerEvidenceExclude)
     if ($LASTEXITCODE -ne 0) { throw 'Unable to verify repository worktree state.' }
-    if ($dirtyEntries.Count -gt 0) {
-        throw 'EXACT_HEAD_REQUIRED: target validation refuses a dirty worktree because uncommitted probe/evidence changes cannot be attributed to the recorded repo SHA.'
+    if ($sourceDirtyEntries.Count -gt 0) {
+        throw 'EXACT_HEAD_REQUIRED: target validation refuses source/configuration worktree changes outside repository-owned target-evidence outputs because they cannot be attributed to the recorded repo SHA.'
     }
 
     $gitVersion = (& git --version).Trim()
