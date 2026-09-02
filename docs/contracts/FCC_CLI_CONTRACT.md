@@ -2,7 +2,7 @@
 
 **Related tasks:** `FCCD-P00-002`, `FCCD-P00-007`  
 **Phase:** P00  
-**Contract status:** discovery/version/health verified on target; successful CLI fallback remains externally blocked by observed provider 503 retries.  
+**Contract status:** discovery/version/health and successful CLI fallback verified on the owner Windows target.
 **Probe implementation:** `tools/contract-probes/fcc/probe.mjs`  
 **Self-test:** `tools/contract-probes/fcc/self-test.mjs`
 
@@ -190,11 +190,9 @@ No artificial request burst was generated to force HTTP/provider 429 behavior.
 
 ## 15. Current fallback conclusion
 
-`FCCD-P00-007` cannot be closed from this run. The reusable harness exists and its safe negative/redaction behavior is verified, but the defining acceptance items — real launch, prompt transmission, target working-directory behavior, output semantics, completion/failure classification, cancellation and owned-tree cleanup — require execution against the actual Windows FCC/`fcc-claude` installation.
+`FCCD-P00-007` is verified and CLOSED from authoritative Windows target evidence.
 
-Likewise, `FCCD-P00-002` cannot be closed until the same target environment establishes actual installation/version/configuration/port/process/health behavior.
-
-This is an environment-evidence blocker, not a plan gap and not permission to choose the primary runtime architecture.
+The successful target run proved real `fcc-claude` launch and provider-backed prompt completion from normal, spaced, and Unicode/Arabic working directories, stdout/stderr observability, terminal success classification, graceful cancellation behavior, and owned process-tree cleanup.
 
 ## 16. Target reproduction
 
@@ -216,12 +214,36 @@ Before committing target output, manually scan the sanitized file for secret-lik
 
 `FCCD-P00-007` may move beyond BLOCKED only after a target live run proves launch, prompt transmission, the three working-directory cases, stdout/stderr observability, terminal result/failure classification, cancellation and owned-tree cleanup, with limitations recorded truthfully.
 
-Until then, neither task is `CLOSED`.
+These were the original closure requirements. `FCCD-P00-002` and `FCCD-P00-007` are now CLOSED from authoritative Windows target evidence.
 
-## 18. Windows target reconciliation — 2026-09-02
+## 18. Historical Windows target reconciliation — 2026-09-02
 
 The owner's Windows 10 x64 target directly exposed `fcc-claude.exe` and `fcc-server.exe` under the user's local binary directory. Starting `fcc-server` produced a healthy loopback service at `http://127.0.0.1:8082/health`. `fcc-claude --version` returned `2.1.251 (Claude Code)`, and real help output established `--print`, `--output-format stream-json`, `--session-id`, and `--resume` without guessing.
 
 `FCCD-P00-002` is closed from `evidence/phases/P00/target/fcc-discovery-health.json` plus the deterministic discovery self-test.
 
 Provider-backed fallback attempts launched correctly from normal, spaced, and Arabic paths and were observable/cancellable, but the configured upstream returned structured HTTP 503 retry events until the probe timeout. Successful prompt completion and terminal-result extraction were therefore not proven. `FCCD-P00-007` remains `BLOCKED` on provider availability; evidence is `evidence/phases/P00/target/fcc-discovery-cli.json`.
+
+## 19. Windows target closure — 2026-09-02
+
+Authoritative successful CLI fallback validation completed on tested source SHA `8e59cd94ff0b13d56725686296c452b832c5b016`.
+
+Evidence:
+
+- `evidence/phases/P00/cli-fallback/fcc-cli-fallback-target-closure.json`
+- `evidence/phases/P00/cli-fallback/P00_007_TARGET_VALIDATION_2026-09-02.md`
+
+Verified target behavior:
+
+- provider-backed prompt completion
+- normal working directory
+- path containing spaces
+- Unicode/Arabic working directory
+- stdout/stderr observability
+- terminal success classification
+- graceful cancellation
+- owned process-tree cleanup
+
+Probe assessment: `VERIFIED_FOR_TESTED_RUNTIME`.
+
+`FCCD-P00-007` is CLOSED.

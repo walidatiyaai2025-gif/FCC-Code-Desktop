@@ -37,12 +37,12 @@ Multiple workers may claim non-overlapping tasks only inside the same current ph
 | FCCD-P00-004 | Probe session ID/resume behavior | CLOSED |
 | FCCD-P00-005 | Probe interrupt/cancel/error/rate-limit behavior | BLOCKED |
 | FCCD-P00-006 | Determine primary runtime adapter contract from evidence | IMPLEMENTED |
-| FCCD-P00-007 | Prove CLI fallback contract | BLOCKED |
+| FCCD-P00-007 | Prove CLI fallback contract | CLOSED |
 | FCCD-P00-008 | Probe Unity current project/version/CLI/test/build contracts on target environment | CLOSED |
 | FCCD-P00-009 | Probe Blender current CLI/background/Python/render/export contracts on target environment | BLOCKED |
 | FCCD-P00-010 | Record supported version/compatibility baseline | IMPLEMENTED |
 
-Target reconciliation for `FCCD-P00-002` and `FCCD-P00-007`: the owner's Windows host exposed `fcc-claude` 2.1.251 and a healthy loopback `fcc-server` on port 8082, closing discovery/version/health. Successful fallback completion remains blocked because the configured upstream returned structured HTTP 503 retries. See `docs/contracts/FCC_CLI_CONTRACT.md` and `evidence/phases/P00/fcc-target/TARGET_RECONCILIATION_2026-09-02.md`.
+Target reconciliation for `FCCD-P00-002` and `FCCD-P00-007` is complete. The owner Windows target exposes `fcc-claude` 2.1.251 and healthy FCC loopback behavior. `FCCD-P00-007` is CLOSED from provider-backed target execution at tested source SHA `8e59cd94ff0b13d56725686296c452b832c5b016`: launch and prompt transmission succeeded in normal, spaced, and Unicode/Arabic working directories; stdout/stderr were observable; terminal completion was classified successfully; graceful cancellation was exercised; and owned-process cleanup passed. See `docs/contracts/FCC_CLI_CONTRACT.md`, `evidence/phases/P00/cli-fallback/fcc-cli-fallback-target-closure.json`, and `evidence/phases/P00/cli-fallback/P00_007_TARGET_VALIDATION_2026-09-02.md`.
 
 Target reconciliation for `FCCD-P00-003` and `FCCD-P00-004` is complete. `FCCD-P00-004` is CLOSED from authoritative Windows target evidence at tested source SHA `8affdae59922f945576cc45fbd49d4fb68634b66`. A real provider-backed first turn succeeded; an authoritative JSON `session_id` was captured; a new client process resumed the session and recovered the continuity token; a nonexistent session was rejected as `INVALID_SESSION`; the valid session remained usable after the invalid-session test; and owned-process cleanup passed. See `docs/contracts/FCC_SESSION_CONTRACT.md` and `evidence/phases/P00/sessions/session-resume-target.json`. `FCCD-P00-005` remains independently BLOCKED pending its hardened Windows failure/cancellation validation and resolution of `PG-002-P00-RATE-LIMIT-CLOSURE`.
 
@@ -348,4 +348,4 @@ Blocker evidence for `FCCD-P00-009`: reusable Blender discovery/background/Pytho
 
 `FCCD-P00-001` is closed: the canonical constitution, source-of-truth hierarchy, strict execution plan, current-phase checkpoint, quality/release standards and phase-evidence template are established.
 
-`FCCD-P00-002`, `FCCD-P00-003`, `FCCD-P00-004`, and `FCCD-P00-008` are closed from real target evidence. Primary-runtime and compatibility decisions are implemented. `FCCD-P00-007` still requires successful provider-backed target completion; `FCCD-P00-005` requires an exact-head Windows rerun of the hardened ownership/cancellation probe plus resolution of `PG-002-P00-RATE-LIMIT-CLOSURE`; `FCCD-P00-009` requires real Blender target execution. Do not start P01 until every P00 task is `CLOSED` and the P00 exit gate is `PASS` with exact-head evidence.
+`FCCD-P00-002`, `FCCD-P00-003`, `FCCD-P00-004`, `FCCD-P00-007`, and `FCCD-P00-008` are closed from real target evidence. Primary-runtime and compatibility decisions are implemented. `FCCD-P00-005` requires an exact-head Windows rerun of the hardened ownership/cancellation probe plus resolution of `PG-002-P00-RATE-LIMIT-CLOSURE`; `FCCD-P00-009` requires real Blender target execution. Do not start P01 until every P00 task is `CLOSED` and the P00 exit gate is `PASS` with exact-head evidence.

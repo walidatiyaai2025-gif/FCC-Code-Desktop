@@ -10,7 +10,7 @@ CURRENT_PHASE_NAME: Constitution + external-contract de-risking
 CURRENT_PHASE_STATE: IN_PROGRESS
 NEXT_PHASE: P01
 PHASE_EXIT_GATE: NOT_RUN
-KNOWN_PHASE_BLOCKERS: 3
+KNOWN_PHASE_BLOCKERS: 2
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
 LAST_RECONCILED: 2026-09-02
@@ -31,7 +31,7 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 - `FCCD-P00-003` — CLOSED from real structured `system/init` and `system/api_retry` target frames with sanitized raw/parsed evidence.
 - `FCCD-P00-004` - CLOSED from authoritative Windows provider-backed first-turn and new-process session-resume continuity evidence, including invalid-session rejection, valid-session recovery after the negative case, and owned-process cleanup.
 - `FCCD-P00-005` — BLOCKED pending an exact-head Windows rerun after PR #9 hardened late-spawned owned-descendant observation; prior target evidence still proves provider 503, timeout/cancellation behavior and successful owned cleanup in the CLI probe lane, while natural rate limiting remains not observed and `PG-002-P00-RATE-LIMIT-CLOSURE` requires planning/reconciliation authority.
-- `FCCD-P00-007` — BLOCKED only on real target-machine successful CLI fallback completion after probe infrastructure was merged by PR #1.
+- `FCCD-P00-007` - CLOSED from authoritative Windows CLI fallback evidence covering provider-backed completion across normal, spaced, and Unicode/Arabic working directories, stdout/stderr observability, graceful cancellation, and owned-process cleanup.
 - `FCCD-P00-008` — CLOSED after abandoned Worker 3 work was recovered, Windows probe defects were repaired, and the complete real Unity target contract passed.
 - `FCCD-P00-009` — BLOCKED only on real target Blender execution after reusable probe infrastructure, 15/15 self-tests, contract docs, evidence, and unified-runner integration were completed on this Windows host where Blender is not installed.
 - `FCCD-P00-006`, `010` — IMPLEMENTED from target evidence; closure awaits the remaining P00 blockers and exact-head gate. P00-010 compatibility terminology now explicitly separates TESTED, DETECTED, UNVERIFIED, SUPPORTED and UNSUPPORTED.
@@ -44,7 +44,7 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 Complete P00 by:
 
 1. obtaining real Blender target execution on the owner's Windows target after Blender becomes available,
-2. rerunning the remaining hardened FCC failure/CLI probes on the authoritative Windows target and closing eligible FCC contract tasks when provider-backed completion is available,
+2. rerunning the remaining hardened FCC failure probe on the authoritative Windows target and closing it when its task-local criteria are satisfied,
 3. obtaining a planning/reconciliation decision for `PG-002-P00-RATE-LIMIT-CLOSURE` without manufacturing provider 429 traffic,
 4. reconciling the primary runtime decision and compatibility baseline after the final target evidence,
 5. rerunning the complete unified suite on the exact current head with no uncommitted source/configuration/probe changes,
@@ -54,7 +54,7 @@ Complete P00 by:
 
 ```text
 LOCAL TARGET VALIDATION WORKER
-  rerun FCCD-P00-005/007 on the hardened exact-head probe suite,
+  rerun FCCD-P00-005 on the hardened exact-head probe suite,
   rerun Blender target evidence after Blender becomes available
 
 PLANNING / RECONCILIATION AUTHORITY
@@ -62,7 +62,7 @@ PLANNING / RECONCILIATION AUTHORITY
 
 W5 CONVERGENCE
   reconcile new target evidence,
-  close eligible P00-005/007/009,
+  close eligible P00-005/009,
   close P00-006 + P00-010 after dependencies are satisfied,
   run full P00 exit gate.
 ```
