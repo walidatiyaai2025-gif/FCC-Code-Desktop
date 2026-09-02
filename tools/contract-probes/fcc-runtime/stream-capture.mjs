@@ -160,7 +160,10 @@ export function classifyFailure(run) {
   if (run?.cancelled) return { category: 'INTERRUPTED', source: 'process', retryability: 'UNKNOWN', userActionRequired: 'UNKNOWN' };
   const text = `${run?.stdout ?? ''}\n${run?.stderr ?? ''}`.toLowerCase();
   const malformed = (run?.lineEvents ?? []).some((event) => event.classification === 'MALFORMED_JSON');
-  if (/--resume requires a valid session|does not match any session|session (?:id )?(?:was )?not found|invalid session/.test(text)) return { category: 'INVALID_SESSION', source: 'output', retryability: 'NOT_APPLICABLE', userActionRequired: 'YES' };
+  const successfulTerminalResult = run?.exitCode === 0 && (run?.lineEvents ?? []).some((event) => event.classification === 'JSON_EVENT'
+    && event.parsed?.type === 'result' && event.parsed?.subtype === 'success' && event.parsed?.is_error === false);
+  if (successfulTerminalResult) return { category: 'SUCCESS', source: 'structured-terminal-result', retryability: 'NOT_APPLICABLE', userActionRequired: 'NO' };
+  if (/--resume requires a valid session|does not match any session|no conversation found with session id|session (?:id )?(?:was )?not found|invalid session/.test(text)) return { category: 'INVALID_SESSION', source: 'output', retryability: 'NOT_APPLICABLE', userActionRequired: 'YES' };
   if (/429|too many requests|rate.?limit|quota.*exceed/.test(text)) return { category: 'RATE_LIMITED', source: 'output', retryability: 'UNKNOWN', userActionRequired: 'UNKNOWN' };
   if (/unauthori[sz]ed|forbidden|authentication|invalid api.?key|credential/.test(text)) return { category: 'AUTH_FAILURE', source: 'output', retryability: 'UNKNOWN', userActionRequired: 'UNKNOWN' };
   if (/model[^\n]*(not found|invalid|unavailable|unsupported)/.test(text)) return { category: 'MODEL_UNAVAILABLE', source: 'output', retryability: 'UNKNOWN', userActionRequired: 'UNKNOWN' };

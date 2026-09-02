@@ -51,6 +51,8 @@ try {
   assert.equal(hasExactSuccessfulResult(exactResultRun, exactMarker), true);
   assert.equal(hasExactSuccessfulResult(exactResultRun, `${exactMarker}_WRONG`), false);
   assert.equal(classifyFailure({ exitCode: 1, stdout: '', stderr: 'Error: --resume requires a valid session ID. Session id was not found.' }).category, 'INVALID_SESSION');
+  assert.equal(classifyFailure({ exitCode: 1, stdout: '', stderr: 'No conversation found with session ID: 123e4567-e89b-42d3-a456-426614174000' }).category, 'INVALID_SESSION');
+  assert.equal(classifyFailure({ exitCode: 0, stdout: 'rate_limit and model unavailable metadata', stderr: '', lineEvents: exactResultRun.lineEvents }).category, 'SUCCESS');
   pass('session-marker-and-invalid-session-classification');
 
   const stream = await captureProcess(process.execPath, [fixture, '--mode', 'stream'], { cwd: temp, timeoutMs: 5000 });
