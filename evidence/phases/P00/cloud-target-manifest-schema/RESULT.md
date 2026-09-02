@@ -4,7 +4,8 @@
 - Started from live main: `1fdf0adaf88e4a52759e07fd913e4bb791b5c9ae`
 - Date: 2026-09-02
 - Scope: binding unified target-manifest completeness only
-- Result: `COMPLETE_AWAITING_INTEGRATION`
+- Result: `INTEGRATED`
+- Integration: PR #17, merge commit `8825ab46655b5f592a4d961c687b8e5dc9d0d4ad`
 
 ## Defect
 
@@ -109,6 +110,10 @@ This hardening fixes a closure-readiness defect in the unified target runner but
 - `FCCD-P00-009` remains target Blender blocked.
 - `FCCD-P00-006` and `FCCD-P00-010` remain implemented pending P00 exit-gate convergence.
 
+## Integration
+
+PR #17 merged to `main` as `8825ab46655b5f592a4d961c687b8e5dc9d0d4ad`. The cloud implementation item is terminal; integration does not convert any target-only blocker into target evidence.
+
 ## Next authoritative action
 
-After integration, execute the canonical one-command Windows target runner from an exact clean merged head. The resulting schema-version-2 manifest should make the remaining target blockers and evidence states explicit without manufacturing 429 traffic or other target-only evidence.
+Execute the canonical one-command Windows target runner from an exact clean merged head. The resulting schema-version-2 manifest should make the remaining target blockers and evidence states explicit without manufacturing 429 traffic or other target-only evidence.
