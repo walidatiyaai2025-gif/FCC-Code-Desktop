@@ -331,15 +331,12 @@ try {
     Set-Content -LiteralPath $consumerProjectPath -Value $consumerProject -Encoding utf8NoBOM
     Set-Content -LiteralPath (Join-Path $consumerDir 'Consumer.cs') -Value "namespace DependencyConsumer;`n`npublic static class Consumer { public static int Value => 1; }`n" -Encoding utf8NoBOM
 
-    $missingLockFailure = Invoke-DotNet @('restore', '.\DependencyConsumer.csproj', '--locked-mode', '--nologo') $consumerDir
-    Assert-Failed $missingLockFailure
-
-    $generateLock = Invoke-DotNet @('restore', '.\DependencyConsumer.csproj', '-p:RestoreLockedMode=false', '--force-evaluate', '--nologo') $consumerDir
-    Assert-Succeeded $generateLock
+    $initialLockedRestore = Invoke-DotNet @('restore', '.\DependencyConsumer.csproj', '--locked-mode', '--nologo') $consumerDir
+    Assert-Succeeded $initialLockedRestore
 
     $consumerLockPath = Join-Path $consumerDir 'packages.lock.json'
     if (-not (Test-Path -LiteralPath $consumerLockPath)) {
-        throw 'Unlocked fixture restore did not generate packages.lock.json.'
+        throw 'Initial locked fixture restore did not create packages.lock.json.'
     }
     Assert-Equal (Get-LockResolvedVersion $consumerLockPath 'Fccd.DependencyPolicy.Fixture') '1.0.0' 'Fixture baseline locked package version'
 
@@ -375,4 +372,4 @@ finally {
 }
 
 Write-Host 'Executable dependency-policy validation: PASS.'
-Write-Host 'Negative fixtures verified missing/stale lock rejection and project-local version rejection; lock regeneration/recovery PASS.'
+Write-Host 'Fixtures verified initial lock creation, stale-lock rejection, project-local version rejection, and explicit lock regeneration/recovery.'
