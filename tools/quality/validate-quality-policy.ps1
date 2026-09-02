@@ -125,7 +125,6 @@ $requiredEditorConfigEntries = @(
     'root = true',
     'csharp_style_namespace_declarations = file_scoped:warning',
     'csharp_prefer_braces = true:warning',
-    'dotnet_diagnostic.IDE0005.severity = warning',
     'dotnet_diagnostic.IDE0055.severity = warning',
     'dotnet_diagnostic.CA1822.severity = warning',
     'dotnet_naming_rule.interfaces_must_start_with_i.severity = warning'
