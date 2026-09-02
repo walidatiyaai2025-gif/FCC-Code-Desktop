@@ -4,7 +4,8 @@
 - Started from live main: `353b36dc4a29c067548183e3fff793bcc5dae459`
 - Date: 2026-09-02
 - Scope: unified target-evidence summary artifact-integrity guard only
-- Result: `COMPLETE_AWAITING_INTEGRATION`
+- Result: `INTEGRATED`
+- Integration: PR #25, merge commit `7ce998baade843fdb00b4d96c372dcc95ca9b100`
 
 ## Defect
 
@@ -87,6 +88,10 @@ This fixes a closure-readiness defect in the unified target evidence layer but d
 - `FCCD-P00-009` — BLOCKED on real Blender target execution.
 - `FCCD-P00-006` and `FCCD-P00-010` — IMPLEMENTED pending P00 convergence/exit gate.
 
+## Integration
+
+PR #25 merged to `main` as `7ce998baade843fdb00b4d96c372dcc95ca9b100`. The cloud hardening item is terminal; integration does not convert any target-only blocker into target evidence.
+
 ## Next authoritative action
 
-After integration, run the canonical one-command Windows target validation from an exact clean merged head. Missing/unreadable mandatory evidence can no longer be masked by a zero probe exit code in the compact contract summary.
+Run the canonical one-command Windows target validation from an exact clean merged head. Missing/unreadable mandatory evidence can no longer be masked by a zero probe exit code in the compact contract summary.
