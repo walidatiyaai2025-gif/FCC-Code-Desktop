@@ -65,17 +65,13 @@ The owner must not be required to interpret results or make technical decisions.
 
 ## 4. Required unified target runner
 
-P00 workers must converge their probes behind a single repository-owned Windows entry point before final target validation.
-
-Canonical intended path:
+The repository-owned Windows entry point is:
 
 ```text
 tools/contract-probes/run-target-validation.ps1
 ```
 
-The implementation may internally call Node/PowerShell/Python or tool-specific modules, but the owner/local worker receives one entry point.
-
-The target runner must eventually orchestrate all P00 target-dependent evidence that exists on `main`, including:
+The runner orchestrates the current canonical P00 target-dependent lanes on `main`:
 
 - FCC / `fcc-claude` discovery and health,
 - CLI fallback,
@@ -85,14 +81,18 @@ The target runner must eventually orchestrate all P00 target-dependent evidence 
 - Unity contract probes,
 - Blender contract probes.
 
-It must be safe to rerun.
+The implementation may internally call Node/PowerShell/Python or tool-specific modules, but the owner/local worker receives one entry point. It must remain safe to rerun.
 
 ---
 
-## 5. Target runner safety requirements
+## 5. Target runner safety and provenance requirements
 
 The runner must:
 
+- run only on Windows for authoritative P00 target evidence,
+- refuse a dirty Git worktree before evidence generation so the evidence can be attributed to the recorded exact HEAD SHA,
+- verify that the checkout resolved by Git is the repository containing the runner,
+- verify required probe prerequisites such as Git and Node before execution,
 - perform no destructive workspace operations,
 - never intentionally generate load merely to force a rate limit,
 - never overwrite valuable Unity or Blender assets,
@@ -106,6 +106,8 @@ The runner must:
 - record the exact repository SHA used for the run,
 - record command/probe versions and timestamps,
 - clean up owned temporary processes/files.
+
+PR #6 hardened these provenance requirements in the canonical runner by rejecting non-Windows execution, dirty worktrees, wrong repository roots, and missing Git/Node prerequisites before target evidence is written.
 
 ---
 
@@ -149,46 +151,49 @@ The runner must not require the owner to copy secrets or manually interpret logs
 
 ---
 
-## 8. Closure semantics for currently blocked tasks
+## 8. Closure semantics for target-dependent tasks
 
-A task such as `FCCD-P00-002` or `FCCD-P00-007` that has complete reusable probe infrastructure but lacks actual target observation remains `BLOCKED`.
+A task with complete reusable probe infrastructure but incomplete authoritative target observation remains `BLOCKED`.
 
 After target evidence is integrated, a convergence worker must:
 
 1. rerun/review the relevant self-tests,
-2. verify the target evidence came from the expected machine/repo SHA,
-3. reconcile observed behavior into contract documentation,
-4. fix probes/docs if observations differ from assumptions,
-5. mark the task `VERIFIED`, then `CLOSED` only when all task-local criteria are satisfied.
+2. verify the target evidence came from the expected machine and exact repository SHA,
+3. verify the evidence-producing probe is the same version represented by that SHA,
+4. reconcile observed behavior into contract documentation,
+5. fix probes/docs if observations differ from assumptions,
+6. mark the task `VERIFIED`, then `CLOSED` only when all task-local criteria are satisfied.
 
-Target evidence must never be treated as automatic closure without reconciliation.
+Target evidence must never be treated as automatic closure without reconciliation. A target-relevant probe change after a Windows run invalidates exact-head verification for the affected guarantee until that updated probe is rerun on the authoritative target.
 
 ---
 
 ## 9. Parallel P00 worker strategy
 
-P00 remains one current phase, but non-overlapping probe construction may proceed in parallel.
+P00 remains one current phase. Cloud workers may operate on non-overlapping probe defects, regression coverage, evidence consistency, and convergence preparation while target-only work remains blocked.
 
-Recommended lanes:
+Current responsibility split is conceptually:
 
 ```text
-W1  FCC discovery + CLI fallback       P00-002 / P00-007
-W2  streaming + sessions + failures    P00-003 / P00-004 / P00-005
-W3  Unity contract probes              P00-008
-W4  Blender contract probes            P00-009
-
-then
+CLOUD / REMOTE WORKERS
+  maintain and harden canonical probes,
+  self-test deterministic mechanics,
+  reconcile contracts/evidence/state,
+  never manufacture target evidence
 
 LOCAL TARGET VALIDATION WORKER
-  runs unified target suite on owner's Windows machine
+  run the unified suite on the owner's Windows target
 
-then
+PLANNING / RECONCILIATION AUTHORITY
+  resolve explicit plan gaps such as PG-002 when policy—not implementation—is blocking closure
 
-W5 CONVERGENCE
-  P00-006 / P00-010 + reconcile blocked tasks + full P00 exit gate
+CONVERGENCE WORKER
+  reconcile new target evidence,
+  close eligible P00 tasks,
+  run the complete P00 exit gate
 ```
 
-W1-W4 may merge probe infrastructure even when target evidence is still blocked, provided their changes are isolated, self-tested, truthful, and do not falsely close target-dependent tasks.
+Workers must inspect live branches/PRs/claims before taking a lane and must not duplicate active work.
 
 ---
 
@@ -210,34 +215,36 @@ If required target evidence cannot be obtained, P00 remains open.
 
 ---
 
-## 11. Immediate implication after PR #1
+## 11. Current canonical integration status
 
-PR #1 validly created the FCC discovery/CLI fallback probe infrastructure and correctly left `FCCD-P00-002` and `FCCD-P00-007` blocked because its worker host did not contain the owner's actual FCC environment.
+All mandatory P00 probe families now have repository-owned infrastructure integrated behind the unified runner:
 
-That result should be preserved.
+- FCC discovery/health and CLI fallback,
+- structured streaming,
+- session/resume,
+- cancellation/failure,
+- Unity,
+- Blender.
 
-The project should now continue building the remaining non-overlapping P00 probes (streaming/session/failure, Unity, Blender), converge them behind the unified target runner, and perform one consolidated local target-validation pass rather than repeatedly discovering the same remote-environment limitation worker by worker.
+Historical milestones such as PR #1 and Worker 2 remain useful provenance, but they are not the current integration boundary. Unity and Blender are no longer separate unintegrated lanes: the runner invokes both current probe families and produces their target evidence paths.
+
+The most recent cloud hardening relevant to target execution includes:
+
+- PR #6 — target-runner provenance guards for Windows, exact clean HEAD, repository identity, Git and Node;
+- PR #9 — FCC runtime ownership evidence refreshes descendants immediately before cancellation/timeout escalation and covers late-spawned children with deterministic regression tests.
+
+Because PR #9 changed the evidence-producing cancellation/process-ownership probe after the last Windows run, `FCCD-P00-005` requires a new exact-head Windows target run before it may regain `VERIFIED` status.
 
 ---
 
-## 12. Current unified-runner integration after Worker 2
+## 12. Current target blockers and next authoritative run
 
-The repository-owned entry point now exists at:
+At the current P00 state:
 
-```text
-tools/contract-probes/run-target-validation.ps1
-```
+- `FCCD-P00-004` requires a successful provider-backed session and resume/continuity run;
+- `FCCD-P00-005` requires the hardened exact-head Windows cancellation/failure rerun and resolution of `PG-002-P00-RATE-LIMIT-CLOSURE` unless a natural rate-limit observation occurs first;
+- `FCCD-P00-007` requires successful provider-backed CLI fallback completion;
+- `FCCD-P00-009` requires real Blender execution on the authoritative Windows target;
+- `FCCD-P00-006` and `FCCD-P00-010` remain convergence-dependent until the target blockers are removed.
 
-Worker 2 integrates the following existing/current probe lanes into that one command:
-
-- PR #1 FCC discovery/health self-test and target probe,
-- PR #1 CLI fallback target probe,
-- `FCCD-P00-003` streaming recorder/parser self-test and target probe,
-- `FCCD-P00-004` session/resume self-test and target probe,
-- `FCCD-P00-005` cancellation/failure self-test and target probe.
-
-The runner accepts explicit target-observed argument templates through `-CliArgsJson`, `-StreamArgsJson`, and `-ResumeArgsJson`. It does not guess structured-stream or resume syntax.
-
-Unity and Blender remain separate authorized worker scopes. Until `FCCD-P00-008` and `FCCD-P00-009` integrate their real target invocations into this same entry point, the unified runner records those steps as `BLOCKED` and returns non-zero. Directory existence alone is not treated as integration or evidence.
-
-Worker 2 could not execute the PowerShell runner on its Linux probe host because PowerShell is absent there. Node probe modules and self-tests were executed on the remote host; Windows runner execution remains part of target validation.
+The next authoritative local run must use a clean checkout of the current canonical `main`, the one-command runner, bounded provider traffic, sanitized evidence, and no fabricated replacement for unavailable provider or Blender behavior. After evidence is integrated, a convergence worker reconciles all affected contracts/task states and only then evaluates the P00 exit gate.
