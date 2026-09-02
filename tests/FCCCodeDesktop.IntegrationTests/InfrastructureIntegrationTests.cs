@@ -6,7 +6,7 @@ namespace FCCCodeDesktop.IntegrationTests;
 public sealed class InfrastructureIntegrationTests
 {
     [Fact]
-    public async Task DotNetProcess_UsesPinnedSdkFromDisposableUnicodeWorkspace()
+    public async Task DotNetProcessUsesPinnedSdkFromDisposableUnicodeWorkspace()
     {
         using var workspace = new TemporaryDirectory("fccd integration مساحة");
         File.Copy(
@@ -24,7 +24,7 @@ public sealed class InfrastructureIntegrationTests
     }
 
     [Fact]
-    public async Task InvalidDotNetArgument_ReturnsNonZeroWithoutTouchingOwnerData()
+    public async Task InvalidDotNetArgumentReturnsNonZeroWithoutTouchingOwnerData()
     {
         using var workspace = new TemporaryDirectory("fccd-integration-negative");
         File.Copy(
@@ -42,7 +42,7 @@ public sealed class InfrastructureIntegrationTests
     }
 
     [Fact]
-    public async Task CancelledProcess_IsTerminatedAndWorkspaceRemainsReusable()
+    public async Task CancelledProcessIsTerminatedAndWorkspaceRemainsReusable()
     {
         using var workspace = new TemporaryDirectory("fccd-integration-cancel");
         using var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
