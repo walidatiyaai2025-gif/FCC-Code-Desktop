@@ -1,0 +1,69 @@
+name: P01-004 Exact Validation
+
+on:
+  push:
+    branches:
+      - validation/p01-004-exact-229c179
+
+permissions:
+  contents: read
+
+jobs:
+  exact-head:
+    runs-on: windows-2025
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 229c179f3530bf70d6c28bae16aaaef3757edb62
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Verify exact candidate
+        shell: pwsh
+        run: |
+          if ((git rev-parse HEAD) -ne '229c179f3530bf70d6c28bae16aaaef3757edb62') { throw 'Candidate SHA mismatch.' }
+          if ((dotnet --version) -ne '10.0.400') { throw 'SDK mismatch.' }
+          git diff --check a2d52fd144a345c4d3aaefed73e46799de6dc69b..HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+
+      - name: Locked restore
+        shell: pwsh
+        run: dotnet restore .\FCCCodeDesktop.sln --locked-mode --nologo
+
+      - name: Formatting
+        shell: pwsh
+        run: dotnet format .\FCCCodeDesktop.sln --verify-no-changes --no-restore
+
+      - name: Release build
+        shell: pwsh
+        run: dotnet build .\FCCCodeDesktop.sln -c Release --no-restore --nologo
+
+      - name: Validate test infrastructure
+        shell: pwsh
+        run: .\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet
+
+      - name: Validate dependency policy
+        shell: pwsh
+        run: .\tools\dependencies\validate-dependency-policy.ps1 -RequireDotNet
+
+      - name: Validate quality policy
+        shell: pwsh
+        run: .\tools\quality\validate-quality-policy.ps1 -RequireDotNet
+
+      - name: Verify canonical solution scope
+        shell: pwsh
+        run: |
+          $diff = git diff a2d52fd144a345c4d3aaefed73e46799de6dc69b..HEAD -- FCCCodeDesktop.sln | Out-String
+          if ($diff -match 'Debug\|x64|Debug\|x86|Release\|x64|Release\|x86') { throw 'Unexpected platform configuration churn.' }
+          if ($diff -match '(?m)^-.*= \{62D5EF03-65C2-51DC-B8C4-28D4D1D66754\}') { throw 'Existing src nesting was removed.' }
+
+      - name: Verify clean tracked worktree
+        shell: pwsh
+        run: |
+          $dirty = git status --porcelain --untracked-files=no
+          if ($dirty) { throw "Tracked worktree changed during exact validation:`n$dirty" }
