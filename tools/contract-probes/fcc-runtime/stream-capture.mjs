@@ -253,14 +253,68 @@ export async function captureProcess(executable, args, options = {}) {
   const lineEvents = buildLineAnalysis(rawFramesInternal.map((x) => ({ ...x })));
   const rawFrames = finalizeFrames(rawFramesInternal);
   const observedProcessTree = [...observedProcessByPid.values()];
-  const observedPids = new Set(observedProcessTree.map((x) => x.pid));
+  const matchesObservedIdentity = (candidate) => {
+    const observed = observedProcessByPid.get(candidate.pid);
+    if (!observed) return false;
+    if (process.platform !== 'win32') return true;
+    return String(observed.name ?? '').toLowerCase() === String(candidate.name ?? '').toLowerCase();
+  };
   let finalSnapshot = processSnapshot();
-  let remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter((x) => observedPids.has(x.pid));
-  const cleanupDeadline = Date.now() + (options.cleanupWaitMs ?? 1800);
+  let remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter(matchesObservedIdentity);
+  const cleanupWaitMs = options.cleanupWaitMs ?? (process.platform === 'win32' ? 8000 : 1800);
+  const cleanupStartedAt = Date.now();
+  const cleanupDeadline = cleanupStartedAt + cleanupWaitMs;
   while (remainingOwnedProcesses.length && Date.now() < cleanupDeadline) {
     await new Promise((resolve) => setTimeout(resolve, 100));
     finalSnapshot = processSnapshot();
-    remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter((x) => observedPids.has(x.pid));
+    remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter(matchesObservedIdentity);
+  }
+  const cleanupWaitElapsedMs = Date.now() - cleanupStartedAt;
+
+  let residualTerminationAttempted = false;
+  const residualTerminationResults = [];
+
+  if (remainingOwnedProcesses.length && (timedOut || cancelled)) {
+    const residualTargets = remainingOwnedProcesses.filter((candidate) => {
+      const observed = observedProcessByPid.get(candidate.pid);
+      return candidate.pid !== child.pid
+        && observed?.role === 'descendant'
+        && matchesObservedIdentity(candidate);
+    });
+
+    if (residualTargets.length) {
+      residualTerminationAttempted = true;
+
+      for (const target of residualTargets) {
+        if (process.platform === 'win32') {
+          const killed = runSync('taskkill.exe', ['/PID', String(target.pid), '/T', '/F'], { timeoutMs: 7000 });
+          residualTerminationResults.push({
+            pid: target.pid,
+            name: target.name,
+            exitCode: killed.exitCode,
+          });
+        } else {
+          let exitCode = 0;
+          try { process.kill(target.pid, 'SIGKILL'); }
+          catch { exitCode = 1; }
+          residualTerminationResults.push({
+            pid: target.pid,
+            name: target.name,
+            exitCode,
+          });
+        }
+      }
+
+      const residualDeadline = Date.now() + (options.residualCleanupWaitMs ?? 4000);
+      finalSnapshot = processSnapshot();
+      remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter(matchesObservedIdentity);
+
+      while (remainingOwnedProcesses.length && Date.now() < residualDeadline) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        finalSnapshot = processSnapshot();
+        remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter(matchesObservedIdentity);
+      }
+    }
   }
   const sessionCandidates = [];
   for (const event of lineEvents) sessionCandidates.push(...(event.sessionCandidates ?? []));
@@ -275,7 +329,7 @@ export async function captureProcess(executable, args, options = {}) {
     runtimeFound: true, executable, args: redact(args), wrapper: launch.wrapper, pid: child.pid, cwd: options.cwd ?? process.cwd(),
     exitCode: exit.exitCode, signal: exit.signal, launchError: exit.launchError ? redactString(exit.launchError) : null,
     durationMs: Date.now() - started, timedOut, cancelled, gracefulInterruptAttempted, forcedTerminationAttempted, forcedTerminationSucceeded,
-    observedProcessTree, remainingOwnedProcesses, processTreeCleanupObserved: remainingOwnedProcesses.length === 0,
+    observedProcessTree, remainingOwnedProcesses, processTreeCleanupObserved: remainingOwnedProcesses.length === 0, cleanupWaitMs, cleanupWaitElapsedMs, residualTerminationAttempted, residualTerminationResults,
     outputTruncated, stdout: redactString(stdoutRaw), stderr: redactString(stderrRaw), rawFrames, lineEvents, sessionCandidates: dedupedSessionCandidates,
   };
   result.failure = classifyFailure(result);

@@ -100,13 +100,30 @@ try {
   assert.equal(lateTree.processTreeCleanupObserved, true);
   pass('late-spawn-owned-descendant-observation-and-cleanup');
 
+  const orphanTree = await captureProcess(process.execPath, [fixture, '--mode', 'orphan-tree'], {
+    cwd: temp,
+    timeoutMs: 5000,
+    cancelAfterMs: 500,
+    gracefulWaitMs: 200,
+    snapshotDelayMs: 200,
+    cleanupWaitMs: 300,
+    residualCleanupWaitMs: 2500,
+  });
+  assert.equal(orphanTree.cancelled, true);
+  assert.equal(orphanTree.classification, 'INTERRUPTED');
+  assert.ok(orphanTree.observedProcessTree.some((x) => x.role === 'descendant'));
+  assert.equal(orphanTree.residualTerminationAttempted, true);
+  assert.equal(orphanTree.processTreeCleanupObserved, true);
+  assert.equal(orphanTree.remainingOwnedProcesses.length, 0);
+  pass('post-exit-owned-descendant-residual-cleanup');
+
   const missing = await captureMissingRuntime(path.join(temp, 'definitely-missing', 'fcc-claude'));
   assert.equal(missing.classification, 'RUNTIME_NOT_FOUND');
   assert.equal(classifyFailure(missing).category, 'RUNTIME_NOT_FOUND');
   pass('target-unavailable-classification');
 
   const outputPath = path.join(temp, 'self-test-output.json');
-  fs.writeFileSync(outputPath, JSON.stringify({ checks, stream, nonzero, rate, timeout, cancelled, lateTree, missing }, null, 2));
+  fs.writeFileSync(outputPath, JSON.stringify({ checks, stream, nonzero, rate, timeout, cancelled, lateTree, orphanTree, missing }, null, 2));
   const raw = fs.readFileSync(outputPath, 'utf8');
   assert.equal(raw.includes(fakeSecret), false);
   assert.equal(raw.includes(opaqueBearer), false);

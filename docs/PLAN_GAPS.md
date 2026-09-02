@@ -37,21 +37,7 @@ RESOLUTION_REFERENCE:
 
 ## Open gaps
 
-```text
-PLAN_GAP_ID: PG-002-P00-RATE-LIMIT-CLOSURE
-DISCOVERED_BY: autonomous cloud P00 convergence audit
-DATE: 2026-09-02
-CURRENT_PHASE: P00
-RELATED_TASK: FCCD-P00-005
-DESCRIPTION: P00 requires cancel/interrupt/failure/rate-limit behavior to be captured, while the binding target-validation safety policy forbids intentionally generating provider load merely to force a rate limit. Historical real-target evidence verified provider 503, timeout/cancellation behavior and owned cleanup observations, but no natural HTTP/provider 429 has occurred. PR #9 later hardened the target-relevant process-ownership probe, so FCCD-P00-005 is now independently BLOCKED pending an exact-head Windows rerun of that hardened probe. After the rerun, the separate rate-limit closure question will still remain unless a natural rate-limit event is observed: no canonical planning decision currently defines whether safe NOT_OBSERVED_ON_TARGET plus verified classifier mechanics is sufficient for CLOSED.
-WHY_CURRENT_PLAN_MAY_BE_INCOMPLETE: Without an explicit safe closure semantic, FCCD-P00-005 can remain indefinitely below CLOSED based on an external event workers are prohibited from inducing. Conversely, treating NOT_OBSERVED_ON_TARGET as sufficient without planning authority would silently weaken a mandatory P00 outcome. The implementation worker cannot legitimately choose between those policies.
-EVIDENCE: docs/EXECUTION_PLAN.md P00 mandatory outcomes require rate-limit behavior to be captured; docs/P00_TARGET_MACHINE_VALIDATION.md forbids intentional load merely to force rate limiting and requires NOT_OBSERVED to remain distinct from PASS; docs/contracts/FCC_FAILURE_CONTRACT.md records deterministic rate-limit classifier mechanics, historical target failure/cancellation evidence, the post-PR #9 exact-head rerun requirement, and RATE_LIMIT = NOT_OBSERVED_ON_TARGET; evidence/phases/P00/fcc-target/TARGET_RECONCILIATION_2026-09-02.md records the historical target boundary.
-BLOCKS_CURRENT_TASK: yes
-BLOCKS_PHASE_EXIT: yes
-SUGGESTED_DESTINATION_IF_APPROVED: P00 planning/reconciliation authority should add an explicit ADR/contract decision defining the safe closure boundary for unforced rate-limit observation and propagate it consistently to EXECUTION_PLAN, FCC_FAILURE_CONTRACT, TASK_LEDGER, and P00 closure criteria.
-STATUS: OPEN
-RESOLUTION_REFERENCE:
-```
+None.
 
 ---
 
@@ -71,4 +57,20 @@ BLOCKS_PHASE_EXIT: yes
 SUGGESTED_DESTINATION_IF_APPROVED: P00 target-machine validation supplement
 STATUS: RESOLVED
 RESOLUTION_REFERENCE: docs/P00_TARGET_MACHINE_VALIDATION.md introduced the mandatory two-lane remote-probe + local-target-validation workflow and unified target runner requirement.
+```
+
+```text
+PLAN_GAP_ID: PG-002-P00-RATE-LIMIT-CLOSURE
+DISCOVERED_BY: autonomous cloud P00 convergence audit
+DATE: 2026-09-02
+CURRENT_PHASE: P00
+RELATED_TASK: FCCD-P00-005
+DESCRIPTION: P00 requires cancel/interrupt/failure/rate-limit behavior to be captured, while the binding target-validation safety policy forbids intentionally generating provider load merely to force a rate limit. Historical and exact-head target evidence did not naturally produce HTTP/provider 429.
+WHY_CURRENT_PLAN_MAY_BE_INCOMPLETE: Requiring a natural 429 as the only closure path would make P00 depend indefinitely on an external event workers are prohibited from manufacturing, while silently treating NOT_OBSERVED as PASS would weaken evidence semantics.
+EVIDENCE: exact-head Windows evidence at tested source SHA 015ffd8c0e2a6e725e33ed153441ff51e7952556 verifies provider-backed baseline success, cancellation classification INTERRUPTED, hardened owned-descendant cleanup with zero remaining owned processes, and RATE_LIMIT = NOT_OBSERVED_ON_TARGET; deterministic SELF_TEST_ONLY coverage verifies RATE_LIMITED classifier mechanics; no artificial 429 traffic was generated.
+BLOCKS_CURRENT_TASK: no
+BLOCKS_PHASE_EXIT: no
+SUGGESTED_DESTINATION_IF_APPROVED: explicit P00 rate-limit closure policy preserving NOT_OBSERVED as distinct from PASS while allowing safe task closure when classifier mechanics and the rest of the target contract are verified.
+STATUS: RESOLVED
+RESOLUTION_REFERENCE: docs/contracts/FCC_RATE_LIMIT_CLOSURE_POLICY.md. The approved policy accepts NOT_OBSERVED_ON_TARGET plus verified SELF_TEST_ONLY classifier mechanics as the P00-005 rate-limit closure boundary when artificial provider load is prohibited. It does not claim a real observed provider 429.
 ```
