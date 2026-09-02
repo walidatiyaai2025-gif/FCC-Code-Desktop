@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RootNamespace>FCCCodeDesktop.App</RootNamespace>
+    <AssemblyName>FCCCodeDesktop.App</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FCCCodeDesktop.Application\FCCCodeDesktop.Application.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Runtime\FCCCodeDesktop.Runtime.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Infrastructure\FCCCodeDesktop.Infrastructure.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Persistence\FCCCodeDesktop.Persistence.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Fcc\FCCCodeDesktop.Fcc.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Files\FCCCodeDesktop.Files.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Git\FCCCodeDesktop.Git.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Terminal\FCCCodeDesktop.Terminal.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Tools\FCCCodeDesktop.Tools.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Tools.Unity\FCCCodeDesktop.Tools.Unity.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Tools.Blender\FCCCodeDesktop.Tools.Blender.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Security\FCCCodeDesktop.Security.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Diagnostics\FCCCodeDesktop.Diagnostics.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Updater\FCCCodeDesktop.Updater.csproj" />
+  </ItemGroup>
+</Project>

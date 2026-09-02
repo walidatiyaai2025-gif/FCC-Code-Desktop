@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>FCCCodeDesktop.Application</RootNamespace>
+    <AssemblyName>FCCCodeDesktop.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FCCCodeDesktop.Core\FCCCodeDesktop.Core.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Runtime\FCCCodeDesktop.Runtime.csproj" />
+    <ProjectReference Include="..\FCCCodeDesktop.Tools\FCCCodeDesktop.Tools.csproj" />
+  </ItemGroup>
+</Project>
