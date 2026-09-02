@@ -6,6 +6,8 @@ await test('explicit missing executable is classified',()=>assert.equal(discover
 await test('argument builder preserves Unicode paths',()=>assert.deepEqual(buildArgs({script:'a b.py',result:'نتيجة.json',scene:'s.blend',render:'r.png',exported:'m.obj'}).slice(0,4),['--background','--factory-startup','--python','a b.py']));
 await test('redaction removes key-shaped fields',()=>assert.equal(redact({apiKey:'secret-value'}).apiKey,'[REDACTED]'));
 await test('redaction removes bearer values',()=>assert(!redact('Bearer ABCDEFGHIJK').includes('ABCDEFGHIJK')));
+await test('redaction removes opaque authorization header values',()=>{const secret='dXNlcjpwYXNzd29yZA==';const r=redact(`Authorization: Basic ${secret}`);assert(!r.includes(secret));assert(r.includes('[REDACTED]'))});
+await test('redaction removes bearer authorization header values',()=>{const secret='eyJhbGciOiJIUzI1NiJ9.payload.signature';const r=redact(`Authorization: Bearer ${secret}`);assert(!r.includes(secret));assert(r.includes('[REDACTED]'))});
 await test('disposable root stays below requested root',()=>assert(disposableRoot(root).startsWith(root)));
 await test('fixture script is nonempty',()=>assert(writeFixtureScript(path.join(root,'x','fixture.py')).size>0));
 await test('missing blend rejected',()=>assert.equal(validateArtifact(path.join(root,'none.blend'),'blend').valid,false));
