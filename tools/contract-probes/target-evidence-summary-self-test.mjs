@@ -15,7 +15,7 @@ const repoRoot = path.join(temp, 'repo with spaces مسار');
 fs.mkdirSync(repoRoot, { recursive: true });
 try {
   const fcc = writeJson(repoRoot, 'evidence/phases/P00/target/fcc.json', {
-    discovery: { host: { platform: 'win32', node: 'v20.11.1', git: { stdout: 'git version 2.47.0\n' }, dotnet: { stdout: '10.0.400\n' }, python: { stdout: 'Python 3.12.5\n' }, powershell: { stdout: '5.1.19041.6456\n' } }, executables: {
+    discovery: { host: { platform: 'win32', node: 'v20.11.1', git: { found: true, paths: ['C:\\Git\\git.exe'], result: { stdout: 'git version 2.47.0\n' } }, dotnet: { found: true, paths: ['C:\\dotnet\\dotnet.exe'], result: { stdout: '10.0.400\n' } }, python: { found: true, paths: ['C:\\Python\\python.exe'], result: { stdout: 'Python 3.12.5\n' } }, powershell: { command: ['C:\\PowerShell\\pwsh.exe'], stdout: '7.6.4\n' } }, executables: {
       fcc: { found: true, paths: ['C:\\Tools\\fcc.exe'], version: { stdout: 'free-claude-code 5.18.11\n' } },
       fccClaude: { found: true, paths: ['C:\\Tools\\fcc-claude.exe'], version: { stdout: '2.1.251 (Claude Code)\r\n' } },
       fccServer: { found: true, paths: ['C:\\Tools\\fcc-server.exe'], version: { stdout: 'free-claude-code 5.18.11\n' } },
@@ -44,7 +44,9 @@ try {
   assert(summary.schemaVersion === 2, 'Summary schema version must be 2.');
   assert(summary.contracts.fccDiscoveryCli.status === 'PASS', 'FCC status must preserve exit-code PASS.');
   assert(summary.contracts.fccDiscoveryCli.tools.find((x) => x.name === 'fcc-claude')?.version === '2.1.251 (Claude Code)', 'FCC version must be surfaced.');
-  assert(summary.contracts.fccDiscoveryCli.tools.find((x) => x.name === '.NET SDK')?.version === '10.0.400', 'Detected host tool versions must be surfaced.');
+  assert(summary.contracts.fccDiscoveryCli.tools.find((x) => x.name === '.NET SDK')?.version === '10.0.400', 'Nested host probe versions must be surfaced.');
+  assert(summary.contracts.fccDiscoveryCli.tools.find((x) => x.name === 'Git')?.version === 'git version 2.47.0', 'Git host probe result version must be surfaced.');
+  assert(summary.contracts.fccDiscoveryCli.tools.find((x) => x.name === 'Python')?.version === 'Python 3.12.5', 'Python host probe result version must be surfaced.');
   assert(summary.contracts.fccDiscoveryCli.artifactPath === 'evidence/phases/P00/target/fcc.json', 'Artifact paths must be repo-relative.');
   assert(summary.contracts.fccStreamingSessionFailure.status === 'BLOCKED', 'Runtime exit 2 must remain BLOCKED.');
   assert(summary.contracts.fccStreamingSessionFailure.reason.includes('rateLimit=NOT_OBSERVED_ON_TARGET'), 'Natural rate-limit non-observation must remain explicit.');
@@ -73,7 +75,7 @@ try {
   const cliSummary = JSON.parse(fs.readFileSync(cliOutput, 'utf8'));
   assert(cliSummary.schemaVersion === 2 && cliSummary.contracts.blender.resultState === 'NOT_INSTALLED', 'CLI output must preserve schema and result-state semantics.');
 
-  console.log(JSON.stringify({ status: 'SELF_TEST_VERIFIED', schemaVersion: summary.schemaVersion, assertions: 14, cliInvocation: 'PASS', unicodeSpacePath: 'PASS', targetEvidenceClaimed: false }, null, 2));
+  console.log(JSON.stringify({ status: 'SELF_TEST_VERIFIED', schemaVersion: summary.schemaVersion, assertions: 16, cliInvocation: 'PASS', unicodeSpacePath: 'PASS', targetEvidenceClaimed: false }, null, 2));
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }
