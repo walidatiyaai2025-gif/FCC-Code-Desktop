@@ -35,8 +35,9 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 - `FCCD-P00-008` — CLOSED after abandoned Worker 3 work was recovered, Windows probe defects were repaired, and the complete real Unity target contract passed.
 - `FCCD-P00-009` — BLOCKED only on real target Blender execution after reusable probe infrastructure, 15/15 self-tests, contract docs, evidence, and unified-runner integration were completed on this Windows host where Blender is not installed.
 - `FCCD-P00-006`, `010` — IMPLEMENTED from target evidence; closure awaits the remaining P00 blockers and exact-head gate. P00-010 compatibility terminology now explicitly separates TESTED, DETECTED, UNVERIFIED, SUPPORTED and UNSUPPORTED.
-- PR #6 hardened the unified target runner to refuse non-Windows or dirty-worktree target evidence and to verify Git/Node/repository provenance before writing evidence.
+- PR #6 hardened the unified target runner to refuse non-Windows evidence, wrong repository roots, missing Git/Node prerequisites, and uncommitted executable-input changes that break exact-head provenance.
 - PR #9 hardened FCC process ownership evidence so descendants created after the initial snapshot are observed before cancellation/timeout escalation.
+- PR #13 made the unified target runner safely rerunnable by permitting only prior repository-owned target-evidence output changes while continuing to reject source/configuration/probe dirtiness.
 
 ## Current objective
 
@@ -46,7 +47,7 @@ Complete P00 by:
 2. rerunning the hardened FCC process/session/failure probes on the authoritative Windows target and closing eligible FCC contract tasks when provider-backed completion is available,
 3. obtaining a planning/reconciliation decision for `PG-002-P00-RATE-LIMIT-CLOSURE` without manufacturing provider 429 traffic,
 4. reconciling the primary runtime decision and compatibility baseline after the final target evidence,
-5. rerunning the complete unified suite on an exact clean target head,
+5. rerunning the complete unified suite on the exact current head with no uncommitted source/configuration/probe changes,
 6. running the complete P00 exit gate and fixing every failure before closure.
 
 ## Recommended remaining worker lanes inside P00
