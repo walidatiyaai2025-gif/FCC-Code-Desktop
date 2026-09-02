@@ -58,8 +58,15 @@ try {
   const unauthorized = buildTargetEvidenceSummary({ repoRoot, authoritativeTarget: false, fccFile: fcc, fccExit: 0, runtimeFile: runtime, runtimeExit: 2, unityFile: unity, unityExit: 0, blenderFile: blender, blenderExit: 2 });
   assert(Object.values(unauthorized.contracts).every((x) => x.executedOnAuthoritativeTarget === false), 'Standalone/cloud summary must never self-promote to target evidence.');
 
-  const missing = buildTargetEvidenceSummary({ repoRoot, authoritativeTarget: true, fccFile: path.join(repoRoot, 'missing.json'), fccExit: 1, runtimeFile: runtime, runtimeExit: 2, unityFile: unity, unityExit: 0, blenderFile: blender, blenderExit: 2 });
-  assert(missing.contracts.fccDiscoveryCli.status === 'FAIL' && missing.contracts.fccDiscoveryCli.reason === 'EVIDENCE_FILE_MISSING', 'Missing evidence must be a controlled FAIL reason.');
+  const missingPath = path.join(repoRoot, 'missing.json');
+  const missing = buildTargetEvidenceSummary({ repoRoot, authoritativeTarget: true, fccFile: missingPath, fccExit: 0, runtimeFile: missingPath, runtimeExit: 0, unityFile: missingPath, unityExit: 0, blenderFile: missingPath, blenderExit: 0 });
+  assert(Object.values(missing.contracts).every((x) => x.status === 'FAIL' && x.resultState === 'FAIL' && x.reason === 'EVIDENCE_FILE_MISSING'), 'Missing mandatory evidence must force FAIL across all lanes even when the supplied probe exit code is zero.');
+  assert(Object.values(missing.contracts).every((x) => x.executedOnAuthoritativeTarget === false && x.targetBehaviorObserved === false), 'Missing evidence must never claim authoritative target execution or observation.');
+
+  const unreadablePath = path.join(repoRoot, 'evidence', 'phases', 'P00', 'target', 'unreadable.json');
+  fs.writeFileSync(unreadablePath, '{not valid json', 'utf8');
+  const unreadable = buildTargetEvidenceSummary({ repoRoot, authoritativeTarget: true, fccFile: fcc, fccExit: 0, runtimeFile: runtime, runtimeExit: 2, unityFile: unity, unityExit: 0, blenderFile: unreadablePath, blenderExit: 0 });
+  assert(unreadable.contracts.blender.status === 'FAIL' && unreadable.contracts.blender.resultState === 'FAIL' && unreadable.contracts.blender.reason === 'EVIDENCE_JSON_UNREADABLE', 'Unreadable mandatory evidence must force FAIL even when the supplied probe exit code is zero.');
 
   const scriptPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'target-evidence-summary.mjs');
   const cliOutput = path.join(repoRoot, 'evidence', 'phases', 'P00', 'target', 'P00_TARGET_CONTRACT_SUMMARY.json');
@@ -75,7 +82,7 @@ try {
   const cliSummary = JSON.parse(fs.readFileSync(cliOutput, 'utf8'));
   assert(cliSummary.schemaVersion === 2 && cliSummary.contracts.blender.resultState === 'NOT_INSTALLED', 'CLI output must preserve schema and result-state semantics.');
 
-  console.log(JSON.stringify({ status: 'SELF_TEST_VERIFIED', schemaVersion: summary.schemaVersion, assertions: 16, cliInvocation: 'PASS', unicodeSpacePath: 'PASS', targetEvidenceClaimed: false }, null, 2));
+  console.log(JSON.stringify({ status: 'SELF_TEST_VERIFIED', schemaVersion: summary.schemaVersion, assertions: 19, cliInvocation: 'PASS', unicodeSpacePath: 'PASS', missingEvidenceFailClosed: 'PASS', unreadableEvidenceFailClosed: 'PASS', targetEvidenceClaimed: false }, null, 2));
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }
