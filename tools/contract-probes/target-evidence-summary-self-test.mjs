@@ -58,6 +58,9 @@ try {
   const unauthorized = buildTargetEvidenceSummary({ repoRoot, authoritativeTarget: false, fccFile: fcc, fccExit: 0, runtimeFile: runtime, runtimeExit: 2, unityFile: unity, unityExit: 0, blenderFile: blender, blenderExit: 2 });
   assert(Object.values(unauthorized.contracts).every((x) => x.executedOnAuthoritativeTarget === false), 'Standalone/cloud summary must never self-promote to target evidence.');
 
+  const noPath = buildTargetEvidenceSummary({ repoRoot, authoritativeTarget: true, fccExit: 0, runtimeExit: 0, unityExit: 0, blenderExit: 0 });
+  assert(Object.values(noPath.contracts).every((x) => x.status === 'FAIL' && x.resultState === 'FAIL' && x.reason === 'EVIDENCE_PATH_NOT_SUPPLIED' && x.artifactPath === null), 'Missing mandatory evidence paths must force FAIL across all lanes even when the supplied probe exit code is zero.');
+
   const missingPath = path.join(repoRoot, 'missing.json');
   const missing = buildTargetEvidenceSummary({ repoRoot, authoritativeTarget: true, fccFile: missingPath, fccExit: 0, runtimeFile: missingPath, runtimeExit: 0, unityFile: missingPath, unityExit: 0, blenderFile: missingPath, blenderExit: 0 });
   assert(Object.values(missing.contracts).every((x) => x.status === 'FAIL' && x.resultState === 'FAIL' && x.reason === 'EVIDENCE_FILE_MISSING'), 'Missing mandatory evidence must force FAIL across all lanes even when the supplied probe exit code is zero.');
@@ -82,7 +85,7 @@ try {
   const cliSummary = JSON.parse(fs.readFileSync(cliOutput, 'utf8'));
   assert(cliSummary.schemaVersion === 2 && cliSummary.contracts.blender.resultState === 'NOT_INSTALLED', 'CLI output must preserve schema and result-state semantics.');
 
-  console.log(JSON.stringify({ status: 'SELF_TEST_VERIFIED', schemaVersion: summary.schemaVersion, assertions: 19, cliInvocation: 'PASS', unicodeSpacePath: 'PASS', missingEvidenceFailClosed: 'PASS', unreadableEvidenceFailClosed: 'PASS', targetEvidenceClaimed: false }, null, 2));
+  console.log(JSON.stringify({ status: 'SELF_TEST_VERIFIED', schemaVersion: summary.schemaVersion, assertions: 20, cliInvocation: 'PASS', unicodeSpacePath: 'PASS', missingPathFailClosed: 'PASS', missingEvidenceFailClosed: 'PASS', unreadableEvidenceFailClosed: 'PASS', targetEvidenceClaimed: false }, null, 2));
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }
