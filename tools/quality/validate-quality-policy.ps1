@@ -91,7 +91,7 @@ function Assert-FailedWith {
     }
 
     if ($Result.Output -notmatch [regex]::Escape($Diagnostic)) {
-        throw "Command failed as expected but did not report $Diagnostic: $($Result.Command)`n$($Result.Output)"
+        throw "Command failed as expected but did not report ${Diagnostic}: $($Result.Command)`n$($Result.Output)"
     }
 }
 
