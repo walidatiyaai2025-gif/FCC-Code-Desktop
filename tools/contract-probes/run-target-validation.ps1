@@ -214,9 +214,15 @@ try {
         steps = $steps
     }
 
-    $allPass = ($steps.Count -gt 0) -and (($steps | Where-Object { $_.status -ne 'PASS' }).Count -eq 0)
+    # Always materialize pipeline results as arrays before using .Count.
+    # Windows PowerShell 5.1 + StrictMode can otherwise throw when a filter
+    # produces a scalar object instead of an array.
+    $nonPassSteps = @($steps | Where-Object { $_.status -ne 'PASS' })
+    $failedSteps = @($steps | Where-Object { $_.status -eq 'FAIL' })
+
+    $allPass = ($steps.Count -gt 0) -and ($nonPassSteps.Count -eq 0)
     $suiteComplete = $unityIntegrated -and $blenderIntegrated
-    $manifest.overallStatus = if ($allPass -and $suiteComplete -and $contractSummary.p00Readiness.p00TargetValidationComplete) { 'PASS' } elseif (($steps | Where-Object { $_.status -eq 'FAIL' }).Count -gt 0) { 'FAIL' } else { 'BLOCKED' }
+    $manifest.overallStatus = if ($allPass -and $suiteComplete -and $contractSummary.p00Readiness.p00TargetValidationComplete) { 'PASS' } elseif ($failedSteps.Count -gt 0) { 'FAIL' } else { 'BLOCKED' }
 
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     $jsonPath = Join-Path $TargetDir 'P00_TARGET_EVIDENCE.json'
