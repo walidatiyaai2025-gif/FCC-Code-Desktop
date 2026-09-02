@@ -231,8 +231,8 @@ foreach ($projectFile in $projectFiles) {
     }
 
     $lock = Get-Content -LiteralPath $lockPath -Raw | ConvertFrom-Json -Depth 20
-    if ([int]$lock.version -ne 1) {
-        throw "Unsupported lock-file format version '$($lock.version)' in '$lockPath'."
+    if ([int]$lock.version -ne 2) {
+        throw "Unsupported lock-file format version '$($lock.version)' in '$lockPath'; .NET 10 baseline requires version 2."
     }
     if ($null -eq $lock.dependencies) {
         throw "Lock file '$lockPath' has no dependencies object."
