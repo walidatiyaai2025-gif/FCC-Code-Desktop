@@ -256,12 +256,15 @@ export async function captureProcess(executable, args, options = {}) {
   const observedPids = new Set(observedProcessTree.map((x) => x.pid));
   let finalSnapshot = processSnapshot();
   let remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter((x) => observedPids.has(x.pid));
-  const cleanupDeadline = Date.now() + (options.cleanupWaitMs ?? 1800);
+  const cleanupWaitMs = options.cleanupWaitMs ?? (process.platform === 'win32' ? 8000 : 1800);
+  const cleanupStartedAt = Date.now();
+  const cleanupDeadline = cleanupStartedAt + cleanupWaitMs;
   while (remainingOwnedProcesses.length && Date.now() < cleanupDeadline) {
     await new Promise((resolve) => setTimeout(resolve, 100));
     finalSnapshot = processSnapshot();
     remainingOwnedProcesses = (finalSnapshot.processes ?? []).filter((x) => observedPids.has(x.pid));
   }
+  const cleanupWaitElapsedMs = Date.now() - cleanupStartedAt;
   const sessionCandidates = [];
   for (const event of lineEvents) sessionCandidates.push(...(event.sessionCandidates ?? []));
   sessionCandidates.push(...extractSessionCandidatesFromText(`${stdoutRaw}\n${stderrRaw}`));
@@ -275,7 +278,7 @@ export async function captureProcess(executable, args, options = {}) {
     runtimeFound: true, executable, args: redact(args), wrapper: launch.wrapper, pid: child.pid, cwd: options.cwd ?? process.cwd(),
     exitCode: exit.exitCode, signal: exit.signal, launchError: exit.launchError ? redactString(exit.launchError) : null,
     durationMs: Date.now() - started, timedOut, cancelled, gracefulInterruptAttempted, forcedTerminationAttempted, forcedTerminationSucceeded,
-    observedProcessTree, remainingOwnedProcesses, processTreeCleanupObserved: remainingOwnedProcesses.length === 0,
+    observedProcessTree, remainingOwnedProcesses, processTreeCleanupObserved: remainingOwnedProcesses.length === 0, cleanupWaitMs, cleanupWaitElapsedMs,
     outputTruncated, stdout: redactString(stdoutRaw), stderr: redactString(stderrRaw), rawFrames, lineEvents, sessionCandidates: dedupedSessionCandidates,
   };
   result.failure = classifyFailure(result);
