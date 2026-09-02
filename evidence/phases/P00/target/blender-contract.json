@@ -1,25 +1,219 @@
 {
   "schemaVersion": 1,
   "probe": "FCCD_P00_009_BLENDER_CONTRACT",
-  "capturedAtUtc": "2026-09-01T21:13:21.130Z",
+  "capturedAtUtc": "2026-09-02T12:05:43.008Z",
   "host": {
     "platform": "win32",
     "arch": "x64",
-    "osRelease": "10.0.19045",
-    "node": "v20.11.1"
+    "osRelease": "10.0.26100",
+    "node": "v22.23.2"
   },
   "discovery": {
-    "found": false,
-    "candidates": []
+    "found": true,
+    "candidates": [
+      {
+        "path": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe",
+        "source": "explicit",
+        "version": "5.2.0",
+        "versionProbe": {
+          "exitCode": 0,
+          "error": null,
+          "stdout": "Blender 5.2.0 LTS\r\n\tbuild date: 2026-07-14\r\n\tbuild time: 01:35:40\r\n\tbuild commit date: 2026-07-13\r\n\tbuild commit time: 15:20\r\n\tbuild hash: fbe6228777e7\r\n\tbuild branch: blender-v5.2-release\r\n\tbuild platform: Windows\r\n\tbuild type: Release\r\n\tbuild c flags:  /W3 -Werror=implicit-function-declaration -Werror=return-type -Wno-tautological-compare -Wno-unknown-pragmas -Wno-char-subscripts -Wstrict-prototypes -Wmissing-prototypes -Wunused-parameter -Wundef -Wundef-prefix -Werror=unguarded-availability-new /DWIN32 /D_WINDOWS /MP /nologo /J /Gy /Gd /showFilenames -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off -march=x86-64-v2 \r\n\tbuild c++ flags:  /W3 -Wno-tautological-compare -Wno-unknown-pragmas -Wno-char-subscripts -Wno-overloaded-virtual -Wno-sign-compare -Wno-invalid-offsetof -Wno-suggest-override -Wundef -Wundef-prefix -Wunused-parameter -Wmismatched-tags -Werror=unguarded-availability-new /DWIN32 /D_WINDOWS /EHsc  /Gy /MP /nologo /J /Gd /showFilenames /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference /clang:-funsigned-char /clang:-fno-strict-aliasing /clang:-ffp-contract=off -march=x86-64-v2 \r\n\tbuild link flags: /MACHINE:X64  /SUBSYSTEM:CONSOLE /STACK:2097152 /ignore:4049 /ignore:4217 /ignore:4221\r\n\tbuild system: CMake\r\n",
+          "stderr": ""
+        },
+        "versionObserved": true
+      }
+    ]
   },
   "steps": [
     {
       "name": "blender-discovery",
-      "status": "BLOCKED",
-      "classification": "BLENDER_NOT_FOUND"
+      "status": "PASS",
+      "classification": "BLENDER_FOUND_AND_VERSION_OBSERVED",
+      "selected": {
+        "path": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe",
+        "source": "explicit",
+        "version": "5.2.0"
+      }
+    },
+    {
+      "name": "fixture-script",
+      "status": "PASS",
+      "classification": "FIXTURE_WRITTEN",
+      "artifact": {
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\fixture.py",
+        "exists": true,
+        "kind": "file",
+        "size": 1551,
+        "sha256": "10d63a8b4c473772ddb989776a64e01fcb669a7a88b0c4d364fdb52c4424b7f8"
+      }
+    },
+    {
+      "name": "background-headless",
+      "status": "PASS",
+      "classification": "BACKGROUND_PASS"
+    },
+    {
+      "name": "python-execution",
+      "status": "PASS",
+      "classification": "JSON_RESULT_VALID",
+      "artifact": {
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\نتيجة result.json",
+        "exists": true,
+        "kind": "file",
+        "size": 599,
+        "sha256": "af163b036d25526fe17ea3497eb01541ef5cb94462604653aa2c399a409dab1a",
+        "valid": true,
+        "classification": "JSON_RESULT_VALID",
+        "data": {
+          "success": true,
+          "blender": "5.2.0 LTS",
+          "object": "FCCD_Probe_Cube",
+          "scene": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\scene عربي.blend",
+          "render": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\render Ω.png",
+          "export": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\mesh هندسة.obj"
+        }
+      }
+    },
+    {
+      "name": "blend-save",
+      "status": "PASS",
+      "classification": "BLEND_VALID",
+      "artifact": {
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\scene عربي.blend",
+        "exists": true,
+        "kind": "file",
+        "size": 588538,
+        "sha256": "8def722e765aba3d0a18e9fdec96b63f2c8037509db140a8c85b5907bbf63182",
+        "valid": true,
+        "classification": "BLEND_VALID"
+      }
+    },
+    {
+      "name": "render",
+      "status": "PASS",
+      "classification": "PNG_VALID",
+      "artifact": {
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\render Ω.png",
+        "exists": true,
+        "kind": "file",
+        "size": 8237,
+        "sha256": "97fb89c67c9fe5a336feeac72810cb350d642412b3fcef34323d29c22a1a07c9",
+        "valid": true,
+        "classification": "PNG_VALID"
+      }
+    },
+    {
+      "name": "obj-export",
+      "status": "PASS",
+      "classification": "OBJ_VALID",
+      "artifact": {
+        "path": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\mesh هندسة.obj",
+        "exists": true,
+        "kind": "file",
+        "size": 972,
+        "sha256": "eed2a88ee993e9d808156006efd9aaf4dac24ef7aae78bf4716bf0a00b3ea1fc",
+        "valid": true,
+        "classification": "OBJ_VALID"
+      }
+    },
+    {
+      "name": "controlled-error",
+      "status": "PASS",
+      "classification": "NONZERO_ERROR_OBSERVED"
+    },
+    {
+      "name": "cancellation",
+      "status": "PASS",
+      "classification": "CANCELLED_OWNED_PROCESS_AND_VERIFIED_EXIT"
     }
   ],
-  "operations": [],
-  "overallStatus": "BLOCKED_BLENDER_NOT_FOUND",
-  "evidenceState": "TARGET_UNVERIFIED"
+  "operations": [
+    {
+      "name": "background-python-scene-render-export",
+      "args": [
+        "--background",
+        "--factory-startup",
+        "--python",
+        "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\fixture.py",
+        "--",
+        "--result",
+        "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\نتيجة result.json",
+        "--scene",
+        "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\scene عربي.blend",
+        "--render",
+        "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\render Ω.png",
+        "--export",
+        "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\mesh هندسة.obj"
+      ],
+      "run": {
+        "pid": 50552,
+        "exitCode": 0,
+        "signal": null,
+        "error": null,
+        "stdout": "00:00.812  render           | Saved: 'C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\render Ω.png'\nInfo: Saved as \"scene عربي.blend\"\r\nInfo: File exported successfully\r\nFCCD_BLENDER_PROBE_OK\r\nBlender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:35:40)\nWriting to C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\evidence\\mesh هندسة.obj\nOBJ export of 'mesh هندسة.obj' took 0.80 ms\n\nBlender quit\n",
+        "stderr": "",
+        "cancelled": false,
+        "timedOut": false,
+        "durationMs": 1385,
+        "termination": null,
+        "cleanupVerification": {
+          "rootPid": 50552,
+          "rootPidGone": true
+        }
+      }
+    },
+    {
+      "name": "controlled-python-failure",
+      "run": {
+        "pid": 28564,
+        "exitCode": 17,
+        "signal": null,
+        "error": null,
+        "stdout": "Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:35:40)\n\nBlender quit\n",
+        "stderr": "OSError: Python file \"C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\missing script عربي.py\" could not be opened: No such file or directory\r\n\nError: script failed, file: 'C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422\\missing script عربي.py', exiting.\n",
+        "cancelled": false,
+        "timedOut": false,
+        "durationMs": 1092,
+        "termination": null,
+        "cleanupVerification": {
+          "rootPid": 28564,
+          "rootPidGone": true
+        }
+      }
+    },
+    {
+      "name": "owned-cancellation",
+      "run": {
+        "pid": 48540,
+        "exitCode": 1,
+        "signal": null,
+        "error": null,
+        "stdout": "",
+        "stderr": "",
+        "cancelled": true,
+        "timedOut": false,
+        "durationMs": 3376,
+        "termination": {
+          "strategy": "TASKKILL_PID_TREE",
+          "targetPid": 48540,
+          "exitCode": 0,
+          "error": null,
+          "stdout": "SUCCESS: The process with PID 15472 (child process of PID 48540) has been terminated.\r\nSUCCESS: The process with PID 48540 (child process of PID 47588) has been terminated.\r\n",
+          "stderr": ""
+        },
+        "cleanupVerification": {
+          "rootPid": 48540,
+          "rootPidGone": true
+        }
+      }
+    }
+  ],
+  "overallStatus": "PASS",
+  "evidenceState": "VERIFIED_ON_AVAILABLE_BLENDER_HOST",
+  "fixture": {
+    "root": "C:\\Users\\Waleed\\AppData\\Local\\Temp\\fcc blender probe مسار d9695020-5a0a-4299-9e2c-18c8beb19422",
+    "disposable": true,
+    "cleanup": "REMOVED"
+  }
 }

@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 2,
+  "generatedBy": "tools/contract-probes/target-evidence-summary.mjs",
+  "targetAuthorizationDeclared": true,
+  "contracts": {
+    "fccDiscoveryCli": {
+      "status": "BLOCKED",
+      "resultState": "BLOCKED",
+      "reason": "BLOCKED_NO_SAFE_PROMPT_INVOCATION_INFERRED",
+      "errorSummary": null,
+      "artifactPath": "evidence/phases/P00/target/fcc-discovery-cli.json",
+      "executedOnAuthoritativeTarget": true,
+      "targetBehaviorObserved": true,
+      "observationState": "OBSERVED_ON_TARGET",
+      "observations": {
+        "fallbackAssessment": "BLOCKED_NO_SAFE_PROMPT_INVOCATION_INFERRED",
+        "livePromptAllowed": true,
+        "workspaceClassifications": [],
+        "cancellationClassification": null,
+        "checkSummary": null
+      },
+      "tools": [
+        {
+          "name": "fcc",
+          "found": false,
+          "executablePath": null,
+          "version": null,
+          "evidence": "discovery.executables.fcc"
+        },
+        {
+          "name": "fcc-claude",
+          "found": true,
+          "executablePath": "C:\\Users\\Waleed\\.local\\bin\\fcc-claude.exe",
+          "version": null,
+          "evidence": "discovery.executables.fccClaude"
+        },
+        {
+          "name": "fcc-server",
+          "found": true,
+          "executablePath": "C:\\Users\\Waleed\\.local\\bin\\fcc-server.exe",
+          "version": "free-claude-code 5.18.11",
+          "evidence": "discovery.executables.fccServer"
+        },
+        {
+          "name": "claude",
+          "found": true,
+          "executablePath": "C:\\Users\\Waleed\\.local\\bin\\claude.exe",
+          "version": "2.1.251 (Claude Code)",
+          "evidence": "discovery.executables.claude"
+        },
+        {
+          "name": "Node.js",
+          "found": true,
+          "executablePath": null,
+          "version": "v22.23.2",
+          "evidence": "discovery.host.node"
+        },
+        {
+          "name": "Git",
+          "found": true,
+          "executablePath": "C:\\Program Files\\Git\\cmd\\git.exe",
+          "version": "git version 2.51.0.windows.1",
+          "evidence": "discovery.host.git"
+        },
+        {
+          "name": ".NET SDK",
+          "found": true,
+          "executablePath": "C:\\Program Files\\dotnet\\dotnet.exe",
+          "version": "10.0.400",
+          "evidence": "discovery.host.dotnet"
+        },
+        {
+          "name": "Python",
+          "found": false,
+          "executablePath": null,
+          "version": null,
+          "evidence": "discovery.host.python"
+        },
+        {
+          "name": "PowerShell (FCC probe)",
+          "found": true,
+          "executablePath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+          "version": "5.1.26100.8875",
+          "evidence": "discovery.host.powershell"
+        }
+      ]
+    },
+    "fccStreamingSessionFailure": {
+      "status": "BLOCKED",
+      "resultState": "BLOCKED",
+      "reason": "streaming=BLOCKED_NO_SAFE_INVOCATION;session=BLOCKED_INITIAL_RUN_MISSING;failure=BLOCKED_NO_SAFE_INVOCATION;rateLimit=NOT_OBSERVED_ON_TARGET",
+      "errorSummary": null,
+      "artifactPath": "evidence/phases/P00/target/fcc-stream-session-failure.json",
+      "executedOnAuthoritativeTarget": true,
+      "targetBehaviorObserved": false,
+      "observationState": "EXECUTION_HOST_WINDOWS",
+      "observations": {
+        "streaming": "BLOCKED_NO_SAFE_INVOCATION",
+        "session": "BLOCKED_INITIAL_RUN_MISSING",
+        "failure": "BLOCKED_NO_SAFE_INVOCATION",
+        "rateLimit": "NOT_OBSERVED_ON_TARGET"
+      },
+      "tools": [
+        {
+          "name": "fcc-claude",
+          "found": true,
+          "executablePath": "C:\\Users\\Waleed\\.local\\bin\\fcc-claude.exe",
+          "version": null,
+          "evidence": "runtime"
+        }
+      ]
+    },
+    "unity": {
+      "status": "PASS",
+      "resultState": "PASS",
+      "reason": "PASS",
+      "errorSummary": null,
+      "artifactPath": "evidence/phases/P00/target/unity-contract.json",
+      "executedOnAuthoritativeTarget": true,
+      "targetBehaviorObserved": true,
+      "observationState": "VERIFIED_ON_AVAILABLE_UNITY_HOST",
+      "observations": {
+        "overallStatus": "PASS",
+        "selectedEditorVersion": "6000.5.8f1",
+        "cleanup": "REMOVED"
+      },
+      "tools": [
+        {
+          "name": "Unity Editor",
+          "found": true,
+          "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.8f1\\Editor\\Unity.exe",
+          "version": "6000.5.8f1",
+          "evidence": "discovery.editors"
+        },
+        {
+          "name": "Unity Editor",
+          "found": true,
+          "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.0.81f1\\Editor\\Unity.exe",
+          "version": "6000.0.81f1",
+          "evidence": "discovery.editors"
+        },
+        {
+          "name": "Unity Editor",
+          "found": true,
+          "executablePath": "C:\\Program Files\\Unity\\Hub\\Editor\\2022.3.62f1\\Editor\\Unity.exe",
+          "version": "2022.3.62f1",
+          "evidence": "discovery.editors"
+        },
+        {
+          "name": "Unity Editor",
+          "found": true,
+          "executablePath": "<HOME>\\AppData\\Local\\Unity\\bin\\Unity.exe",
+          "version": "error: unknown option '-version'",
+          "evidence": "discovery.editors"
+        }
+      ]
+    },
+    "blender": {
+      "status": "PASS",
+      "resultState": "PASS",
+      "reason": "PASS",
+      "errorSummary": null,
+      "artifactPath": "evidence/phases/P00/target/blender-contract.json",
+      "executedOnAuthoritativeTarget": true,
+      "targetBehaviorObserved": true,
+      "observationState": "VERIFIED_ON_AVAILABLE_BLENDER_HOST",
+      "observations": {
+        "overallStatus": "PASS"
+      },
+      "tools": [
+        {
+          "name": "Blender",
+          "found": true,
+          "executablePath": "C:\\Program Files\\Blender Foundation\\Blender 5.2\\blender.exe",
+          "version": "5.2.0",
+          "evidence": "discovery.candidates"
+        }
+      ]
+    }
+  },
+  "p00Readiness": {
+    "p00_005": {
+      "status": "PASS",
+      "resultState": "SATISFIED_BY_INTEGRATED_EXACT_HEAD_EVIDENCE",
+      "reason": "INTEGRATED_EXACT_HEAD_FAILURE_EVIDENCE_SATISFIES_P00_005",
+      "artifactPath": "evidence/phases/P00/failure/fcc-failure-target-exact-head.json",
+      "testedSourceSha": "015ffd8c0e2a6e725e33ed153441ff51e7952556",
+      "sourceIsAncestorOfRepoHead": true,
+      "observations": {
+        "providerStatus": "OBSERVED_SUCCESS",
+        "failureStatus": "OBSERVED_ON_EXECUTION_HOST",
+        "cancellationClassification": "INTERRUPTED",
+        "gracefulInterruptAttempted": true,
+        "remainingOwnedProcesses": 0,
+        "processTreeCleanupObserved": true,
+        "rateLimit": "NOT_OBSERVED_ON_TARGET",
+        "actual429Observed": false,
+        "rateLimitPolicySatisfied": true
+      }
+    },
+    "pg_002": {
+      "status": "RESOLVED",
+      "observationState": "NOT_OBSERVED_ON_TARGET",
+      "actual429Observed": false,
+      "policyState": "SAFE_NON_OBSERVATION_ACCEPTED",
+      "artifactPath": "evidence/phases/P00/failure/fcc-failure-target-exact-head.json"
+    },
+    "p00_009": {
+      "status": "READY_FOR_CLOSURE_RECONCILIATION",
+      "reason": "REAL_BLENDER_TARGET_SUCCESS_PRESENT",
+      "artifactPath": "evidence/phases/P00/target/blender-contract.json",
+      "resultState": "PASS",
+      "executedOnAuthoritativeTarget": true,
+      "targetBehaviorObserved": true,
+      "observationState": "VERIFIED_ON_AVAILABLE_BLENDER_HOST"
+    },
+    "finalTargetManifestCanSupportP00_009Closure": true,
+    "p00TargetValidationComplete": true
+  }
+}
