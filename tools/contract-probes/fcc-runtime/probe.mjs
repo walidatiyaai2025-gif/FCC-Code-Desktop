@@ -5,7 +5,7 @@ import path from 'node:path';
 import process from 'node:process';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { discoverCapabilityHints, inferPromptArgs, parseArgsTemplate, probeExecutable, redact, redactString } from './common.mjs';
+import { discoverCapabilityHints, inferPromptArgs, parseArgsTemplate, probeExecutable, redact, redactString, runSync } from './common.mjs';
 import { captureMissingRuntime, captureProcess } from './stream-capture.mjs';
 
 export { maskSecretsPreserveLength, redactString } from './common.mjs';
@@ -22,6 +22,36 @@ function resolveInvocation(runtime, args, prompt) {
     structuredStreamingRequested: Boolean(args.streamArgsJson),
     note: explicit ? 'Explicit target-observed template supplied.' : 'No structured-streaming flags are guessed; generic prompt syntax is used only if safely inferred from help.',
   };
+}
+
+export function hasExactSuccessfulResult(run, expected) {
+  return (run?.lineEvents ?? []).some((event) => event.classification === 'JSON_EVENT'
+    && event.parsed?.type === 'result'
+    && event.parsed?.subtype === 'success'
+    && event.parsed?.is_error === false
+    && String(event.parsed?.result ?? '').trim() === expected);
+}
+
+function authoritativeSessionCandidate(run) {
+  return (run?.sessionCandidates ?? []).find((candidate) => candidate.source === 'json-key' && /session.*id/i.test(candidate.path ?? ''))
+    ?? (run?.sessionCandidates ?? [])[0]
+    ?? null;
+}
+
+async function probeLoopbackHealth(url) {
+  if (!url) return { status: 'NOT_REQUESTED' };
+  let parsed;
+  try { parsed = new URL(url); } catch { return { status: 'INVALID_URL', url: redactString(url) }; }
+  if (!['127.0.0.1', 'localhost', '::1'].includes(parsed.hostname)) return { status: 'REFUSED_NON_LOOPBACK', url: parsed.toString() };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4000);
+  try {
+    const response = await fetch(parsed, { signal: controller.signal, headers: { Accept: 'application/json,text/plain;q=0.8,*/*;q=0.1' } });
+    const body = redactString((await response.text()).slice(0, 12000));
+    return { status: response.ok ? 'HEALTHY' : 'UNHEALTHY', url: parsed.toString(), httpStatus: response.status, body };
+  } catch (error) {
+    return { status: 'UNREACHABLE', url: parsed.toString(), error: redactString(String(error)) };
+  } finally { clearTimeout(timer); }
 }
 
 async function buildStreamingProbe(args, runtime) {
@@ -57,38 +87,76 @@ async function buildStreamingProbe(args, runtime) {
 async function buildSessionProbe(args, runtime, streaming) {
   const result = {
     status: 'TARGET_UNVERIFIED', helpSessionOptionHints: streaming?.invocation?.hints?.sessionOptions ?? discoverCapabilityHints(`${runtime.help?.stdout ?? ''}\n${runtime.help?.stderr ?? ''}`).sessionOptions,
-    initialSessionCandidates: streaming?.run?.sessionCandidates ?? [], selectedSessionId: null, sessionIdSource: null,
-    processExited: streaming?.run ? streaming.run.exitCode != null || streaming.run.signal != null : null,
-    resumeCommand: null, resumeRun: null, continuationConfirmed: false, invalidSessionRun: null, duplicateResumeRun: null, limitations: [],
+    firstTurnCommand: streaming?.invocation?.args ?? null, firstTurnExpectedMarker: args.firstTurnExpectedMarker ?? null,
+    firstTurnMarkerConfirmed: false, initialSessionCandidates: streaming?.run?.sessionCandidates ?? [], selectedSessionId: null, sessionIdSource: null,
+    firstProcessPid: streaming?.run?.pid ?? null, firstProcessExitCode: streaming?.run?.exitCode ?? null,
+    firstProcessExited: streaming?.run ? streaming.run.exitCode != null || streaming.run.signal != null : null,
+    continueCommand: null, continueRun: null, continueConfirmed: false,
+    resumeCommand: null, resumeRun: null, resumedSessionId: null, sameSessionIdExposed: false, continuationConfirmed: false,
+    invalidSessionCommand: null, invalidSessionRun: null, invalidSessionRejected: false,
+    postInvalidResumeCommand: null, postInvalidResumeRun: null, validSessionIntactAfterInvalid: false,
+    cwdProjectBehavior: null, processCleanupObserved: false, duplicateResumeRun: null, limitations: [],
   };
   if (!runtime.found) { result.status = 'BLOCKED_RUNTIME_NOT_FOUND'; return result; }
   if (!args.allowLivePrompt) { result.status = 'BLOCKED_LIVE_PROMPT_NOT_AUTHORIZED'; return result; }
   if (!streaming?.run) { result.status = 'BLOCKED_INITIAL_RUN_MISSING'; return result; }
+  result.firstTurnMarkerConfirmed = hasExactSuccessfulResult(streaming.run, args.firstTurnExpectedMarker);
+  if (!result.firstTurnMarkerConfirmed || streaming.run.exitCode !== 0) { result.status = 'OBSERVED_BUT_FIRST_TURN_NOT_CONFIRMED'; return result; }
   const candidates = streaming.run.sessionCandidates ?? [];
   if (!candidates.length) { result.status = 'BLOCKED_SESSION_ID_NOT_OBSERVED'; result.limitations.push('No session identifier was observed; resume syntax is not guessed.'); return result; }
-  result.selectedSessionId = candidates[0].value;
-  result.sessionIdSource = candidates[0];
+  const authoritativeCandidate = authoritativeSessionCandidate(streaming.run);
+  result.selectedSessionId = authoritativeCandidate.value;
+  result.sessionIdSource = authoritativeCandidate;
   if (!args.resumeArgsJson) { result.status = 'BLOCKED_RESUME_TEMPLATE_NOT_SUPPLIED'; result.limitations.push('Candidate resume/session options may appear in help, but no resume command is executed without an explicit target-observed template.'); return result; }
   const memoryNonce = args.sessionMemoryNonce;
   if (!memoryNonce) { result.status = 'BLOCKED_SESSION_CONTINUITY_NONCE_MISSING'; result.limitations.push('Initial session probe did not include a continuity nonce.'); return result; }
-  const resumePrompt = 'Continue the existing session. Reply with exactly the nonce I asked you to remember in the previous turn, and nothing else.';
+  const continueExpected = `CONTINUE_OK:${memoryNonce}`;
+  const resumeExpected = `RESUME_OK:${memoryNonce}`;
+  const postInvalidExpected = `POST_INVALID_OK:${memoryNonce}`;
+  const initialCwd = streaming.run.cwd;
+  const resumeCwd = args.sessionResumeCwd ?? initialCwd;
+  fs.mkdirSync(resumeCwd, { recursive: true });
+  if (args.continueArgsJson) {
+    const continuePrompt = 'Continue the most recent conversation for this working directory. Recover the exact token from the prior turn without being shown it again. Reply with CONTINUE_OK: followed immediately by that token, and nothing else.';
+    const continueArgs = parseArgsTemplate(args.continueArgsJson, { prompt: continuePrompt }, '--continue-args-json');
+    result.continueCommand = redact(continueArgs);
+    result.continueRun = await captureProcess(runtime.paths[0], continueArgs, { cwd: initialCwd, timeoutMs: args.timeoutMs });
+    result.continueConfirmed = hasExactSuccessfulResult(result.continueRun, continueExpected);
+  } else {
+    result.limitations.push('--continue was exposed by help but no explicit observed template was supplied, so it was not executed.');
+  }
+  const resumePrompt = 'Resume the specified session in a new process and different working directory. Recover the exact token from the first turn without being shown it again. Reply with RESUME_OK: followed immediately by that token, and nothing else.';
   const resumeArgs = parseArgsTemplate(args.resumeArgsJson, { sessionId: result.selectedSessionId, prompt: resumePrompt }, '--resume-args-json');
   result.resumeCommand = redact(resumeArgs);
-  const cwd = args.workspaceRoot ? path.resolve(args.workspaceRoot) : fs.mkdtempSync(path.join(os.tmpdir(), 'fcc-session-target-'));
-  const owns = !args.workspaceRoot;
-  try {
-    result.resumeRun = await captureProcess(runtime.paths[0], resumeArgs, { cwd, timeoutMs: args.timeoutMs });
-    result.continuationConfirmed = `${result.resumeRun.stdout}\n${result.resumeRun.stderr}`.includes(memoryNonce) && result.resumeRun.exitCode === 0;
-    const invalidId = `invalid-${randomUUID()}`;
-    const invalidArgs = parseArgsTemplate(args.resumeArgsJson, { sessionId: invalidId, prompt: 'This invalid session probe should not silently resume an existing session.' }, '--resume-args-json');
-    result.invalidSessionRun = await captureProcess(runtime.paths[0], invalidArgs, { cwd, timeoutMs: args.timeoutMs });
-    if (args.exerciseDuplicateResume) result.duplicateResumeRun = await captureProcess(runtime.paths[0], resumeArgs, { cwd, timeoutMs: args.timeoutMs });
-    result.status = result.continuationConfirmed ? 'OBSERVED_CONTINUATION_ON_EXECUTION_HOST' : 'OBSERVED_BUT_CONTINUATION_NOT_CONFIRMED';
-    result.limitations.push('FCC restart, provider reconnect, and provider/model changes are not forced by this probe.');
-    return result;
-  } finally {
-    if (owns) try { fs.rmSync(cwd, { recursive: true, force: true }); } catch {}
-  }
+  result.resumeRun = await captureProcess(runtime.paths[0], resumeArgs, { cwd: resumeCwd, timeoutMs: args.timeoutMs });
+  result.continuationConfirmed = hasExactSuccessfulResult(result.resumeRun, resumeExpected);
+  const resumedCandidate = authoritativeSessionCandidate(result.resumeRun);
+  result.resumedSessionId = resumedCandidate?.value ?? null;
+  result.sameSessionIdExposed = result.resumedSessionId === result.selectedSessionId;
+  const invalidId = randomUUID();
+  const invalidArgs = parseArgsTemplate(args.resumeArgsJson, { sessionId: invalidId, prompt: 'This nonexistent UUID must not resume any valid session.' }, '--resume-args-json');
+  result.invalidSessionCommand = redact(invalidArgs);
+  result.invalidSessionRun = await captureProcess(runtime.paths[0], invalidArgs, { cwd: resumeCwd, timeoutMs: args.timeoutMs });
+  result.invalidSessionRejected = result.invalidSessionRun.exitCode !== 0 && result.invalidSessionRun.classification === 'INVALID_SESSION';
+  const postInvalidPrompt = 'Resume the valid session after the separate invalid-session attempt. Recover the exact token from the first turn without being shown it again. Reply with POST_INVALID_OK: followed immediately by that token, and nothing else.';
+  const postInvalidArgs = parseArgsTemplate(args.resumeArgsJson, { sessionId: result.selectedSessionId, prompt: postInvalidPrompt }, '--resume-args-json');
+  result.postInvalidResumeCommand = redact(postInvalidArgs);
+  result.postInvalidResumeRun = await captureProcess(runtime.paths[0], postInvalidArgs, { cwd: resumeCwd, timeoutMs: args.timeoutMs });
+  result.validSessionIntactAfterInvalid = hasExactSuccessfulResult(result.postInvalidResumeRun, postInvalidExpected);
+  if (args.exerciseDuplicateResume) result.duplicateResumeRun = await captureProcess(runtime.paths[0], resumeArgs, { cwd: resumeCwd, timeoutMs: args.timeoutMs });
+  result.cwdProjectBehavior = {
+    initialWorkingDirectory: initialCwd, resumeWorkingDirectory: resumeCwd,
+    workingDirectoryChanged: path.resolve(initialCwd) !== path.resolve(resumeCwd),
+    continuityAcrossDifferentWorkingDirectory: result.continuationConfirmed,
+  };
+  const ownedRuns = [streaming.run, result.continueRun, result.resumeRun, result.invalidSessionRun, result.postInvalidResumeRun].filter(Boolean);
+  result.processCleanupObserved = ownedRuns.every((run) => run.processTreeCleanupObserved === true);
+  const continueRequirementPassed = !args.continueArgsJson || result.continueConfirmed;
+  const passed = result.firstTurnMarkerConfirmed && result.firstProcessExited && result.continuationConfirmed
+    && result.invalidSessionRejected && result.validSessionIntactAfterInvalid && result.processCleanupObserved && continueRequirementPassed;
+  result.status = passed ? 'VERIFIED_SESSION_CONTINUITY_ON_WINDOWS_TARGET' : 'OBSERVED_BUT_CONTINUATION_NOT_CONFIRMED';
+  result.limitations.push('FCC server restart and provider/model changes were not required by the task-local closure contract and were not forced.');
+  return result;
 }
 
 async function buildFailureProbe(args, runtime, streaming) {
@@ -116,16 +184,18 @@ async function buildFailureProbe(args, runtime, streaming) {
 }
 
 function parseCliArgs(argv) {
-  const args = { mode: 'all', json: null, fccClaude: null, allowLivePrompt: false, cliArgsJson: null, streamArgsJson: null, resumeArgsJson: null, workspaceRoot: null, timeoutMs: 45000, cancelAfterMs: 2000, exerciseDuplicateResume: false, prompt: null, cancelPrompt: null };
+  const args = { mode: 'all', json: null, fccClaude: null, fccHealthUrl: null, allowLivePrompt: false, cliArgsJson: null, streamArgsJson: null, resumeArgsJson: null, continueArgsJson: null, workspaceRoot: null, sessionResumeCwd: null, timeoutMs: 45000, cancelAfterMs: 2000, exerciseDuplicateResume: false, prompt: null, cancelPrompt: null };
   const take = (index, flag) => { if (index + 1 >= argv.length) throw new Error(`Missing value for ${flag}`); return argv[index + 1]; };
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i];
     if (flag === '--mode') { args.mode = take(i, flag); i++; }
     else if (flag === '--json') { args.json = take(i, flag); i++; }
     else if (flag === '--fcc-claude') { args.fccClaude = take(i, flag); i++; }
+    else if (flag === '--fcc-health-url') { args.fccHealthUrl = take(i, flag); i++; }
     else if (flag === '--cli-args-json') { args.cliArgsJson = take(i, flag); i++; }
     else if (flag === '--stream-args-json') { args.streamArgsJson = take(i, flag); i++; }
     else if (flag === '--resume-args-json') { args.resumeArgsJson = take(i, flag); i++; }
+    else if (flag === '--continue-args-json') { args.continueArgsJson = take(i, flag); i++; }
     else if (flag === '--workspace-root') { args.workspaceRoot = take(i, flag); i++; }
     else if (flag === '--timeout-ms') { args.timeoutMs = Number(take(i, flag)); i++; }
     else if (flag === '--cancel-after-ms') { args.cancelAfterMs = Number(take(i, flag)); i++; }
@@ -143,7 +213,7 @@ function parseCliArgs(argv) {
 }
 
 function usage() {
-  console.log(`FCC P00 streaming/session/failure contract probe\n\nUsage:\n  node probe.mjs [options]\n\nOptions:\n  --mode all|streaming|session|failure\n  --json <file>\n  --fcc-claude <explicit path>\n  --allow-live-prompt\n  --cli-args-json <json-array>       Generic observed prompt syntax with {prompt}\n  --stream-args-json <json-array>    Observed structured-stream syntax with {prompt}\n  --resume-args-json <json-array>    Observed resume syntax with {sessionId} and {prompt}\n  --workspace-root <safe disposable root>\n  --timeout-ms <ms>\n  --cancel-after-ms <ms>\n  --exercise-duplicate-resume\n\nNo resume or structured-stream flags are guessed. Synthetic self-tests are SELF_TEST_ONLY and are not FCC evidence.`);
+  console.log(`FCC P00 streaming/session/failure contract probe\n\nUsage:\n  node probe.mjs [options]\n\nOptions:\n  --mode all|streaming|session|failure\n  --json <file>\n  --fcc-claude <explicit path>\n  --fcc-health-url <loopback URL>\n  --allow-live-prompt\n  --cli-args-json <json-array>       Generic observed prompt syntax with {prompt}\n  --stream-args-json <json-array>    Observed structured-stream syntax with {prompt}\n  --resume-args-json <json-array>    Observed resume syntax with {sessionId} and {prompt}\n  --continue-args-json <json-array>  Observed continue syntax with {prompt}\n  --workspace-root <safe disposable root>\n  --timeout-ms <ms>\n  --cancel-after-ms <ms>\n  --exercise-duplicate-resume\n\nNo resume, continue, or structured-stream flags are guessed. Synthetic self-tests are SELF_TEST_ONLY and are not FCC evidence.`);
 }
 
 function overallExit(output, mode) {
@@ -151,7 +221,7 @@ function overallExit(output, mode) {
   if (mode === 'all' || mode === 'streaming') selected.push(output.streaming);
   if (mode === 'all' || mode === 'session') selected.push(output.session);
   if (mode === 'all' || mode === 'failure') selected.push(output.failure);
-  const targetComplete = selected.every((item) => item && /OBSERVED/.test(item.status) && !/^BLOCKED/.test(item.status));
+  const targetComplete = selected.every((item) => item && /(OBSERVED|VERIFIED)/.test(item.status) && !/^BLOCKED/.test(item.status));
   if (!targetComplete) return EXIT.BLOCKED_OR_INCOMPLETE;
   if (output.session && output.session.status === 'OBSERVED_BUT_CONTINUATION_NOT_CONFIRMED') return EXIT.BLOCKED_OR_INCOMPLETE;
   return EXIT.PASS;
@@ -159,22 +229,40 @@ function overallExit(output, mode) {
 
 export async function runProbe(args) {
   const runtime = probeExecutable('fcc-claude', args.fccClaude);
+  const shaProbe = runSync('git', ['rev-parse', 'HEAD'], { timeoutMs: 5000 });
+  let ownedSessionRoot = null;
+  if ((args.mode === 'all' || args.mode === 'session') && !args.workspaceRoot) {
+    ownedSessionRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'fcc-p00-004-session-'));
+    args.workspaceRoot = path.join(ownedSessionRoot, 'initial project path with spaces');
+    args.sessionResumeCwd = path.join(ownedSessionRoot, 'different resume path');
+    fs.mkdirSync(args.workspaceRoot, { recursive: true });
+    fs.mkdirSync(args.sessionResumeCwd, { recursive: true });
+  }
   const output = {
     schemaVersion: 1, probe: 'fcc-p00-stream-session-failure', probeId: randomUUID(), capturedAtUtc: new Date().toISOString(),
+    testedSourceSha: shaProbe.exitCode === 0 ? shaProbe.stdout.trim() : null,
     host: { platform: process.platform, arch: process.arch, osType: os.type(), osRelease: os.release(), node: process.version },
-    evidenceStatus: process.platform === 'win32' ? 'EXECUTION_HOST_WINDOWS' : 'EXECUTION_HOST_NOT_PROJECT_TARGET', runtime: redact(runtime), streaming: null, session: null, failure: null,
+    evidenceStatus: process.platform === 'win32' ? 'EXECUTION_HOST_WINDOWS' : 'EXECUTION_HOST_NOT_PROJECT_TARGET',
+    fccServerHealth: await probeLoopbackHealth(args.fccHealthUrl), runtime: redact(runtime), providerStatus: 'NOT_OBSERVED', streaming: null, session: null, failure: null,
   };
   if (args.mode === 'all' || args.mode === 'session') {
-    args.sessionMemoryNonce = `SESSION_MEMORY_${randomUUID()}`;
+    args.sessionMemoryNonce = `FCCD_P00_004_MEMORY_${randomUUID()}`;
+    args.firstTurnExpectedMarker = `FIRST_TURN_OK:${args.sessionMemoryNonce}`;
     const prefix = args.prompt ? `${args.prompt}\n\n` : '';
-    args.prompt = `${prefix}For this session-continuity probe, remember this nonce for the next turn: ${args.sessionMemoryNonce}. Reply only READY.`;
+    args.prompt = `${prefix}Remember this exact token for later turns: ${args.sessionMemoryNonce}. Reply with exactly ${args.firstTurnExpectedMarker} and nothing else.`;
   }
-  let streaming = null;
-  if (args.mode === 'all' || args.mode === 'streaming' || args.mode === 'session' || args.mode === 'failure') streaming = await buildStreamingProbe(args, runtime);
-  if (args.mode === 'all' || args.mode === 'streaming') output.streaming = streaming;
-  if (args.mode === 'all' || args.mode === 'session') output.session = await buildSessionProbe(args, runtime, streaming);
-  if (args.mode === 'all' || args.mode === 'failure') output.failure = await buildFailureProbe(args, runtime, streaming);
-  return redact(output);
+  try {
+    let streaming = null;
+    if (args.mode === 'all' || args.mode === 'streaming' || args.mode === 'session' || args.mode === 'failure') streaming = await buildStreamingProbe(args, runtime);
+    if (args.mode === 'all' || args.mode === 'streaming' || args.mode === 'session') output.streaming = streaming;
+    if (args.mode === 'all' || args.mode === 'session') output.session = await buildSessionProbe(args, runtime, streaming);
+    if (args.mode === 'all' || args.mode === 'failure') output.failure = await buildFailureProbe(args, runtime, streaming);
+    if (output.session?.firstTurnMarkerConfirmed) output.providerStatus = 'AVAILABLE_PROVIDER_BACKED_COMPLETION';
+    else if (streaming?.run) output.providerStatus = `OBSERVED_${streaming.run.classification}`;
+    return redact(output);
+  } finally {
+    if (ownedSessionRoot) try { fs.rmSync(ownedSessionRoot, { recursive: true, force: true }); } catch {}
+  }
 }
 
 async function main() {

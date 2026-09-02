@@ -36,27 +36,35 @@ Only then does the probe:
 8. execute an invalid-session case with the same explicit syntax and a generated nonexistent ID,
 9. optionally exercise duplicate resume when explicitly requested.
 
-## TARGET_UNVERIFIED
+## VERIFIED_ON_WINDOWS_TARGET
 
-The actual target still must establish:
+Authoritative target validation completed on the owner's Windows environment.
 
-- whether FCC exposes a session ID,
-- authoritative session-ID source and shape,
-- whether the ID persists after launcher exit,
-- continuation/resume support,
-- exact resume syntax,
-- whether working directory/project path affect resume,
-- invalid/missing session behavior,
-- duplicate resume behavior,
-- behavior after client restart,
-- behavior after FCC restart where safe,
-- behavior after provider reconnect where safe,
-- whether model/provider changes affect resume.
+Evidence:
 
-The probe deliberately does not restart FCC, corrupt a session, or disconnect providers solely to manufacture negative evidence.
+```text
+evidence/phases/P00/sessions/session-resume-target.json
+```
 
-## Target observation — 2026-09-02
+Verified observations:
 
-Real `system/init` and `system/api_retry` events consistently exposed UUID-shaped `session_id` values, and target help exposed `--session-id`, `--resume`, and `--continue`. This proves session identifier exposure and documents the invocation surface.
+- tested source SHA: `8affdae59922f945576cc45fbd49d4fb68634b66`
+- real provider-backed first turn succeeded
+- authoritative session identifier was captured from `$.session_id`
+- the initial client process exited before resume
+- a new client process successfully resumed the specified session
+- the first-turn continuity token was recovered without supplying it again
+- continuity succeeded from a different working directory
+- a generated nonexistent session was rejected as `INVALID_SESSION`
+- the valid session remained usable after the invalid-session attempt
+- owned-process cleanup passed
 
-The upstream provider returned HTTP 503 retries before any successful first turn. A successful resumable session and continuation marker therefore could not be established. `FCCD-P00-004` remains `BLOCKED` on provider availability rather than probe implementation.
+Target result:
+
+```text
+VERIFIED_SESSION_CONTINUITY_ON_WINDOWS_TARGET
+```
+
+FCC server restart and provider/model changes were not required by the task-local closure contract and were not forced.
+
+`FCCD-P00-004` is CLOSED.

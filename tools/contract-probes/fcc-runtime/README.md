@@ -63,11 +63,12 @@ Real target execution, only on the intended Windows FCC environment:
 node tools/contract-probes/fcc-runtime/probe.mjs --mode all --allow-live-prompt --json tmp/fcc-runtime.json
 ```
 
-The probe never guesses structured-streaming or resume syntax. If target help/output establishes exact syntax, supply it explicitly:
+The probe never guesses structured-streaming, resume, or continue syntax. If target help/output establishes exact syntax, supply it explicitly:
 
 ```text
 --stream-args-json '["<observed args>","{prompt}"]'
 --resume-args-json '["<observed resume args>","{sessionId}","{prompt}"]'
+--continue-args-json '["<observed continue args>","{prompt}"]'
 ```
 
 `{prompt}` and `{sessionId}` are substituted as structured argument elements. No shell string concatenation is used.
@@ -107,7 +108,11 @@ The probe:
 2. records help options whose names contain session/resume/continue/conversation/thread terminology,
 3. does not execute resume without an explicit target-observed `--resume-args-json` template,
 4. when supplied, starts a new process after the initial process has exited,
-5. records the resume command, result, continuation marker result, invalid-session behavior, and optionally duplicate-resume behavior.
+5. requires exact structured `FIRST_TURN_OK`, `RESUME_OK`, and post-invalid-session context markers,
+6. uses a syntactically valid nonexistent UUID for the invalid-session case,
+7. verifies the valid session still resumes after that negative case,
+8. records target-observed `--continue` semantics when an explicit template is supplied,
+9. records separate disposable initial/resume working directories and process-tree cleanup.
 
 The probe does not forcibly restart FCC or disconnect/reconnect a provider merely to create failure cases.
 
