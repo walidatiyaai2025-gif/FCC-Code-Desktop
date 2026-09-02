@@ -11,12 +11,13 @@ function writeJson(root, relative, value) { const file = path.join(root, relativ
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'fcc-p00-summary-selftest-'));
 try {
   const fcc = writeJson(temp, 'evidence/phases/P00/target/fcc.json', {
-    discovery: { host: { platform: 'win32' }, executables: {
+    discovery: { host: { platform: 'win32', node: 'v20.11.1', git: { stdout: 'git version 2.47.0\n' }, dotnet: { stdout: '10.0.400\n' }, python: { stdout: 'Python 3.12.5\n' }, powershell: { stdout: '5.1.19041.6456\n' } }, executables: {
+      fcc: { found: true, paths: ['C:\\Tools\\fcc.exe'], version: { stdout: 'free-claude-code 5.18.11\n' } },
       fccClaude: { found: true, paths: ['C:\\Tools\\fcc-claude.exe'], version: { stdout: '2.1.251 (Claude Code)\r\n' } },
       fccServer: { found: true, paths: ['C:\\Tools\\fcc-server.exe'], version: { stdout: 'free-claude-code 5.18.11\n' } },
       claude: { found: true, paths: ['C:\\Tools\\claude.exe'], version: { stdout: '2.1.251 (Claude Code)\n' } },
     } },
-    cli: { fallbackAssessment: 'VERIFIED_FOR_TESTED_RUNTIME', livePromptAllowed: true },
+    cli: { fallbackAssessment: 'VERIFIED_FOR_TESTED_RUNTIME', livePromptAllowed: true, workspaceCases: [{ run: { classification: 'SUCCESS' } }], cancellationCase: { classification: 'CANCELLED' }, summary: { runtimeLaunch: 'PASS', promptTransmission: 'PASS' } },
   });
   const runtime = writeJson(temp, 'evidence/phases/P00/target/runtime.json', {
     host: { platform: 'win32' }, evidenceStatus: 'EXECUTION_HOST_WINDOWS',
@@ -38,7 +39,8 @@ try {
   const summary = buildTargetEvidenceSummary({ repoRoot: temp, authoritativeTarget: true, fccFile: fcc, fccExit: 0, runtimeFile: runtime, runtimeExit: 2, unityFile: unity, unityExit: 0, blenderFile: blender, blenderExit: 2 });
   assert(summary.schemaVersion === 2, 'Summary schema version must be 2.');
   assert(summary.contracts.fccDiscoveryCli.status === 'PASS', 'FCC status must preserve exit-code PASS.');
-  assert(summary.contracts.fccDiscoveryCli.tools[0].version === '2.1.251 (Claude Code)', 'FCC version must be surfaced.');
+  assert(summary.contracts.fccDiscoveryCli.tools.find((x) => x.name === 'fcc-claude')?.version === '2.1.251 (Claude Code)', 'FCC version must be surfaced.');
+  assert(summary.contracts.fccDiscoveryCli.tools.find((x) => x.name === '.NET SDK')?.version === '10.0.400', 'Detected host tool versions must be surfaced.');
   assert(summary.contracts.fccDiscoveryCli.artifactPath === 'evidence/phases/P00/target/fcc.json', 'Artifact paths must be repo-relative.');
   assert(summary.contracts.fccStreamingSessionFailure.status === 'BLOCKED', 'Runtime exit 2 must remain BLOCKED.');
   assert(summary.contracts.fccStreamingSessionFailure.reason.includes('rateLimit=NOT_OBSERVED_ON_TARGET'), 'Natural rate-limit non-observation must remain explicit.');
@@ -53,7 +55,7 @@ try {
   const missing = buildTargetEvidenceSummary({ repoRoot: temp, authoritativeTarget: true, fccFile: path.join(temp, 'missing.json'), fccExit: 1, runtimeFile: runtime, runtimeExit: 2, unityFile: unity, unityExit: 0, blenderFile: blender, blenderExit: 2 });
   assert(missing.contracts.fccDiscoveryCli.status === 'FAIL' && missing.contracts.fccDiscoveryCli.reason === 'EVIDENCE_FILE_MISSING', 'Missing evidence must be a controlled FAIL reason.');
 
-  console.log(JSON.stringify({ status: 'SELF_TEST_VERIFIED', schemaVersion: summary.schemaVersion, assertions: 11, targetEvidenceClaimed: false }, null, 2));
+  console.log(JSON.stringify({ status: 'SELF_TEST_VERIFIED', schemaVersion: summary.schemaVersion, assertions: 12, targetEvidenceClaimed: false }, null, 2));
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }
