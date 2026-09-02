@@ -4,7 +4,8 @@
 - Started from live main: `c4e81c774c98df6dec5f77648a5f3a6ce8e2d280`
 - Date: 2026-09-02
 - Scope: historical FCC target-status reconciliation only
-- Result: `COMPLETE_AWAITING_INTEGRATION`
+- Result: `INTEGRATED`
+- Integration: PR #27, merge commit `74cb7dc1496f185e0b4b1195d109223be8a4f23f`
 
 ## Defect
 
@@ -58,3 +59,7 @@ This result adds no target evidence. It does not claim a new Windows run, provid
 ## Canonical task impact
 
 No task state changed. The repair prevents historical evidence wording from contradicting the already-correct canonical `BLOCKED` state for `FCCD-P00-005`.
+
+## Integration
+
+PR #27 merged to `main` as `74cb7dc1496f185e0b4b1195d109223be8a4f23f`. The cloud reconciliation item is terminal and does not convert historical target observations into current exact-head closure evidence.
