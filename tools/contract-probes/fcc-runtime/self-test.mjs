@@ -19,11 +19,20 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const fixture = path.join(here, 'fixture-process.mjs');
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'fcc-runtime-self-test-'));
 const fakeSecret = 'sk-FAKESECRET123456789';
+const opaqueBearer = 'eyJhbGciOiJIUzI1NiJ9.payload.signature';
+const basicCredential = 'dXNlcjpwYXNzd29yZA==';
 const checks = [];
 const pass = (name) => checks.push({ name, status: 'PASS' });
 
 try {
   assert.equal(redactString(`Authorization: Bearer ${fakeSecret}`).includes(fakeSecret), false);
+  assert.equal(redactString(`Authorization: Bearer ${opaqueBearer}`).includes(opaqueBearer), false);
+  assert.equal(redactString(`Bearer ${opaqueBearer}`).includes(opaqueBearer), false);
+  assert.equal(redactString(`Authorization: Basic ${basicCredential}`).includes(basicCredential), false);
+  const opaqueAuthorization = `Authorization: Bearer ${opaqueBearer}`;
+  const opaqueMasked = maskSecretsPreserveLength(opaqueAuthorization);
+  assert.equal(opaqueMasked.length, opaqueAuthorization.length);
+  assert.equal(opaqueMasked.includes(opaqueBearer), false);
   assert.equal(maskSecretsPreserveLength(`token=${fakeSecret}`).length, `token=${fakeSecret}`.length);
   pass('secret-redaction');
 
@@ -90,6 +99,8 @@ try {
   fs.writeFileSync(outputPath, JSON.stringify({ checks, stream, nonzero, rate, timeout, cancelled, lateTree, missing }, null, 2));
   const raw = fs.readFileSync(outputPath, 'utf8');
   assert.equal(raw.includes(fakeSecret), false);
+  assert.equal(raw.includes(opaqueBearer), false);
+  assert.equal(raw.includes(basicCredential), false);
   pass('persisted-secret-scan');
 
   console.log(JSON.stringify({ status: 'PASS', fixtureEvidence: 'SELF_TEST_ONLY', checks }, null, 2));

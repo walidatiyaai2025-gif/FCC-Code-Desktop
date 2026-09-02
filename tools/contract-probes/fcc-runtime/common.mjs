@@ -9,7 +9,7 @@ const SIMPLE_SECRET_PATTERNS = [
   /\bgh[pousr]_[A-Za-z0-9_]{8,}\b/g,
 ];
 const PREFIXED_SECRET_PATTERNS = [
-  /(Authorization\s*[:=]\s*)([^\s,;]+)/gi,
+  /(Authorization\s*[:=]\s*)([^\r\n,;]+)/gi,
   /(Bearer\s+)([A-Za-z0-9._~+/=-]{8,})/gi,
   /((?:api[_-]?key|token|secret|password|credential|cookie|set-cookie)\s*[:=]\s*["']?)([^\s"',;]+)/gi,
 ];
