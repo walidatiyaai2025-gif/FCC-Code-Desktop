@@ -219,7 +219,7 @@ public sealed class QualityFixture
 '@
     Set-Content -LiteralPath (Join-Path $fixtureRoot 'QualityFixture.cs') -Value $goodSource -Encoding utf8NoBOM
 
-    $fixtureBaseline = Invoke-DotNet @('build', '.\QualityFixture.csproj', '-c', 'Release', '--nologo') $fixtureRoot
+    $fixtureBaseline = Invoke-DotNet @('build', '.\QualityFixture.csproj', '-c', 'Release', '--nologo', '-p:RestoreLockedMode=false') $fixtureRoot
     Assert-Succeeded $fixtureBaseline
 
     $nullableSource = @'
