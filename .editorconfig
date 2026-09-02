@@ -20,7 +20,6 @@ csharp_style_namespace_declarations = file_scoped:warning
 csharp_prefer_braces = true:warning
 
 # Build-enforced style rules. Keep this set intentionally small and high-signal.
-dotnet_diagnostic.IDE0005.severity = warning
 dotnet_diagnostic.IDE0055.severity = warning
 
 # A deterministic analyzer sentinel used by the P01 quality-policy self-test.
