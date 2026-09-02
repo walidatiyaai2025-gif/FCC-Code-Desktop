@@ -4,7 +4,8 @@
 
 - Windows 10/11 x64 for the canonical product build environment.
 - .NET SDK `10.0.400` exactly. `global.json` disables SDK roll-forward and prerelease selection.
-- No provider, Unity, or Blender installation is required to restore or build the P01 solution foundation.
+- PowerShell 7 (`pwsh`) for deterministic validation and test-runner scripts.
+- No provider, Unity, or Blender installation is required to restore, build, or run the P01 unit/integration infrastructure.
 
 Run `dotnet --version` from the repository root before restore. It must report `10.0.400`; use an explicit dependency/toolchain update PR to change that pin.
 
@@ -19,7 +20,7 @@ dotnet format .\FCCCodeDesktop.sln --verify-no-changes --no-restore
 dotnet build .\FCCCodeDesktop.sln -c Release --no-restore
 ```
 
-`FCCD-P01-001` adds no third-party package dependencies. `FCCD-P01-002` uses the analyzers shipped with the .NET 10 SDK and adds no analyzer package dependency. `FCCD-P01-003` establishes the SDK/package/lock policy without adding a product dependency. Later P01 tasks own general unit/integration test infrastructure, permanent CI, and build/version metadata.
+`FCCD-P01-001` adds no third-party package dependencies. `FCCD-P01-002` uses the analyzers shipped with the .NET 10 SDK and adds no analyzer package dependency. `FCCD-P01-003` establishes the SDK/package/lock policy without adding a product dependency. `FCCD-P01-004` adds only test-infrastructure dependencies using that central policy. Later P01 tasks own permanent CI and build/version metadata.
 
 ## Dependency and lock policy
 
@@ -70,6 +71,24 @@ pwsh -NoProfile -File .\tools\quality\validate-quality-policy.ps1 -RequireDotNet
 
 The validator performs static policy checks, restores and formats the real solution, builds it in Release, then uses only disposable temporary projects to prove that nullable (`CS8618`), analyzer (`CA1822`), and formatting/style (`IDE0055`) violations fail the Release build. It restores the clean fixture and verifies a recovery build before deleting the temporary directory.
 
+## Unit and integration tests
+
+P01 test infrastructure is documented in `docs/TESTING.md` and split into explicit lanes:
+
+```powershell
+pwsh -NoProfile -File .\tools\testing\run-tests.ps1 -Suite unit
+pwsh -NoProfile -File .\tools\testing\run-tests.ps1 -Suite integration
+pwsh -NoProfile -File .\tools\testing\run-tests.ps1 -Suite all
+```
+
+Run the complete infrastructure validator with:
+
+```powershell
+pwsh -NoProfile -File .\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet
+```
+
+The unit lane verifies shared disposable-workspace behavior. The integration lane exercises real Windows filesystem/process behavior in OS-temporary workspaces, including non-zero process results, cancellation/child-tree termination, and recovery after cancellation. It never writes fixtures into owner-controlled directories.
+
 ## Foundation boundaries
 
 The production project split follows `docs/ARCHITECTURE.md`:
@@ -91,4 +110,4 @@ The production project split follows `docs/ARCHITECTURE.md`:
 - `FCCCodeDesktop.Updater` — updater/lifecycle boundary.
 - `FCCCodeDesktop.App` — WPF composition root. P02 owns the premium application shell and visual implementation.
 
-Project references point inward toward contracts/domain or from the WPF composition root toward concrete modules. The graph is acyclic.
+Test-only support code lives under `tests/` and must not become a dependency of production projects. Project references point inward toward contracts/domain or from the WPF composition root toward concrete modules. The production graph remains acyclic.
