@@ -12,6 +12,7 @@ Repository-owned fixture processes prove the mechanics for:
 - bounded graceful wait,
 - forced owned-tree termination fallback,
 - post-exit polling until observed owned PIDs disappear,
+- ownership observation for descendants created after the initial process snapshot,
 - timeout classification,
 - interrupted-stream handling,
 - non-zero exit classification,
@@ -45,9 +46,9 @@ SUCCESS
 
 Each classification records its evidence source. `retryability` and `userActionRequired` remain `UNKNOWN` unless direct target evidence supports a stronger statement.
 
-## TARGET_UNVERIFIED
+## Target evidence requirements
 
-The actual target must still establish the real FCC/fcc-claude behavior for:
+The authoritative Windows target contract covers, where safely observable:
 
 - graceful interrupt handling,
 - whether a wrapper/Claude child survives launcher interruption,
@@ -64,6 +65,8 @@ The actual target must still establish the real FCC/fcc-claude behavior for:
 - overloaded/provider-busy shapes,
 - rate-limit output/event/exit behavior.
 
+Existing target observations are evidence only for the behaviors actually exercised. Unsafe negative cases are not manufactured merely to fill the matrix.
+
 ## Rate-limit rule
 
 No artificial traffic is generated to force HTTP/provider 429 behavior.
@@ -76,6 +79,8 @@ RATE_LIMIT = NOT_OBSERVED_ON_TARGET
 
 Synthetic `429 Too Many Requests` fixture output proves classifier mechanics only and is labeled `SELF_TEST_ONLY`.
 
+`PG-002-P00-RATE-LIMIT-CLOSURE` records the unresolved planning question of whether this safe `NOT_OBSERVED_ON_TARGET` boundary can satisfy P00 closure or whether a natural observation remains mandatory. Ordinary workers must not decide that policy implicitly.
+
 ## Unsafe negative cases deliberately skipped
 
 The probe does not:
@@ -87,8 +92,17 @@ The probe does not:
 - terminate unrelated processes,
 - mutate valuable repositories.
 
-## Target observation — 2026-09-02
+## Historical target observation — 2026-09-02
 
-The real target produced structured provider-failure events with HTTP status `503`, retry attempt/count, retry delay, session ID, and UUID. The probe also verified timeout escalation and explicit cancellation of the owned `fcc-claude` process, with no kill-by-name behavior. The health endpoint stayed available while the configured upstream provider was unavailable, establishing that FCC health and provider readiness are distinct states.
+The Windows target produced structured provider-failure events with HTTP status `503`, retry attempt/count, retry delay, session ID, and UUID. Target runs also exercised timeout/cancellation behavior. The separate CLI target lane recorded successful cleanup of the observed owned launcher tree after interruption, while some structured runtime captures retained transient observed console-host processes long enough to record `processTreeCleanupObserved: false`.
 
-This verifies real cancellation, timeout, and provider-unavailable behavior. Rate limiting remains `NOT_OBSERVED_ON_TARGET` because the probe correctly did not generate artificial load. `FCCD-P00-005` is `VERIFIED` but not closed until the phase controller accepts the documented safe rate-limit boundary or a natural target observation exists.
+Those observations remain useful historical evidence, but they predate PR #9's strengthened ownership tracking for descendants created after the initial snapshot.
+
+## Probe hardening after target observation
+
+PR #9 changed the target-relevant ownership evidence contract: `captureProcess` now refreshes the descendant set immediately before cancellation/timeout escalation, and a deterministic late-spawn fixture requires such descendants to be observed and cleaned. Because this changes the evidence-producing probe after the previous Windows run, the exact-head rule requires a new authoritative Windows target rerun before `FCCD-P00-005` can be considered VERIFIED again.
+
+Current task state is therefore `BLOCKED` on:
+
+1. an exact-head Windows rerun of the hardened cancellation/failure probe, and
+2. planning/reconciliation resolution of `PG-002-P00-RATE-LIMIT-CLOSURE` unless a natural rate-limit event is observed first.
