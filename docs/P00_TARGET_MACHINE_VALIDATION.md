@@ -187,7 +187,8 @@ LOCAL TARGET VALIDATION WORKER
   run the unified suite on the owner's Windows target
 
 PLANNING / RECONCILIATION AUTHORITY
-  resolve explicit plan gaps such as PG-002 when policy—not implementation—is blocking closure
+  maintain explicit acceptance-policy decisions when evidence cannot safely be induced;
+  PG-002-P00-RATE-LIMIT-CLOSURE is already RESOLVED and must not be reopened merely because no real 429 was observed
 
 CONVERGENCE WORKER
   reconcile new target evidence,
@@ -219,7 +220,7 @@ If required target evidence cannot be obtained, P00 remains open.
 
 ## 11. Current canonical integration status
 
-All mandatory P00 probe families now have repository-owned infrastructure integrated behind the unified runner:
+All mandatory P00 probe families have repository-owned infrastructure integrated behind the unified runner:
 
 - FCC discovery/health and CLI fallback,
 - structured streaming,
@@ -228,26 +229,44 @@ All mandatory P00 probe families now have repository-owned infrastructure integr
 - Unity,
 - Blender.
 
-Historical milestones such as PR #1 and Worker 2 remain useful provenance, but they are not the current integration boundary. Unity and Blender are no longer separate unintegrated lanes: the runner invokes both current probe families and produces their target evidence paths.
+Historical milestones such as PR #1 and Worker 2 remain useful provenance, but they are not the current integration boundary. Unity and Blender are integrated lanes: the runner invokes both current probe families and produces their target evidence paths.
 
-The most recent cloud hardening relevant to target execution includes:
+Current durable state includes:
+
+- `FCCD-P00-004` CLOSED from authoritative provider-backed session/resume continuity evidence, including invalid-session rejection, valid-session recovery, and owned-process cleanup;
+- `FCCD-P00-005` CLOSED from authoritative exact-head Windows failure/cancellation evidence at tested source SHA `015ffd8c0e2a6e725e33ed153441ff51e7952556`, including provider baseline `SUCCESS`, cancellation `INTERRUPTED`, hardened descendant observation, residual owned-process cleanup, and zero remaining owned processes;
+- `PG-002-P00-RATE-LIMIT-CLOSURE` RESOLVED: `NOT_OBSERVED_ON_TARGET` remains distinct from an actual observed 429, while verified classifier mechanics plus the rest of the exact-head target contract satisfy the safe P00-005 closure boundary without manufacturing provider load;
+- `FCCD-P00-007` CLOSED from authoritative provider-backed CLI fallback execution across normal, spaced, and Unicode/Arabic working directories with cancellation and cleanup evidence;
+- `FCCD-P00-008` CLOSED from complete real Unity target validation;
+- `FCCD-P00-009` remains the only target blocker because real Blender execution has not yet occurred on the authoritative Windows target;
+- `FCCD-P00-006` and `FCCD-P00-010` remain `IMPLEMENTED` pending final Blender evidence plus exact-head P00 convergence/exit-gate closure.
+
+Recent hardening relevant to the final target run includes:
 
 - PR #6 — target-runner provenance guards for Windows, exact HEAD source/configuration inputs, repository identity, Git and Node;
 - PR #9 — FCC runtime ownership evidence refreshes descendants immediately before cancellation/timeout escalation and covers late-spawned children with deterministic regression tests;
-- PR #13 — target-runner rerun safety permits only repository-owned target-evidence output dirtiness while continuing to reject uncommitted executable-input changes.
-
-Because PR #9 changed the evidence-producing cancellation/process-ownership probe after the last Windows run, `FCCD-P00-005` requires a new exact-head Windows target run before it may regain `VERIFIED` status.
+- PR #13 — target-runner rerun safety permits only repository-owned target-evidence output dirtiness while continuing to reject uncommitted executable-input changes;
+- PR #32 — closes P00-005 from exact-head Windows evidence and resolves PG-002 without claiming an observed provider 429;
+- PR #34 — cloud-hardens the Blender probe and expands deterministic Blender coverage to 27/27 while preserving `TARGET_UNVERIFIED` until real Blender runs;
+- PR #35 — hardens the final target runner/summary so mandatory evidence fails closed, integrated P00-005 evidence is reused only when its tested SHA is in current-HEAD ancestry, `NOT_OBSERVED_ON_TARGET` never becomes PASS, and P00-009 cannot become closure-supporting without genuine authoritative Blender success.
 
 ---
 
-## 12. Current target blockers and next authoritative run
+## 12. Current target blocker and next authoritative run
 
 At the current P00 state:
 
-- `FCCD-P00-004` requires a successful provider-backed session and resume/continuity run;
-- `FCCD-P00-005` requires the hardened exact-head Windows cancellation/failure rerun and resolution of `PG-002-P00-RATE-LIMIT-CLOSURE` unless a natural rate-limit observation occurs first;
-- `FCCD-P00-007` requires successful provider-backed CLI fallback completion;
-- `FCCD-P00-009` requires real Blender execution on the authoritative Windows target;
-- `FCCD-P00-006` and `FCCD-P00-010` remain convergence-dependent until the target blockers are removed.
+- `FCCD-P00-004`, `FCCD-P00-005`, `FCCD-P00-007`, and `FCCD-P00-008` are already CLOSED from reconciled authoritative target evidence;
+- `PG-002-P00-RATE-LIMIT-CLOSURE` is RESOLVED and does not require a manufactured provider 429;
+- `FCCD-P00-009` is the sole remaining target blocker and requires real Blender discovery/version/background/Python/render/export/error/cancellation execution on the authoritative Windows target;
+- `FCCD-P00-006` and `FCCD-P00-010` remain convergence-dependent until P00-009 is reconciled and the final exact-head P00 gate passes.
 
-The next authoritative local run must use the current canonical `main` with no uncommitted source/configuration/probe changes, the one-command runner, bounded provider traffic, sanitized evidence, and no fabricated replacement for unavailable provider or Blender behavior. Existing files under the runner-owned target-evidence output subtree may be overwritten by the rerun. After evidence is integrated, a convergence worker reconciles all affected contracts/task states and only then evaluates the P00 exit gate.
+After Blender is installed/discoverable, the next authoritative local run must use a clean checkout of the exact current canonical `main` and execute:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\contract-probes\run-target-validation.ps1 -AllowLivePrompt
+```
+
+`-AllowLivePrompt` authorizes only the bounded provider-backed lanes already defined by the runner. It does not authorize artificial rate-limit generation. Existing files under the runner-owned target-evidence output subtree may be overwritten by the rerun; source/configuration/probe dirtiness elsewhere remains prohibited.
+
+After the resulting sanitized evidence is integrated, a convergence worker must reconcile Blender target behavior, close `FCCD-P00-009` if its task-local criteria pass, reconcile `FCCD-P00-006` / `FCCD-P00-010`, and only then evaluate the complete exact-head P00 exit gate. P01 remains forbidden until that gate is recorded `PASS` with every mandatory P00 task `CLOSED`.
