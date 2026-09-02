@@ -36,11 +36,11 @@ Multiple workers may claim non-overlapping tasks only inside the same current ph
 | FCCD-P00-003 | Probe real structured streaming contract | CLOSED |
 | FCCD-P00-004 | Probe session ID/resume behavior | CLOSED |
 | FCCD-P00-005 | Probe interrupt/cancel/error/rate-limit behavior | CLOSED |
-| FCCD-P00-006 | Determine primary runtime adapter contract from evidence | VERIFIED |
+| FCCD-P00-006 | Determine primary runtime adapter contract from evidence | CLOSED |
 | FCCD-P00-007 | Prove CLI fallback contract | CLOSED |
 | FCCD-P00-008 | Probe Unity current project/version/CLI/test/build contracts on target environment | CLOSED |
 | FCCD-P00-009 | Probe Blender current CLI/background/Python/render/export contracts on target environment | CLOSED |
-| FCCD-P00-010 | Record supported version/compatibility baseline | VERIFIED |
+| FCCD-P00-010 | Record supported version/compatibility baseline | CLOSED |
 
 Target reconciliation for `FCCD-P00-002` and `FCCD-P00-007` is complete. The owner Windows target exposes `fcc-claude` 2.1.251 and healthy FCC loopback behavior. `FCCD-P00-007` is CLOSED from provider-backed target execution at tested source SHA `8e59cd94ff0b13d56725686296c452b832c5b016`: launch and prompt transmission succeeded in normal, spaced, and Unicode/Arabic working directories; stdout/stderr were observable; terminal completion was classified successfully; graceful cancellation was exercised; and owned-process cleanup passed. See `docs/contracts/FCC_CLI_CONTRACT.md`, `evidence/phases/P00/cli-fallback/fcc-cli-fallback-target-closure.json`, and `evidence/phases/P00/cli-fallback/P00_007_TARGET_VALIDATION_2026-09-02.md`.
 
@@ -49,6 +49,8 @@ Target reconciliation for `FCCD-P00-003`, `FCCD-P00-004`, and `FCCD-P00-005` is 
 Closure evidence for `FCCD-P00-008`: the reusable probe infrastructure and deterministic 20/20 self-test were integrated and then executed on the owner's Windows target. Unity Hub, Editors `6000.5.8f1`/`2022.3.75f1`, disposable project creation, exact version selection, compile positive/negative/recovery, EditMode/PlayMode tests, `-executeMethod`, Windows x64 build artifacts, same-project locking, cancellation, and cleanup passed. See `docs/contracts/UNITY_AUTOMATION_CONTRACT.md`, `evidence/phases/P00/target/unity-contract.json`, and `evidence/phases/P00/unity/TARGET_VALIDATION_2026-09-02.md`.
 
 Closure evidence for `FCCD-P00-009`: the current integrated Blender probe passed on the owner's authoritative Windows target using Blender `5.2.0` at tested source SHA `e6932783b30ab0bdbb596c7959e03143753bff9a`. Discovery/version, background/factory-startup execution, Python automation, `.blend` save validation, PNG render validation, OBJ export validation, controlled nonzero Python failure, owned cancellation, cleanup, Unicode/Arabic/space-containing fixture paths, and 29/29 deterministic self-tests passed. The sanitized target evidence was integrated by PR #40. `FCCD-P00-009` is CLOSED.
+
+Closure evidence for `FCCD-P00-006` and `FCCD-P00-010`: the complete reconciled runtime/compatibility evidence set was integrated by PR #41, then the exact-head non-provider P00 pre-closure gate passed on candidate SHA `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`. The gate verified required evidence ancestry, 6/6 contract-probe self-tests, target evidence secret sanity, zero open plan gaps, zero known P00 blockers, `p00TargetValidationComplete=true`, and a clean exact-head worktree. Both tasks are CLOSED. See `docs/contracts/P00_RUNTIME_AND_COMPATIBILITY_BASELINE.md` and `evidence/phases/P00/CLOSURE.md`.
 
 ## P01 — Solution foundation / CI
 
@@ -344,8 +346,8 @@ Closure evidence for `FCCD-P00-009`: the current integrated Blender probe passed
 
 ## Current next action
 
-`CURRENT_PHASE = P00`.
+`CURRENT_PHASE = P00` and P00 is CLOSED with exact-head exit-gate evidence recorded at `evidence/phases/P00/CLOSURE.md`.
 
-`FCCD-P00-001` is closed: the canonical constitution, source-of-truth hierarchy, strict execution plan, current-phase checkpoint, quality/release standards and phase-evidence template are established.
+All mandatory P00 tasks (`FCCD-P00-001` through `FCCD-P00-010`) are CLOSED. The exact-head pre-closure gate passed on candidate SHA `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9` with 6/6 contract-probe self-tests PASS, required evidence ancestry PASS, target evidence secret sanity PASS, `p00TargetValidationComplete=true`, zero open plan gaps, zero known P00 blockers, and a clean worktree. No provider, Unity, or Blender target rerun was performed by the final gate.
 
-`FCCD-P00-002`, `FCCD-P00-003`, `FCCD-P00-004`, `FCCD-P00-005`, `FCCD-P00-007`, and `FCCD-P00-008` are closed from real target evidence and explicit safe closure policy where natural rate-limit observation was unavailable. Primary-runtime and compatibility decisions are implemented. `FCCD-P00-009` is the only remaining target blocker and requires real Blender target execution. After that evidence is reconciled, close P00-006/P00-010 dependencies and run the exact-head P00 exit gate. Do not start P01 until every P00 task is `CLOSED` and the P00 exit gate is `PASS` with exact-head evidence.
+The next legal action is an explicit canonical transition of `CURRENT_PHASE` from P00 to P01. Do not begin P01 implementation before that transition is integrated. Do not skip later phases or interpret P00 closure as final product completion.
