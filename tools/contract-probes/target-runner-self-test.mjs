@@ -103,6 +103,10 @@ function assertStaticRunnerPolicy(runnerText) {
     assert(!runnerText.includes(marker), `Runner must not contain destructive workspace operation: ${marker}`);
   }
   assert(!runnerText.includes("Add-StepResult -Name 'target-evidence-summary' -Status 'PASS' -ExitCode 0"), 'Summary step must not be unconditionally recorded as PASS.');
+  assert(runnerText.includes("$nonPassSteps = @($steps | Where-Object { $_.status -ne 'PASS' })"), 'Runner must materialize non-PASS steps before Count.');
+  assert(runnerText.includes("$failedSteps = @($steps | Where-Object { $_.status -eq 'FAIL' })"), 'Runner must materialize FAIL steps before Count.');
+  assert(!runnerText.includes("(($steps | Where-Object { $_.status -ne 'PASS' }).Count"), 'StrictMode-sensitive scalar Count must not be used for non-PASS steps.');
+  assert(!runnerText.includes("(($steps | Where-Object { $_.status -eq 'FAIL' }).Count"), 'StrictMode-sensitive scalar Count must not be used for FAIL steps.');
 }
 
 function runGitPathspecRegression() {
