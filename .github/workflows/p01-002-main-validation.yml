@@ -1,0 +1,50 @@
+name: P01-002 Integrated Main Validation
+
+on:
+  push:
+    branches:
+      - validation/p01-002-main-0b84859
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Exact-main Windows .NET 10 quality policy
+    runs-on: windows-2025
+    steps:
+      - name: Checkout exact integrated main SHA
+        uses: actions/checkout@v4
+        with:
+          ref: 0b84859edaccc4a9bb9c407b68a8c4b842d436d1
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Verify exact integrated head
+        shell: pwsh
+        run: |
+          $actual = git rev-parse HEAD
+          if ($actual -ne '0b84859edaccc4a9bb9c407b68a8c4b842d436d1') {
+            throw "Expected 0b84859edaccc4a9bb9c407b68a8c4b842d436d1 but checked out $actual"
+          }
+
+      - name: Diff hygiene
+        shell: pwsh
+        run: git diff --check 2b94152362d59425b0bbb02f19eb7c68b8d24656 0b84859edaccc4a9bb9c407b68a8c4b842d436d1
+
+      - name: Validate integrated quality policy
+        shell: pwsh
+        run: .\tools\quality\validate-quality-policy.ps1 -RequireDotNet
+
+      - name: Verify worktree remains clean
+        shell: pwsh
+        run: |
+          $changes = git status --porcelain
+          if ($changes) {
+            Write-Host $changes
+            throw 'Integrated quality validation modified the exact main worktree.'
+          }
