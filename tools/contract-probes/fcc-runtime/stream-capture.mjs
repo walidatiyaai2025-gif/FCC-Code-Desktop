@@ -160,6 +160,7 @@ export function classifyFailure(run) {
   if (run?.cancelled) return { category: 'INTERRUPTED', source: 'process', retryability: 'UNKNOWN', userActionRequired: 'UNKNOWN' };
   const text = `${run?.stdout ?? ''}\n${run?.stderr ?? ''}`.toLowerCase();
   const malformed = (run?.lineEvents ?? []).some((event) => event.classification === 'MALFORMED_JSON');
+  if (/--resume requires a valid session|does not match any session|session (?:id )?(?:was )?not found|invalid session/.test(text)) return { category: 'INVALID_SESSION', source: 'output', retryability: 'NOT_APPLICABLE', userActionRequired: 'YES' };
   if (/429|too many requests|rate.?limit|quota.*exceed/.test(text)) return { category: 'RATE_LIMITED', source: 'output', retryability: 'UNKNOWN', userActionRequired: 'UNKNOWN' };
   if (/unauthori[sz]ed|forbidden|authentication|invalid api.?key|credential/.test(text)) return { category: 'AUTH_FAILURE', source: 'output', retryability: 'UNKNOWN', userActionRequired: 'UNKNOWN' };
   if (/model[^\n]*(not found|invalid|unavailable|unsupported)/.test(text)) return { category: 'MODEL_UNAVAILABLE', source: 'output', retryability: 'UNKNOWN', userActionRequired: 'UNKNOWN' };

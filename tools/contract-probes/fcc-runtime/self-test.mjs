@@ -11,6 +11,7 @@ import {
   captureProcess,
   classifyFailure,
   extractSessionCandidatesFromJson,
+  hasExactSuccessfulResult,
   maskSecretsPreserveLength,
   redactString,
 } from './probe.mjs';
@@ -44,6 +45,13 @@ try {
   assert.equal(analyzeLine('plain text').classification, 'TEXT_LINE');
   assert.ok(extractSessionCandidatesFromJson({ nested: { sessionId: 'session_abcdef12' } }).length === 1);
   pass('stream-parser-and-session-extractor');
+
+  const exactMarker = 'FIRST_TURN_OK:FCCD_P00_004_MEMORY_TEST';
+  const exactResultRun = { lineEvents: [analyzeLine(JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: exactMarker }))] };
+  assert.equal(hasExactSuccessfulResult(exactResultRun, exactMarker), true);
+  assert.equal(hasExactSuccessfulResult(exactResultRun, `${exactMarker}_WRONG`), false);
+  assert.equal(classifyFailure({ exitCode: 1, stdout: '', stderr: 'Error: --resume requires a valid session ID. Session id was not found.' }).category, 'INVALID_SESSION');
+  pass('session-marker-and-invalid-session-classification');
 
   const stream = await captureProcess(process.execPath, [fixture, '--mode', 'stream'], { cwd: temp, timeoutMs: 5000 });
   assert.equal(stream.exitCode, 0);
