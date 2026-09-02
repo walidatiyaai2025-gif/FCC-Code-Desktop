@@ -13,7 +13,7 @@ PHASE_EXIT_GATE: NOT_RUN
 KNOWN_PHASE_BLOCKERS: 4
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
-LAST_RECONCILED: 2026-09-01
+LAST_RECONCILED: 2026-09-02
 ```
 
 ## Active rule
@@ -29,34 +29,40 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 - `FCCD-P00-001` — CLOSED.
 - `FCCD-P00-002` — CLOSED from Windows executable/version/help and live loopback health evidence.
 - `FCCD-P00-003` — CLOSED from real structured `system/init` and `system/api_retry` target frames with sanitized raw/parsed evidence.
-- `FCCD-P00-004` — BLOCKED only on real target-machine session/resume evidence after reusable session extraction/resume probes and self-tests were implemented by Worker 2.
-- `FCCD-P00-005` — VERIFIED from real provider 503, timeout, cancellation, and owned-process evidence; natural rate limiting remains not observed and was not forced.
-- `FCCD-P00-007` — BLOCKED only on real target-machine CLI fallback evidence after probe infrastructure was merged by PR #1.
+- `FCCD-P00-004` — BLOCKED only on real target-machine successful session/resume evidence after reusable session extraction/resume probes and self-tests were implemented by Worker 2.
+- `FCCD-P00-005` — BLOCKED pending an exact-head Windows rerun after PR #9 hardened late-spawned owned-descendant observation; prior target evidence still proves provider 503, timeout/cancellation behavior and successful owned cleanup in the CLI probe lane, while natural rate limiting remains not observed and `PG-002-P00-RATE-LIMIT-CLOSURE` requires planning/reconciliation authority.
+- `FCCD-P00-007` — BLOCKED only on real target-machine successful CLI fallback completion after probe infrastructure was merged by PR #1.
 - `FCCD-P00-008` — CLOSED after abandoned Worker 3 work was recovered, Windows probe defects were repaired, and the complete real Unity target contract passed.
 - `FCCD-P00-009` — BLOCKED only on real target Blender execution after reusable probe infrastructure, 15/15 self-tests, contract docs, evidence, and unified-runner integration were completed on this Windows host where Blender is not installed.
-- `FCCD-P00-006`, `010` — IMPLEMENTED from target evidence; closure awaits the remaining P00 blockers and exact-head gate.
-- PR #1 FCC/CLI probe infrastructure and Worker 2 streaming/session/failure infrastructure remain preserved.
+- `FCCD-P00-006`, `010` — IMPLEMENTED from target evidence; closure awaits the remaining P00 blockers and exact-head gate. P00-010 compatibility terminology now explicitly separates TESTED, DETECTED, UNVERIFIED, SUPPORTED and UNSUPPORTED.
+- PR #6 hardened the unified target runner to refuse non-Windows or dirty-worktree target evidence and to verify Git/Node/repository provenance before writing evidence.
+- PR #9 hardened FCC process ownership evidence so descendants created after the initial snapshot are observed before cancellation/timeout escalation.
 
 ## Current objective
 
 Complete P00 by:
 
-1. obtaining real Blender target execution on a host with Blender installed,
-2. reconciling the observed FCC/provider 503 evidence and closing eligible FCC contract tasks,
-3. reconciling the primary runtime decision and compatibility baseline,
-4. rerunning the complete unified suite when the external Blender/provider prerequisites are available,
-5. running the complete P00 exit gate and fixing every failure before closure.
+1. obtaining real Blender target execution on the owner's Windows target after Blender becomes available,
+2. rerunning the hardened FCC process/session/failure probes on the authoritative Windows target and closing eligible FCC contract tasks when provider-backed completion is available,
+3. obtaining a planning/reconciliation decision for `PG-002-P00-RATE-LIMIT-CLOSURE` without manufacturing provider 429 traffic,
+4. reconciling the primary runtime decision and compatibility baseline after the final target evidence,
+5. rerunning the complete unified suite on an exact clean target head,
+6. running the complete P00 exit gate and fixing every failure before closure.
 
 ## Recommended remaining worker lanes inside P00
 
 ```text
 LOCAL TARGET VALIDATION WORKER
+  rerun FCCD-P00-004/005/007 on the hardened exact-head probe suite,
   rerun Blender target evidence after Blender becomes available
 
+PLANNING / RECONCILIATION AUTHORITY
+  resolve PG-002-P00-RATE-LIMIT-CLOSURE explicitly
+
 W5 CONVERGENCE
-  rerun FCCD-P00-004/007 after provider recovery,
-  reconcile FCCD-P00-005 rate-limit closure boundary,
-  close FCCD-P00-006 + FCCD-P00-010 after remaining evidence,
+  reconcile new target evidence,
+  close eligible P00-004/005/007/009,
+  close P00-006 + P00-010 after dependencies are satisfied,
   run full P00 exit gate.
 ```
 
@@ -71,6 +77,6 @@ Workers must inspect live claims before taking a lane and must not duplicate act
 5. Read `docs/P00_TARGET_MACHINE_VALIDATION.md`.
 6. Read `docs/TASK_LEDGER.md` and `docs/PLAN_GAPS.md`.
 7. Fetch live branches/PRs/issues/commits, CI/evidence, and build a claim + recovery map.
-8. Preserve and reuse PR #1 FCC/CLI, Worker 2 streaming/session/failure, and Worker 3 Unity probe infrastructure.
+8. Preserve and reuse merged FCC/CLI, streaming/session/failure, Unity, Blender and unified-runner probe infrastructure.
 9. Continue only legitimate non-overlapping work in `CURRENT_PHASE`.
 10. Do not promote `NEXT_PHASE` until the current exit gate is recorded `PASS`.
