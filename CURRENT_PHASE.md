@@ -5,11 +5,11 @@ This file is the fastest canonical resume checkpoint. It must be updated only wh
 ```text
 PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
-CURRENT_PHASE: P00
-CURRENT_PHASE_NAME: Constitution + external-contract de-risking
-CURRENT_PHASE_STATE: CLOSED
-NEXT_PHASE: P01
-PHASE_EXIT_GATE: PASS
+CURRENT_PHASE: P01
+CURRENT_PHASE_NAME: Solution foundation / CI
+CURRENT_PHASE_STATE: IN_PROGRESS
+NEXT_PHASE: P02
+PHASE_EXIT_GATE: NOT_RUN
 KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
@@ -18,14 +18,15 @@ LAST_RECONCILED: 2026-09-02
 
 ## Active rule
 
-P00 is closed. P01 implementation remains prohibited until `CURRENT_PHASE` is explicitly transitioned to P01 in a subsequent canonical phase-transition update; that transition is now legally unblocked because every mandatory P00 task is CLOSED and the P00 exit gate is PASS with exact-head evidence recorded in `evidence/phases/P00/CLOSURE.md`.
+P01 is now the only legal implementation phase. All P01 tasks remain PENDING at this transition boundary; workers must apply `docs/WORKER_PROTOCOL.md` before claiming or implementing any P01 task. P02 implementation remains prohibited until every mandatory P01 task is CLOSED and the P01 exit gate passes with exact-head closure evidence.
 
 Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
-P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative target evidence is integrated and reconciled; no additional provider, Unity, or Blender target rerun is required for P00 closure.
+P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative target evidence is integrated and reconciled; no additional provider, Unity, or Blender target rerun is required for P00 closure. P00 closure and its evidence are immutable historical provenance for downstream work.
 
 ## Current status
 
+- `P01` — IN_PROGRESS as the sole current phase; `FCCD-P01-001` through `FCCD-P01-006` remain PENDING at the transition boundary.
 - `FCCD-P00-001` — CLOSED.
 - `FCCD-P00-002` — CLOSED from Windows executable/version/help and live loopback health evidence.
 - `FCCD-P00-003` — CLOSED from real structured `system/init` and `system/api_retry` target frames with sanitized raw/parsed evidence.
@@ -58,7 +59,7 @@ CLOSURE_RECORD: evidence/phases/P00/CLOSURE.md
 
 ## Next legal action
 
-Create the canonical phase transition to P01, then begin only P01 work. Do not skip ahead to later phases. `VERIFIED_FINAL_COMPLETE` remains false; P00 closure is only the foundational phase gate, not product completion.
+Apply `docs/WORKER_PROTOCOL.md` within P01 and begin only legitimate P01 work after this transition is integrated. Do not open P02 work. `VERIFIED_FINAL_COMPLETE` remains false; P00 closure is only the foundational phase gate, not product completion.
 
 ## Resume procedure
 
@@ -69,6 +70,6 @@ Create the canonical phase transition to P01, then begin only P01 work. Do not s
 5. Read `docs/P00_TARGET_MACHINE_VALIDATION.md`.
 6. Read `docs/TASK_LEDGER.md`, `docs/PLAN_GAPS.md`, and `evidence/phases/P00/CLOSURE.md`.
 7. Fetch live branches/PRs/issues/commits and verify the P00 closure commit is integrated on `main`.
-8. Transition `CURRENT_PHASE` to P01 before any P01 implementation begins.
+8. Treat P01 as the sole legal implementation phase; build the live claim/recovery map and claim only legitimate P01 work.
 9. Preserve the integrated FCC/CLI, streaming/session/failure, Unity, Blender, and target-runner evidence as immutable P00 provenance.
-10. Continue strict sequential phase execution; do not claim final product completion from P00 closure.
+10. Continue strict sequential phase execution; do not begin P02 until P01 is validly closed, and do not claim final product completion from P00 closure.
