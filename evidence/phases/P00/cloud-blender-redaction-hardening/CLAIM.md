@@ -4,7 +4,8 @@
 - Started from live main: `97c6d2e08be711edc569d8f0baeb3d14128429e2`
 - Date: 2026-09-02
 - Scope: fix and regression-test raw Authorization-header leakage in Blender probe log sanitization only
-- State: `COMPLETE_AWAITING_INTEGRATION`
+- State: `INTEGRATED`
+- Integration: PR #22, merge commit `b8a9c085147f6fee548d83628e7cecfd48f5dc7b`
 
 ## Why this claim exists
 
@@ -18,3 +19,5 @@
 - evidence is recorded in `RESULT.md`.
 
 This claim does not change Blender discovery, invocation, artifact validation, cancellation, target task state, Unity, FCC, the target runner/manifest, or planning policy.
+
+The claim is terminal and no longer reserves active work.
