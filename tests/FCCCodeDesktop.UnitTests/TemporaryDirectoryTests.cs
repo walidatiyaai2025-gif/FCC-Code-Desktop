@@ -6,7 +6,7 @@ namespace FCCCodeDesktop.UnitTests;
 public sealed class TemporaryDirectoryTests
 {
     [Fact]
-    public void Dispose_RemovesWorkspaceWithUnicodeChild()
+    public void DisposeRemovesWorkspaceWithUnicodeChild()
     {
         string workspacePath;
 
@@ -26,7 +26,7 @@ public sealed class TemporaryDirectoryTests
     }
 
     [Fact]
-    public void GetPath_RejectsTraversalOutsideWorkspace()
+    public void GetPathRejectsTraversalOutsideWorkspace()
     {
         using var workspace = new TemporaryDirectory("fccd-unit-negative");
 
@@ -34,7 +34,7 @@ public sealed class TemporaryDirectoryTests
     }
 
     [Fact]
-    public void Path_ThrowsAfterDispose()
+    public void PathThrowsAfterDispose()
     {
         var workspace = new TemporaryDirectory("fccd-unit-dispose");
         workspace.Dispose();
