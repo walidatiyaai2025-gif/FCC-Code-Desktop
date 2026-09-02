@@ -16,7 +16,7 @@ jobs:
       - name: Checkout exact P01-002 candidate
         uses: actions/checkout@v4
         with:
-          ref: aba20272c3ba86fe77881be4d7c87208c3deb03c
+          ref: c8ef814d73a20a2b0fee5033e972fe1b344c21e5
           fetch-depth: 0
 
       - name: Setup exact .NET SDK
@@ -28,13 +28,13 @@ jobs:
         shell: pwsh
         run: |
           $actual = git rev-parse HEAD
-          if ($actual -ne 'aba20272c3ba86fe77881be4d7c87208c3deb03c') {
-            throw "Expected aba20272c3ba86fe77881be4d7c87208c3deb03c but checked out $actual"
+          if ($actual -ne 'c8ef814d73a20a2b0fee5033e972fe1b344c21e5') {
+            throw "Expected c8ef814d73a20a2b0fee5033e972fe1b344c21e5 but checked out $actual"
           }
 
       - name: Diff hygiene
         shell: pwsh
-        run: git diff --check 2b94152362d59425b0bbb02f19eb7c68b8d24656 aba20272c3ba86fe77881be4d7c87208c3deb03c
+        run: git diff --check 2b94152362d59425b0bbb02f19eb7c68b8d24656 c8ef814d73a20a2b0fee5033e972fe1b344c21e5
 
       - name: Validate quality policy
         shell: pwsh
