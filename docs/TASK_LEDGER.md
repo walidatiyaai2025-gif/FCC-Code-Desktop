@@ -36,11 +36,11 @@ Multiple workers may claim non-overlapping tasks only inside the same current ph
 | FCCD-P00-003 | Probe real structured streaming contract | CLOSED |
 | FCCD-P00-004 | Probe session ID/resume behavior | CLOSED |
 | FCCD-P00-005 | Probe interrupt/cancel/error/rate-limit behavior | CLOSED |
-| FCCD-P00-006 | Determine primary runtime adapter contract from evidence | IMPLEMENTED |
+| FCCD-P00-006 | Determine primary runtime adapter contract from evidence | VERIFIED |
 | FCCD-P00-007 | Prove CLI fallback contract | CLOSED |
 | FCCD-P00-008 | Probe Unity current project/version/CLI/test/build contracts on target environment | CLOSED |
-| FCCD-P00-009 | Probe Blender current CLI/background/Python/render/export contracts on target environment | BLOCKED |
-| FCCD-P00-010 | Record supported version/compatibility baseline | IMPLEMENTED |
+| FCCD-P00-009 | Probe Blender current CLI/background/Python/render/export contracts on target environment | CLOSED |
+| FCCD-P00-010 | Record supported version/compatibility baseline | VERIFIED |
 
 Target reconciliation for `FCCD-P00-002` and `FCCD-P00-007` is complete. The owner Windows target exposes `fcc-claude` 2.1.251 and healthy FCC loopback behavior. `FCCD-P00-007` is CLOSED from provider-backed target execution at tested source SHA `8e59cd94ff0b13d56725686296c452b832c5b016`: launch and prompt transmission succeeded in normal, spaced, and Unicode/Arabic working directories; stdout/stderr were observable; terminal completion was classified successfully; graceful cancellation was exercised; and owned-process cleanup passed. See `docs/contracts/FCC_CLI_CONTRACT.md`, `evidence/phases/P00/cli-fallback/fcc-cli-fallback-target-closure.json`, and `evidence/phases/P00/cli-fallback/P00_007_TARGET_VALIDATION_2026-09-02.md`.
 
@@ -48,7 +48,7 @@ Target reconciliation for `FCCD-P00-003`, `FCCD-P00-004`, and `FCCD-P00-005` is 
 
 Closure evidence for `FCCD-P00-008`: the reusable probe infrastructure and deterministic 20/20 self-test were integrated and then executed on the owner's Windows target. Unity Hub, Editors `6000.5.8f1`/`2022.3.75f1`, disposable project creation, exact version selection, compile positive/negative/recovery, EditMode/PlayMode tests, `-executeMethod`, Windows x64 build artifacts, same-project locking, cancellation, and cleanup passed. See `docs/contracts/UNITY_AUTOMATION_CONTRACT.md`, `evidence/phases/P00/target/unity-contract.json`, and `evidence/phases/P00/unity/TARGET_VALIDATION_2026-09-02.md`.
 
-Blocker evidence for `FCCD-P00-009`: reusable Blender discovery/background/Python/scene/save/render/export/artifact/error/cancellation probes, 15/15 deterministic self-tests, contract documentation, and unified-runner integration are complete. The owner's current Windows host has no discoverable Blender executable, so real Blender behavior remains target-unverified. See `docs/contracts/BLENDER_AUTOMATION_CONTRACT.md`, `evidence/phases/P00/blender/PROBE_HOST_2026-09-02.md`, and `evidence/phases/P00/target/blender-contract.json`.
+Closure evidence for `FCCD-P00-009`: the current integrated Blender probe passed on the owner's authoritative Windows target using Blender `5.2.0` at tested source SHA `e6932783b30ab0bdbb596c7959e03143753bff9a`. Discovery/version, background/factory-startup execution, Python automation, `.blend` save validation, PNG render validation, OBJ export validation, controlled nonzero Python failure, owned cancellation, cleanup, Unicode/Arabic/space-containing fixture paths, and 29/29 deterministic self-tests passed. The sanitized target evidence was integrated by PR #40. `FCCD-P00-009` is CLOSED.
 
 ## P01 — Solution foundation / CI
 

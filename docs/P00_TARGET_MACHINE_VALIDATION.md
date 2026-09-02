@@ -238,8 +238,8 @@ Current durable state includes:
 - `PG-002-P00-RATE-LIMIT-CLOSURE` RESOLVED: `NOT_OBSERVED_ON_TARGET` remains distinct from an actual observed 429, while verified classifier mechanics plus the rest of the exact-head target contract satisfy the safe P00-005 closure boundary without manufacturing provider load;
 - `FCCD-P00-007` CLOSED from authoritative provider-backed CLI fallback execution across normal, spaced, and Unicode/Arabic working directories with cancellation and cleanup evidence;
 - `FCCD-P00-008` CLOSED from complete real Unity target validation;
-- `FCCD-P00-009` remains the only target blocker because real Blender execution has not yet occurred on the authoritative Windows target;
-- `FCCD-P00-006` and `FCCD-P00-010` remain `IMPLEMENTED` pending final Blender evidence plus exact-head P00 convergence/exit-gate closure.
+- FCCD-P00-009 is CLOSED from authoritative Windows Blender 5.2.0 target execution at source SHA e6932783b30ab0bdbb596c7959e03143753bff9a; sanitized evidence was integrated by PR #40.
+- FCCD-P00-006 and FCCD-P00-010 are VERIFIED from the complete reconciled evidence set and await only the exact-head P00 exit gate before CLOSED.
 
 Recent hardening relevant to the final target run includes:
 
@@ -252,21 +252,32 @@ Recent hardening relevant to the final target run includes:
 
 ---
 
-## 12. Current target blocker and next authoritative run
+## 12. Final P00 convergence and exit gate
 
 At the current P00 state:
 
-- `FCCD-P00-004`, `FCCD-P00-005`, `FCCD-P00-007`, and `FCCD-P00-008` are already CLOSED from reconciled authoritative target evidence;
-- `PG-002-P00-RATE-LIMIT-CLOSURE` is RESOLVED and does not require a manufactured provider 429;
-- `FCCD-P00-009` is the sole remaining target blocker and requires real Blender discovery/version/background/Python/render/export/error/cancellation execution on the authoritative Windows target;
-- `FCCD-P00-006` and `FCCD-P00-010` remain convergence-dependent until P00-009 is reconciled and the final exact-head P00 gate passes.
+- FCCD-P00-001 through FCCD-P00-005 are CLOSED;
+- FCCD-P00-007, FCCD-P00-008, and FCCD-P00-009 are CLOSED;
+- real Unity and Blender 5.2.0 authoritative target contracts are integrated;
+- PG-002-P00-RATE-LIMIT-CLOSURE is RESOLVED without manufacturing a provider 429;
+- FCCD-P00-006 and FCCD-P00-010 are VERIFIED and await only the final exact-head P00 exit gate;
+- no target-machine blocker remains.
 
-After Blender is installed/discoverable, the next authoritative local run must use a clean checkout of the exact current canonical `main` and execute:
+The authoritative target run at source SHA e6932783b30ab0bdbb596c7959e03143753bff9a established p00TargetValidationComplete=true, Unity PASS, Blender PASS, P00-005 PASS, and P00-009 closure support.
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\contract-probes\run-target-validation.ps1 -AllowLivePrompt
-```
+The FCC re-observation lanes remained safely BLOCKED because the probes refused to guess invocation templates. Previously integrated authoritative FCC task-local closure evidence remains canonical.
 
-`-AllowLivePrompt` authorizes only the bounded provider-backed lanes already defined by the runner. It does not authorize artificial rate-limit generation. Existing files under the runner-owned target-evidence output subtree may be overwritten by the rerun; source/configuration/probe dirtiness elsewhere remains prohibited.
+No additional provider-backed target rerun is required solely for P00 convergence.
 
-After the resulting sanitized evidence is integrated, a convergence worker must reconcile Blender target behavior, close `FCCD-P00-009` if its task-local criteria pass, reconcile `FCCD-P00-006` / `FCCD-P00-010`, and only then evaluate the complete exact-head P00 exit gate. P01 remains forbidden until that gate is recorded `PASS` with every mandatory P00 task `CLOSED`.
+The remaining action is the complete non-provider exact-head P00 exit-gate verification.
+
+If that gate passes:
+
+1. transition FCCD-P00-006 and FCCD-P00-010 to CLOSED;
+2. verify every mandatory P00 task is CLOSED;
+3. write evidence/phases/P00/CLOSURE.md with the exact tested candidate SHA and test results;
+4. record PHASE_EXIT_GATE = PASS;
+5. verify no known P00 blockers or regressions remain;
+6. only then permit transition to P01.
+
+P01 remains forbidden until that closure record is integrated on canonical main.

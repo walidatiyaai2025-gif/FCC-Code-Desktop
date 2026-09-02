@@ -1,7 +1,7 @@
 # P00 Runtime and Compatibility Baseline
 
 **Tasks:** `FCCD-P00-006`, `FCCD-P00-010`  
-**State:** IMPLEMENTED pending real Blender target execution and the final exact-head P00 gate.
+**State:** VERIFIED from the complete P00 evidence set; final CLOSED transition awaits the exact-head P00 exit gate.
 
 ## Primary runtime contract
 
@@ -45,15 +45,15 @@ P00 compatibility evidence uses these terms deliberately:
 | Unity Editor `6000.5.8f1` | real disposable-project creation, compile negative/recovery, EditMode/PlayMode tests, automation, Windows x64 build, lock, cancellation, and cleanup contract passed | TESTED | This is the Unity version on which the complete P00 target contract was exercised. |
 | Unity Editor `2022.3.75f1` | additional editor installation discovered | DETECTED | Do not infer the complete `6000.5.8f1` contract passed on this version without separate evidence. |
 | Unity test framework | `1.7.0` minimum declared by Unity `6000.5.8f1` | DETECTED | Declaration/discovery is recorded separately from a broad package support commitment. |
-| Blender | executable not installed/discoverable on the authoritative target | UNVERIFIED | No Blender version or real automation behavior may be marked TESTED/SUPPORTED until actual Blender target execution succeeds. |
+| Blender `5.2.0` | real discovery/version, background/factory startup, Python automation, `.blend` save, PNG render, OBJ export, controlled Python failure, cancellation and cleanup passed | TESTED | Complete P00 Blender contract exercised on the authoritative Windows target at source SHA `e6932783b30ab0bdbb596c7959e03143753bff9a`; this is a tested version, not a declared general support range. |
 
 No component is classified `UNSUPPORTED` by current P00 evidence. No broader version range is classified `SUPPORTED` yet; doing so would require an explicit evidence-backed compatibility decision rather than inference from detection or a single tested machine.
 
 ## Open compatibility boundaries
 
 - real provider rate-limit event/output/exit/retry semantics remain `NOT_OBSERVED_ON_TARGET`; the classifier mechanics are verified, and `PG-002-P00-RATE-LIMIT-CLOSURE` is resolved without manufacturing a 429;
-- Blender versions and real background/Python/render/export/cancellation behavior remain `UNVERIFIED` until Blender is available and the integrated probe passes on the authoritative Windows target;
+- Blender `5.2.0` is now `TESTED` for the complete exercised P00 target contract; broader Blender version ranges remain intentionally undeclared;
 - successful provider-backed structured execution is now observed, but P00 does not claim exhaustive coverage of every possible assistant/tool/result event variant; unknown event types remain an additive compatibility case that the adapter must preserve;
 - the exact product `SUPPORTED` version ranges remain intentionally undeclared until the remaining target evidence and P00 closure criteria justify a support decision.
 
-The baseline is intentionally evidence-based and does not claim broader supported version ranges. `FCCD-P00-006` and `FCCD-P00-010` remain `IMPLEMENTED`: they are not eligible for closure yet because `FCCD-P00-009` remains `BLOCKED` on real Blender target execution and the final exact-head P00 convergence/exit gate has not passed.
+The baseline is intentionally evidence-based and does not claim broader supported version ranges. `FCCD-P00-006` and `FCCD-P00-010` are now `VERIFIED`: all task-local evidence dependencies, including real Blender execution, are resolved. Their final transition to `CLOSED` is reserved for the exact-head P00 exit-gate closure record.
