@@ -40,6 +40,15 @@ if (mode === 'sleep-child') {
   setInterval(() => {}, 1000);
 }
 
+if (mode === 'late-tree') {
+  setTimeout(() => {
+    const child = spawn(process.execPath, [fileURLToPath(import.meta.url), '--mode', 'sleep-child'], { stdio: 'ignore', windowsHide: true });
+    process.stdout.write(`late_child_pid=${child.pid}\n`);
+  }, 600);
+  process.on('SIGINT', () => {});
+  setInterval(() => {}, 1000);
+}
+
 if (mode === 'tree') {
   const child = spawn(process.execPath, [fileURLToPath(import.meta.url), '--mode', 'sleep-child'], { stdio: 'ignore', windowsHide: true });
   process.stdout.write(`child_pid=${child.pid}\n`);
