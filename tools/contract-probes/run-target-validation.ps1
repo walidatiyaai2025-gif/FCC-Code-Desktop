@@ -86,12 +86,15 @@ try {
     $fccSelfTest = Join-Path $RepoRoot 'tools\contract-probes\fcc\self-test.mjs'
     [void](Invoke-NodeStep -Name 'fcc-pr1-self-test' -ScriptPath $fccSelfTest -Arguments @() -EvidencePath '')
 
+    $summarySelfTest = Join-Path $RepoRoot 'tools\contract-probes\target-evidence-summary-self-test.mjs'
+    [void](Invoke-NodeStep -Name 'target-evidence-summary-self-test' -ScriptPath $summarySelfTest -Arguments @() -EvidencePath '')
+
     $fccOutput = Join-Path $TargetDir 'fcc-discovery-cli.json'
     $fccArgs = @('--mode', 'all', '--json', $fccOutput, '--timeout-ms', [string]$TimeoutMs, '--cancel-after-ms', [string]$CancelAfterMs)
     if ($FccClaude) { $fccArgs += @('--fcc-claude', $FccClaude) }
     if ($AllowLivePrompt) { $fccArgs += '--allow-live-prompt' }
     if ($CliArgsJson) { $fccArgs += @('--cli-args-json', $CliArgsJson) }
-    [void](Invoke-NodeStep -Name 'fcc-discovery-cli-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc\probe.mjs') -Arguments $fccArgs -EvidencePath $fccOutput)
+    $fccTargetCode = Invoke-NodeStep -Name 'fcc-discovery-cli-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc\probe.mjs') -Arguments $fccArgs -EvidencePath $fccOutput
 
     [void](Invoke-NodeStep -Name 'fcc-stream-session-failure-self-test' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc-runtime\self-test.mjs') -Arguments @() -EvidencePath '')
 
@@ -103,7 +106,7 @@ try {
     if ($StreamArgsJson) { $runtimeArgs += @('--stream-args-json', $StreamArgsJson) }
     if ($ResumeArgsJson) { $runtimeArgs += @('--resume-args-json', $ResumeArgsJson) }
     if ($ExerciseDuplicateResume) { $runtimeArgs += '--exercise-duplicate-resume' }
-    [void](Invoke-NodeStep -Name 'fcc-stream-session-failure-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc-runtime\probe.mjs') -Arguments $runtimeArgs -EvidencePath $runtimeOutput)
+    $runtimeTargetCode = Invoke-NodeStep -Name 'fcc-stream-session-failure-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc-runtime\probe.mjs') -Arguments $runtimeArgs -EvidencePath $runtimeOutput
 
     # FCCD-P00-008: self-test proves repository-owned logic only; target probe returns exit 2 if Unity is missing or mandatory evidence is incomplete.
     [void](Invoke-NodeStep -Name 'unity-contract-self-test' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\unity\self-test.mjs') -Arguments @() -EvidencePath '')
@@ -115,7 +118,7 @@ try {
     if ($UnityProject) { $unityArgs += @('--project', $UnityProject) }
     if ($UnityFixtureRoot) { $unityArgs += @('--fixture-root', $UnityFixtureRoot) }
     if ($KeepUnityFixture) { $unityArgs += '--keep-fixture' }
-    [void](Invoke-NodeStep -Name 'unity-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\unity\probe.mjs') -Arguments $unityArgs -EvidencePath $unityOutput)
+    $unityTargetCode = Invoke-NodeStep -Name 'unity-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\unity\probe.mjs') -Arguments $unityArgs -EvidencePath $unityOutput
     $unityIntegrated = $true
 
     # FCCD-P00-009: repository logic is self-tested separately from real target evidence.
@@ -125,11 +128,33 @@ try {
     if ($BlenderExecutable) { $blenderArgs += @('--blender', $BlenderExecutable) }
     if ($BlenderFixtureRoot) { $blenderArgs += @('--fixture-root', $BlenderFixtureRoot) }
     if ($KeepBlenderFixture) { $blenderArgs += '--keep-fixture' }
-    [void](Invoke-NodeStep -Name 'blender-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\blender\probe.mjs') -Arguments $blenderArgs -EvidencePath $blenderOutput)
+    $blenderTargetCode = Invoke-NodeStep -Name 'blender-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\blender\probe.mjs') -Arguments $blenderArgs -EvidencePath $blenderOutput
     $blenderIntegrated = $true
 
+    # Build a compact contract summary from sanitized tool-specific evidence. Exit codes remain
+    # authoritative for PASS/BLOCKED/FAIL; the summary preserves exact reasons, versions and
+    # target-observation distinctions required by the binding P00 target-validation contract.
+    $contractSummaryPath = Join-Path $TargetDir 'P00_TARGET_CONTRACT_SUMMARY.json'
+    $contractSummaryScript = Join-Path $RepoRoot 'tools\contract-probes\target-evidence-summary.mjs'
+    $contractSummaryArgs = @(
+        '--repo-root', $RepoRoot,
+        '--authoritative-target',
+        '--fcc-file', $fccOutput, '--fcc-exit', [string]$fccTargetCode,
+        '--runtime-file', $runtimeOutput, '--runtime-exit', [string]$runtimeTargetCode,
+        '--unity-file', $unityOutput, '--unity-exit', [string]$unityTargetCode,
+        '--blender-file', $blenderOutput, '--blender-exit', [string]$blenderTargetCode,
+        '--output', $contractSummaryPath
+    )
+    & node $contractSummaryScript @contractSummaryArgs
+    $contractSummaryExit = $LASTEXITCODE
+    if ($contractSummaryExit -ne 0) {
+        throw "TARGET_EVIDENCE_SUMMARY_FAILED: summarizer exit $contractSummaryExit."
+    }
+    $contractSummary = Get-Content -Raw -Path $contractSummaryPath | ConvertFrom-Json
+    Add-StepResult -Name 'target-evidence-summary' -Status 'PASS' -ExitCode 0 -EvidencePath $contractSummaryPath -Note 'schemaVersion=2; compact sanitized contract metadata'
+
     $manifest = [ordered]@{
-        schemaVersion = 1
+        schemaVersion = 2
         probe = 'P00_TARGET_MACHINE_VALIDATION'
         capturedAtUtc = [DateTime]::UtcNow.ToString('o')
         repoSha = $repoSha
@@ -147,6 +172,8 @@ try {
             unity = $unityIntegrated
             blender = $blenderIntegrated
         }
+        contractSummarySchemaVersion = $contractSummary.schemaVersion
+        contracts = $contractSummary.contracts
         steps = $steps
     }
 
@@ -156,7 +183,7 @@ try {
 
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     $jsonPath = Join-Path $TargetDir 'P00_TARGET_EVIDENCE.json'
-    $jsonText = $manifest | ConvertTo-Json -Depth 8
+    $jsonText = $manifest | ConvertTo-Json -Depth 12
     [System.IO.File]::WriteAllText($jsonPath, $jsonText + [Environment]::NewLine, $utf8NoBom)
 
     $mdPath = Join-Path $TargetDir 'P00_TARGET_EVIDENCE.md'
@@ -168,6 +195,15 @@ try {
     $lines.Add("- Overall status: **$($manifest.overallStatus)**")
     $lines.Add("- Live provider-backed prompt authorized: ``$([bool]$AllowLivePrompt)``")
     $lines.Add('')
+    $lines.Add('## Contract summary')
+    $lines.Add('')
+    foreach ($property in $contractSummary.contracts.PSObject.Properties) {
+        $contract = $property.Value
+        $line = "- $($property.Name): **$($contract.status)** / ``$($contract.resultState)`` - $($contract.reason) - authoritative target execution: ``$($contract.executedOnAuthoritativeTarget)`` - target behavior observed: ``$($contract.targetBehaviorObserved)``"
+        if ($contract.artifactPath) { $line += " - evidence: ``$($contract.artifactPath)``" }
+        $lines.Add($line)
+    }
+    $lines.Add('')
     $lines.Add('## Steps')
     $lines.Add('')
     foreach ($step in $steps) {
@@ -177,7 +213,7 @@ try {
         $lines.Add($line)
     }
     $lines.Add('')
-    $lines.Add('Raw tool-specific JSON referenced above is produced by repository probes that redact credential-shaped values before persistence.')
+    $lines.Add('Raw tool-specific JSON referenced above is produced by repository probes that redact credential-shaped values before persistence. The compact contract summary copies controlled classifications and bounded version/path metadata only; it does not copy raw provider output.')
     [System.IO.File]::WriteAllLines($mdPath, $lines, $utf8NoBom)
 
     Write-Host "P00 target validation status: $($manifest.overallStatus)"
