@@ -10,7 +10,7 @@ CURRENT_PHASE_NAME: Constitution + external-contract de-risking
 CURRENT_PHASE_STATE: IN_PROGRESS
 NEXT_PHASE: P01
 PHASE_EXIT_GATE: NOT_RUN
-KNOWN_PHASE_BLOCKERS: 1
+KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
 LAST_RECONCILED: 2026-09-02
@@ -33,8 +33,8 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 - `FCCD-P00-005` — CLOSED from authoritative exact-head Windows failure/cancellation evidence at tested source SHA `015ffd8c0e2a6e725e33ed153441ff51e7952556`: provider baseline SUCCESS, cancellation INTERRUPTED, graceful interrupt, hardened descendant observation, residual owned-process cleanup by previously observed PID/identity, zero remaining owned processes, and explicit `RATE_LIMIT = NOT_OBSERVED_ON_TARGET` under the resolved PG-002 safe closure policy. No artificial 429 traffic was generated.
 - `FCCD-P00-007` - CLOSED from authoritative Windows CLI fallback evidence covering provider-backed completion across normal, spaced, and Unicode/Arabic working directories, stdout/stderr observability, graceful cancellation, and owned-process cleanup.
 - `FCCD-P00-008` — CLOSED after abandoned Worker 3 work was recovered, Windows probe defects were repaired, and the complete real Unity target contract passed.
-- `FCCD-P00-009` — BLOCKED only on real target Blender execution after reusable probe infrastructure, 15/15 self-tests, contract docs, evidence, and unified-runner integration were completed on this Windows host where Blender is not installed.
-- `FCCD-P00-006`, `010` — IMPLEMENTED from target evidence; closure awaits the remaining P00 blocker and exact-head gate. P00-010 compatibility terminology now explicitly separates TESTED, DETECTED, UNVERIFIED, SUPPORTED and UNSUPPORTED.
+- `FCCD-P00-009` — CLOSED from authoritative Windows Blender `5.2.0` execution at tested source SHA `e6932783b30ab0bdbb596c7959e03143753bff9a`: discovery/version, background/Python automation, save/render/export artifact validation, controlled failure, owned cancellation/cleanup, and 29/29 deterministic self-tests passed; evidence was integrated by PR #40.
+- `FCCD-P00-006`, `010` — VERIFIED from the complete reconciled P00 evidence set. Their task-local contracts are resolved; final transition to CLOSED awaits only the exact-head P00 exit-gate record.
 - `PG-002-P00-RATE-LIMIT-CLOSURE` — RESOLVED. `NOT_OBSERVED_ON_TARGET` remains distinct from PASS/actual observation, but is an accepted P00-005 closure boundary when deterministic classifier mechanics and the rest of the exact-head target contract pass without manufacturing provider load.
 - PR #6 hardened the unified target runner to refuse non-Windows evidence, wrong repository roots, missing Git/Node prerequisites, and uncommitted executable-input changes that break exact-head provenance.
 - PR #9 hardened FCC process ownership evidence so descendants created after the initial snapshot are observed before cancellation/timeout escalation.
@@ -44,10 +44,10 @@ P00 target-dependent contract work must also follow `docs/P00_TARGET_MACHINE_VAL
 
 Complete P00 by:
 
-1. obtaining real Blender target execution on the owner's Windows target after Blender becomes available,
-2. reconciling the primary runtime decision and compatibility baseline after the final target evidence,
-3. rerunning the complete unified suite on the exact current head with no uncommitted source/configuration/probe changes,
-4. running the complete P00 exit gate and fixing every failure before closure.
+1. reconciling the now-integrated authoritative Blender target success into the final runtime/compatibility baseline,
+2. running the complete non-provider P00 convergence verification on the exact candidate head,
+3. recording the exact-head P00 exit gate,
+4. transitioning `FCCD-P00-006` and `FCCD-P00-010` from VERIFIED to CLOSED only after that gate passes.
 
 ## Recommended remaining worker lanes inside P00
 

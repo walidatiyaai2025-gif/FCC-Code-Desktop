@@ -1,4 +1,4 @@
-# FCC Code Desktop — P00 Target-Machine Validation Lane
+# FCC Code Desktop â€” P00 Target-Machine Validation Lane
 
 **Status:** CANONICAL / BINDING P00 SUPPLEMENT  
 **Reason:** Remote/cloud coding workers cannot directly observe the owner's local Windows FCC/`fcc-claude`, Unity, or Blender installations. P00 therefore requires a deliberate local-evidence lane rather than allowing remote workers to guess target behavior.
@@ -16,17 +16,17 @@ The project uses two evidence lanes:
 ```text
 REMOTE/CLOUD WORKERS
   build + self-test reusable probes
-                ↓
+                â†“
 CANONICAL PROBE SUITE ON main
-                ↓
+                â†“
 TARGET WINDOWS VALIDATION WORKER
   runs locally where FCC/Unity/Blender actually exist
-                ↓
+                â†“
 SANITIZED TARGET EVIDENCE
-                ↓
+                â†“
 CONVERGENCE WORKER
   reconciles contracts + closes eligible P00 tasks
-                ↓
+                â†“
 FULL P00 EXIT GATE
 ```
 
@@ -243,12 +243,12 @@ Current durable state includes:
 
 Recent hardening relevant to the final target run includes:
 
-- PR #6 — target-runner provenance guards for Windows, exact HEAD source/configuration inputs, repository identity, Git and Node;
-- PR #9 — FCC runtime ownership evidence refreshes descendants immediately before cancellation/timeout escalation and covers late-spawned children with deterministic regression tests;
-- PR #13 — target-runner rerun safety permits only repository-owned target-evidence output dirtiness while continuing to reject uncommitted executable-input changes;
-- PR #32 — closes P00-005 from exact-head Windows evidence and resolves PG-002 without claiming an observed provider 429;
-- PR #34 — cloud-hardens the Blender probe and expands deterministic Blender coverage to 27/27 while preserving `TARGET_UNVERIFIED` until real Blender runs;
-- PR #35 — hardens the final target runner/summary so mandatory evidence fails closed, integrated P00-005 evidence is reused only when its tested SHA is in current-HEAD ancestry, `NOT_OBSERVED_ON_TARGET` never becomes PASS, and P00-009 cannot become closure-supporting without genuine authoritative Blender success.
+- PR #6 â€” target-runner provenance guards for Windows, exact HEAD source/configuration inputs, repository identity, Git and Node;
+- PR #9 â€” FCC runtime ownership evidence refreshes descendants immediately before cancellation/timeout escalation and covers late-spawned children with deterministic regression tests;
+- PR #13 â€” target-runner rerun safety permits only repository-owned target-evidence output dirtiness while continuing to reject uncommitted executable-input changes;
+- PR #32 â€” closes P00-005 from exact-head Windows evidence and resolves PG-002 without claiming an observed provider 429;
+- PR #34 â€” cloud-hardens the Blender probe and expands deterministic Blender coverage to 27/27 while preserving `TARGET_UNVERIFIED` until real Blender runs;
+- PR #35 â€” hardens the final target runner/summary so mandatory evidence fails closed, integrated P00-005 evidence is reused only when its tested SHA is in current-HEAD ancestry, `NOT_OBSERVED_ON_TARGET` never becomes PASS, and P00-009 cannot become closure-supporting without genuine authoritative Blender success.
 
 ---
 
