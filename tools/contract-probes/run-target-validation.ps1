@@ -94,7 +94,8 @@ try {
     if ($FccClaude) { $fccArgs += @('--fcc-claude', $FccClaude) }
     if ($AllowLivePrompt) { $fccArgs += '--allow-live-prompt' }
     if ($CliArgsJson) { $fccArgs += @('--cli-args-json', $CliArgsJson) }
-    $fccTargetCode = Invoke-NodeStep -Name 'fcc-discovery-cli-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc\probe.mjs') -Arguments $fccArgs -EvidencePath $fccOutput
+    [void](Invoke-NodeStep -Name 'fcc-discovery-cli-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc\probe.mjs') -Arguments $fccArgs -EvidencePath $fccOutput)
+    $fccTargetCode = [int]$steps[$steps.Count - 1].exitCode
 
     [void](Invoke-NodeStep -Name 'fcc-stream-session-failure-self-test' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc-runtime\self-test.mjs') -Arguments @() -EvidencePath '')
 
@@ -106,7 +107,8 @@ try {
     if ($StreamArgsJson) { $runtimeArgs += @('--stream-args-json', $StreamArgsJson) }
     if ($ResumeArgsJson) { $runtimeArgs += @('--resume-args-json', $ResumeArgsJson) }
     if ($ExerciseDuplicateResume) { $runtimeArgs += '--exercise-duplicate-resume' }
-    $runtimeTargetCode = Invoke-NodeStep -Name 'fcc-stream-session-failure-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc-runtime\probe.mjs') -Arguments $runtimeArgs -EvidencePath $runtimeOutput
+    [void](Invoke-NodeStep -Name 'fcc-stream-session-failure-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\fcc-runtime\probe.mjs') -Arguments $runtimeArgs -EvidencePath $runtimeOutput)
+    $runtimeTargetCode = [int]$steps[$steps.Count - 1].exitCode
 
     # FCCD-P00-008: self-test proves repository-owned logic only; target probe returns exit 2 if Unity is missing or mandatory evidence is incomplete.
     [void](Invoke-NodeStep -Name 'unity-contract-self-test' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\unity\self-test.mjs') -Arguments @() -EvidencePath '')
@@ -118,7 +120,8 @@ try {
     if ($UnityProject) { $unityArgs += @('--project', $UnityProject) }
     if ($UnityFixtureRoot) { $unityArgs += @('--fixture-root', $UnityFixtureRoot) }
     if ($KeepUnityFixture) { $unityArgs += '--keep-fixture' }
-    $unityTargetCode = Invoke-NodeStep -Name 'unity-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\unity\probe.mjs') -Arguments $unityArgs -EvidencePath $unityOutput
+    [void](Invoke-NodeStep -Name 'unity-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\unity\probe.mjs') -Arguments $unityArgs -EvidencePath $unityOutput)
+    $unityTargetCode = [int]$steps[$steps.Count - 1].exitCode
     $unityIntegrated = $true
 
     # FCCD-P00-009: repository logic is self-tested separately from real target evidence.
@@ -128,7 +131,8 @@ try {
     if ($BlenderExecutable) { $blenderArgs += @('--blender', $BlenderExecutable) }
     if ($BlenderFixtureRoot) { $blenderArgs += @('--fixture-root', $BlenderFixtureRoot) }
     if ($KeepBlenderFixture) { $blenderArgs += '--keep-fixture' }
-    $blenderTargetCode = Invoke-NodeStep -Name 'blender-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\blender\probe.mjs') -Arguments $blenderArgs -EvidencePath $blenderOutput
+    [void](Invoke-NodeStep -Name 'blender-contract-target' -ScriptPath (Join-Path $RepoRoot 'tools\contract-probes\blender\probe.mjs') -Arguments $blenderArgs -EvidencePath $blenderOutput)
+    $blenderTargetCode = [int]$steps[$steps.Count - 1].exitCode
     $blenderIntegrated = $true
 
     # Build a compact contract summary from sanitized tool-specific evidence. Exit codes remain
