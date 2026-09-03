@@ -6,13 +6,17 @@
              Background="{DynamicResource FccBrushCanvas}"
              Foreground="{DynamicResource FccBrushTextPrimary}"
              AutomationProperties.Name="Main workspace layout">
+    <UserControl.Resources>
+        <GridLength x:Key="FccWorkspaceSplitterWidth">4</GridLength>
+    </UserControl.Resources>
+
     <Grid x:Name="WorkspaceGrid" Background="{DynamicResource FccBrushCanvas}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="LeftPaneColumn"
                               Width="{Binding State.LeftPaneWidth, ElementName=Root, Mode=TwoWay}" />
-            <ColumnDefinition Width="{StaticResource FccSpace4}" />
+            <ColumnDefinition Width="{StaticResource FccWorkspaceSplitterWidth}" />
             <ColumnDefinition Width="*" MinWidth="320" />
-            <ColumnDefinition Width="{StaticResource FccSpace4}" />
+            <ColumnDefinition Width="{StaticResource FccWorkspaceSplitterWidth}" />
             <ColumnDefinition x:Name="RightPaneColumn"
                               Width="{Binding State.RightPaneWidth, ElementName=Root, Mode=TwoWay}" />
         </Grid.ColumnDefinitions>
