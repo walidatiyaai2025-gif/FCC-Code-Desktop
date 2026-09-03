@@ -56,12 +56,14 @@ Closure evidence for `FCCD-P00-006` and `FCCD-P00-010`: the complete reconciled 
 
 | ID | Task | State |
 |---|---|---|
-| FCCD-P01-001 | Create .NET 10 solution/projects with clean boundaries | PENDING |
-| FCCD-P01-002 | Configure nullable/analyzers/style/quality policy | PENDING |
-| FCCD-P01-003 | Dependency pinning/lock strategy | PENDING |
-| FCCD-P01-004 | Unit/integration test infrastructure | PENDING |
-| FCCD-P01-005 | Windows CI Release build/test pipeline | PENDING |
-| FCCD-P01-006 | Build metadata/version service | PENDING |
+| FCCD-P01-001 | Create .NET 10 solution/projects with clean boundaries | CLOSED |
+| FCCD-P01-002 | Configure nullable/analyzers/style/quality policy | CLOSED |
+| FCCD-P01-003 | Dependency pinning/lock strategy | CLOSED |
+| FCCD-P01-004 | Unit/integration test infrastructure | CLOSED |
+| FCCD-P01-005 | Windows CI Release build/test pipeline | CLOSED |
+| FCCD-P01-006 | Build metadata/version service | CLOSED |
+
+Closure evidence for `FCCD-P01-001` through `FCCD-P01-006` is recorded in `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. This closes the six task rows only from implementation + task-specific/cloud validation + normal canonical integration + exact-current-main non-regression CI. P01 itself remains IN_PROGRESS and its exit gate remains NOT_RUN.
 
 ## P02 — Premium design system and shell
 
@@ -346,8 +348,8 @@ Closure evidence for `FCCD-P00-006` and `FCCD-P00-010`: the complete reconciled 
 
 ## Current next action
 
-`CURRENT_PHASE = P00` and P00 is CLOSED with exact-head exit-gate evidence recorded at `evidence/phases/P00/CLOSURE.md`.
+`CURRENT_PHASE = P01` and P01 remains `IN_PROGRESS`.
 
-All mandatory P00 tasks (`FCCD-P00-001` through `FCCD-P00-010`) are CLOSED. The exact-head pre-closure gate passed on candidate SHA `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9` with 6/6 contract-probe self-tests PASS, required evidence ancestry PASS, target evidence secret sanity PASS, `p00TargetValidationComplete=true`, zero open plan gaps, zero known P00 blockers, and a clean worktree. No provider, Unity, or Blender target rerun was performed by the final gate.
+`FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration. The durable task evidence map is `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. The permanent Windows CI baseline is green on exact current `main` SHA `416651579fb8ee42442d961b469b16266810138a` (run `33719564337`).
 
-The next legal action is an explicit canonical transition of `CURRENT_PHASE` from P00 to P01. Do not begin P01 implementation before that transition is integrated. Do not skip later phases or interpret P00 closure as final product completion.
+The next legitimate current-phase action is the complete P01 exit gate: verify a fresh/exact checkout can restore, format, Release-build and run the full unit/integration and P01 policy baseline using the documented commands; record exact-head `evidence/phases/P01/CLOSURE.md`; keep P01 open if any check fails. Do not begin P02 until that closure is integrated and `PHASE_EXIT_GATE=PASS`. `VERIFIED_FINAL_COMPLETE` remains false.
