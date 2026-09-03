@@ -163,7 +163,7 @@ public sealed class SqliteDatabaseInitializer
         return appliedMigrations;
     }
 
-    private void ValidateAppliedMigrations(IReadOnlyDictionary<int, AppliedMigration> appliedMigrations)
+    private void ValidateAppliedMigrations(Dictionary<int, AppliedMigration> appliedMigrations)
     {
         if (appliedMigrations.Count == 0)
         {
