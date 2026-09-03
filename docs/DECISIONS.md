@@ -177,3 +177,18 @@ P04 will implement the primary `IAgentRuntime` adapter as an owned `fcc-claude` 
 The plain print/single-result CLI path remains the compatibility fallback. Successful completion and resume behavior remain P00 blockers while the configured upstream emits HTTP 503 retries. See `docs/contracts/P00_RUNTIME_AND_COMPATIBILITY_BASELINE.md`.
 
 ---
+
+## ADR-018 — P02 design tokens are theme-neutral WPF resources
+
+**Status:** Accepted  
+**Date:** 2026-09-03
+
+P02 establishes application-wide WPF resource dictionaries before shell views multiply. `FCCD-P02-001` owns theme-neutral spacing, inset, radius, stroke/focus geometry, control/icon density, and named typography roles. `FCCD-P02-002` owns semantic dark/light color and brush values and must compose with these resources rather than replacing their contract.
+
+The interface typography baseline is Windows-native `Segoe UI`; code/monospace typography uses Windows-native `Consolas`. No bundled or remotely loaded font is introduced by P02-001. Named `TextBlock` styles are the required consumption surface for display, section, body, metadata, compact-status, and code text.
+
+**Reason:** A stable theme-neutral token/typography contract prevents per-view visual drift, keeps P02-001 and P02-002 non-overlapping, avoids font packaging/licensing/runtime availability risk, and lets later dark/light themes change appearance without architectural replacement.
+
+See `docs/design/DESIGN_TOKENS_AND_TYPOGRAPHY.md`.
+
+---
