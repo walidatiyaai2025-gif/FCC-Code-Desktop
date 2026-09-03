@@ -67,7 +67,8 @@ function Assert-CiPolicy {
         '.\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-workspace-layout.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-navigation-surfaces.ps1 -RunFixtures -RequireRuntime',
-        '.\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime'
+        '.\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime',
+        '.\tools\ui\validate-command-palette.ps1 -RunFixtures -RequireRuntime'
     )) {
         Assert-ContainsLiteral $RunnerText $requiredRunnerText 'Windows CI runner'
     }
@@ -123,9 +124,10 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-workspace-layout.ps1 -RunFixtures -RequireRuntime', '')) } 'missing workspace-layout validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-navigation-surfaces.ps1 -RunFixtures -RequireRuntime', '')) } 'missing navigation-surface validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime', '')) } 'missing bottom-tool-panel validation'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-command-palette.ps1 -RunFixtures -RequireRuntime', '')) } 'missing command-palette validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, and bottom-tool-panel enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, bottom-tool-panel, and command-palette enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {
