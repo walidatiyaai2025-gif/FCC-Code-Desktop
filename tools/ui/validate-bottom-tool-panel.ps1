@@ -47,11 +47,15 @@ function Assert-BottomToolPanelContract {
         '<chrome:BottomToolPanelState x:Key="BottomToolPanelState" />',
         'State="{StaticResource WorkspaceLayoutState}"',
         '<chrome:WorkspaceLayout.BottomContent>',
-        'x:Name="BottomToolPanelHost"',
+        '<chrome:BottomToolPanel',
         'State="{StaticResource BottomToolPanelState}"',
         'LayoutState="{StaticResource WorkspaceLayoutState}"'
     )) {
         Assert-ContainsLiteral $MainText $literal 'MainWindow.xaml'
+    }
+
+    if ($MainText.Contains('x:Name="BottomToolPanelHost"')) {
+        throw 'BottomToolPanel must not register a nested x:Name across the WorkspaceLayout XAML namescope.'
     }
 
     foreach ($literal in @(
@@ -96,6 +100,8 @@ function Assert-BottomToolPanelContract {
     }
 
     foreach ($literal in @(
+        '<RowDefinition Height="Auto" />',
+        'Height="{StaticResource FccControlHeightComfortable}"',
         'x:Name="OutputToolButton"',
         'x:Name="ProblemsToolButton"',
         'x:Name="TerminalToolButton"',
@@ -113,6 +119,10 @@ function Assert-BottomToolPanelContract {
         '{DynamicResource FccBrushFocus}'
     )) {
         Assert-ContainsLiteral $PanelText $literal 'BottomToolPanel.xaml'
+    }
+
+    if ($PanelText.Contains('<RowDefinition Height="{StaticResource FccControlHeightComfortable}" />')) {
+        throw 'BottomToolPanel header row must not assign a Double StaticResource directly to RowDefinition.Height.'
     }
 
     foreach ($literal in @(
@@ -375,7 +385,7 @@ Write-Host 'Static bottom tool-panel framework validation: PASS.'
 
 if ($RunFixtures) {
     Assert-ContractRejects {
-        Assert-BottomToolPanelContract ($mainText.Replace('x:Name="BottomToolPanelHost"', 'x:Name="RemovedBottomToolPanelHost"')) $layoutText $layoutCodeText $layoutStateText $panelText $panelCodeText $panelStateText
+        Assert-BottomToolPanelContract ($mainText.Replace('<chrome:BottomToolPanel', '<chrome:RemovedBottomToolPanel')) $layoutText $layoutCodeText $layoutStateText $panelText $panelCodeText $panelStateText
     } 'missing production bottom tool panel composition'
 
     Assert-ContractRejects {
@@ -397,6 +407,10 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-BottomToolPanelContract $mainText $layoutText $layoutCodeText $layoutStateText $panelText $panelCodeText ($panelStateText.Replace('SelectSection(BottomToolSection section)', 'RemovedBottomToolSelection(BottomToolSection section)'))
     } 'panel selection state contract removed'
+
+    Assert-ContractRejects {
+        Assert-BottomToolPanelContract $mainText $layoutText $layoutCodeText $layoutStateText ($panelText.Replace('<RowDefinition Height="Auto" />', '<RowDefinition Height="{StaticResource FccControlHeightComfortable}" />')) $panelCodeText $panelStateText
+    } 'invalid Double StaticResource assigned to RowDefinition.Height'
 
     Assert-BottomToolPanelContract $mainText $layoutText $layoutCodeText $layoutStateText $panelText $panelCodeText $panelStateText
     Write-Host 'Bottom tool-panel recovery fixture: PASS.'
