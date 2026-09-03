@@ -101,12 +101,12 @@ Release acceptance rows remain governed by `docs/ACCEPTANCE_MATRIX.md`; this tas
 Set-Content -LiteralPath $evidencePath -Value $evidence.TrimEnd() -Encoding utf8NoBOM
 
 $finalPhase = Get-Content -LiteralPath $phasePath -Raw
-if ($finalPhase -notmatch 'FCCD-P01-006` \(build metadata/version service\)') { throw 'CURRENT_PHASE next-task assertion failed.' }
+if (-not $finalPhase.Contains('`FCCD-P01-006` (build metadata/version service)')) { throw 'CURRENT_PHASE next-task assertion failed.' }
 $finalLedger = Get-Content -LiteralPath $ledgerPath -Raw
-foreach ($task in @('001','002','003','004','005')) {
-    if ($finalLedger -notmatch "(?m)^\| FCCD-P01-$task \|[^\r\n]*\| CLOSED \|$") { throw "Ledger closure assertion failed for P01-$task." }
+foreach ($closedRow in $rows.Values) {
+    if (-not $finalLedger.Contains($closedRow)) { throw "Ledger closure assertion failed: $closedRow" }
 }
-if ($finalLedger -notmatch '(?m)^\| FCCD-P01-006 \|[^\r\n]*\| PENDING \|$') { throw 'Ledger P01-006 PENDING assertion failed.' }
+if (-not $finalLedger.Contains($marker)) { throw 'Ledger P01-006 PENDING assertion failed.' }
 if ($finalLedger -match 'CURRENT_PHASE = P00') { throw 'Stale P00 next-action checkpoint remains in ledger.' }
 
 Write-Host 'P01 integrated-task reconciliation generation: PASS.'
