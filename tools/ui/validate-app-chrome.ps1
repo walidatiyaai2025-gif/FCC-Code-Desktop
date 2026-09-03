@@ -9,22 +9,15 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 function Assert-ContainsLiteral {
-    param(
-        [string]$Text,
-        [string]$Literal,
-        [string]$Label
-    )
+    param([string]$Text, [string]$Literal, [string]$Label)
 
     if (-not $Text.Contains($Literal)) {
         throw "$Label is missing required text: $Literal"
     }
 }
 
-function Assert-ValidXml {
-    param(
-        [string]$Text,
-        [string]$Label
-    )
+function Assert-ValidXaml {
+    param([string]$Text, [string]$Label)
 
     try {
         [void][xml]$Text
@@ -34,46 +27,42 @@ function Assert-ValidXml {
     }
 }
 
-function Assert-NoHardCodedThemeColor {
-    param(
-        [string]$Text,
-        [string]$Label
-    )
+function Assert-NoPaletteLeak {
+    param([string]$Text, [string]$Label)
 
     if ($Text -match '#[0-9A-Fa-f]{6,8}') {
         throw "$Label must not hard-code theme colors."
     }
-
     if ($Text -match '\{StaticResource\s+FccBrush') {
-        throw "$Label must consume theme brushes with DynamicResource."
+        throw "$Label must consume theme brushes through DynamicResource."
     }
 }
 
 function Assert-AppChromeContract {
     param(
         [string]$AppText,
-        [string]$ResourcesText,
+        [string]$ChromeText,
         [string]$MainText,
         [string]$TitleText,
         [string]$CodeText
     )
 
-    Assert-ValidXml $AppText 'App.xaml'
-    Assert-ValidXml $ResourcesText 'AppChrome.xaml'
-    Assert-ValidXml $MainText 'MainWindow.xaml'
-    Assert-ValidXml $TitleText 'AppTitleBar.xaml'
+    Assert-ValidXaml $AppText 'App.xaml'
+    Assert-ValidXaml $ChromeText 'AppChrome.xaml'
+    Assert-ValidXaml $MainText 'MainWindow.xaml'
+    Assert-ValidXaml $TitleText 'AppTitleBar.xaml'
 
     Assert-ContainsLiteral $AppText 'StartupUri="MainWindow.xaml"' 'App.xaml'
 
-    $resourceOrder = @(
+    $lastIndex = -1
+    foreach ($source in @(
         'DesignSystem/DesignTokens.xaml',
         'DesignSystem/Typography.xaml',
         'DesignSystem/Themes/Theme.Dark.xaml',
         'DesignSystem/AppChrome.xaml'
-    )
-    $lastIndex = -1
-    foreach ($source in $resourceOrder) {
-        $index = $AppText.IndexOf("Source=\"$source\"", [StringComparison]::Ordinal)
+    )) {
+        $needle = 'Source="' + $source + '"'
+        $index = $AppText.IndexOf($needle, [StringComparison]::Ordinal)
         if ($index -lt 0) {
             throw "App.xaml is missing merged dictionary '$source'."
         }
@@ -101,10 +90,10 @@ function Assert-AppChromeContract {
         'FccChromeCaptionButton',
         'FccChromeCloseButton'
     )) {
-        Assert-ContainsLiteral $ResourcesText "x:Key=\"$key\"" 'AppChrome.xaml'
+        Assert-ContainsLiteral $ChromeText ('x:Key="' + $key + '"') 'AppChrome.xaml'
     }
 
-    foreach ($requiredResourceText in @(
+    foreach ($literal in @(
         '<sys:Double x:Key="FccAppChromeHeight">40</sys:Double>',
         '<Thickness x:Key="FccAppChromeResizeBorderThickness">6</Thickness>',
         'shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"',
@@ -115,18 +104,18 @@ function Assert-AppChromeContract {
         '{DynamicResource FccBrushErrorBackground}',
         '{DynamicResource FccBrushError}'
     )) {
-        Assert-ContainsLiteral $ResourcesText $requiredResourceText 'AppChrome.xaml'
+        Assert-ContainsLiteral $ChromeText $literal 'AppChrome.xaml'
     }
 
-    if ($ResourcesText -match '<Color\b' -or $ResourcesText -match '<SolidColorBrush\b') {
-        throw 'AppChrome.xaml must consume P02-002 semantic brushes instead of defining a new palette.'
+    if ($ChromeText -match '<Color\b' -or $ChromeText -match '<SolidColorBrush\b') {
+        throw 'AppChrome.xaml must not define a second color/brush palette.'
     }
 
-    Assert-NoHardCodedThemeColor $ResourcesText 'AppChrome.xaml'
-    Assert-NoHardCodedThemeColor $MainText 'MainWindow.xaml'
-    Assert-NoHardCodedThemeColor $TitleText 'AppTitleBar.xaml'
+    Assert-NoPaletteLeak $ChromeText 'AppChrome.xaml'
+    Assert-NoPaletteLeak $MainText 'MainWindow.xaml'
+    Assert-NoPaletteLeak $TitleText 'AppTitleBar.xaml'
 
-    foreach ($requiredMainText in @(
+    foreach ($literal in @(
         'WindowStyle="None"',
         'ResizeMode="CanResize"',
         'Background="{DynamicResource FccBrushCanvas}"',
@@ -136,20 +125,20 @@ function Assert-AppChromeContract {
         '<chrome:AppTitleBar x:Name="AppTitleBarHost"',
         '<ContentControl x:Name="WorkspaceHost"'
     )) {
-        Assert-ContainsLiteral $MainText $requiredMainText 'MainWindow.xaml'
+        Assert-ContainsLiteral $MainText $literal 'MainWindow.xaml'
     }
 
     if ($MainText.Contains('AllowsTransparency="True"')) {
-        throw 'MainWindow must not enable AllowsTransparency; native WindowChrome behavior and rendering performance must be preserved.'
+        throw 'MainWindow must preserve native WindowChrome rendering and must not use AllowsTransparency=True.'
     }
 
-    foreach ($forbiddenPlaceholder in @('TODO', 'FIXME', 'Coming soon', 'Placeholder')) {
-        if ($MainText.Contains($forbiddenPlaceholder, [StringComparison]::OrdinalIgnoreCase)) {
-            throw "MainWindow contains forbidden placeholder text '$forbiddenPlaceholder'."
+    foreach ($placeholder in @('TODO', 'FIXME', 'Coming soon', 'Placeholder')) {
+        if ($MainText.IndexOf($placeholder, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            throw "MainWindow contains forbidden placeholder text '$placeholder'."
         }
     }
 
-    foreach ($requiredTitleText in @(
+    foreach ($literal in @(
         'Text="{Binding ProductName, ElementName=Root}"',
         'Content="{Binding ContextContent, ElementName=Root}"',
         'Content="{Binding StatusContent, ElementName=Root}"',
@@ -168,19 +157,14 @@ function Assert-AppChromeContract {
         '{DynamicResource FccBrushSurface}',
         '{DynamicResource FccBrushDivider}'
     )) {
-        Assert-ContainsLiteral $TitleText $requiredTitleText 'AppTitleBar.xaml'
+        Assert-ContainsLiteral $TitleText $literal 'AppTitleBar.xaml'
     }
 
-    foreach ($glyphKey in @(
-        'FccChromeMinimizeGlyph',
-        'FccChromeMaximizeGlyph',
-        'FccChromeRestoreGlyph',
-        'FccChromeCloseGlyph'
-    )) {
-        Assert-ContainsLiteral $TitleText "Data=\"{StaticResource $glyphKey}\"" 'AppTitleBar.xaml'
+    foreach ($glyph in @('Minimize', 'Maximize', 'Restore', 'Close')) {
+        Assert-ContainsLiteral $TitleText ('Data="{StaticResource FccChrome' + $glyph + 'Glyph}"') 'AppTitleBar.xaml'
     }
 
-    foreach ($requiredCodeText in @(
+    foreach ($literal in @(
         'DependencyProperty ProductNameProperty',
         'DependencyProperty ContextContentProperty',
         'DependencyProperty StatusContentProperty',
@@ -191,10 +175,10 @@ function Assert-AppChromeContract {
         ': WindowState.Maximized',
         'Window.GetWindow(this)?.Close();'
     )) {
-        Assert-ContainsLiteral $CodeText $requiredCodeText 'AppTitleBar.xaml.cs'
+        Assert-ContainsLiteral $CodeText $literal 'AppTitleBar.xaml.cs'
     }
 
-    foreach ($forbiddenCodeText in @(
+    foreach ($forbidden in @(
         'Process.Start',
         'System.IO.File',
         'FCCCodeDesktop.Runtime',
@@ -202,43 +186,33 @@ function Assert-AppChromeContract {
         'FCCCodeDesktop.Git',
         'FCCCodeDesktop.Terminal'
     )) {
-        if ($CodeText.Contains($forbiddenCodeText, [StringComparison]::Ordinal)) {
-            throw "AppTitleBar code-behind crosses the presentation-only chrome boundary: $forbiddenCodeText"
+        if ($CodeText.Contains($forbidden)) {
+            throw "AppTitleBar code-behind crosses the presentation-only boundary: $forbidden"
         }
     }
 }
 
 function Assert-ContractRejects {
-    param(
-        [scriptblock]$Action,
-        [string]$Label
-    )
+    param([scriptblock]$Action, [string]$Label)
 
-    $rejected = $false
     try {
         & $Action
     }
     catch {
-        $rejected = $true
         Write-Host "Negative fixture rejected as expected: $Label"
+        return
     }
 
-    if (-not $rejected) {
-        throw "Negative app-chrome fixture was not rejected: $Label"
-    }
+    throw "Negative app-chrome fixture was not rejected: $Label"
 }
 
 function Invoke-AppChromeRuntimeFixture {
-    param(
-        [string]$AppProjectPath
-    )
+    param([string]$AppProjectPath)
 
     if (-not $IsWindows) {
         throw 'Runtime app-chrome fixture requires Windows/WPF.'
     }
-
-    $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
-    if (-not $dotnet) {
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
         throw 'dotnet is required for the runtime app-chrome fixture.'
     }
 
@@ -247,15 +221,15 @@ function Invoke-AppChromeRuntimeFixture {
         throw "Runtime app-chrome fixture requires .NET SDK 10.0.400 but resolved '$sdkVersion'."
     }
 
-    $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ("fccd-app-chrome-runtime-{0}" -f [Guid]::NewGuid().ToString('N'))
+    $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ('fccd-app-chrome-runtime-' + [Guid]::NewGuid().ToString('N'))
     [void](New-Item -ItemType Directory -Path $fixtureRoot -Force)
 
     try {
-        $fixtureProjectPath = Join-Path $fixtureRoot 'AppChromeRuntimeFixture.csproj'
+        $projectPath = Join-Path $fixtureRoot 'AppChromeRuntimeFixture.csproj'
         $programPath = Join-Path $fixtureRoot 'Program.cs'
-        $escapedProjectReference = [Security.SecurityElement]::Escape($AppProjectPath)
+        $projectReference = [Security.SecurityElement]::Escape($AppProjectPath)
 
-        $projectText = @"
+        $project = @"
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -266,12 +240,12 @@ function Invoke-AppChromeRuntimeFixture {
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="$escapedProjectReference" />
+    <ProjectReference Include="$projectReference" />
   </ItemGroup>
 </Project>
 "@
 
-        $programText = @'
+        $program = @'
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -289,34 +263,21 @@ internal static class Program
     {
         var app = new App();
         app.InitializeComponent();
-
         var window = new MainWindow();
-        if (window.WindowStyle != WindowStyle.None || window.ResizeMode != ResizeMode.CanResize)
-        {
-            throw new InvalidOperationException("MainWindow does not expose the required custom resizable chrome contract.");
-        }
+
+        Assert(window.WindowStyle == WindowStyle.None, "custom window style");
+        Assert(window.ResizeMode == ResizeMode.CanResize, "native resize mode");
 
         var chrome = WindowChrome.GetWindowChrome(window)
-            ?? throw new InvalidOperationException("MainWindow has no WindowChrome instance.");
-        if (Math.Abs(chrome.CaptionHeight - 40d) > 0.01d || chrome.UseAeroCaptionButtons)
-        {
-            throw new InvalidOperationException("WindowChrome caption/native-button contract is incorrect.");
-        }
-        if (chrome.ResizeBorderThickness.Left < 6d || chrome.ResizeBorderThickness.Top < 6d)
-        {
-            throw new InvalidOperationException("WindowChrome resize border is below the required usable threshold.");
-        }
+            ?? throw new InvalidOperationException("WindowChrome was not attached.");
+        Assert(Math.Abs(chrome.CaptionHeight - 40d) < 0.01d, "caption height");
+        Assert(!chrome.UseAeroCaptionButtons, "app-owned caption buttons");
+        Assert(chrome.ResizeBorderThickness.Left >= 6d && chrome.ResizeBorderThickness.Top >= 6d, "resize border");
 
         var titleBar = window.FindName("AppTitleBarHost") as AppTitleBar
-            ?? throw new InvalidOperationException("MainWindow title bar host was not created.");
-        if (window.FindName("WorkspaceHost") is not ContentControl)
-        {
-            throw new InvalidOperationException("MainWindow workspace seam was not created.");
-        }
-        if (!string.Equals(titleBar.ProductName, "FCC Code Desktop", StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException("Product identity text did not flow through the title bar contract.");
-        }
+            ?? throw new InvalidOperationException("AppTitleBarHost was not created.");
+        Assert(window.FindName("WorkspaceHost") is ContentControl, "workspace seam");
+        Assert(titleBar.ProductName == "FCC Code Desktop", "product identity");
 
         var minimize = RequireButton(titleBar, "MinimizeButton", "Minimize window");
         var maximize = RequireButton(titleBar, "MaximizeButton", "Maximize window");
@@ -324,88 +285,65 @@ internal static class Program
         _ = RequireButton(titleBar, "CloseButton", "Close window");
 
         maximize.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        if (window.WindowState != WindowState.Maximized)
-        {
-            throw new InvalidOperationException("Maximize action did not update the host window state.");
-        }
-
+        Assert(window.WindowState == WindowState.Maximized, "maximize transition");
         restore.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        if (window.WindowState != WindowState.Normal)
-        {
-            throw new InvalidOperationException("Restore action did not return the host window to normal state.");
-        }
-
+        Assert(window.WindowState == WindowState.Normal, "restore transition");
         minimize.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-        if (window.WindowState != WindowState.Minimized)
-        {
-            throw new InvalidOperationException("Minimize action did not update the host window state.");
-        }
+        Assert(window.WindowState == WindowState.Minimized, "minimize transition");
         window.WindowState = WindowState.Normal;
 
         titleBar.ContextContent = new TextBlock { Text = "Workspace context" };
         titleBar.StatusContent = new TextBlock { Text = "Runtime status" };
-        if (titleBar.ContextContent is not TextBlock || titleBar.StatusContent is not TextBlock)
-        {
-            throw new InvalidOperationException("App chrome extension content was not retained.");
-        }
+        Assert(titleBar.ContextContent is TextBlock && titleBar.StatusContent is TextBlock, "extension content seams");
 
         var detached = new AppTitleBar();
         var detachedMinimize = detached.FindName("MinimizeButton") as Button
-            ?? throw new InvalidOperationException("Detached title bar did not create caption controls.");
+            ?? throw new InvalidOperationException("Detached title bar caption button missing.");
         detachedMinimize.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
-        var darkSurface = RequireBrush(titleBar.Background, "dark title bar surface").Color;
-        var themeService = new ThemeService(app.Resources);
-        if (themeService.CurrentTheme != AppearanceTheme.Dark)
-        {
-            throw new InvalidOperationException("Runtime fixture did not start in the canonical dark theme.");
-        }
+        var darkSurface = RequireBrush(titleBar.Background, "dark surface").Color;
+        var themes = new ThemeService(app.Resources);
+        Assert(themes.CurrentTheme == AppearanceTheme.Dark, "default dark theme");
 
-        themeService.Apply(AppearanceTheme.Light);
+        themes.Apply(AppearanceTheme.Light);
         titleBar.Dispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
-        var lightSurface = RequireBrush(titleBar.Background, "light title bar surface").Color;
-        if (lightSurface == darkSurface)
-        {
-            throw new InvalidOperationException("Title bar DynamicResource did not follow the dark-to-light theme switch.");
-        }
+        var lightSurface = RequireBrush(titleBar.Background, "light surface").Color;
+        Assert(lightSurface != darkSurface, "dark to light DynamicResource update");
 
-        themeService.Apply(AppearanceTheme.Dark);
+        themes.Apply(AppearanceTheme.Dark);
         titleBar.Dispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
-        var recoveredSurface = RequireBrush(titleBar.Background, "recovered dark title bar surface").Color;
-        if (recoveredSurface != darkSurface)
-        {
-            throw new InvalidOperationException("Title bar theme recovery did not return to the original dark semantic surface.");
-        }
+        Assert(RequireBrush(titleBar.Background, "recovered dark surface").Color == darkSurface, "theme recovery");
 
         Console.WriteLine("Runtime app-chrome happy/negative/theme-recovery fixture: PASS.");
     }
 
-    private static Button RequireButton(AppTitleBar titleBar, string name, string expectedAutomationName)
+    private static Button RequireButton(AppTitleBar titleBar, string name, string automationName)
     {
         var button = titleBar.FindName(name) as Button
             ?? throw new InvalidOperationException($"Missing caption button '{name}'.");
-        var automationName = AutomationProperties.GetName(button);
-        if (!string.Equals(automationName, expectedAutomationName, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException($"Caption button '{name}' has invalid automation name '{automationName}'.");
-        }
-        if (!WindowChrome.GetIsHitTestVisibleInChrome(button))
-        {
-            throw new InvalidOperationException($"Caption button '{name}' is not interactive inside WindowChrome.");
-        }
+        Assert(AutomationProperties.GetName(button) == automationName, $"automation name for {name}");
+        Assert(WindowChrome.GetIsHitTestVisibleInChrome(button), $"chrome hit testing for {name}");
         return button;
     }
 
     private static SolidColorBrush RequireBrush(Brush? brush, string label) =>
         brush as SolidColorBrush
-        ?? throw new InvalidOperationException($"Expected a SolidColorBrush for {label}.");
+        ?? throw new InvalidOperationException($"Expected SolidColorBrush for {label}.");
+
+    private static void Assert(bool condition, string label)
+    {
+        if (!condition)
+        {
+            throw new InvalidOperationException($"App-chrome runtime assertion failed: {label}");
+        }
+    }
 }
 '@
 
-        Set-Content -LiteralPath $fixtureProjectPath -Value $projectText -Encoding utf8NoBOM
-        Set-Content -LiteralPath $programPath -Value $programText -Encoding utf8NoBOM
+        Set-Content -LiteralPath $projectPath -Value $project -Encoding utf8NoBOM
+        Set-Content -LiteralPath $programPath -Value $program -Encoding utf8NoBOM
 
-        & dotnet run --project $fixtureProjectPath -c Release
+        & dotnet run --project $projectPath -c Release
         if ($LASTEXITCODE -ne 0) {
             throw "Runtime app-chrome fixture failed with exit code $LASTEXITCODE."
         }
@@ -416,57 +354,57 @@ internal static class Program
 }
 
 $appPath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\App.xaml'
-$resourcesPath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\DesignSystem\AppChrome.xaml'
+$chromePath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\DesignSystem\AppChrome.xaml'
 $mainPath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\MainWindow.xaml'
 $titlePath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Shell\AppTitleBar.xaml'
 $codePath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Shell\AppTitleBar.xaml.cs'
 $appProjectPath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\FCCCodeDesktop.App.csproj'
 
-foreach ($requiredPath in @($appPath, $resourcesPath, $mainPath, $titlePath, $codePath, $appProjectPath)) {
-    if (-not (Test-Path -LiteralPath $requiredPath)) {
-        throw "Required app-chrome path is missing: $requiredPath"
+foreach ($path in @($appPath, $chromePath, $mainPath, $titlePath, $codePath, $appProjectPath)) {
+    if (-not (Test-Path -LiteralPath $path)) {
+        throw "Required app-chrome path is missing: $path"
     }
 }
 
 $appText = Get-Content -LiteralPath $appPath -Raw
-$resourcesText = Get-Content -LiteralPath $resourcesPath -Raw
+$chromeText = Get-Content -LiteralPath $chromePath -Raw
 $mainText = Get-Content -LiteralPath $mainPath -Raw
 $titleText = Get-Content -LiteralPath $titlePath -Raw
 $codeText = Get-Content -LiteralPath $codePath -Raw
 
-Assert-AppChromeContract $appText $resourcesText $mainText $titleText $codeText
+Assert-AppChromeContract $appText $chromeText $mainText $titleText $codeText
 Write-Host 'Static premium app-chrome validation: PASS.'
 
 if ($RunFixtures) {
     Assert-ContractRejects {
-        Assert-AppChromeContract ($appText.Replace(' StartupUri="MainWindow.xaml"', '')) $resourcesText $mainText $titleText $codeText
+        Assert-AppChromeContract ($appText.Replace(' StartupUri="MainWindow.xaml"', '')) $chromeText $mainText $titleText $codeText
     } 'missing startup window'
 
     Assert-ContractRejects {
-        Assert-AppChromeContract $appText $resourcesText ($mainText.Replace('WindowStyle="None"', 'WindowStyle="SingleBorderWindow"')) $titleText $codeText
-    } 'default Windows/WPF chrome regression'
+        Assert-AppChromeContract $appText $chromeText ($mainText.Replace('WindowStyle="None"', 'WindowStyle="SingleBorderWindow"')) $titleText $codeText
+    } 'default WPF chrome regression'
 
     Assert-ContractRejects {
-        Assert-AppChromeContract $appText $resourcesText ($mainText.Replace('<shell:WindowChrome CaptionHeight="{StaticResource FccAppChromeHeight}"', '<shell:WindowChrome CaptionHeight="0"')) $titleText $codeText
-    } 'caption chrome contract regression'
+        Assert-AppChromeContract $appText $chromeText ($mainText.Replace('UseAeroCaptionButtons="False"', 'UseAeroCaptionButtons="True"')) $titleText $codeText
+    } 'native caption buttons re-enabled'
 
     Assert-ContractRejects {
-        Assert-AppChromeContract $appText $resourcesText $mainText ($titleText.Replace('AutomationProperties.Name="Close window"', '')) $codeText
-    } 'missing close-button accessibility name'
+        Assert-AppChromeContract $appText $chromeText $mainText ($titleText.Replace('AutomationProperties.Name="Close window"', '')) $codeText
+    } 'missing close accessibility name'
 
     Assert-ContractRejects {
-        Assert-AppChromeContract $appText ($resourcesText.Replace('{DynamicResource FccBrushHoverOverlay}', '#FFFFFF')) $mainText $titleText $codeText
-    } 'hard-coded caption hover color'
+        Assert-AppChromeContract $appText ($chromeText.Replace('{DynamicResource FccBrushHoverOverlay}', '#FFFFFF')) $mainText $titleText $codeText
+    } 'hard-coded hover color'
 
     Assert-ContractRejects {
-        Assert-AppChromeContract $appText $resourcesText ($mainText.Replace('<ContentControl x:Name="WorkspaceHost"', '<ContentControl x:Name="TemporaryHost"')) $titleText $codeText
-    } 'missing later-shell workspace seam'
+        Assert-AppChromeContract $appText $chromeText ($mainText.Replace('<ContentControl x:Name="WorkspaceHost"', '<ContentControl x:Name="TemporaryHost"')) $titleText $codeText
+    } 'missing workspace seam'
 
     Assert-ContractRejects {
-        Assert-AppChromeContract $appText $resourcesText $mainText $titleText ($codeText.Replace('window.WindowState == WindowState.Maximized', 'false'))
+        Assert-AppChromeContract $appText $chromeText $mainText $titleText ($codeText.Replace('window.WindowState == WindowState.Maximized', 'false'))
     } 'maximize/restore state contract removed'
 
-    Assert-AppChromeContract $appText $resourcesText $mainText $titleText $codeText
+    Assert-AppChromeContract $appText $chromeText $mainText $titleText $codeText
     Write-Host 'App-chrome recovery fixture: PASS.'
     Write-Host 'Deterministic app-chrome negative/recovery fixtures: PASS.'
 }
