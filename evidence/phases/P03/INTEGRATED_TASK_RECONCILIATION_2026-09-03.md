@@ -7,18 +7,19 @@ This record reconciles validated, already-integrated P03 persistence tasks after
 - `FCCD-P03-001 — SQLite bootstrap and schema migrations`
 - `FCCD-P03-002 — Project/session/message persistence`
 - `FCCD-P03-003 — Task/agent/tool/process event journal`
+- `FCCD-P03-004 — Queue persistence`
 
 It is **not** the P03 phase-closure artifact, does not run or claim the P03 exit gate, does not advance to P04, and keeps `VERIFIED_FINAL_COMPLETE=false`.
 
-Reconciliation baseline for the latest integrated task: exact canonical `main` SHA `cb58551f9e8d32b4f0514b199e407ffcda84c188`.
+Reconciliation baseline for the latest integrated task: exact canonical `main` SHA `7ee0b5ef6b0d6810421c7b6087e712916c9babbd`.
 
 ## Live recovery map
 
 - `CURRENT_PHASE=P03`, `CURRENT_PHASE_STATE=IN_PROGRESS`, `PHASE_EXIT_GATE=NOT_RUN`.
-- Implementation PR #75 was normally merged before this reconciliation.
-- Exact post-merge canonical-main Windows CI run `33804999538` completed **SUCCESS** on `cb58551f9e8d32b4f0514b199e407ffcda84c188`.
+- Implementation PR #77 was normally merged before this reconciliation.
+- Exact post-merge canonical-main Windows CI run `33808499136` completed **SUCCESS** on `7ee0b5ef6b0d6810421c7b6087e712916c9babbd`.
 - P03 remains the sole legal implementation phase; P04 remains prohibited.
-- `FCCD-P03-004` through `FCCD-P03-007` remain PENDING after this task reconciliation.
+- `FCCD-P03-005` through `FCCD-P03-007` remain PENDING after this task reconciliation.
 
 ## P03-001 implementation and repair history
 
@@ -154,6 +155,54 @@ No provider/FCC, Unity, Blender, installer, clean-machine, screenshot, manual, o
 - Exact post-merge canonical-main Windows CI run `33804999538` / run number 94: **SUCCESS** on that exact SHA.
 - Exact-main Windows CI baseline: **PASS**.
 
+## P03-004 implementation and validation history
+
+Implementation PR #77, `P03-004: persist durable queue state`, advanced the persistence baseline through schema migration v4 while deliberately keeping P14 execution-coordinator semantics out of P03:
+
+- persistence-neutral `PersistedQueueItem` record in Core;
+- application-owned `IQueueStateStore` abstraction;
+- SQLite migration v4 for `QueueItems` with one durable queue row per task;
+- foreign-key ownership tied to the durable P03 task journal and cascade cleanup with the owning task;
+- non-negative durable `OrderKey`, non-empty lifecycle `State`, immutable original `EnqueuedUtc`, and mutable `UpdatedUtc`;
+- deterministic persisted ordering by `OrderKey`, then `EnqueuedUtc`, then queue-item ID;
+- duplicate order keys permitted with deterministic tie-breaking, while duplicate task membership is rejected;
+- upserts may mutate queue order/state/update timestamp but cannot rewrite task identity or the original enqueue timestamp;
+- orphan task references are rejected by SQLite foreign keys;
+- short-lived non-pooled SQLite connections with foreign keys and bounded busy timeout consistent with earlier P03 stores;
+- durable contract documentation at `docs/persistence/QUEUE_PERSISTENCE.md`;
+- explicit boundary preserving global dispatch, concurrency=1 enforcement, 15-second cooldown, queue UX, rate-limit backoff, and restart duplicate-launch prevention for their later canonical phases.
+
+Integration coverage verifies:
+
+- queue state survives store recreation;
+- deterministic ordering, including duplicate order-key tie-breaking;
+- lookup by queue-item ID and owning task ID;
+- mutable queue order/state while task identity and enqueue timestamp remain immutable;
+- attempted identity/enqueue-time rewrites fail without altering persisted state;
+- duplicate durable queue membership for one task is rejected;
+- orphan task references are rejected;
+- invalid negative order, blank state, and backwards timestamps are rejected before persistence;
+- SQLite bootstrap advances to baseline schema version 4 while migration rollback/checksum/gap protections remain operational from the new baseline.
+
+No provider/FCC, Unity, Blender, installer, clean-machine, screenshot, manual, release, P14 runtime-coordinator, or rate-limit evidence is claimed by P03-004.
+
+### P03-004 exact validation evidence
+
+- Exact implementation candidate: `2a1f3d0296765507e15b9b7e4a8934940c4e4b57`.
+- PR synthetic merge tested by GitHub-hosted Windows CI: `c24644f0e5cb0a05f59f3721b761bf296c103036`.
+- Focused Windows CI run `33808119260` / run number 97: **SUCCESS**.
+- Release build: **0 warnings, 0 errors**.
+- Unit tests: **9 passed, 0 failed**.
+- Integration tests: **23 passed, 0 failed**.
+- Permanent CI also passed locked restore, format verification, build metadata policy, dependency policy, nullable/analyzer/style quality policy, test-infrastructure policy, and every previously integrated P02 static/negative/recovery/Windows-runtime validator.
+- PR #77 was merged with a normal merge commit, preserving tested ancestry.
+- Canonical implementation merge SHA: `7ee0b5ef6b0d6810421c7b6087e712916c9babbd`.
+- Exact post-merge canonical-main Windows CI run `33808499136` / run number 98: **SUCCESS** on that exact SHA.
+- Exact-main Release build: **0 warnings, 0 errors**.
+- Exact-main unit tests: **9 passed, 0 failed**.
+- Exact-main integration tests: **23 passed, 0 failed**.
+- Exact-main Windows CI baseline: **PASS**.
+
 ## Reconciliation result
 
 | Task | Canonical integration / focused evidence | Result |
@@ -161,13 +210,15 @@ No provider/FCC, Unity, Blender, installer, clean-machine, screenshot, manual, o
 | `FCCD-P03-001` | PR #71; candidate `ba30c8f3bef8c56977b59756bf168c480f2ad6b3`; Windows CI `33796749113` SUCCESS; normal merge `b7437a659911d17e7b221a6f540bc470f5acf929`; exact-main Windows CI `33797456382` SUCCESS. | CLOSED |
 | `FCCD-P03-002` | PR #73; candidate `9911627c3ccbce4c82bbded9ef0c7e4c7c9173c7`; Windows CI `33800474488` SUCCESS; normal merge `0d6402d0ee14412a62f2b2f67a54c779d6f47cf2`; exact-main Windows CI `33800922990` SUCCESS. | CLOSED |
 | `FCCD-P03-003` | PR #75; candidate `12053c1c3252df45f52ac8c13ee0fc398ce80daa`; Windows CI `33804512765` SUCCESS; normal merge `cb58551f9e8d32b4f0514b199e407ffcda84c188`; exact-main Windows CI `33804999538` SUCCESS. | CLOSED |
+| `FCCD-P03-004` | PR #77; candidate `2a1f3d0296765507e15b9b7e4a8934940c4e4b57`; Windows CI `33808119260` SUCCESS; normal merge `7ee0b5ef6b0d6810421c7b6087e712916c9babbd`; exact-main Windows CI `33808499136` SUCCESS. | CLOSED |
 
 ## State after reconciliation
 
 - `FCCD-P03-001` — CLOSED.
 - `FCCD-P03-002` — CLOSED.
 - `FCCD-P03-003` — CLOSED.
-- `FCCD-P03-004` through `FCCD-P03-007` — PENDING.
+- `FCCD-P03-004` — CLOSED.
+- `FCCD-P03-005` through `FCCD-P03-007` — PENDING.
 - `CURRENT_PHASE` — P03.
 - `CURRENT_PHASE_STATE` — IN_PROGRESS.
 - `PHASE_EXIT_GATE` — NOT_RUN.
@@ -177,4 +228,4 @@ No provider/FCC, Unity, Blender, installer, clean-machine, screenshot, manual, o
 
 ## Next legitimate action
 
-Re-fetch live main, open PRs/branches/claims, current CI, and P03 evidence and apply `docs/WORKER_PROTOCOL.md`. If no Priority 1–4 recovery work exists, the earliest dependency-valid unclaimed current-phase task is `FCCD-P03-004 — Queue persistence`. Do not claim P03 phase closure before all seven mandatory tasks are CLOSED and the P03 exact-head exit gate passes.
+Re-fetch live main, open PRs/branches/claims, current CI, and P03 evidence and apply `docs/WORKER_PROTOCOL.md`. If no Priority 1–4 recovery work exists, the earliest dependency-valid unclaimed current-phase task is `FCCD-P03-005 — Settings persistence`. Do not claim P03 phase closure before all seven mandatory tasks are CLOSED and the P03 exact-head exit gate passes.
