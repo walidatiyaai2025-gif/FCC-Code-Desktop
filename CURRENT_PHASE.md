@@ -18,7 +18,7 @@ LAST_RECONCILED: 2026-09-04
 
 ## Active rule
 
-P03 is the sole legal implementation phase after canonical P02 closure and exact post-closure main verification. `FCCD-P03-001` through `FCCD-P03-006` are canonically integrated and reconciled as `CLOSED`; `FCCD-P03-007` remains `PENDING`.
+P03 is the sole legal implementation phase after canonical P02 closure and exact post-closure main verification. `FCCD-P03-001` through `FCCD-P03-007` are canonically integrated and reconciled as `CLOSED`. All mandatory P03 task rows are therefore closed, but P03 itself remains open until its dedicated exact-head exit gate passes with canonical closure evidence.
 
 Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
@@ -33,8 +33,8 @@ P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.m
 - `FCCD-P03-004` — CLOSED after implementation PR #77 was validated on exact candidate `2a1f3d0296765507e15b9b7e4a8934940c4e4b57` by Windows CI run `33808119260`, normally merged as `7ee0b5ef6b0d6810421c7b6087e712916c9babbd`, and the exact resulting canonical main passed Windows CI run `33808499136` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 23/23, and the complete permanent Windows baseline PASS.
 - `FCCD-P03-005` — CLOSED after implementation PR #79 was validated on exact candidate `bd717c0acd625f1ba660175a9506849047e54be7` by Windows CI run `33811688597`, normally merged as `46d1f49ba69df48c16246fa9632457fc5c0ecea6`, and the exact resulting canonical main passed Windows CI run `33812108965` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 28/28, and the complete permanent Windows baseline PASS.
 - `FCCD-P03-006` — CLOSED after implementation PR #81 was validated on exact candidate `308a8856850290f8c18b434a5e33a8d448c299da` by Windows CI run `33815261012`, normally merged as `cc3259710b3ca2ba1800dcd818267bcf6d77ad40`, and the exact resulting canonical main passed Windows CI run `33815707175` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 33/33, and the complete permanent Windows baseline PASS. Task evidence: `evidence/phases/P03/P03_006_INTEGRATED_RECONCILIATION_2026-09-04.md`.
+- `FCCD-P03-007` — CLOSED after implementation PR #83 was validated on exact candidate `f0f21f5aa616c4d2733c6c271f95c269b8b71e66` by Windows CI run `33818107766`, normally merged as `d475f576320a8e7db2521d1f54248fed27a49dd8`, and the exact resulting canonical main passed Windows CI run `33818509132` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 37/37, and the complete permanent Windows baseline PASS. Task evidence: `evidence/phases/P03/P03_007_INTEGRATED_RECONCILIATION_2026-09-04.md`.
 - P03 integrated-task reconciliation evidence for P03-001 through P03-005: `evidence/phases/P03/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
-- `FCCD-P03-007` — PENDING.
 - P03 activation transition: PR #70 integrated the phase activation as canonical main `c5be02bc8224f56eff83cca925e0d6e22d4c034a`; its exact resulting-main Windows CI was green before P03-001 work was claimed.
 - `P02` — CLOSED with `PHASE_EXIT_GATE=PASS`.
 - `FCCD-P02-001` through `FCCD-P02-009` — CLOSED from validated canonical integration and exact-current-main non-regression Windows CI.
@@ -67,7 +67,7 @@ P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.m
 - `PG-002-P00-RATE-LIMIT-CLOSURE` — RESOLVED. `NOT_OBSERVED_ON_TARGET` remains distinct from PASS/actual observation, but is an accepted P00-005 closure boundary when deterministic classifier mechanics and the rest of the exact-head target contract pass without manufacturing provider load.
 - PR #40 integrated sanitized authoritative Unity/Blender target evidence, including `p00TargetValidationComplete=true` and Blender closure support.
 - PR #41 reconciled authoritative Blender target success into the canonical P00 task/contract/compatibility state.
-- The exact-head P00 pre-closure gate passed on `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`: all 6/6 contract-probe self-tests passed, target evidence secret sanity scan passed, required evidence ancestry passed, no open plan gaps or known phase blockers remained, and the worktree remained clean.
+- The exact-head P00 pre-closure gate passed on `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`: all 6/6 contract-probe self-tests passed, target evidence secret sanity scan passed, required evidence ancestry passed, no open plan gaps or known P00 blockers remained, and the worktree remained clean.
 
 ## P00 closure
 
@@ -118,7 +118,7 @@ CLOSURE_RECORD: evidence/phases/P02/CLOSURE.md
 
 ## Next legal action
 
-Re-fetch live `main`, open PRs/branches/claims, current CI, and P03 evidence before selecting more work. `FCCD-P03-001` through `FCCD-P03-006` are CLOSED; if no Priority 1–4 recovery work exists, the earliest dependency-valid unclaimed current-phase task is `FCCD-P03-007 — Migration/recovery tests`. P03 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. Do not begin P04 until every mandatory P03 task is CLOSED and the P03 exact-head exit gate passes with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
+Re-fetch live `main`, open PRs/branches/claims, current CI, and P03 evidence before selecting more work. `FCCD-P03-001` through `FCCD-P03-007` are CLOSED. If no Priority 1–4 recovery work exists, the next legal action is the dedicated P03 exact-head phase reconciliation/exit-gate closure. P03 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. Do not begin P04 until the P03 exact-head exit gate passes with canonical closure evidence. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## Resume procedure
 
