@@ -30,7 +30,7 @@
             BorderThickness="{StaticResource FccAppChromeFrameBorderThickness}">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="{StaticResource FccAppChromeHeight}" />
+                <RowDefinition Height="{StaticResource FccAppChromeRowHeight}" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
