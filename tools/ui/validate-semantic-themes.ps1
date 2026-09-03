@@ -9,47 +9,21 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $XamlNamespace = 'http://schemas.microsoft.com/winfx/2006/xaml'
-
 $RequiredColorKeys = @(
-    'FccColorCanvas',
-    'FccColorSurface',
-    'FccColorSurfaceRaised',
-    'FccColorSurfaceSubtle',
-    'FccColorTextPrimary',
-    'FccColorTextSecondary',
-    'FccColorTextMuted',
-    'FccColorTextDisabled',
-    'FccColorTextInverse',
-    'FccColorBorder',
-    'FccColorDivider',
-    'FccColorAccent',
-    'FccColorAccentHover',
-    'FccColorAccentPressed',
-    'FccColorAccentForeground',
-    'FccColorFocus',
-    'FccColorSelectionBackground',
-    'FccColorSelectionForeground',
-    'FccColorHoverOverlay',
-    'FccColorPressedOverlay',
-    'FccColorDisabledOverlay',
-    'FccColorSuccess',
-    'FccColorSuccessBackground',
-    'FccColorWarning',
-    'FccColorWarningBackground',
-    'FccColorError',
-    'FccColorErrorBackground',
-    'FccColorInfo',
-    'FccColorInfoBackground'
+    'FccColorCanvas', 'FccColorSurface', 'FccColorSurfaceRaised', 'FccColorSurfaceSubtle',
+    'FccColorTextPrimary', 'FccColorTextSecondary', 'FccColorTextMuted', 'FccColorTextDisabled', 'FccColorTextInverse',
+    'FccColorBorder', 'FccColorDivider',
+    'FccColorAccent', 'FccColorAccentHover', 'FccColorAccentPressed', 'FccColorAccentForeground',
+    'FccColorFocus', 'FccColorSelectionBackground', 'FccColorSelectionForeground',
+    'FccColorHoverOverlay', 'FccColorPressedOverlay', 'FccColorDisabledOverlay',
+    'FccColorSuccess', 'FccColorSuccessBackground', 'FccColorWarning', 'FccColorWarningBackground',
+    'FccColorError', 'FccColorErrorBackground', 'FccColorInfo', 'FccColorInfoBackground'
 )
-
-$RequiredBrushKeys = $RequiredColorKeys | ForEach-Object { $_ -replace '^FccColor', 'FccBrush' }
+$RequiredBrushKeys = @($RequiredColorKeys | ForEach-Object { $_ -replace '^FccColor', 'FccBrush' })
 $OverlayColorKeys = @('FccColorHoverOverlay', 'FccColorPressedOverlay', 'FccColorDisabledOverlay')
 
 function Read-XamlDocument {
-    param(
-        [string]$Path,
-        [string]$Label
-    )
+    param([string]$Path, [string]$Label)
 
     if (-not (Test-Path -LiteralPath $Path)) {
         throw "$Label is missing: $Path"
@@ -64,10 +38,7 @@ function Read-XamlDocument {
 }
 
 function Get-KeyedResources {
-    param(
-        [xml]$Document,
-        [string]$Label
-    )
+    param([xml]$Document, [string]$Label)
 
     $resources = @{}
     foreach ($node in $Document.SelectNodes('//*')) {
@@ -79,7 +50,6 @@ function Get-KeyedResources {
         if ([string]::IsNullOrWhiteSpace($key)) {
             continue
         }
-
         if ($resources.ContainsKey($key)) {
             throw "$Label contains duplicate x:Key '$key'."
         }
@@ -91,10 +61,7 @@ function Get-KeyedResources {
 }
 
 function ConvertFrom-HexColor {
-    param(
-        [string]$Value,
-        [string]$Label
-    )
+    param([string]$Value, [string]$Label)
 
     if ($Value -notmatch '^#(?<hex>[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$') {
         throw "$Label must use #RRGGBB or #AARRGGBB but is '$Value'."
@@ -102,7 +69,7 @@ function ConvertFrom-HexColor {
 
     $hex = $Matches.hex
     if ($hex.Length -eq 6) {
-        return [ordered]@{
+        return @{
             A = 255
             R = [Convert]::ToInt32($hex.Substring(0, 2), 16)
             G = [Convert]::ToInt32($hex.Substring(2, 2), 16)
@@ -110,7 +77,7 @@ function ConvertFrom-HexColor {
         }
     }
 
-    return [ordered]@{
+    return @{
         A = [Convert]::ToInt32($hex.Substring(0, 2), 16)
         R = [Convert]::ToInt32($hex.Substring(2, 2), 16)
         G = [Convert]::ToInt32($hex.Substring(4, 2), 16)
@@ -135,10 +102,7 @@ function Get-RelativeLuminance {
 }
 
 function Get-ContrastRatio {
-    param(
-        [hashtable]$Foreground,
-        [hashtable]$Background
-    )
+    param([hashtable]$Foreground, [hashtable]$Background)
 
     if ($Foreground.A -ne 255 -or $Background.A -ne 255) {
         throw 'Contrast assertions require opaque colors.'
@@ -169,14 +133,10 @@ function Assert-Contrast {
 }
 
 function Assert-ThemeContract {
-    param(
-        [string]$Path,
-        [string]$ExpectedThemeName
-    )
+    param([string]$Path, [string]$ExpectedThemeName)
 
     $label = "$ExpectedThemeName theme"
-    $document = Read-XamlDocument $Path $label
-    $resources = Get-KeyedResources $document $label
+    $resources = Get-KeyedResources (Read-XamlDocument $Path $label) $label
 
     if (-not $resources.ContainsKey('FccThemeName')) {
         throw "$label is missing FccThemeName."
@@ -186,11 +146,8 @@ function Assert-ThemeContract {
     }
 
     foreach ($key in $RequiredColorKeys) {
-        if (-not $resources.ContainsKey($key)) {
-            throw "$label is missing required semantic color '$key'."
-        }
-        if ($resources[$key].LocalName -ne 'Color') {
-            throw "$label resource '$key' must be a Color."
+        if (-not $resources.ContainsKey($key) -or $resources[$key].LocalName -ne 'Color') {
+            throw "$label is missing required Color resource '$key'."
         }
 
         $parsed = ConvertFrom-HexColor $resources[$key].InnerText.Trim() "$label $key"
@@ -205,18 +162,14 @@ function Assert-ThemeContract {
     }
 
     foreach ($key in $RequiredBrushKeys) {
-        if (-not $resources.ContainsKey($key)) {
-            throw "$label is missing required semantic brush '$key'."
-        }
-        if ($resources[$key].LocalName -ne 'SolidColorBrush') {
-            throw "$label resource '$key' must be a SolidColorBrush."
+        if (-not $resources.ContainsKey($key) -or $resources[$key].LocalName -ne 'SolidColorBrush') {
+            throw "$label is missing required SolidColorBrush resource '$key'."
         }
 
         $expectedColorKey = $key -replace '^FccBrush', 'FccColor'
         $expectedReference = "{StaticResource $expectedColorKey}"
-        $actualReference = $resources[$key].GetAttribute('Color')
-        if ($actualReference -ne $expectedReference) {
-            throw "$label brush '$key' must reference '$expectedReference' but is '$actualReference'."
+        if ($resources[$key].GetAttribute('Color') -ne $expectedReference) {
+            throw "$label brush '$key' must reference '$expectedReference'."
         }
     }
 
@@ -240,12 +193,7 @@ function Assert-ThemeContract {
 }
 
 function Assert-ThemePairContract {
-    param(
-        [string]$DarkPath,
-        [string]$LightPath,
-        [string]$AppPath,
-        [string]$ServicePath
-    )
+    param([string]$DarkPath, [string]$LightPath, [string]$AppPath, [string]$ServicePath)
 
     $darkResources = Assert-ThemeContract $DarkPath 'Dark'
     $lightResources = Assert-ThemeContract $LightPath 'Light'
@@ -276,7 +224,6 @@ function Assert-ThemePairContract {
         $appDocument.SelectNodes("//*[local-name()='ResourceDictionary' and @Source]") |
             ForEach-Object { $_.GetAttribute('Source') }
     )
-
     $tokensIndex = [Array]::IndexOf($sources, 'DesignSystem/DesignTokens.xaml')
     $typographyIndex = [Array]::IndexOf($sources, 'DesignSystem/Typography.xaml')
     $darkIndex = [Array]::IndexOf($sources, 'DesignSystem/Themes/Theme.Dark.xaml')
@@ -308,6 +255,7 @@ function Assert-ThemePairContract {
         'mergedDictionaries.Insert(insertionIndex, candidate);',
         'mergedDictionaries.Remove(existingTheme);',
         'mergedDictionaries.Remove(candidate);',
+        'const string componentMarker = ";component/";',
         'return false;'
     )) {
         if (-not $serviceText.Contains($requiredLiteral)) {
@@ -319,15 +267,12 @@ function Assert-ThemePairContract {
     $insertIndex = $serviceText.IndexOf('mergedDictionaries.Insert(insertionIndex, candidate);', [StringComparison]::Ordinal)
     $removeExistingIndex = $serviceText.IndexOf('mergedDictionaries.Remove(existingTheme);', [StringComparison]::Ordinal)
     if (-not ($candidateIndex -lt $insertIndex -and $insertIndex -lt $removeExistingIndex)) {
-        throw 'ThemeService must fully construct/validate the candidate before replacing existing theme dictionaries.'
+        throw 'ThemeService must construct and validate the candidate before replacing the current theme.'
     }
 }
 
 function Assert-ContractRejects {
-    param(
-        [scriptblock]$Action,
-        [string]$Label
-    )
+    param([scriptblock]$Action, [string]$Label)
 
     $rejected = $false
     try {
@@ -344,11 +289,7 @@ function Assert-ContractRejects {
 }
 
 function Replace-RequiredLiteral {
-    param(
-        [string]$Path,
-        [string]$OldValue,
-        [string]$NewValue
-    )
+    param([string]$Path, [string]$OldValue, [string]$NewValue)
 
     $text = Get-Content -LiteralPath $Path -Raw
     if (-not $text.Contains($OldValue)) {
@@ -359,17 +300,12 @@ function Replace-RequiredLiteral {
 }
 
 function Invoke-RuntimeThemeFixture {
-    param(
-        [string]$Root,
-        [string]$AppProjectPath
-    )
+    param([string]$Root, [string]$AppProjectPath)
 
     if (-not $IsWindows) {
         throw 'Runtime semantic-theme fixture requires Windows/WPF.'
     }
-
-    $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
-    if (-not $dotnet) {
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
         throw 'dotnet is required for the runtime semantic-theme fixture.'
     }
 
@@ -425,8 +361,8 @@ internal static class Program
         Assert(root.MergedDictionaries.Count == 1, "idempotent light apply");
 
         var beforeFailure = service.CurrentTheme;
-        var acceptedInvalidTheme = service.TryApply((AppearanceTheme)999, out var error);
-        Assert(!acceptedInvalidTheme, "invalid theme rejected");
+        var invalidAccepted = service.TryApply((AppearanceTheme)999, out var error);
+        Assert(!invalidAccepted, "invalid theme rejected");
         Assert(error is ArgumentOutOfRangeException, "invalid theme classified");
         Assert(service.CurrentTheme == beforeFailure, "failed switch preserves current theme");
         Assert((string)root["FccThemeName"] == "Light", "failed switch preserves resources");
@@ -452,7 +388,7 @@ internal static class Program
     Set-Content -LiteralPath $fixtureProjectPath -Value $project -Encoding utf8NoBOM
     Set-Content -LiteralPath $programPath -Value $program -Encoding utf8NoBOM
 
-    & dotnet run --project $fixtureProjectPath -c Release --nologo
+    & dotnet run --project $fixtureProjectPath -c Release
     if ($LASTEXITCODE -ne 0) {
         throw "Runtime semantic-theme fixture failed with exit code $LASTEXITCODE."
     }
@@ -470,7 +406,6 @@ Write-Host 'Static dark/light semantic-theme validation: PASS.'
 if ($RunFixtures) {
     $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ("fccd-semantic-theme-" + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
-
     $fixtureAppPath = Join-Path $fixtureRoot 'App.xaml'
     $fixtureDarkPath = Join-Path $fixtureRoot 'Theme.Dark.xaml'
     $fixtureLightPath = Join-Path $fixtureRoot 'Theme.Light.xaml'
@@ -502,7 +437,7 @@ if ($RunFixtures) {
 
         Reset-Fixture
         Replace-RequiredLiteral $fixtureAppPath '<ResourceDictionary Source="DesignSystem/Themes/Theme.Dark.xaml" />' '<ResourceDictionary Source="DesignSystem/Themes/Theme.Light.xaml" />'
-        Assert-ContractRejects { Assert-ThemePairContract $fixtureDarkPath $fixtureLightPath $fixtureAppPath $fixtureServicePath } 'multiple/default theme composition regression'
+        Assert-ContractRejects { Assert-ThemePairContract $fixtureDarkPath $fixtureLightPath $fixtureAppPath $fixtureServicePath } 'default theme composition regression'
 
         Reset-Fixture
         Replace-RequiredLiteral $fixtureServicePath 'mergedDictionaries.Remove(candidate);' '// rollback removed'
