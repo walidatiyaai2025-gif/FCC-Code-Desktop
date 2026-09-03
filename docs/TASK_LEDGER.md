@@ -77,9 +77,9 @@ Closure evidence for `FCCD-P01-001` through `FCCD-P01-006` is recorded in `evide
 | FCCD-P02-006 | Bottom tool panel framework | CLOSED |
 | FCCD-P02-007 | Command palette/keyboard framework | CLOSED |
 | FCCD-P02-008 | Common empty/loading/error/status components | CLOSED |
-| FCCD-P02-009 | DPI/resolution layout foundations | PENDING |
+| FCCD-P02-009 | DPI/resolution layout foundations | CLOSED |
 
-Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-008` is recorded in `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. These eight rows are CLOSED from focused exact-head Windows CI, normal merge integration, and exact-current-main non-regression Windows CI. P02 itself remains `IN_PROGRESS`; `FCCD-P02-009` remains PENDING and `PHASE_EXIT_GATE=NOT_RUN`.
+Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-009` is recorded in `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. All nine rows are CLOSED from focused exact-head Windows CI, normal merge integration, and exact-current-main non-regression Windows CI. P02 itself remains `IN_PROGRESS` until its exact-head exit gate passes; `PHASE_EXIT_GATE=NOT_RUN`.
 
 ## P03 — Persistence/state model
 
@@ -350,8 +350,8 @@ Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-008` is reco
 
 ## Current next action
 
-`CURRENT_PHASE = P02` and P02 remains `IN_PROGRESS`.
+`CURRENT_PHASE = P02` and P02 remains `IN_PROGRESS` pending its exact-head exit gate.
 
-`FCCD-P02-001` through `FCCD-P02-008` are CLOSED from validated canonical integration. The durable task evidence map is `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. The permanent Windows CI baseline is green on exact current `main` SHA `429643446e0f24ce3d5707545dc4f1ac06cbf28d` (run `33763898340`).
+`FCCD-P02-001` through `FCCD-P02-009` are CLOSED from validated canonical integration. The durable task evidence map is `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. The permanent Windows CI baseline is green on exact integration main SHA `4a9e6979861ec01c40317c14ec59c2d93605cf5e` (run `33767862127`).
 
-The next legitimate current-phase action is `FCCD-P02-009 — DPI/resolution layout foundations`, unless newer live state shows a legitimate active/recovery owner for that task. Continue P02 only; do not begin P03 until all nine P02 tasks are CLOSED, the exact-head P02 exit gate passes, `evidence/phases/P02/CLOSURE.md` is integrated, and canonical main is green. `VERIFIED_FINAL_COMPLETE` remains false.
+The next legitimate current-phase action is P02 exact-head phase reconciliation/exit-gate closure. Run the complete P02 gate, record `evidence/phases/P02/CLOSURE.md`, integrate the closure state, and require canonical main to remain green. Do not begin P03 until the P02 gate is `PASS` with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
