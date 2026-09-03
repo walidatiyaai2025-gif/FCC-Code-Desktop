@@ -177,7 +177,8 @@ public sealed class SqliteDatabaseInitializerTests
         var connectionString = new SqliteConnectionStringBuilder
         {
             DataSource = databasePath,
-            Mode = SqliteOpenMode.ReadWrite
+            Mode = SqliteOpenMode.ReadWrite,
+            Pooling = false
         }.ToString();
 
         var connection = new SqliteConnection(connectionString);
