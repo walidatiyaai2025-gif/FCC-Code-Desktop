@@ -101,6 +101,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-command-palette.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Command palette validation'
 
+    Write-Host 'CI stage: common empty/loading/error/status components'
+    & pwsh -NoProfile -File .\tools\ui\validate-common-states.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'Common state component validation'
+
     Write-Host 'Windows CI baseline: PASS.'
 }
 finally {

@@ -1,0 +1,100 @@
+<UserControl x:Class="FCCCodeDesktop.App.Shell.CommonStatusBadge"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:shell="clr-namespace:FCCCodeDesktop.App.Shell"
+             x:Name="Root"
+             Background="Transparent"
+             Foreground="{DynamicResource FccBrushTextPrimary}"
+             Focusable="False"
+             AutomationProperties.Name="{Binding Text, ElementName=Root}">
+    <Border x:Name="BadgeBorder"
+            Padding="6,3"
+            HorizontalAlignment="Left"
+            BorderThickness="1"
+            CornerRadius="{StaticResource FccRadiusLarge}">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Background" Value="{DynamicResource FccBrushSurfaceSubtle}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource FccBrushBorder}" />
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Info}">
+                        <Setter Property="Background" Value="{DynamicResource FccBrushInfoBackground}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource FccBrushInfo}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Loading}">
+                        <Setter Property="Background" Value="{DynamicResource FccBrushInfoBackground}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource FccBrushInfo}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Success}">
+                        <Setter Property="Background" Value="{DynamicResource FccBrushSuccessBackground}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource FccBrushSuccess}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Warning}">
+                        <Setter Property="Background" Value="{DynamicResource FccBrushWarningBackground}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource FccBrushWarning}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Unavailable}">
+                        <Setter Property="Background" Value="{DynamicResource FccBrushWarningBackground}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource FccBrushWarning}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Offline}">
+                        <Setter Property="Background" Value="{DynamicResource FccBrushWarningBackground}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource FccBrushWarning}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Error}">
+                        <Setter Property="Background" Value="{DynamicResource FccBrushErrorBackground}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource FccBrushError}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Blocked}">
+                        <Setter Property="Background" Value="{DynamicResource FccBrushErrorBackground}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource FccBrushError}" />
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Border.Style>
+
+        <StackPanel Orientation="Horizontal">
+            <Ellipse x:Name="BadgeIndicator"
+                     Width="8"
+                     Height="8"
+                     Margin="0,0,6,0"
+                     VerticalAlignment="Center">
+                <Ellipse.Style>
+                    <Style TargetType="Ellipse">
+                        <Setter Property="Fill" Value="{DynamicResource FccBrushTextMuted}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Info}">
+                                <Setter Property="Fill" Value="{DynamicResource FccBrushInfo}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Loading}">
+                                <Setter Property="Fill" Value="{DynamicResource FccBrushInfo}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Success}">
+                                <Setter Property="Fill" Value="{DynamicResource FccBrushSuccess}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Warning}">
+                                <Setter Property="Fill" Value="{DynamicResource FccBrushWarning}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Unavailable}">
+                                <Setter Property="Fill" Value="{DynamicResource FccBrushWarning}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Offline}">
+                                <Setter Property="Fill" Value="{DynamicResource FccBrushWarning}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Error}">
+                                <Setter Property="Fill" Value="{DynamicResource FccBrushError}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Kind, ElementName=Root}" Value="{x:Static shell:CommonStateKind.Blocked}">
+                                <Setter Property="Fill" Value="{DynamicResource FccBrushError}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Ellipse.Style>
+            </Ellipse>
+            <TextBlock x:Name="BadgeText"
+                       Text="{Binding Text, ElementName=Root}"
+                       Style="{StaticResource FccTextStatus}"
+                       Foreground="{DynamicResource FccBrushTextPrimary}" />
+        </StackPanel>
+    </Border>
+</UserControl>

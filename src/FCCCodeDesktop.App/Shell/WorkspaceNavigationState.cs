@@ -13,6 +13,18 @@ public enum WorkspaceSection
 
 public sealed class WorkspaceNavigationState : INotifyPropertyChanged
 {
+    private static readonly CommonStateModel ProjectsEmptyState = CommonStateModel.Empty(
+        "No project open",
+        "Open a project to populate this workspace.");
+
+    private static readonly CommonStateModel SessionsEmptyState = CommonStateModel.Empty(
+        "No sessions",
+        "There are no sessions to show in this workspace.");
+
+    private static readonly CommonStateModel TasksEmptyState = CommonStateModel.Empty(
+        "No tasks",
+        "There are no tasks to show in this workspace.");
+
     private WorkspaceSection selectedSection = WorkspaceSection.Projects;
     private object? projectsContent;
     private object? sessionsContent;
@@ -42,6 +54,8 @@ public sealed class WorkspaceNavigationState : INotifyPropertyChanged
             OnPropertyChanged(nameof(SelectedTitle));
             OnPropertyChanged(nameof(SelectedDescription));
             OnPropertyChanged(nameof(SelectedContent));
+            OnPropertyChanged(nameof(SelectedEmptyState));
+            OnPropertyChanged(nameof(HasSelectedContent));
             OnPropertyChanged(nameof(IsProjectsSelected));
             OnPropertyChanged(nameof(IsSessionsSelected));
             OnPropertyChanged(nameof(IsTasksSelected));
@@ -71,6 +85,16 @@ public sealed class WorkspaceNavigationState : INotifyPropertyChanged
         WorkspaceSection.Tasks => TasksContent,
         _ => null,
     };
+
+    public CommonStateModel SelectedEmptyState => SelectedSection switch
+    {
+        WorkspaceSection.Projects => ProjectsEmptyState,
+        WorkspaceSection.Sessions => SessionsEmptyState,
+        WorkspaceSection.Tasks => TasksEmptyState,
+        _ => throw new InvalidOperationException($"Unsupported workspace section: {SelectedSection}"),
+    };
+
+    public bool HasSelectedContent => SelectedContent is not null;
 
     public bool IsProjectsSelected => SelectedSection == WorkspaceSection.Projects;
 
@@ -118,6 +142,7 @@ public sealed class WorkspaceNavigationState : INotifyPropertyChanged
         if (SelectedSection == section)
         {
             OnPropertyChanged(nameof(SelectedContent));
+            OnPropertyChanged(nameof(HasSelectedContent));
         }
     }
 
