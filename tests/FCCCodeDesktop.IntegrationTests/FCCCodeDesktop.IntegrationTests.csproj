@@ -12,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FCCCodeDesktop.Testing\FCCCodeDesktop.Testing.csproj" />
+    <ProjectReference Include="..\..\src\FCCCodeDesktop.Persistence\FCCCodeDesktop.Persistence.csproj" />
   </ItemGroup>
 </Project>
