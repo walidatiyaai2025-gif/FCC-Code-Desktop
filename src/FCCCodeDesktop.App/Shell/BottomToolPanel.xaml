@@ -1,0 +1,162 @@
+<UserControl x:Class="FCCCodeDesktop.App.Shell.BottomToolPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:shell="clr-namespace:FCCCodeDesktop.App.Shell"
+             x:Name="Root"
+             Background="{DynamicResource FccBrushSurfaceRaised}"
+             Foreground="{DynamicResource FccBrushTextPrimary}"
+             Focusable="False"
+             AutomationProperties.Name="Bottom tool panel">
+    <UserControl.Resources>
+        <Thickness x:Key="FccToolPanelBorderThickness">1</Thickness>
+
+        <Style x:Key="FccToolPanelTabButton" TargetType="{x:Type Button}">
+            <Setter Property="Height" Value="{StaticResource FccControlHeightCompact}" />
+            <Setter Property="MinWidth" Value="72" />
+            <Setter Property="Margin" Value="0,4,4,4" />
+            <Setter Property="Padding" Value="{StaticResource FccInset8}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource FccBrushTextSecondary}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="TabChrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{StaticResource FccRadiusSmall}">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabChrome"
+                                        Property="Background"
+                                        Value="{DynamicResource FccBrushHoverOverlay}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="TabChrome"
+                                        Property="Background"
+                                        Value="{DynamicResource FccBrushPressedOverlay}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="TabChrome"
+                                        Property="BorderBrush"
+                                        Value="{DynamicResource FccBrushFocus}" />
+                                <Setter TargetName="TabChrome"
+                                        Property="BorderThickness"
+                                        Value="{StaticResource FccFocusRingThickness}" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="True">
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource FccBrushSelectionForeground}" />
+                                <Setter TargetName="TabChrome"
+                                        Property="Background"
+                                        Value="{DynamicResource FccBrushSelectionBackground}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource FccBrushTextDisabled}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FccToolPanelToggleButton" TargetType="{x:Type Button}">
+            <Setter Property="Height" Value="{StaticResource FccControlHeightCompact}" />
+            <Setter Property="MinWidth" Value="72" />
+            <Setter Property="Margin" Value="4" />
+            <Setter Property="Padding" Value="{StaticResource FccInset8}" />
+            <Setter Property="Content" Value="Collapse" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource FccBrushTextSecondary}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource FccBrushDivider}" />
+            <Setter Property="BorderThickness" Value="{StaticResource FccToolPanelBorderThickness}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="Tag" Value="True">
+                    <Setter Property="Content" Value="Restore" />
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource FccBrushHoverOverlay}" />
+                </Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource FccBrushFocus}" />
+                    <Setter Property="BorderThickness" Value="{StaticResource FccFocusRingThickness}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{DynamicResource FccBrushTextDisabled}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="{DynamicResource FccBrushSurfaceRaised}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Height="{StaticResource FccControlHeightComfortable}"
+                BorderBrush="{DynamicResource FccBrushDivider}"
+                BorderThickness="0,0,0,1"
+                Background="{DynamicResource FccBrushSurfaceRaised}">
+            <DockPanel LastChildFill="True">
+                <Button x:Name="ToggleBottomPanelButton"
+                        DockPanel.Dock="Right"
+                        Tag="{Binding LayoutState.IsBottomPanelCollapsed, ElementName=Root}"
+                        Command="{Binding LayoutState.ToggleBottomPanelCommand, ElementName=Root}"
+                        Style="{StaticResource FccToolPanelToggleButton}"
+                        AutomationProperties.Name="Toggle bottom tool panel" />
+
+                <StackPanel Orientation="Horizontal"
+                            Margin="{StaticResource FccInset4}"
+                            DataContext="{Binding State, ElementName=Root}">
+                    <Button x:Name="OutputToolButton"
+                            Tag="{Binding IsOutputSelected}"
+                            Command="{Binding SelectSectionCommand}"
+                            CommandParameter="{x:Static shell:BottomToolSection.Output}"
+                            Style="{StaticResource FccToolPanelTabButton}"
+                            AutomationProperties.Name="Output tool panel">
+                        <TextBlock Text="Output" Style="{StaticResource FccTextBody}" />
+                    </Button>
+
+                    <Button x:Name="ProblemsToolButton"
+                            Tag="{Binding IsProblemsSelected}"
+                            Command="{Binding SelectSectionCommand}"
+                            CommandParameter="{x:Static shell:BottomToolSection.Problems}"
+                            Style="{StaticResource FccToolPanelTabButton}"
+                            AutomationProperties.Name="Problems tool panel">
+                        <TextBlock Text="Problems" Style="{StaticResource FccTextBody}" />
+                    </Button>
+
+                    <Button x:Name="TerminalToolButton"
+                            Tag="{Binding IsTerminalSelected}"
+                            Command="{Binding SelectSectionCommand}"
+                            CommandParameter="{x:Static shell:BottomToolSection.Terminal}"
+                            Style="{StaticResource FccToolPanelTabButton}"
+                            AutomationProperties.Name="Terminal tool panel">
+                        <TextBlock Text="Terminal" Style="{StaticResource FccTextBody}" />
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <ContentControl x:Name="PanelContentHost"
+                        Grid.Row="1"
+                        Content="{Binding State.SelectedContent, ElementName=Root}"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch"
+                        Focusable="False"
+                        Background="{DynamicResource FccBrushSurfaceRaised}"
+                        AutomationProperties.Name="Selected bottom tool panel content" />
+    </Grid>
+</UserControl>

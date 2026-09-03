@@ -17,6 +17,12 @@ public partial class WorkspaceLayout : UserControl
         typeof(WorkspaceLayout),
         new PropertyMetadata(null));
 
+    public static readonly DependencyProperty BottomContentProperty = DependencyProperty.Register(
+        nameof(BottomContent),
+        typeof(object),
+        typeof(WorkspaceLayout),
+        new PropertyMetadata(null));
+
     public static readonly DependencyProperty RightContentProperty = DependencyProperty.Register(
         nameof(RightContent),
         typeof(object),
@@ -45,6 +51,12 @@ public partial class WorkspaceLayout : UserControl
     {
         get => GetValue(PrimaryContentProperty);
         set => SetValue(PrimaryContentProperty, value);
+    }
+
+    public object? BottomContent
+    {
+        get => GetValue(BottomContentProperty);
+        set => SetValue(BottomContentProperty, value);
     }
 
     public object? RightContent
