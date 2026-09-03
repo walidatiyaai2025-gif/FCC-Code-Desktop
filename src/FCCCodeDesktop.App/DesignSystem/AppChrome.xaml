@@ -7,6 +7,7 @@
     <sys:Double x:Key="FccAppChromeCaptionButtonWidth">46</sys:Double>
     <sys:Double x:Key="FccAppChromeGlyphSize">10</sys:Double>
     <sys:Double x:Key="FccAppChromeGlyphStroke">1.2</sys:Double>
+    <Thickness x:Key="FccAppChromeZeroThickness">0</Thickness>
     <Thickness x:Key="FccAppChromeResizeBorderThickness">6</Thickness>
     <Thickness x:Key="FccAppChromeFrameBorderThickness">1</Thickness>
     <Thickness x:Key="FccAppChromeTitlePadding">12,0,8,0</Thickness>
@@ -23,11 +24,11 @@
     <Style x:Key="FccChromeCaptionButton" TargetType="{x:Type Button}">
         <Setter Property="Width" Value="{StaticResource FccAppChromeCaptionButtonWidth}" />
         <Setter Property="Height" Value="{StaticResource FccAppChromeHeight}" />
-        <Setter Property="Padding" Value="{StaticResource FccInset0}" />
+        <Setter Property="Padding" Value="{StaticResource FccAppChromeZeroThickness}" />
         <Setter Property="Background" Value="{x:Null}" />
         <Setter Property="Foreground" Value="{DynamicResource FccBrushTextSecondary}" />
         <Setter Property="BorderBrush" Value="{x:Null}" />
-        <Setter Property="BorderThickness" Value="{StaticResource FccInset0}" />
+        <Setter Property="BorderThickness" Value="{StaticResource FccAppChromeZeroThickness}" />
         <Setter Property="Focusable" Value="True" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True" />
