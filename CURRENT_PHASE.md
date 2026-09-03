@@ -27,7 +27,8 @@ P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.m
 ## Current status
 
 - `P02` — IN_PROGRESS as the sole current implementation phase.
-- `FCCD-P02-001` through `FCCD-P02-009` — PENDING; no P02 implementation task was activated by this phase transition.
+- `FCCD-P02-001` through `FCCD-P02-004` — CLOSED from validated canonical integration and exact-current-main non-regression CI.
+- `FCCD-P02-005` through `FCCD-P02-009` — PENDING.
 - `P01` — CLOSED; `FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration.
 - P01 integrated-task reconciliation evidence: `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
 - P01 exact-head closure evidence: `evidence/phases/P01/CLOSURE.md`.
@@ -80,7 +81,7 @@ CLOSURE_RECORD: evidence/phases/P01/CLOSURE.md
 
 ## Next legal action
 
-Apply `docs/WORKER_PROTOCOL.md` within P02. Reconcile any legitimate active/recovery work first; if none exists, select the earliest dependency-valid unclaimed P02 task from `docs/TASK_LEDGER.md`. Do not begin P03 until all mandatory P02 tasks are CLOSED, the P02 exit gate passes with exact-head evidence, `evidence/phases/P02/CLOSURE.md` is integrated, and canonical `main` is green. `VERIFIED_FINAL_COMPLETE` remains false.
+Apply `docs/WORKER_PROTOCOL.md` within P02. `FCCD-P02-001` through `FCCD-P02-004` are reconciled CLOSED. Reconcile any new legitimate active/recovery work first; otherwise the earliest dependency-valid task is `FCCD-P02-005`. Do not begin P03 until all mandatory P02 tasks are CLOSED, the P02 exit gate passes with exact-head evidence, `evidence/phases/P02/CLOSURE.md` is integrated, and canonical `main` is green. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## Resume procedure
 

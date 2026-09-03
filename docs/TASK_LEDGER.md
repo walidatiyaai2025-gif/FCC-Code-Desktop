@@ -63,21 +63,23 @@ Closure evidence for `FCCD-P00-006` and `FCCD-P00-010`: the complete reconciled 
 | FCCD-P01-005 | Windows CI Release build/test pipeline | CLOSED |
 | FCCD-P01-006 | Build metadata/version service | CLOSED |
 
-Closure evidence for `FCCD-P01-001` through `FCCD-P01-006` is recorded in `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. This closes the six task rows only from implementation + task-specific/cloud validation + normal canonical integration + exact-current-main non-regression CI. P01 itself remains IN_PROGRESS and its exit gate remains NOT_RUN.
+Closure evidence for `FCCD-P01-001` through `FCCD-P01-006` is recorded in `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. Those task rows were reconciled before the exact-head P01 exit gate passed. P01 is now canonically CLOSED with `PHASE_EXIT_GATE=PASS`; see `evidence/phases/P01/CLOSURE.md`.
 
 ## P02 — Premium design system and shell
 
 | ID | Task | State |
 |---|---|---|
-| FCCD-P02-001 | Define design tokens and typography | PENDING |
-| FCCD-P02-002 | Dark/light semantic themes | PENDING |
-| FCCD-P02-003 | Premium title/app chrome | PENDING |
-| FCCD-P02-004 | Main resizable workspace layout | PENDING |
+| FCCD-P02-001 | Define design tokens and typography | CLOSED |
+| FCCD-P02-002 | Dark/light semantic themes | CLOSED |
+| FCCD-P02-003 | Premium title/app chrome | CLOSED |
+| FCCD-P02-004 | Main resizable workspace layout | CLOSED |
 | FCCD-P02-005 | Navigation/projects/sessions/tasks surfaces | PENDING |
 | FCCD-P02-006 | Bottom tool panel framework | PENDING |
 | FCCD-P02-007 | Command palette/keyboard framework | PENDING |
 | FCCD-P02-008 | Common empty/loading/error/status components | PENDING |
 | FCCD-P02-009 | DPI/resolution layout foundations | PENDING |
+
+Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-004` is recorded in `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. These four rows are CLOSED from focused exact-head Windows CI, normal merge integration, and exact-current-main non-regression Windows CI. P02 itself remains `IN_PROGRESS`; `FCCD-P02-005` through `FCCD-P02-009` remain PENDING and `PHASE_EXIT_GATE=NOT_RUN`.
 
 ## P03 — Persistence/state model
 
@@ -348,8 +350,8 @@ Closure evidence for `FCCD-P01-001` through `FCCD-P01-006` is recorded in `evide
 
 ## Current next action
 
-`CURRENT_PHASE = P01` and P01 remains `IN_PROGRESS`.
+`CURRENT_PHASE = P02` and P02 remains `IN_PROGRESS`.
 
-`FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration. The durable task evidence map is `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. The permanent Windows CI baseline is green on exact current `main` SHA `416651579fb8ee42442d961b469b16266810138a` (run `33719564337`).
+`FCCD-P02-001` through `FCCD-P02-004` are CLOSED from validated canonical integration. The durable task evidence map is `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. The permanent Windows CI baseline is green on exact current `main` SHA `018da0c93d2711486c06f0a7c30ead4e83a24a9f` (run `33742182158`).
 
-The next legitimate current-phase action is the complete P01 exit gate: verify a fresh/exact checkout can restore, format, Release-build and run the full unit/integration and P01 policy baseline using the documented commands; record exact-head `evidence/phases/P01/CLOSURE.md`; keep P01 open if any check fails. Do not begin P02 until that closure is integrated and `PHASE_EXIT_GATE=PASS`. `VERIFIED_FINAL_COMPLETE` remains false.
+The next legitimate current-phase action is `FCCD-P02-005 — Navigation/projects/sessions/tasks surfaces`, unless newer live state shows a legitimate active/recovery owner for that task. Continue P02 only; do not begin P03 until all nine P02 tasks are CLOSED, the exact-head P02 exit gate passes, `evidence/phases/P02/CLOSURE.md` is integrated, and canonical main is green. `VERIFIED_FINAL_COMPLETE` remains false.
