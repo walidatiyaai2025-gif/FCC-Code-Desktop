@@ -281,7 +281,7 @@ Write-Host 'Static resizable workspace-layout validation: PASS.'
 
 if ($RunFixtures) {
     Assert-ContractRejects {
-        Assert-WorkspaceContract ($mainText.Replace('<chrome:WorkspaceLayout x:Name="WorkspaceLayoutHost" />', '')) $layoutText $layoutCodeText $stateText
+        Assert-WorkspaceContract ($mainText.Replace('x:Name="WorkspaceLayoutHost"', 'x:Name="RemovedWorkspaceLayoutHost"')) $layoutText $layoutCodeText $stateText
     } 'missing production workspace composition'
 
     Assert-ContractRejects {
