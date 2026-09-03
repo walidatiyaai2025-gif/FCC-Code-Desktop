@@ -61,7 +61,8 @@ function Assert-CiPolicy {
         '.\tools\build\validate-build-metadata.ps1 -RequireDotNet',
         '.\tools\dependencies\validate-dependency-policy.ps1 -RequireDotNet',
         '.\tools\quality\validate-quality-policy.ps1 -RequireDotNet',
-        '.\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet'
+        '.\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet',
+        '.\tools\ui\validate-design-system.ps1 -RunFixtures'
     )) {
         Assert-ContainsLiteral $RunnerText $requiredRunnerText 'Windows CI runner'
     }
@@ -111,9 +112,10 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-c Re
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-Suite all', '-Suite unit')) } 'incomplete test lane'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\build\validate-build-metadata.ps1 -RequireDotNet', '')) } 'missing build metadata validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\quality\validate-quality-policy.ps1 -RequireDotNet', '.\tools\quality\validate-quality-policy.ps1')) } 'weakened quality validation'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-design-system.ps1 -RunFixtures', '')) } 'missing design-system validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, and required quality validation enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, and design-system enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {

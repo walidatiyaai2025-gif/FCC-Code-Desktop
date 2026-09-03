@@ -73,6 +73,10 @@ try {
     & pwsh -NoProfile -File .\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet
     Assert-LastExitCode 'Test infrastructure validation'
 
+    Write-Host 'CI stage: design-system contract'
+    & pwsh -NoProfile -File .\tools\ui\validate-design-system.ps1 -RunFixtures
+    Assert-LastExitCode 'Design-system validation'
+
     Write-Host 'Windows CI baseline: PASS.'
 }
 finally {
