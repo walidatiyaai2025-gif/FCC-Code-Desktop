@@ -16,6 +16,10 @@
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         AutomationProperties.Name="FCC Code Desktop">
+    <Window.Resources>
+        <chrome:WorkspaceNavigationState x:Key="WorkspaceNavigationState" />
+    </Window.Resources>
+
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="{StaticResource FccAppChromeHeight}"
                             ResizeBorderThickness="{StaticResource FccAppChromeResizeBorderThickness}"
@@ -44,7 +48,16 @@
                             Focusable="False"
                             HorizontalContentAlignment="Stretch"
                             VerticalContentAlignment="Stretch">
-                <chrome:WorkspaceLayout x:Name="WorkspaceLayoutHost" />
+                <chrome:WorkspaceLayout x:Name="WorkspaceLayoutHost">
+                    <chrome:WorkspaceLayout.LeftContent>
+                        <chrome:NavigationSurface x:Name="NavigationSurfaceHost"
+                                                  State="{StaticResource WorkspaceNavigationState}" />
+                    </chrome:WorkspaceLayout.LeftContent>
+                    <chrome:WorkspaceLayout.PrimaryContent>
+                        <chrome:WorkspaceSectionSurface x:Name="WorkspaceSectionSurfaceHost"
+                                                        State="{StaticResource WorkspaceNavigationState}" />
+                    </chrome:WorkspaceLayout.PrimaryContent>
+                </chrome:WorkspaceLayout>
             </ContentControl>
         </Grid>
     </Border>
