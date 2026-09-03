@@ -1,0 +1,109 @@
+name: P01 Exit Gate Exact Validation
+
+on:
+  push:
+    branches:
+      - validation/p01-exit-gate-72ea8b4
+
+permissions:
+  contents: read
+
+jobs:
+  exact-gate:
+    runs-on: windows-2025
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact P01 candidate
+        uses: actions/checkout@v7
+        with:
+          ref: 72ea8b4f891a0558c97e0633c4444388e62ec464
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Assert exact clean checkout
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $head = (git rev-parse HEAD).Trim()
+          if ($head -ne '72ea8b4f891a0558c97e0633c4444388e62ec464') { throw "Wrong candidate: $head" }
+          if (git status --porcelain) { throw 'Fresh checkout is not clean.' }
+
+      - name: Documented restore format build test baseline
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          dotnet --version
+          if ($LASTEXITCODE -ne 0) { throw 'dotnet --version failed.' }
+          dotnet restore .\FCCCodeDesktop.sln --locked-mode
+          if ($LASTEXITCODE -ne 0) { throw 'documented locked restore failed.' }
+          dotnet format .\FCCCodeDesktop.sln --verify-no-changes --no-restore
+          if ($LASTEXITCODE -ne 0) { throw 'documented format/analyzer baseline failed.' }
+          dotnet build .\FCCCodeDesktop.sln -c Release --no-restore
+          if ($LASTEXITCODE -ne 0) { throw 'documented Release build failed.' }
+          pwsh -NoProfile -File .\tools\testing\run-tests.ps1 -Suite all -Configuration Release -NoRestore -NoBuild
+          if ($LASTEXITCODE -ne 0) { throw 'documented unit/integration tests failed.' }
+
+      - name: Complete P01 deterministic validators
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          pwsh -NoProfile -File .\tools\build\validate-build-metadata.ps1 -RequireDotNet
+          if ($LASTEXITCODE -ne 0) { throw 'build metadata validation failed.' }
+          pwsh -NoProfile -File .\tools\dependencies\validate-dependency-policy.ps1 -RequireDotNet
+          if ($LASTEXITCODE -ne 0) { throw 'dependency policy validation failed.' }
+          pwsh -NoProfile -File .\tools\quality\validate-quality-policy.ps1 -RequireDotNet
+          if ($LASTEXITCODE -ne 0) { throw 'quality/analyzer validation failed.' }
+          pwsh -NoProfile -File .\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet
+          if ($LASTEXITCODE -ne 0) { throw 'test infrastructure validation failed.' }
+          pwsh -NoProfile -File .\tools\ci\validate-windows-ci.ps1 -RequireDotNet
+          if ($LASTEXITCODE -ne 0) { throw 'Windows CI contract validation failed.' }
+
+      - name: Canonical Windows CI baseline
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -File .\tools\ci\run-windows-ci.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'canonical Windows CI baseline failed.' }
+
+      - name: Diff hygiene
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = (git rev-list --max-parents=0 HEAD | Select-Object -First 1).Trim()
+          git diff --check "$root..HEAD"
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+
+      - name: Tracked-file secret sanity scan
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $patterns = @(
+            '-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----',
+            '\bAKIA[0-9A-Z]{16}\b',
+            '\bgh[pousr]_[A-Za-z0-9]{30,}\b',
+            '\bgithub_pat_[A-Za-z0-9_]{40,}\b',
+            '\bsk-[A-Za-z0-9_-]{20,}\b',
+            '\bxox[baprs]-[A-Za-z0-9-]{20,}\b'
+          )
+          $hits = New-Object System.Collections.Generic.List[string]
+          foreach ($file in (git ls-files)) {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { continue }
+            try { $text = Get-Content -LiteralPath $file -Raw -ErrorAction Stop } catch { continue }
+            foreach ($pattern in $patterns) {
+              if ($text -match $pattern) { $hits.Add("$file :: $pattern") }
+            }
+          }
+          if ($hits.Count -gt 0) {
+            $hits | ForEach-Object { Write-Error $_ }
+            throw 'Tracked-file secret sanity scan found credential-like material.'
+          }
+          Write-Host 'Tracked-file secret sanity scan: PASS.'
+
+      - name: Final clean worktree
+        shell: pwsh
+        run: |
+          if (git status --porcelain) { git status --short; throw 'Validation left tracked/untracked residue.' }
+          Write-Host 'P01 exact-head exit-gate validation: PASS.'
