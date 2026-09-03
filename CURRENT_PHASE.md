@@ -18,13 +18,77 @@ LAST_RECONCILED: 2026-09-03
 
 ## Active rule
 
-P02 is canonically CLOSED from exact-head cloud verification. `FCCD-P02-001` through `FCCD-P02-009` are CLOSED, the P02 exact-head exit gate is PASS on candidate `8b264cc352656030382f95846410ac60d81f7c24`, and canonical closure evidence is `evidence/phases/P02/CLOSURE.md`.
+P02 is canonically CLOSED. `FCCD-P02-001` through `FCCD-P02-009` are CLOSED from validated integration and exact-current-main non-regression CI, and the exact-head P02 exit gate passed on candidate `8b264cc352656030382f95846410ac60d81f7c24`. Canonical closure evidence is `evidence/phases/P02/CLOSURE.md`.
 
-`CURRENT_PHASE` deliberately remains `P02` in this closure commit. P03 is **not active yet**. A separate phase-transition change may activate P03 only after this closure state is integrated by a normal merge and the resulting exact canonical `main` remains green.
+`CURRENT_PHASE` deliberately remains `P02` in this closure state. P03 is not active yet. A separate phase-transition change may activate P03 only after this closure state is integrated by a normal merge and the resulting exact canonical `main` remains green.
 
-Before any worker selects new work, apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming unrelated work.
+Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
-P00, P01, and P02 closure evidence are durable historical provenance. Do not rerun or rewrite real FCC/provider, Unity, Blender, or earlier phase target evidence without a legitimate regression or explicit downstream gate requiring it.
+P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative target evidence is integrated and reconciled; no additional provider, Unity, or Blender target rerun is required for P00 or P02 closure. P00, P01, and P02 closure evidence are durable historical provenance for downstream work.
+
+## Current status
+
+- `P02` — CLOSED with `PHASE_EXIT_GATE=PASS`; `CURRENT_PHASE` remains P02 until a separate validated transition activates P03.
+- `FCCD-P02-001` through `FCCD-P02-009` — CLOSED from validated canonical integration and exact-current-main non-regression CI.
+- P02 integrated-task reconciliation evidence: `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
+- P02 exact-head closure evidence: `evidence/phases/P02/CLOSURE.md`.
+- P02 candidate `8b264cc352656030382f95846410ac60d81f7c24` passed exact-head gate run `33786810686`, including locked restore, format/analyzers, Release build, unit/integration tests, all P02 static/negative/recovery/Windows-runtime validators, minimum-resolution/DPI baseline checks, canonical Windows CI, diff hygiene, exact deterministic-fixture-aware tracked-file secret scan, and final clean-worktree assertion.
+- Candidate `8b264cc352656030382f95846410ac60d81f7c24` was already green on permanent main Windows CI run `33773829176` before closure.
+- Initial dedicated gate run `33786155633` exposed only a validation-harness false positive because historical P01 closure evidence truthfully quotes the deterministic redaction fixture literal. The scanner was narrowed to that exact literal in exactly two canonical files; rerun `33786810686` then passed. No P02 product defect was waived.
+- `FCCD-P02-005` was integrated by PR #59 from exact candidate `40f1401451c95c1a66618cae9d1af80d869055cf`; focused Windows CI run `33748156985` completed SUCCESS. The resulting canonical main `fb488d0939233994b6f1a13c7888024bdecffd23` passed post-merge Windows CI run `33748518665`.
+- `FCCD-P02-006` was integrated by PR #61 from exact candidate `bc2b5f034a4b2fa22cb2988360f05326d6605f82`; focused Windows CI run `33752661614` completed SUCCESS after real WPF namescope and typed-resource defects were repaired rather than waived. The resulting canonical main `949379c797f571c0945927681f1b719bee4e1e6f` passed post-merge Windows CI run `33752999860`.
+- `FCCD-P02-007` was integrated by PR #63 from exact candidate `3a25ce5e582a126262803be791f81abc5e6d451d`; focused Windows CI run `33756980148` completed SUCCESS, including the command-palette static/negative/recovery/runtime validation. The resulting canonical main `45ee529bf725ebb1f4c1949c2667afa075ac1dd8` passed post-merge Windows CI run `33757314060`.
+- `FCCD-P02-008` was integrated by PR #65 from exact candidate `04a0a8176bf16ad6c8d53b9268b46d23126253de`; focused Windows CI run `33763285287` completed SUCCESS after the taxonomy negative fixture and detached-control theme-parity fixture were repaired rather than waived. The resulting canonical main `429643446e0f24ce3d5707545dc4f1ac06cbf28d` passed post-merge Windows CI run `33763898340`.
+- `FCCD-P02-009` was integrated by PR #67 from exact candidate `b6e397e842978f4ac3efadcd9259ab8c01cd4ca7`; focused Windows CI run `33767348642` completed SUCCESS, including Per-Monitor V2 manifest validation and deterministic DPI/resolution layout static/negative/recovery/runtime validation. The resulting canonical main `4a9e6979861ec01c40317c14ec59c2d93605cf5e` passed post-merge Windows CI run `33767862127`.
+- `P01` — CLOSED; `FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration.
+- P01 integrated-task reconciliation evidence: `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
+- P01 exact-head closure evidence: `evidence/phases/P01/CLOSURE.md`.
+- P01 candidate `72ea8b4f891a0558c97e0633c4444388e62ec464` passed the complete cloud-available exit gate on GitHub-hosted Windows: fresh exact checkout, .NET `10.0.400`, locked restore, format/analyzer verification, Release build, unit/integration tests, all P01 deterministic validators, canonical Windows CI baseline, `git diff --check`, tracked-file secret sanity scan, and final clean-worktree assertion.
+- P01 closure was integrated by PR #52. The resulting closure tree remained green on exact canonical `main`; Windows CI run `33728070232` completed SUCCESS on transition base `27c9ab5dbb192d68f5ee629184fc2eabeee087df`.
+- `FCCD-P00-001` — CLOSED.
+- `FCCD-P00-002` — CLOSED from Windows executable/version/help and live loopback health evidence.
+- `FCCD-P00-003` — CLOSED from real structured `system/init` and `system/api_retry` target frames with sanitized raw/parsed evidence.
+- `FCCD-P00-004` — CLOSED from authoritative Windows provider-backed first-turn and new-process session-resume continuity evidence, including invalid-session rejection, valid-session recovery after the negative case, and owned-process cleanup.
+- `FCCD-P00-005` — CLOSED from authoritative exact-head Windows failure/cancellation evidence at tested source SHA `015ffd8c0e2a6e725e33ed153441ff51e7952556`: provider baseline SUCCESS, cancellation INTERRUPTED, graceful interrupt, hardened descendant observation, residual owned-process cleanup by previously observed PID/identity, zero remaining owned processes, and explicit `RATE_LIMIT = NOT_OBSERVED_ON_TARGET` under the resolved PG-002 safe closure policy. No artificial 429 traffic was generated.
+- `FCCD-P00-006` — CLOSED after the primary runtime adapter decision was reconciled against the complete target evidence set and the exact-head P00 pre-closure gate passed on candidate `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`.
+- `FCCD-P00-007` — CLOSED from authoritative Windows CLI fallback evidence covering provider-backed completion across normal, spaced, and Unicode/Arabic working directories, stdout/stderr observability, graceful cancellation, and owned-process cleanup.
+- `FCCD-P00-008` — CLOSED after abandoned Worker 3 work was recovered, Windows probe defects were repaired, and the complete real Unity target contract passed.
+- `FCCD-P00-009` — CLOSED from authoritative Windows Blender `5.2.0` execution at tested source SHA `e6932783b30ab0bdbb596c7959e03143753bff9a`: discovery/version, background/Python automation, save/render/export artifact validation, controlled failure, owned cancellation/cleanup, and 29/29 deterministic self-tests passed; evidence was integrated by PR #40.
+- `FCCD-P00-010` — CLOSED after the evidence-based runtime/version compatibility baseline was reconciled with real Blender `5.2.0` target success and the exact-head P00 pre-closure gate passed on candidate `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`.
+- `PG-002-P00-RATE-LIMIT-CLOSURE` — RESOLVED. `NOT_OBSERVED_ON_TARGET` remains distinct from PASS/actual observation, but is an accepted P00-005 closure boundary when deterministic classifier mechanics and the rest of the exact-head target contract pass without manufacturing provider load.
+- PR #40 integrated sanitized authoritative Unity/Blender target evidence, including `p00TargetValidationComplete=true` and Blender closure support.
+- PR #41 reconciled authoritative Blender target success into the canonical P00 task/contract/compatibility state.
+- The exact-head P00 pre-closure gate passed on `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`: all 6/6 contract-probe self-tests passed, target evidence secret sanity scan passed, required evidence ancestry passed, no open plan gaps or known phase blockers remained, and the worktree remained clean.
+
+## P00 closure
+
+```text
+P00_CANDIDATE_SHA: 49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9
+MANDATORY_TASKS: 10/10 CLOSED
+EXIT_GATE: PASS
+KNOWN_BLOCKERS: NONE
+KNOWN_REGRESSIONS: NONE
+TARGET_VALIDATION_COMPLETE: true
+PROVIDER_RERUN_DURING_FINAL_GATE: ZERO
+UNITY_TARGET_RERUN_DURING_FINAL_GATE: ZERO
+BLENDER_TARGET_RERUN_DURING_FINAL_GATE: ZERO
+CLOSURE_RECORD: evidence/phases/P00/CLOSURE.md
+```
+
+## P01 closure
+
+```text
+P01_CANDIDATE_SHA: 72ea8b4f891a0558c97e0633c4444388e62ec464
+MANDATORY_TASKS: 6/6 CLOSED
+EXIT_GATE: PASS
+KNOWN_BLOCKERS: NONE
+KNOWN_REGRESSIONS: NONE
+OWNER_PENDING: NONE
+EXACT_GATE_RUN: 33726790774
+POST_CLOSURE_MAIN_GREEN_SHA: 27c9ab5dbb192d68f5ee629184fc2eabeee087df
+POST_CLOSURE_WINDOWS_CI_RUN: 33728070232
+CLOSURE_RECORD: evidence/phases/P01/CLOSURE.md
+```
 
 ## P02 closure
 
@@ -34,31 +98,26 @@ MANDATORY_TASKS: 9/9 CLOSED
 EXIT_GATE: PASS
 KNOWN_BLOCKERS: NONE
 KNOWN_REGRESSIONS: NONE
+OWNER_PENDING: NONE
 EXACT_GATE_RUN: 33786810686
 PRE_CLOSURE_MAIN_GREEN_SHA: 8b264cc352656030382f95846410ac60d81f7c24
 PRE_CLOSURE_WINDOWS_CI_RUN: 33773829176
 CLOSURE_RECORD: evidence/phases/P02/CLOSURE.md
 ```
 
-The exact gate used GitHub-hosted Windows Server 2025 and .NET SDK `10.0.400`, checked out candidate `8b264cc352656030382f95846410ac60d81f7c24`, and passed locked restore, format/analyzers, Release build, unit/integration tests, all P02 deterministic/negative/recovery/Windows-runtime validators, the 1366×768 @100% DPI baseline contract, DPI transition fixtures, canonical Windows CI, diff hygiene, tracked-file secret sanity, and final clean-worktree validation.
-
-Initial gate run `33786155633` exposed only a validation-harness secret-scan false positive for the deterministic fixture literal already quoted in historical P01 evidence. The scanner was narrowed to the exact deterministic fixture in exactly two canonical files; successful rerun `33786810686` passed. No product defect was waived.
-
-## Prior closure provenance
-
-- P00 — CLOSED / PASS. Canonical record: `evidence/phases/P00/CLOSURE.md`.
-- P01 — CLOSED / PASS. Candidate `72ea8b4f891a0558c97e0633c4444388e62ec464`; exact gate run `33726790774`; record `evidence/phases/P01/CLOSURE.md`.
-- P02 integrated-task provenance: `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
-- `FCCD-P00-009` remains CLOSED from authoritative Windows Blender `5.2.0` target evidence; no Blender rerun was performed or required for P02 closure.
-
 ## Next legal action
 
-Integrate this P02 closure branch/PR with a normal merge and require the resulting exact `main` to remain green. Only after that may a **separate** P02→P03 transition activate `CURRENT_PHASE=P03`. Do not implement P03 inside the P02 closure PR. `VERIFIED_FINAL_COMPLETE` remains false.
+Integrate this P02 closure state/evidence with a normal merge and require the resulting exact canonical `main` to remain green. Only after that may a **separate** P02→P03 transition activate `CURRENT_PHASE=P03`. Do not implement P03 inside the P02 closure PR. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## Resume procedure
 
-1. Fetch live `main`, open PRs, active branches/claims, and current CI.
-2. Read `AGENTS.md`, this file, `PROJECT_CONTROL.md`, `docs/EXECUTION_PLAN.md`, `docs/WORKER_PROTOCOL.md`, `docs/TASK_LEDGER.md`, `docs/PLAN_GAPS.md`, and current evidence.
-3. If the P02 closure PR is still pending, recover/integrate it before any transition.
-4. If P02 closure is integrated and exact `main` is green, perform a separate canonical transition to P03; do not combine transition with unrelated P03 implementation.
-5. Continue strict sequential phases and keep `VERIFIED_FINAL_COMPLETE=false` until canonical P22 closure.
+1. Read `AGENTS.md`.
+2. Read `PROJECT_CONTROL.md`.
+3. Read `docs/EXECUTION_PLAN.md`.
+4. Read `docs/WORKER_PROTOCOL.md`.
+5. Read `docs/TASK_LEDGER.md`, `docs/ACCEPTANCE_MATRIX.md`, `docs/DECISIONS.md`, and `docs/PLAN_GAPS.md`.
+6. Read `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, and `evidence/phases/P02/CLOSURE.md` as prior-phase provenance when present on the live branch/main state.
+7. Fetch live branches/PRs/issues/commits and current CI before selecting work.
+8. While this closure is integration-pending, recover/integrate it before any phase transition.
+9. After P02 closure is integrated and exact canonical main is green, a separate transition may activate P03; no P03 implementation belongs in the P02 closure PR.
+10. Continue strict sequential phase execution; do not claim final product completion before canonical P22 closure.
