@@ -4,7 +4,7 @@ namespace FCCCodeDesktop.Persistence;
 
 internal static class SqliteSchema
 {
-    public const int BaselineVersion = 3;
+    public const int BaselineVersion = 4;
 
     public static ReadOnlyCollection<SqliteMigration> BaselineMigrations { get; } =
         Array.AsReadOnly(
@@ -185,6 +185,26 @@ internal static class SqliteSchema
 
                 CREATE INDEX IX_TaskEvents_TaskId_OccurredUtc
                     ON TaskEvents(TaskId, OccurredUtc);
+                """),
+            new SqliteMigration(
+                4,
+                "create_queue_items",
+                """
+                CREATE TABLE QueueItems (
+                    Id TEXT NOT NULL PRIMARY KEY,
+                    TaskId TEXT NOT NULL UNIQUE,
+                    OrderKey INTEGER NOT NULL,
+                    State TEXT NOT NULL,
+                    EnqueuedUtc TEXT NOT NULL,
+                    UpdatedUtc TEXT NOT NULL,
+                    CONSTRAINT FK_QueueItems_Tasks
+                        FOREIGN KEY (TaskId) REFERENCES Tasks(Id) ON DELETE CASCADE,
+                    CONSTRAINT CK_QueueItems_OrderKey_NonNegative CHECK (OrderKey >= 0),
+                    CONSTRAINT CK_QueueItems_State_NotEmpty CHECK (length(trim(State)) > 0)
+                );
+
+                CREATE INDEX IX_QueueItems_State_Order
+                    ON QueueItems(State, OrderKey, EnqueuedUtc, Id);
                 """)
         ]);
 }
