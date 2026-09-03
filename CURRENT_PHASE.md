@@ -18,7 +18,7 @@ LAST_RECONCILED: 2026-09-03
 
 ## Active rule
 
-P03 is the sole legal implementation phase after canonical P02 closure and exact post-closure main verification. `FCCD-P03-001` and `FCCD-P03-002` are canonically integrated and reconciled as `CLOSED`; `FCCD-P03-003` through `FCCD-P03-007` remain `PENDING`.
+P03 is the sole legal implementation phase after canonical P02 closure and exact post-closure main verification. `FCCD-P03-001` through `FCCD-P03-003` are canonically integrated and reconciled as `CLOSED`; `FCCD-P03-004` through `FCCD-P03-007` remain `PENDING`.
 
 Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
@@ -29,8 +29,9 @@ P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.m
 - `P03` — IN_PROGRESS as the sole current implementation phase; `PHASE_EXIT_GATE=NOT_RUN`.
 - `FCCD-P03-001` — CLOSED after implementation PR #71 was validated on exact candidate `ba30c8f3bef8c56977b59756bf168c480f2ad6b3` by Windows CI run `33796749113`, normally merged as `b7437a659911d17e7b221a6f540bc470f5acf929`, and the exact resulting canonical main passed Windows CI run `33797456382`.
 - `FCCD-P03-002` — CLOSED after implementation PR #73 was validated on exact candidate `9911627c3ccbce4c82bbded9ef0c7e4c7c9173c7` by Windows CI run `33800474488`, normally merged as `0d6402d0ee14412a62f2b2f67a54c779d6f47cf2`, and the exact resulting canonical main passed Windows CI run `33800922990` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 13/13, and the complete permanent Windows baseline PASS.
+- `FCCD-P03-003` — CLOSED after implementation PR #75 was validated on exact candidate `12053c1c3252df45f52ac8c13ee0fc398ce80daa` by Windows CI run `33804512765`, normally merged as `cb58551f9e8d32b4f0514b199e407ffcda84c188`, and the exact resulting canonical main passed Windows CI run `33804999538` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 18/18, and the complete permanent Windows baseline PASS.
 - P03 integrated-task reconciliation evidence: `evidence/phases/P03/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
-- `FCCD-P03-003` through `FCCD-P03-007` — PENDING.
+- `FCCD-P03-004` through `FCCD-P03-007` — PENDING.
 - P03 activation transition: PR #70 integrated the phase activation as canonical main `c5be02bc8224f56eff83cca925e0d6e22d4c034a`; its exact resulting-main Windows CI was green before P03-001 work was claimed.
 - `P02` — CLOSED with `PHASE_EXIT_GATE=PASS`.
 - `FCCD-P02-001` through `FCCD-P02-009` — CLOSED from validated canonical integration and exact-current-main non-regression Windows CI.
@@ -114,7 +115,7 @@ CLOSURE_RECORD: evidence/phases/P02/CLOSURE.md
 
 ## Next legal action
 
-Re-fetch live `main`, open PRs/branches/claims, current CI, and P03 evidence before selecting more work. `FCCD-P03-001` and `FCCD-P03-002` are CLOSED; if no Priority 1–4 recovery work exists, the earliest dependency-valid unclaimed current-phase task is `FCCD-P03-003 — Task/agent/tool/process event journal`. P03 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. Do not begin P04 until every mandatory P03 task is CLOSED and the P03 exact-head exit gate passes with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
+Re-fetch live `main`, open PRs/branches/claims, current CI, and P03 evidence before selecting more work. `FCCD-P03-001` through `FCCD-P03-003` are CLOSED; if no Priority 1–4 recovery work exists, the earliest dependency-valid unclaimed current-phase task is `FCCD-P03-004 — Queue persistence`. P03 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. Do not begin P04 until every mandatory P03 task is CLOSED and the P03 exact-head exit gate passes with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## Resume procedure
 
