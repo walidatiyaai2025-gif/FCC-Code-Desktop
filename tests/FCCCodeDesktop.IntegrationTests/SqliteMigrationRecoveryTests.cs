@@ -1,3 +1,4 @@
+using System.Globalization;
 using FCCCodeDesktop.Core.State;
 using FCCCodeDesktop.Persistence;
 using FCCCodeDesktop.Testing;
@@ -455,7 +456,9 @@ public sealed class SqliteMigrationRecoveryTests
         command.CommandText =
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = $tableName;";
         command.Parameters.AddWithValue("$tableName", tableName);
-        return Convert.ToInt32(await command.ExecuteScalarAsync(CancellationToken.None)) == 1;
+        return Convert.ToInt32(
+            await command.ExecuteScalarAsync(CancellationToken.None),
+            CultureInfo.InvariantCulture) == 1;
     }
 
     private static async Task<int> CountAppliedMigrationsAsync(string databasePath)
@@ -463,7 +466,9 @@ public sealed class SqliteMigrationRecoveryTests
         await using var connection = await OpenConnectionAsync(databasePath);
         await using var command = connection.CreateCommand();
         command.CommandText = "SELECT COUNT(*) FROM SchemaMigrations;";
-        return Convert.ToInt32(await command.ExecuteScalarAsync(CancellationToken.None));
+        return Convert.ToInt32(
+            await command.ExecuteScalarAsync(CancellationToken.None),
+            CultureInfo.InvariantCulture);
     }
 
     private static async Task<SqliteConnection> OpenConnectionAsync(string databasePath)
