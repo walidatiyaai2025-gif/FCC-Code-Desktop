@@ -18,6 +18,8 @@
         AutomationProperties.Name="FCC Code Desktop">
     <Window.Resources>
         <chrome:WorkspaceNavigationState x:Key="WorkspaceNavigationState" />
+        <chrome:WorkspaceLayoutState x:Key="WorkspaceLayoutState" />
+        <chrome:BottomToolPanelState x:Key="BottomToolPanelState" />
     </Window.Resources>
 
     <shell:WindowChrome.WindowChrome>
@@ -48,13 +50,19 @@
                             Focusable="False"
                             HorizontalContentAlignment="Stretch"
                             VerticalContentAlignment="Stretch">
-                <chrome:WorkspaceLayout x:Name="WorkspaceLayoutHost">
+                <chrome:WorkspaceLayout x:Name="WorkspaceLayoutHost"
+                                        State="{StaticResource WorkspaceLayoutState}">
                     <chrome:WorkspaceLayout.LeftContent>
                         <chrome:NavigationSurface State="{StaticResource WorkspaceNavigationState}" />
                     </chrome:WorkspaceLayout.LeftContent>
                     <chrome:WorkspaceLayout.PrimaryContent>
                         <chrome:WorkspaceSectionSurface State="{StaticResource WorkspaceNavigationState}" />
                     </chrome:WorkspaceLayout.PrimaryContent>
+                    <chrome:WorkspaceLayout.BottomContent>
+                        <chrome:BottomToolPanel x:Name="BottomToolPanelHost"
+                                                State="{StaticResource BottomToolPanelState}"
+                                                LayoutState="{StaticResource WorkspaceLayoutState}" />
+                    </chrome:WorkspaceLayout.BottomContent>
                 </chrome:WorkspaceLayout>
             </ContentControl>
         </Grid>
