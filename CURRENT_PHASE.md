@@ -7,9 +7,9 @@ PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
 CURRENT_PHASE: P01
 CURRENT_PHASE_NAME: Solution foundation / CI
-CURRENT_PHASE_STATE: IN_PROGRESS
+CURRENT_PHASE_STATE: CLOSED
 NEXT_PHASE: P02
-PHASE_EXIT_GATE: NOT_RUN
+PHASE_EXIT_GATE: PASS
 KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
@@ -18,7 +18,7 @@ LAST_RECONCILED: 2026-09-03
 
 ## Active rule
 
-P01 is the only legal implementation phase. `FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration. The P01 exit gate remains NOT_RUN, so P02 implementation is still prohibited until the complete exact-head P01 exit gate passes and closure evidence is integrated.
+P01 is canonically CLOSED from validated integration of `FCCD-P01-001` through `FCCD-P01-006` plus the complete exact-head phase exit gate. `CURRENT_PHASE` remains P01 until a separate legal P01→P02 transition is integrated; P02 implementation is not active merely because P01 closed.
 
 Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
@@ -26,9 +26,10 @@ P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.m
 
 ## Current status
 
-- `P01` — IN_PROGRESS as the sole current phase; `FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration.
+- `P01` — CLOSED; `FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration.
 - P01 integrated-task reconciliation evidence: `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
-- P01 exit gate remains `NOT_RUN`; phase closure is not claimed by this reconciliation.
+- P01 exact-head closure evidence: `evidence/phases/P01/CLOSURE.md`.
+- P01 candidate `72ea8b4f891a0558c97e0633c4444388e62ec464` passed the complete cloud-available exit gate on GitHub-hosted Windows: fresh exact checkout, .NET `10.0.400`, locked restore, format/analyzer verification, Release build, unit/integration tests, all P01 deterministic validators, canonical Windows CI baseline, `git diff --check`, tracked-file secret sanity scan, and final clean-worktree assertion.
 - `FCCD-P00-001` — CLOSED.
 - `FCCD-P00-002` — CLOSED from Windows executable/version/help and live loopback health evidence.
 - `FCCD-P00-003` — CLOSED from real structured `system/init` and `system/api_retry` target frames with sanitized raw/parsed evidence.
@@ -59,9 +60,22 @@ BLENDER_TARGET_RERUN_DURING_FINAL_GATE: ZERO
 CLOSURE_RECORD: evidence/phases/P00/CLOSURE.md
 ```
 
+## P01 closure
+
+```text
+P01_CANDIDATE_SHA: 72ea8b4f891a0558c97e0633c4444388e62ec464
+MANDATORY_TASKS: 6/6 CLOSED
+EXIT_GATE: PASS
+KNOWN_BLOCKERS: NONE
+KNOWN_REGRESSIONS: NONE
+OWNER_PENDING: NONE
+EXACT_GATE_RUN: 33726790774
+CLOSURE_RECORD: evidence/phases/P01/CLOSURE.md
+```
+
 ## Next legal action
 
-Apply `docs/WORKER_PROTOCOL.md` within P01 and run the complete P01 exit gate on an exact current `main` candidate. Do not begin P02 unless that gate passes, `evidence/phases/P01/CLOSURE.md` is integrated, the phase is canonically CLOSED, and `main` remains green. `VERIFIED_FINAL_COMPLETE` remains false.
+Integrate this focused P01 closure reconciliation normally, verify the resulting exact `main` remains green, and then perform a separate P01→P02 transition. Do not implement P02 while `CURRENT_PHASE` still records P01. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## Resume procedure
 
@@ -70,8 +84,8 @@ Apply `docs/WORKER_PROTOCOL.md` within P01 and run the complete P01 exit gate on
 3. Read `docs/EXECUTION_PLAN.md`.
 4. Read `docs/WORKER_PROTOCOL.md`.
 5. Read `docs/P00_TARGET_MACHINE_VALIDATION.md`.
-6. Read `docs/TASK_LEDGER.md`, `docs/PLAN_GAPS.md`, and `evidence/phases/P00/CLOSURE.md`.
-7. Fetch live branches/PRs/issues/commits and verify the P00 closure commit is integrated on `main`.
-8. Treat P01 as the sole legal phase; all mandatory P01 implementation tasks are CLOSED, so the next current-phase action is exact-head P01 exit-gate verification and closure reconciliation, not new feature work.
-9. Preserve the integrated FCC/CLI, streaming/session/failure, Unity, Blender, and target-runner evidence as immutable P00 provenance.
-10. Continue strict sequential phase execution; do not begin P02 until P01 is validly closed, and do not claim final product completion from P00 closure.
+6. Read `docs/TASK_LEDGER.md`, `docs/PLAN_GAPS.md`, `evidence/phases/P00/CLOSURE.md`, and `evidence/phases/P01/CLOSURE.md`.
+7. Fetch live branches/PRs/issues/commits and verify both P00 and P01 closure ancestry/evidence remain integrated on `main`.
+8. Treat P01 as CLOSED and awaiting the separate transition while `CURRENT_PHASE` remains P01; do not select a new P01 implementation task and do not begin P02 implementation before transition.
+9. Preserve the integrated FCC/CLI, streaming/session/failure, Unity, Blender, target-runner, P01 engineering-policy, test, CI, and build-metadata evidence as immutable provenance.
+10. Continue strict sequential phase execution; after a legal transition P02 becomes the sole current implementation phase. Do not claim final product completion before canonical P22 closure.
