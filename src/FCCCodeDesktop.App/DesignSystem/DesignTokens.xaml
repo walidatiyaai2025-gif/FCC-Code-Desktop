@@ -1,0 +1,53 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <!--
+        P02-001 owns theme-neutral geometry and density primitives only.
+        Semantic colors/brushes belong to P02-002 so dark/light appearance can
+        change without replacing the layout or typography contract.
+    -->
+
+    <!-- 2 px base spacing scale for a dense professional workbench. -->
+    <sys:Double x:Key="FccSpace0">0</sys:Double>
+    <sys:Double x:Key="FccSpace2">2</sys:Double>
+    <sys:Double x:Key="FccSpace4">4</sys:Double>
+    <sys:Double x:Key="FccSpace6">6</sys:Double>
+    <sys:Double x:Key="FccSpace8">8</sys:Double>
+    <sys:Double x:Key="FccSpace12">12</sys:Double>
+    <sys:Double x:Key="FccSpace16">16</sys:Double>
+    <sys:Double x:Key="FccSpace20">20</sys:Double>
+    <sys:Double x:Key="FccSpace24">24</sys:Double>
+    <sys:Double x:Key="FccSpace32">32</sys:Double>
+    <sys:Double x:Key="FccSpace40">40</sys:Double>
+    <sys:Double x:Key="FccSpace48">48</sys:Double>
+
+    <!-- Common all-edge insets prevent ad-hoc Thickness literals in views. -->
+    <Thickness x:Key="FccInset2">2</Thickness>
+    <Thickness x:Key="FccInset4">4</Thickness>
+    <Thickness x:Key="FccInset6">6</Thickness>
+    <Thickness x:Key="FccInset8">8</Thickness>
+    <Thickness x:Key="FccInset12">12</Thickness>
+    <Thickness x:Key="FccInset16">16</Thickness>
+    <Thickness x:Key="FccInset20">20</Thickness>
+    <Thickness x:Key="FccInset24">24</Thickness>
+
+    <!-- Corner hierarchy: subtle by default, larger only for contained surfaces. -->
+    <CornerRadius x:Key="FccRadiusNone">0</CornerRadius>
+    <CornerRadius x:Key="FccRadiusSmall">4</CornerRadius>
+    <CornerRadius x:Key="FccRadiusMedium">6</CornerRadius>
+    <CornerRadius x:Key="FccRadiusLarge">10</CornerRadius>
+    <CornerRadius x:Key="FccRadiusXLarge">14</CornerRadius>
+
+    <!-- Stroke/focus geometry. P02-002 supplies the semantic brushes. -->
+    <sys:Double x:Key="FccStrokeThin">1</sys:Double>
+    <Thickness x:Key="FccFocusRingThickness">2</Thickness>
+
+    <!-- Shared interaction density primitives. -->
+    <sys:Double x:Key="FccControlHeightCompact">28</sys:Double>
+    <sys:Double x:Key="FccControlHeightStandard">32</sys:Double>
+    <sys:Double x:Key="FccControlHeightComfortable">36</sys:Double>
+
+    <sys:Double x:Key="FccIconSizeSmall">14</sys:Double>
+    <sys:Double x:Key="FccIconSizeMedium">16</sys:Double>
+    <sys:Double x:Key="FccIconSizeLarge">20</sys:Double>
+</ResourceDictionary>
