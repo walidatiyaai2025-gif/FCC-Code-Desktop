@@ -43,7 +43,9 @@
                             Background="{DynamicResource FccBrushCanvas}"
                             Focusable="False"
                             HorizontalContentAlignment="Stretch"
-                            VerticalContentAlignment="Stretch" />
+                            VerticalContentAlignment="Stretch">
+                <chrome:WorkspaceLayout x:Name="WorkspaceLayoutHost" />
+            </ContentControl>
         </Grid>
     </Border>
 </Window>
