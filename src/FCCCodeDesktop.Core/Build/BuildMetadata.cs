@@ -181,6 +181,6 @@ public sealed class AssemblyBuildMetadataService : IBuildMetadataService
             throw new InvalidOperationException($"Assembly metadata '{key}' must exist exactly once with a value.");
         }
 
-        return matches[0].Value;
+        return matches[0].Value!;
     }
 }
