@@ -64,7 +64,8 @@ function Assert-CiPolicy {
         '.\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet',
         '.\tools\ui\validate-design-system.ps1 -RunFixtures',
         '.\tools\ui\validate-semantic-themes.ps1 -RunFixtures -RequireRuntime',
-        '.\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime'
+        '.\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime',
+        '.\tools\ui\validate-workspace-layout.ps1 -RunFixtures -RequireRuntime'
     )) {
         Assert-ContainsLiteral $RunnerText $requiredRunnerText 'Windows CI runner'
     }
@@ -117,9 +118,10 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-design-system.ps1 -RunFixtures', '')) } 'missing design-system validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-semantic-themes.ps1 -RunFixtures -RequireRuntime', '')) } 'missing semantic-theme validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime', '')) } 'missing app-chrome validation'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-workspace-layout.ps1 -RunFixtures -RequireRuntime', '')) } 'missing workspace-layout validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, design-system, semantic-theme, and app-chrome enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, design-system, semantic-theme, app-chrome, and workspace-layout enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {
