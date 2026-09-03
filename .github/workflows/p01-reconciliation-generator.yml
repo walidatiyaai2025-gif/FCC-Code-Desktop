@@ -27,7 +27,7 @@ jobs:
         run: |
           git checkout reconcile/p01-integrated-task-state-9d3098e
           if ($LASTEXITCODE -ne 0) { throw 'Failed to checkout reconciliation target.' }
-          if ((git rev-parse HEAD) -ne '9d3098e251d237752542a4602e4014a8fa1eebc9') { throw 'Reconciliation branch moved before generation.' }
+          if ((git rev-parse HEAD) -ne '416651579fb8ee42442d961b469b16266810138a') { throw 'Reconciliation branch moved before generation.' }
 
       - name: Generate reconciled canonical state
         shell: pwsh
@@ -38,7 +38,7 @@ jobs:
         run: |
           git diff --check
           if ($LASTEXITCODE -ne 0) { throw 'Diff hygiene failed.' }
-          $changed = @(git status --short | ForEach-Object { $_.Substring(3) })
+          $changed = @(git status --short --untracked-files=all | ForEach-Object { $_.Substring(3) })
           $expected = @('CURRENT_PHASE.md','docs/TASK_LEDGER.md','evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md')
           foreach ($path in $changed) {
             if ($path -notin $expected) { throw "Unexpected reconciliation change: $path" }
