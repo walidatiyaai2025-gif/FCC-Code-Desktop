@@ -72,9 +72,11 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $root = (git rev-list --max-parents=0 HEAD | Select-Object -First 1).Trim()
-          git diff --check "$root..HEAD"
+          git diff --check
           if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+          git diff --cached --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --cached --check failed.' }
+          Write-Host 'git diff --check: PASS.'
 
       - name: Tracked-file secret sanity scan
         shell: pwsh
