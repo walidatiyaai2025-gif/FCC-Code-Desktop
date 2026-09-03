@@ -94,7 +94,7 @@ public sealed class ThemeService
     private static ResourceDictionary LoadTheme(AppearanceTheme theme)
     {
         var source = GetThemeSource(theme);
-        var loaded = Application.LoadComponent(new Uri(source, UriKind.Relative));
+        var loaded = System.Windows.Application.LoadComponent(new Uri(source, UriKind.Relative));
         if (loaded is not ResourceDictionary dictionary)
         {
             throw new InvalidDataException($"Theme component '{source}' did not load as a ResourceDictionary.");
