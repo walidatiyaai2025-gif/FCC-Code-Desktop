@@ -192,3 +192,20 @@ The interface typography baseline is Windows-native `Segoe UI`; code/monospace t
 See `docs/design/DESIGN_TOKENS_AND_TYPOGRAPHY.md`.
 
 ---
+
+## ADR-019 — Dark/light appearance uses one semantic brush contract
+
+**Status:** Accepted  
+**Date:** 2026-09-03
+
+Dark and light appearance are separate WPF resource dictionaries with identical semantic keys. Views and controls consume `FccBrush*` resources via `DynamicResource`; raw palette colors remain backing values. The dark theme is the default application composition, while `ThemeService` performs runtime dictionary replacement without introducing settings persistence into P02.
+
+A requested theme is loaded and identity-validated before the active theme is removed. Unsupported or failed switches preserve the existing theme. Relative `App.xaml` theme URIs and assembly-qualified WPF component URIs normalize to the same theme identity.
+
+The semantic contract includes background/surface hierarchy, text hierarchy, borders/dividers, accent states, focus/selection/interaction states, and success/warning/error/info pairs. Deterministic validation enforces identical key sets and accessibility-oriented contrast thresholds in both themes.
+
+**Reason:** Semantic brushes keep feature UI independent of raw palette values, make runtime appearance switching architectural rather than per-screen styling, and prevent dark/light drift while preserving the P02-001 geometry/typography boundary.
+
+See `docs/design/SEMANTIC_THEMES.md`.
+
+---
