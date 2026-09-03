@@ -57,6 +57,10 @@ try {
     & pwsh -NoProfile -File .\tools\testing\run-tests.ps1 -Suite all -Configuration Release -NoRestore -NoBuild
     Assert-LastExitCode 'Unit/integration tests'
 
+    Write-Host 'CI stage: build metadata policy'
+    & pwsh -NoProfile -File .\tools\build\validate-build-metadata.ps1 -RequireDotNet
+    Assert-LastExitCode 'Build metadata validation'
+
     Write-Host 'CI stage: dependency policy'
     & pwsh -NoProfile -File .\tools\dependencies\validate-dependency-policy.ps1 -RequireDotNet
     Assert-LastExitCode 'Dependency policy validation'

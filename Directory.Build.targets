@@ -1,0 +1,23 @@
+<Project>
+  <Target Name="ValidateFccBuildMetadata" BeforeTargets="GenerateAssemblyInfo">
+    <PropertyGroup>
+      <_FccGitCommitValid Condition="'$(FccGitCommit)' == 'unknown'">True</_FccGitCommitValid>
+      <_FccGitCommitValid Condition="'$(FccGitCommit)' != 'unknown'">$([System.Text.RegularExpressions.Regex]::IsMatch('$(FccGitCommit)', '^[0-9a-fA-F]{40}([0-9a-fA-F]{24})?$'))</_FccGitCommitValid>
+    </PropertyGroup>
+
+    <Error Condition="'$(FccIsPublicRelease)' != 'true' and '$(FccIsPublicRelease)' != 'false'"
+           Text="FccIsPublicRelease must be exactly 'true' or 'false'." />
+    <Error Condition="'$(_FccGitCommitValid)' != 'True'"
+           Text="FccGitCommit must be 'unknown' for local development or a 40-/64-character hexadecimal Git object ID." />
+    <Error Condition="'$(FccIsPublicRelease)' == 'true' and '$(FccGitCommit)' == 'unknown'"
+           Text="Public release builds require exact Git source provenance." />
+    <Error Condition="'$(FccIsPublicRelease)' == 'true' and '$(FccBuildChannel)' != 'Production'"
+           Text="Public release builds must use the Production build channel." />
+    <Error Condition="'$(FccIsPublicRelease)' == 'false' and '$(FccBuildChannel)' != 'Development'"
+           Text="Internal builds must use the Development build channel." />
+    <Error Condition="'$(FccIsPublicRelease)' == 'true' and '$(FccProductVersion)' != '$(VersionPrefix)'"
+           Text="Public release builds must use the unsuffixed product version." />
+    <Error Condition="'$(FccIsPublicRelease)' == 'false' and '$(FccProductVersion)' != '$(VersionPrefix)-dev'"
+           Text="Internal builds must be visibly marked with the -dev prerelease suffix." />
+  </Target>
+</Project>
