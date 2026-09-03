@@ -89,6 +89,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-workspace-layout.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Workspace layout validation'
 
+    Write-Host 'CI stage: navigation/projects/sessions/tasks surfaces'
+    & pwsh -NoProfile -File .\tools\ui\validate-navigation-surfaces.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'Navigation surface validation'
+
     Write-Host 'Windows CI baseline: PASS.'
 }
 finally {
