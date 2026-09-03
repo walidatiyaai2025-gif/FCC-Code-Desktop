@@ -1,0 +1,44 @@
+<UserControl x:Class="FCCCodeDesktop.App.Shell.WorkspaceSectionSurface"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             Background="{DynamicResource FccBrushCanvas}"
+             Foreground="{DynamicResource FccBrushTextPrimary}"
+             Focusable="False"
+             AutomationProperties.Name="Workspace section surface">
+    <Grid DataContext="{Binding State, ElementName=Root}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Padding="{StaticResource FccInset16}"
+                Background="{DynamicResource FccBrushCanvas}"
+                BorderBrush="{DynamicResource FccBrushDivider}"
+                BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock x:Name="SectionTitle"
+                           Text="{Binding SelectedTitle}"
+                           Style="{StaticResource FccTextDisplay}"
+                           Foreground="{DynamicResource FccBrushTextPrimary}" />
+                <TextBlock x:Name="SectionDescription"
+                           Margin="0,4,0,0"
+                           Text="{Binding SelectedDescription}"
+                           Style="{StaticResource FccTextMetadata}"
+                           Foreground="{DynamicResource FccBrushTextMuted}" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1"
+                Padding="{StaticResource FccInset16}"
+                Background="{DynamicResource FccBrushCanvas}">
+            <ContentControl x:Name="SectionContentHost"
+                            Content="{Binding SelectedContent}"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch"
+                            Focusable="False"
+                            AutomationProperties.Name="Selected workspace section content" />
+        </Border>
+    </Grid>
+</UserControl>
