@@ -62,19 +62,19 @@ public sealed class CommonStateModel
     public bool HasAction => ActionLabel is not null && ActionCommand is not null;
 
     public static CommonStateModel Empty(string title, string message, string? detail = null) =>
-        new(CommonStateKind.Empty, title, message, detail);
+        Create(title, message, detail, null, null, CommonStateKind.Empty);
 
     public static CommonStateModel Loading(string title, string message, string? detail = null) =>
-        new(CommonStateKind.Loading, title, message, detail);
+        Create(title, message, detail, null, null, CommonStateKind.Loading);
 
     public static CommonStateModel Info(string title, string message, string? detail = null) =>
-        new(CommonStateKind.Info, title, message, detail);
+        Create(title, message, detail, null, null, CommonStateKind.Info);
 
     public static CommonStateModel Success(string title, string message, string? detail = null) =>
-        new(CommonStateKind.Success, title, message, detail);
+        Create(title, message, detail, null, null, CommonStateKind.Success);
 
     public static CommonStateModel Warning(string title, string message, string? detail = null) =>
-        new(CommonStateKind.Warning, title, message, detail);
+        Create(title, message, detail, null, null, CommonStateKind.Warning);
 
     public static CommonStateModel Error(
         string title,
@@ -82,7 +82,7 @@ public sealed class CommonStateModel
         string? detail = null,
         string? actionLabel = null,
         ICommand? actionCommand = null) =>
-        new(CommonStateKind.Error, title, message, detail, actionLabel, actionCommand);
+        Create(title, message, detail, actionLabel, actionCommand, CommonStateKind.Error);
 
     public static CommonStateModel Unavailable(
         string title,
@@ -90,7 +90,7 @@ public sealed class CommonStateModel
         string? detail = null,
         string? actionLabel = null,
         ICommand? actionCommand = null) =>
-        new(CommonStateKind.Unavailable, title, message, detail, actionLabel, actionCommand);
+        Create(title, message, detail, actionLabel, actionCommand, CommonStateKind.Unavailable);
 
     public static CommonStateModel Offline(
         string title,
@@ -98,7 +98,7 @@ public sealed class CommonStateModel
         string? detail = null,
         string? actionLabel = null,
         ICommand? actionCommand = null) =>
-        new(CommonStateKind.Offline, title, message, detail, actionLabel, actionCommand);
+        Create(title, message, detail, actionLabel, actionCommand, CommonStateKind.Offline);
 
     public static CommonStateModel Blocked(
         string title,
@@ -106,7 +106,16 @@ public sealed class CommonStateModel
         string? detail = null,
         string? actionLabel = null,
         ICommand? actionCommand = null) =>
-        new(CommonStateKind.Blocked, title, message, detail, actionLabel, actionCommand);
+        Create(title, message, detail, actionLabel, actionCommand, CommonStateKind.Blocked);
+
+    private static CommonStateModel Create(
+        string title,
+        string message,
+        string? detail,
+        string? actionLabel,
+        ICommand? actionCommand,
+        CommonStateKind kind) =>
+        new(kind, title, message, detail, actionLabel, actionCommand);
 
     private static string RequireText(string value, string parameterName)
     {
