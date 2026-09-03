@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Input;
 
 namespace FCCCodeDesktop.App.Shell;
 
@@ -13,15 +14,29 @@ public sealed class WorkspaceLayoutState : INotifyPropertyChanged
     public const double DefaultRightPaneWidth = 300d;
     public const double MinimumSidePaneWidth = 160d;
     public const double MaximumSidePaneWidth = 480d;
+    public const double DefaultBottomPanelHeight = 220d;
+    public const double MinimumBottomPanelHeight = 120d;
+    public const double MaximumBottomPanelHeight = 480d;
+    public const double CollapsedBottomPanelHeight = 36d;
 
     private GridLength _leftPaneWidth = new(DefaultLeftPaneWidth);
     private GridLength _rightPaneWidth = new(DefaultRightPaneWidth);
+    private GridLength _bottomPanelHeight = new(DefaultBottomPanelHeight);
     private double _lastExpandedLeftPaneWidth = DefaultLeftPaneWidth;
     private double _lastExpandedRightPaneWidth = DefaultRightPaneWidth;
+    private double _lastExpandedBottomPanelHeight = DefaultBottomPanelHeight;
     private bool _isLeftPaneCollapsed;
     private bool _isRightPaneCollapsed;
+    private bool _isBottomPanelCollapsed;
+
+    public WorkspaceLayoutState()
+    {
+        ToggleBottomPanelCommand = new ToggleBottomPanelStateCommand(this);
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    public ICommand ToggleBottomPanelCommand { get; }
 
     public GridLength LeftPaneWidth
     {
@@ -35,6 +50,12 @@ public sealed class WorkspaceLayoutState : INotifyPropertyChanged
         set => SetPaneWidth(ref _rightPaneWidth, value, false);
     }
 
+    public GridLength BottomPanelHeight
+    {
+        get => _bottomPanelHeight;
+        set => SetBottomPanelHeight(value);
+    }
+
     public bool IsLeftPaneCollapsed
     {
         get => _isLeftPaneCollapsed;
@@ -45,6 +66,12 @@ public sealed class WorkspaceLayoutState : INotifyPropertyChanged
     {
         get => _isRightPaneCollapsed;
         private set => SetField(ref _isRightPaneCollapsed, value);
+    }
+
+    public bool IsBottomPanelCollapsed
+    {
+        get => _isBottomPanelCollapsed;
+        private set => SetField(ref _isBottomPanelCollapsed, value);
     }
 
     public void CollapseLeftPane()
@@ -83,14 +110,48 @@ public sealed class WorkspaceLayoutState : INotifyPropertyChanged
         SetField(ref _rightPaneWidth, new GridLength(ClampSidePaneWidth(_lastExpandedRightPaneWidth)), nameof(RightPaneWidth));
     }
 
+    public void CollapseBottomPanel()
+    {
+        if (_bottomPanelHeight.IsAbsolute && _bottomPanelHeight.Value > CollapsedBottomPanelHeight)
+        {
+            _lastExpandedBottomPanelHeight = ClampBottomPanelHeight(_bottomPanelHeight.Value);
+        }
+
+        IsBottomPanelCollapsed = true;
+        SetField(ref _bottomPanelHeight, new GridLength(CollapsedBottomPanelHeight), nameof(BottomPanelHeight));
+    }
+
+    public void RestoreBottomPanel()
+    {
+        IsBottomPanelCollapsed = false;
+        SetField(
+            ref _bottomPanelHeight,
+            new GridLength(ClampBottomPanelHeight(_lastExpandedBottomPanelHeight)),
+            nameof(BottomPanelHeight));
+    }
+
+    public void ToggleBottomPanel()
+    {
+        if (IsBottomPanelCollapsed)
+        {
+            RestoreBottomPanel();
+            return;
+        }
+
+        CollapseBottomPanel();
+    }
+
     public void Reset()
     {
         _lastExpandedLeftPaneWidth = DefaultLeftPaneWidth;
         _lastExpandedRightPaneWidth = DefaultRightPaneWidth;
+        _lastExpandedBottomPanelHeight = DefaultBottomPanelHeight;
         IsLeftPaneCollapsed = false;
         IsRightPaneCollapsed = false;
+        IsBottomPanelCollapsed = false;
         SetField(ref _leftPaneWidth, new GridLength(DefaultLeftPaneWidth), nameof(LeftPaneWidth));
         SetField(ref _rightPaneWidth, new GridLength(DefaultRightPaneWidth), nameof(RightPaneWidth));
+        SetField(ref _bottomPanelHeight, new GridLength(DefaultBottomPanelHeight), nameof(BottomPanelHeight));
     }
 
     private void SetPaneWidth(ref GridLength field, GridLength value, bool isLeft)
@@ -130,8 +191,30 @@ public sealed class WorkspaceLayoutState : INotifyPropertyChanged
         SetField(ref field, new GridLength(clamped), isLeft ? nameof(LeftPaneWidth) : nameof(RightPaneWidth));
     }
 
+    private void SetBottomPanelHeight(GridLength value)
+    {
+        if (!value.IsAbsolute)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), "Bottom-panel height must be an absolute GridLength value.");
+        }
+
+        if (value.Value <= CollapsedBottomPanelHeight)
+        {
+            CollapseBottomPanel();
+            return;
+        }
+
+        var clamped = ClampBottomPanelHeight(value.Value);
+        _lastExpandedBottomPanelHeight = clamped;
+        IsBottomPanelCollapsed = false;
+        SetField(ref _bottomPanelHeight, new GridLength(clamped), nameof(BottomPanelHeight));
+    }
+
     private static double ClampSidePaneWidth(double value) =>
         Math.Clamp(value, MinimumSidePaneWidth, MaximumSidePaneWidth);
+
+    private static double ClampBottomPanelHeight(double value) =>
+        Math.Clamp(value, MinimumBottomPanelHeight, MaximumBottomPanelHeight);
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
@@ -143,5 +226,25 @@ public sealed class WorkspaceLayoutState : INotifyPropertyChanged
         field = value;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         return true;
+    }
+
+    private sealed class ToggleBottomPanelStateCommand : ICommand
+    {
+        private readonly WorkspaceLayoutState _owner;
+
+        public ToggleBottomPanelStateCommand(WorkspaceLayoutState owner)
+        {
+            _owner = owner;
+        }
+
+        public event EventHandler? CanExecuteChanged
+        {
+            add { }
+            remove { }
+        }
+
+        public bool CanExecute(object? parameter) => true;
+
+        public void Execute(object? parameter) => _owner.ToggleBottomPanel();
     }
 }
