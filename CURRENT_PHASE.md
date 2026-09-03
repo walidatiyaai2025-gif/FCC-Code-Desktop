@@ -28,6 +28,7 @@ P00 target-dependent contract work is already closed from authoritative evidence
 
 - `P03` — IN_PROGRESS as the sole current implementation phase; `PHASE_EXIT_GATE=NOT_RUN`.
 - `FCCD-P03-001` through `FCCD-P03-007` — PENDING. No P03 implementation is claimed by this transition.
+- P03 activation transition: PR #70 from `transition/p03-phase-activation`; integration and exact resulting-main CI are required before any P03 task is safely claimable.
 - `P02` — CLOSED with `PHASE_EXIT_GATE=PASS`.
 - P02 exact-head closure evidence: `evidence/phases/P02/CLOSURE.md`.
 - P02 candidate `8b264cc352656030382f95846410ac60d81f7c24` passed exact-head gate run `33786810686`.
