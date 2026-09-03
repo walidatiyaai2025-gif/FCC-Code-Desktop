@@ -188,10 +188,10 @@ public sealed class SqliteExecutionJournalStoreTests
             new PersistedTask(taskId, sessionId, "COMPLETED", "done", createdUtc.AddHours(1), createdUtc.AddHours(2)),
             CancellationToken.None);
         await store.UpsertAgentRunAsync(
-            new PersistedAgentRun(agentRunId, taskId, "changed-runtime", "COMPLETED", createdUtc.AddHours(1), createdUtc.AddMinutes(30)),
+            new PersistedAgentRun(agentRunId, taskId, "changed-runtime", "COMPLETED", createdUtc.AddMinutes(10), createdUtc.AddMinutes(30)),
             CancellationToken.None);
         await store.UpsertToolRunAsync(
-            new PersistedToolRun(toolRunId, taskId, agentRunId, "changed-tool", "changed-operation", "COMPLETED", createdUtc.AddHours(1), createdUtc.AddMinutes(31)),
+            new PersistedToolRun(toolRunId, taskId, agentRunId, "changed-tool", "changed-operation", "COMPLETED", createdUtc.AddMinutes(10), createdUtc.AddMinutes(31)),
             CancellationToken.None);
         await store.UpsertProcessRunAsync(
             new PersistedProcessRun(
@@ -205,7 +205,7 @@ public sealed class SqliteExecutionJournalStoreTests
                 workspace.GetPath("other"),
                 9912,
                 "COMPLETED",
-                createdUtc.AddHours(1),
+                createdUtc.AddMinutes(10),
                 createdUtc.AddMinutes(32),
                 0),
             CancellationToken.None);
