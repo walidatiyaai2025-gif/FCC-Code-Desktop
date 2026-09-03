@@ -40,7 +40,7 @@ PUBLIC_RELEASE_ELIGIBLE: false
 
 `CURRENT_PHASE.md` is the fast live resume checkpoint. `docs/EXECUTION_PLAN.md` is the canonical sequential execution contract.
 
-P02 is canonically CLOSED from candidate `8b264cc352656030382f95846410ac60d81f7c24`; all nine mandatory P02 task rows are CLOSED and exact-head exit-gate run `33786810686` passed. P02 closure was integrated by PR #69 as merge `6b495178f2a120e745fe09633bbd584851253d71`, and exact post-closure canonical main Windows CI run `33788321767` completed SUCCESS on that merge SHA. P03 is therefore the sole legal implementation phase. `FCCD-P03-001` and `FCCD-P03-002` are canonically CLOSED from validated implementation, normal merge integration, exact-main Windows CI, and integrated-task reconciliation; `FCCD-P03-003` through `FCCD-P03-007` remain PENDING. The P03 exit gate remains `NOT_RUN`.
+P02 is canonically CLOSED from candidate `8b264cc352656030382f95846410ac60d81f7c24`; all nine mandatory P02 task rows are CLOSED and exact-head exit-gate run `33786810686` passed. P02 closure was integrated by PR #69 as merge `6b495178f2a120e745fe09633bbd584851253d71`, and exact post-closure canonical main Windows CI run `33788321767` completed SUCCESS on that merge SHA. P03 is therefore the sole legal implementation phase. `FCCD-P03-001` through `FCCD-P03-003` are canonically CLOSED from validated implementation, normal merge integration, exact-main Windows CI, and integrated-task reconciliation; `FCCD-P03-004` through `FCCD-P03-007` remain PENDING. The P03 exit gate remains `NOT_RUN`.
 
 ---
 
