@@ -4,8 +4,8 @@ namespace FCCCodeDesktop.App.DesignSystem;
 
 public sealed class ThemeService
 {
-    internal const string DarkThemeSource = "DesignSystem/Themes/Theme.Dark.xaml";
-    internal const string LightThemeSource = "DesignSystem/Themes/Theme.Light.xaml";
+    internal const string DarkThemeSource = "/FCCCodeDesktop.App;component/DesignSystem/Themes/Theme.Dark.xaml";
+    internal const string LightThemeSource = "/FCCCodeDesktop.App;component/DesignSystem/Themes/Theme.Light.xaml";
 
     private readonly ResourceDictionary _rootResources;
 
