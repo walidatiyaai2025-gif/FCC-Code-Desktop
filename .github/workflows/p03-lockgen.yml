@@ -1,0 +1,35 @@
+name: P03 Lock Generation
+
+on:
+  push:
+    branches:
+      - worker/fccd-p03-001-sqlite-bootstrap
+
+permissions:
+  contents: read
+
+jobs:
+  generate-locks:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Regenerate lock files
+        shell: pwsh
+        run: dotnet restore FCCCodeDesktop.sln --force-evaluate -p:RestoreLockedMode=false
+
+      - name: Upload lock files
+        uses: actions/upload-artifact@v4
+        with:
+          name: p03-lock-files
+          path: |
+            src/**/packages.lock.json
+            tests/**/packages.lock.json
+          if-no-files-found: error
