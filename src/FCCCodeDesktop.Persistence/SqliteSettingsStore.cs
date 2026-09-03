@@ -22,6 +22,7 @@ public sealed class SqliteSettingsStore : ISettingsStore
     {
         ArgumentNullException.ThrowIfNull(setting);
         ValidateSetting(setting);
+        var normalizedKey = NormalizeKey(setting.Key);
 
         await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
@@ -33,7 +34,7 @@ public sealed class SqliteSettingsStore : ISettingsStore
                 ValueJson = excluded.ValueJson,
                 UpdatedUtc = excluded.UpdatedUtc;
             """;
-        command.Parameters.AddWithValue("$key", NormalizeKey(setting.Key));
+        command.Parameters.AddWithValue("$key", normalizedKey);
         command.Parameters.AddWithValue("$valueJson", setting.ValueJson);
         command.Parameters.AddWithValue("$updatedUtc", FormatTimestamp(setting.UpdatedUtc));
 
@@ -44,7 +45,7 @@ public sealed class SqliteSettingsStore : ISettingsStore
         catch (SqliteException exception)
         {
             throw new InvalidOperationException(
-                $"SQLite could not persist global setting '{NormalizeKey(setting.Key)}'.",
+                $"SQLite could not persist global setting '{normalizedKey}'.",
                 exception);
         }
     }
@@ -115,6 +116,7 @@ public sealed class SqliteSettingsStore : ISettingsStore
         EnsureNonEmptyGuid(projectId, nameof(projectId));
         ArgumentNullException.ThrowIfNull(setting);
         ValidateSetting(setting);
+        var normalizedKey = NormalizeKey(setting.Key);
 
         await using var connection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
@@ -127,7 +129,7 @@ public sealed class SqliteSettingsStore : ISettingsStore
                 UpdatedUtc = excluded.UpdatedUtc;
             """;
         command.Parameters.AddWithValue("$projectId", FormatGuid(projectId));
-        command.Parameters.AddWithValue("$key", NormalizeKey(setting.Key));
+        command.Parameters.AddWithValue("$key", normalizedKey);
         command.Parameters.AddWithValue("$valueJson", setting.ValueJson);
         command.Parameters.AddWithValue("$updatedUtc", FormatTimestamp(setting.UpdatedUtc));
 
@@ -138,7 +140,7 @@ public sealed class SqliteSettingsStore : ISettingsStore
         catch (SqliteException exception)
         {
             throw new InvalidOperationException(
-                $"SQLite could not persist project setting '{NormalizeKey(setting.Key)}' for project '{projectId:D}'.",
+                $"SQLite could not persist project setting '{normalizedKey}' for project '{FormatGuid(projectId)}'.",
                 exception);
         }
     }
@@ -272,7 +274,7 @@ public sealed class SqliteSettingsStore : ISettingsStore
 
         try
         {
-            using var _ = JsonDocument.Parse(setting.ValueJson);
+            using var document = JsonDocument.Parse(setting.ValueJson);
         }
         catch (JsonException exception)
         {
