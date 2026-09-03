@@ -226,3 +226,16 @@ P02-003 displays the product name as text but deliberately does not add a tempor
 See `docs/design/APP_CHROME.md`.
 
 ---
+
+## ADR-021 — P03 persistence uses Microsoft.Data.Sqlite with ordered checksum-verified migrations
+
+**Status:** Accepted  
+**Date:** 2026-09-03
+
+`FCCD-P03-001` uses the stable `Microsoft.Data.Sqlite` 10.0.11 ADO.NET provider rather than introducing EF Core. `FCCCodeDesktop.Persistence` owns an explicit ordered migration plan starting at schema version 1. `SchemaMigrations` records each applied migration version, immutable name, SHA-256 SQL checksum, and UTC application timestamp. Pending migrations execute transactionally with their ledger insert; already-applied migration name/checksum drift and unsupported future schema versions are rejected before new SQL is applied. Initialization enables SQLite foreign-key enforcement and a bounded busy timeout on its connection.
+
+P03-001 creates only the migration ledger/bootstrap contract. Domain entity tables and repositories remain owned by `FCCD-P03-002` and later P03 tasks so the bootstrap does not prematurely couple persistence to unfinished domain schemas.
+
+**Reason:** The architecture already mandates SQLite with versioned migrations. A small explicit ADO.NET boundary provides deterministic SQL and transaction semantics, keeps migration history reviewable, avoids premature ORM/domain coupling, and detects accidental rewriting of migrations that may already exist in owner data.
+
+---
