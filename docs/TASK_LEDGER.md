@@ -85,13 +85,15 @@ Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-009` is reco
 
 | ID | Task | State |
 |---|---|---|
-| FCCD-P03-001 | SQLite bootstrap and schema migrations | PENDING |
+| FCCD-P03-001 | SQLite bootstrap and schema migrations | CLOSED |
 | FCCD-P03-002 | Project/session/message persistence | PENDING |
 | FCCD-P03-003 | Task/agent/tool/process event journal | PENDING |
 | FCCD-P03-004 | Queue persistence | PENDING |
 | FCCD-P03-005 | Settings persistence | PENDING |
 | FCCD-P03-006 | Database integrity/backup rotation | PENDING |
 | FCCD-P03-007 | Migration/recovery tests | PENDING |
+
+Integrated task reconciliation for `FCCD-P03-001` is recorded in `evidence/phases/P03/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. PR #71 exact candidate `ba30c8f3bef8c56977b59756bf168c480f2ad6b3` passed Windows CI run `33796749113`, was normally merged as canonical main `b7437a659911d17e7b221a6f540bc470f5acf929`, and exact post-merge Windows CI run `33797456382` completed SUCCESS. P03 remains `IN_PROGRESS`; `FCCD-P03-002` through `FCCD-P03-007` remain PENDING and the P03 exit gate has not run.
 
 ## P04 — FCC/Claude runtime
 
@@ -350,8 +352,8 @@ Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-009` is reco
 
 ## Current next action
 
-`CURRENT_PHASE = P03` and P03 is `IN_PROGRESS` only after the phase-transition PR is integrated. All `FCCD-P03-001` through `FCCD-P03-007` remain `PENDING`; this transition claims none of them.
+`CURRENT_PHASE = P03` and P03 remains `IN_PROGRESS`. `FCCD-P03-001` is CLOSED from exact candidate validation, normal canonical integration, and exact-current-main non-regression CI; `FCCD-P03-002` through `FCCD-P03-007` remain `PENDING`.
 
 P02 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`. Exact closure evidence is `evidence/phases/P02/CLOSURE.md`; PR #69 integrated the closure as main SHA `6b495178f2a120e745fe09633bbd584851253d71`, and exact post-closure Windows CI run `33788321767` completed SUCCESS.
 
-After the P03 activation transition is integrated and exact resulting main remains green, re-run the Worker Protocol claim map. If no Priority 1–4 recovery work exists, the earliest dependency-valid task is `FCCD-P03-001 — SQLite bootstrap and schema migrations`. Do not begin P04 until all P03 mandatory tasks are CLOSED and its exact-head phase gate is PASS. `VERIFIED_FINAL_COMPLETE` remains false.
+Re-run the Worker Protocol claim map before selecting more work. If no Priority 1–4 recovery work exists, the earliest dependency-valid current-phase task is `FCCD-P03-002 — Project/session/message persistence`. Do not begin P04 until all P03 mandatory tasks are CLOSED and its exact-head phase gate is PASS. `VERIFIED_FINAL_COMPLETE` remains false.
