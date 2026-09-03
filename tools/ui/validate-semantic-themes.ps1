@@ -250,12 +250,14 @@ function Assert-ThemePairContract {
         'public AppearanceTheme? CurrentTheme',
         'public void Apply(AppearanceTheme theme)',
         'public bool TryApply(AppearanceTheme theme, out Exception? error)',
-        'var candidate = new ResourceDictionary',
+        'var candidate = LoadTheme(theme);',
+        'Application.LoadComponent(new Uri(source, UriKind.Relative))',
         'ValidateCandidate(candidate, theme);',
         'mergedDictionaries.Insert(insertionIndex, candidate);',
         'mergedDictionaries.Remove(existingTheme);',
         'mergedDictionaries.Remove(candidate);',
-        'const string componentMarker = ";component/";',
+        'GetThemeIdentity(dictionary)',
+        'dictionary.Contains("FccThemeName")',
         'return false;'
     )) {
         if (-not $serviceText.Contains($requiredLiteral)) {
@@ -263,11 +265,11 @@ function Assert-ThemePairContract {
         }
     }
 
-    $candidateIndex = $serviceText.IndexOf('var candidate = new ResourceDictionary', [StringComparison]::Ordinal)
+    $candidateIndex = $serviceText.IndexOf('var candidate = LoadTheme(theme);', [StringComparison]::Ordinal)
     $insertIndex = $serviceText.IndexOf('mergedDictionaries.Insert(insertionIndex, candidate);', [StringComparison]::Ordinal)
     $removeExistingIndex = $serviceText.IndexOf('mergedDictionaries.Remove(existingTheme);', [StringComparison]::Ordinal)
     if (-not ($candidateIndex -lt $insertIndex -and $insertIndex -lt $removeExistingIndex)) {
-        throw 'ThemeService must construct and validate the candidate before replacing the current theme.'
+        throw 'ThemeService must fully load and validate the candidate before replacing the current theme.'
     }
 }
 
@@ -343,36 +345,54 @@ internal static class Program
     [STAThread]
     private static void Main()
     {
+        _ = new Application();
+
+        var tokens = Load("/FCCCodeDesktop.App;component/DesignSystem/DesignTokens.xaml");
+        var typography = Load("/FCCCodeDesktop.App;component/DesignSystem/Typography.xaml");
+        var dark = Load("/FCCCodeDesktop.App;component/DesignSystem/Themes/Theme.Dark.xaml");
+
         var root = new ResourceDictionary();
-        root.MergedDictionaries.Add(new ResourceDictionary
-        {
-            Source = new Uri("/FCCCodeDesktop.App;component/DesignSystem/Themes/Theme.Dark.xaml", UriKind.Relative),
-        });
+        root.MergedDictionaries.Add(tokens);
+        root.MergedDictionaries.Add(typography);
+        root.MergedDictionaries.Add(dark);
 
         var service = new ThemeService(root);
         Assert(service.CurrentTheme == AppearanceTheme.Dark, "default dark detection");
+        Assert(root.MergedDictionaries.Count == 3, "initial composition count");
 
         service.Apply(AppearanceTheme.Light);
         Assert(service.CurrentTheme == AppearanceTheme.Light, "dark to light switch");
-        Assert(root.MergedDictionaries.Count == 1, "single theme after switch");
+        Assert(root.MergedDictionaries.Count == 3, "single theme after switch");
+        Assert(ReferenceEquals(root.MergedDictionaries[0], tokens), "tokens preserved");
+        Assert(ReferenceEquals(root.MergedDictionaries[1], typography), "typography preserved");
         Assert((string)root["FccThemeName"] == "Light", "light resources active");
 
         service.Apply(AppearanceTheme.Light);
-        Assert(root.MergedDictionaries.Count == 1, "idempotent light apply");
+        Assert(root.MergedDictionaries.Count == 3, "idempotent light apply");
 
         var beforeFailure = service.CurrentTheme;
         var invalidAccepted = service.TryApply((AppearanceTheme)999, out var error);
         Assert(!invalidAccepted, "invalid theme rejected");
         Assert(error is ArgumentOutOfRangeException, "invalid theme classified");
         Assert(service.CurrentTheme == beforeFailure, "failed switch preserves current theme");
+        Assert(root.MergedDictionaries.Count == 3, "failed switch preserves composition");
         Assert((string)root["FccThemeName"] == "Light", "failed switch preserves resources");
 
         service.Apply(AppearanceTheme.Dark);
         Assert(service.CurrentTheme == AppearanceTheme.Dark, "light to dark recovery");
-        Assert(root.MergedDictionaries.Count == 1, "single theme after recovery");
+        Assert(root.MergedDictionaries.Count == 3, "single theme after recovery");
+        Assert(ReferenceEquals(root.MergedDictionaries[0], tokens), "tokens preserved after recovery");
+        Assert(ReferenceEquals(root.MergedDictionaries[1], typography), "typography preserved after recovery");
         Assert((string)root["FccThemeName"] == "Dark", "dark resources restored");
 
         Console.WriteLine("Runtime semantic-theme happy/negative/recovery fixture: PASS.");
+    }
+
+    private static ResourceDictionary Load(string source)
+    {
+        var loaded = Application.LoadComponent(new Uri(source, UriKind.Relative));
+        return loaded as ResourceDictionary
+            ?? throw new InvalidOperationException($"Resource '{source}' did not load as a ResourceDictionary.");
     }
 
     private static void Assert(bool condition, string label)
