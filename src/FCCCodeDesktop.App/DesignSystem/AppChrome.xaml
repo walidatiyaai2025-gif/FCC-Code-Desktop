@@ -44,33 +44,25 @@
                                           VerticalAlignment="Center"
                                           RecognizesAccessKey="False" />
                     </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="ButtonSurface"
-                                    Property="Background"
-                                    Value="{DynamicResource FccBrushHoverOverlay}" />
-                            <Setter Property="Foreground" Value="{DynamicResource FccBrushTextPrimary}" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="ButtonSurface"
-                                    Property="Background"
-                                    Value="{DynamicResource FccBrushPressedOverlay}" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="ButtonSurface"
-                                    Property="BorderBrush"
-                                    Value="{DynamicResource FccBrushFocus}" />
-                            <Setter TargetName="ButtonSurface"
-                                    Property="BorderThickness"
-                                    Value="{StaticResource FccFocusRingThickness}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource FccBrushHoverOverlay}" />
+                <Setter Property="Foreground" Value="{DynamicResource FccBrushTextPrimary}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource FccBrushPressedOverlay}" />
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource FccBrushFocus}" />
+                <Setter Property="BorderThickness" Value="{DynamicResource FccFocusRingThickness}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.45" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style x:Key="FccChromeCloseButton"
