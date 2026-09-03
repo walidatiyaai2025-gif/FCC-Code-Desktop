@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using Microsoft.Data.Sqlite;
 
@@ -49,7 +50,7 @@ public sealed class SqliteDatabaseInitializer
             Array.AsReadOnly(newlyAppliedVersions.ToArray()));
     }
 
-    private static IReadOnlyList<SqliteMigration> BuildMigrationPlan(
+    private static ReadOnlyCollection<SqliteMigration> BuildMigrationPlan(
         IEnumerable<SqliteMigration>? additionalMigrations)
     {
         var migrations = new List<SqliteMigration>(SqliteSchema.BaselineMigrations);
