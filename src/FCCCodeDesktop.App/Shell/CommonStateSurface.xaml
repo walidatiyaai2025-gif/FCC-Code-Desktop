@@ -115,7 +115,6 @@
                 <TextBlock x:Name="StateDetail"
                            Margin="0,8,0,0"
                            Text="{Binding State.Detail, ElementName=Root}"
-                           Style="{StaticResource FccTextMetadata}"
                            Foreground="{DynamicResource FccBrushTextMuted}"
                            TextWrapping="Wrap">
                     <TextBlock.Style>
@@ -155,13 +154,13 @@
                         Content="{Binding State.ActionLabel, ElementName=Root}"
                         Command="{Binding State.ActionCommand, ElementName=Root}"
                         Foreground="{DynamicResource FccBrushTextPrimary}"
-                        Background="{DynamicResource FccBrushSurfaceSubtle}"
-                        BorderBrush="{DynamicResource FccBrushBorder}"
                         BorderThickness="1"
                         AutomationProperties.Name="{Binding State.ActionLabel, ElementName=Root}">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Visibility" Value="Collapsed" />
+                            <Setter Property="Background" Value="{DynamicResource FccBrushSurfaceSubtle}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource FccBrushBorder}" />
                             <Setter Property="FocusVisualStyle">
                                 <Setter.Value>
                                     <Style TargetType="Control">
