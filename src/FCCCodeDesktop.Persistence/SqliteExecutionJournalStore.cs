@@ -572,7 +572,7 @@ public sealed class SqliteExecutionJournalStore : IExecutionJournalStore
         string message,
         string parameterName)
     {
-        if (completedUtc < startedUtc)
+        if (completedUtc is not null && completedUtc.Value < startedUtc)
         {
             throw new ArgumentException(message, parameterName);
         }
