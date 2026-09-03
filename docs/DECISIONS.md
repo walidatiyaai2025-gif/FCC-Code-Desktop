@@ -209,3 +209,20 @@ The semantic contract includes background/surface hierarchy, text hierarchy, bor
 See `docs/design/SEMANTIC_THEMES.md`.
 
 ---
+
+## ADR-020 — Application chrome uses WPF WindowChrome with app-owned caption controls
+
+**Status:** Accepted  
+**Date:** 2026-09-03
+
+`FCCD-P02-003` establishes the production root `MainWindow` with `WindowStyle=None`, `ResizeMode=CanResize`, and WPF `WindowChrome`. The application owns titlebar presentation and vector caption controls while `WindowChrome` preserves native caption drag, double-click maximize/restore, resizing, and Windows snap behavior. `AllowsTransparency=True` is explicitly avoided.
+
+Caption controls consume P02 semantic brushes through `DynamicResource`, expose keyboard focus and automation names, and update the actual host `WindowState`. The titlebar exposes `ContextContent` and `StatusContent` dependency-property seams for later P02 project/branch/runtime/tool-health presentation without fabricating that feature state early. The root window exposes an empty `WorkspaceHost` seam for P02-004 rather than a temporary/mock workspace.
+
+P02-003 displays the product name as text but deliberately does not add a temporary initials logo, copied mark, stock icon, or provisional application artwork; the original production icon/identity remains owned by P18.
+
+**Reason:** Native `WindowChrome` retains expected Windows window-management behavior while allowing a theme-consistent premium titlebar. Stable extension seams prevent later P02 shell work from replacing the root-window architecture, and deferring artwork avoids turning placeholder branding into release identity.
+
+See `docs/design/APP_CHROME.md`.
+
+---

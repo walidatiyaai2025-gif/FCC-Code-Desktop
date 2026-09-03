@@ -1,0 +1,49 @@
+<Window x:Class="FCCCodeDesktop.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:chrome="clr-namespace:FCCCodeDesktop.App.Shell"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="FCC Code Desktop"
+        Width="1200"
+        Height="800"
+        MinWidth="640"
+        MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="{DynamicResource FccBrushCanvas}"
+        Foreground="{DynamicResource FccBrushTextPrimary}"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        AutomationProperties.Name="FCC Code Desktop">
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="{StaticResource FccAppChromeHeight}"
+                            ResizeBorderThickness="{StaticResource FccAppChromeResizeBorderThickness}"
+                            GlassFrameThickness="0"
+                            CornerRadius="0"
+                            UseAeroCaptionButtons="False" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Border x:Name="WindowFrame"
+            Background="{DynamicResource FccBrushCanvas}"
+            BorderBrush="{DynamicResource FccBrushBorder}"
+            BorderThickness="{StaticResource FccAppChromeFrameBorderThickness}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="{StaticResource FccAppChromeRowHeight}" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <chrome:AppTitleBar x:Name="AppTitleBarHost"
+                                Grid.Row="0"
+                                ProductName="FCC Code Desktop" />
+
+            <ContentControl x:Name="WorkspaceHost"
+                            Grid.Row="1"
+                            Background="{DynamicResource FccBrushCanvas}"
+                            Focusable="False"
+                            HorizontalContentAlignment="Stretch"
+                            VerticalContentAlignment="Stretch" />
+        </Grid>
+    </Border>
+</Window>
