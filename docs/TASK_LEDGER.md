@@ -79,7 +79,7 @@ Closure evidence for `FCCD-P01-001` through `FCCD-P01-006` is recorded in `evide
 | FCCD-P02-008 | Common empty/loading/error/status components | CLOSED |
 | FCCD-P02-009 | DPI/resolution layout foundations | CLOSED |
 
-Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-009` is recorded in `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. All nine rows are CLOSED from focused exact-head Windows CI, normal merge integration, and exact-current-main non-regression Windows CI. P02 itself remains `IN_PROGRESS` until its exact-head exit gate passes; `PHASE_EXIT_GATE=NOT_RUN`.
+Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-009` is recorded in `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. All nine rows are CLOSED from focused exact-head Windows CI, normal merge integration, and exact-current-main non-regression Windows CI. P02 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`; exact-head closure evidence is `evidence/phases/P02/CLOSURE.md`, closure was integrated by PR #69 at merge SHA `6b495178f2a120e745fe09633bbd584851253d71`, and post-closure Windows CI run `33788321767` completed SUCCESS on that exact main SHA.
 
 ## P03 — Persistence/state model
 
@@ -350,8 +350,8 @@ Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-009` is reco
 
 ## Current next action
 
-`CURRENT_PHASE = P02` and P02 remains `IN_PROGRESS` pending its exact-head exit gate.
+`CURRENT_PHASE = P03` and P03 is `IN_PROGRESS` only after the phase-transition PR is integrated. All `FCCD-P03-001` through `FCCD-P03-007` remain `PENDING`; this transition claims none of them.
 
-`FCCD-P02-001` through `FCCD-P02-009` are CLOSED from validated canonical integration. The durable task evidence map is `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. The permanent Windows CI baseline is green on exact integration main SHA `4a9e6979861ec01c40317c14ec59c2d93605cf5e` (run `33767862127`).
+P02 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`. Exact closure evidence is `evidence/phases/P02/CLOSURE.md`; PR #69 integrated the closure as main SHA `6b495178f2a120e745fe09633bbd584851253d71`, and exact post-closure Windows CI run `33788321767` completed SUCCESS.
 
-The next legitimate current-phase action is P02 exact-head phase reconciliation/exit-gate closure. Run the complete P02 gate, record `evidence/phases/P02/CLOSURE.md`, integrate the closure state, and require canonical main to remain green. Do not begin P03 until the P02 gate is `PASS` with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
+After the P03 activation transition is integrated and exact resulting main remains green, re-run the Worker Protocol claim map. If no Priority 1–4 recovery work exists, the earliest dependency-valid task is `FCCD-P03-001 — SQLite bootstrap and schema migrations`. Do not begin P04 until all P03 mandatory tasks are CLOSED and its exact-head phase gate is PASS. `VERIFIED_FINAL_COMPLETE` remains false.
