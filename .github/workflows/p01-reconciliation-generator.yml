@@ -1,0 +1,58 @@
+name: P01 Integrated Task Reconciliation Generator
+
+on:
+  push:
+    branches:
+      - validation/p01-reconciliation-9d3098e
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - name: Checkout validation branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Preserve reconciliation script
+        shell: pwsh
+        run: Copy-Item .\tools\validation\reconcile-p01-integrated-state.ps1 (Join-Path $env:RUNNER_TEMP 'reconcile-p01-integrated-state.ps1')
+
+      - name: Checkout reconciliation target
+        shell: pwsh
+        run: |
+          git checkout reconcile/p01-integrated-task-state-9d3098e
+          if ($LASTEXITCODE -ne 0) { throw 'Failed to checkout reconciliation target.' }
+          if ((git rev-parse HEAD) -ne '9d3098e251d237752542a4602e4014a8fa1eebc9') { throw 'Reconciliation branch moved before generation.' }
+
+      - name: Generate reconciled canonical state
+        shell: pwsh
+        run: '& (Join-Path $env:RUNNER_TEMP ''reconcile-p01-integrated-state.ps1'')'
+
+      - name: Verify focused diff
+        shell: pwsh
+        run: |
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'Diff hygiene failed.' }
+          $changed = @(git status --short | ForEach-Object { $_.Substring(3) })
+          $expected = @('CURRENT_PHASE.md','docs/TASK_LEDGER.md','evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md')
+          foreach ($path in $changed) {
+            if ($path -notin $expected) { throw "Unexpected reconciliation change: $path" }
+          }
+          foreach ($path in $expected) {
+            if ($path -notin $changed) { throw "Expected reconciliation change missing: $path" }
+          }
+
+      - name: Commit reconciliation
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- CURRENT_PHASE.md docs/TASK_LEDGER.md evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md
+          git commit -m 'P01: reconcile integrated task state'
+          git push origin HEAD:refs/heads/reconcile/p01-integrated-task-state-9d3098e
+          Write-Host "RECONCILED_HEAD=$(git rev-parse HEAD)"
