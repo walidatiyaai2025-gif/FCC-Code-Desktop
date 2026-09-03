@@ -1,0 +1,108 @@
+name: One-off P02 integrated-task reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/p02-integrated-task-state-018da0c
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reconciliation branch
+        uses: actions/checkout@v7
+        with:
+          ref: reconcile/p02-integrated-task-state-018da0c
+          fetch-depth: 1
+
+      - name: Reconcile canonical P02 task state
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          ledger_path = Path('docs/TASK_LEDGER.md')
+          phase_path = Path('CURRENT_PHASE.md')
+          evidence_path = Path('evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md')
+          workflow_path = Path('.github/workflows/reconcile-p02-integrated.yml')
+
+          ledger = ledger_path.read_text(encoding='utf-8')
+          replacements = {
+              '| FCCD-P02-001 | Define design tokens and typography | PENDING |': '| FCCD-P02-001 | Define design tokens and typography | CLOSED |',
+              '| FCCD-P02-002 | Dark/light semantic themes | PENDING |': '| FCCD-P02-002 | Dark/light semantic themes | CLOSED |',
+              '| FCCD-P02-003 | Premium title/app chrome | PENDING |': '| FCCD-P02-003 | Premium title/app chrome | CLOSED |',
+              '| FCCD-P02-004 | Main resizable workspace layout | PENDING |': '| FCCD-P02-004 | Main resizable workspace layout | CLOSED |',
+          }
+          for old, new in replacements.items():
+              if old not in ledger:
+                  raise SystemExit(f'Missing expected ledger row: {old}')
+              ledger = ledger.replace(old, new, 1)
+
+          old_p01 = ('Closure evidence for `FCCD-P01-001` through `FCCD-P01-006` is recorded in '
+                     '`evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. This closes the six task rows only from '
+                     'implementation + task-specific/cloud validation + normal canonical integration + exact-current-main non-regression CI. '
+                     'P01 itself remains IN_PROGRESS and its exit gate remains NOT_RUN.')
+          new_p01 = ('Closure evidence for `FCCD-P01-001` through `FCCD-P01-006` is recorded in '
+                     '`evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. Those task rows were reconciled before the '
+                     'exact-head P01 exit gate passed. P01 is now canonically CLOSED with `PHASE_EXIT_GATE=PASS`; see '
+                     '`evidence/phases/P01/CLOSURE.md`.')
+          if old_p01 not in ledger:
+              raise SystemExit('Stale P01 ledger paragraph was not found')
+          ledger = ledger.replace(old_p01, new_p01, 1)
+
+          p02_tail = '| FCCD-P02-009 | DPI/resolution layout foundations | PENDING |'
+          p02_note = (
+              p02_tail + '\n\n'
+              'Integrated task reconciliation for `FCCD-P02-001` through `FCCD-P02-004` is recorded in '
+              '`evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. These four rows are CLOSED from focused exact-head '
+              'Windows CI, normal merge integration, and exact-current-main non-regression Windows CI. P02 itself remains `IN_PROGRESS`; '
+              '`FCCD-P02-005` through `FCCD-P02-009` remain PENDING and `PHASE_EXIT_GATE=NOT_RUN`.'
+          )
+          if p02_tail not in ledger:
+              raise SystemExit('P02 table tail not found')
+          ledger = ledger.replace(p02_tail, p02_note, 1)
+
+          marker = '## Current next action\n'
+          if marker not in ledger:
+              raise SystemExit('Current next action marker not found')
+          ledger = ledger.split(marker, 1)[0] + marker + '''\n`CURRENT_PHASE = P02` and P02 remains `IN_PROGRESS`.\n\n`FCCD-P02-001` through `FCCD-P02-004` are CLOSED from validated canonical integration. The durable task evidence map is `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`. The permanent Windows CI baseline is green on exact current `main` SHA `018da0c93d2711486c06f0a7c30ead4e83a24a9f` (run `33742182158`).\n\nThe next legitimate current-phase action is `FCCD-P02-005 — Navigation/projects/sessions/tasks surfaces`, unless newer live state shows a legitimate active/recovery owner for that task. Continue P02 only; do not begin P03 until all nine P02 tasks are CLOSED, the exact-head P02 exit gate passes, `evidence/phases/P02/CLOSURE.md` is integrated, and canonical main is green. `VERIFIED_FINAL_COMPLETE` remains false.\n'''
+          ledger_path.write_text(ledger, encoding='utf-8', newline='\n')
+
+          phase = phase_path.read_text(encoding='utf-8')
+          old_status = '- `FCCD-P02-001` through `FCCD-P02-009` — PENDING; no P02 implementation task was activated by this phase transition.'
+          new_status = ('- `FCCD-P02-001` through `FCCD-P02-004` — CLOSED from validated canonical integration and exact-current-main non-regression CI.\n'
+                        '- `FCCD-P02-005` through `FCCD-P02-009` — PENDING.')
+          if old_status not in phase:
+              raise SystemExit('Expected P02 current-status line not found')
+          phase = phase.replace(old_status, new_status, 1)
+
+          old_next = ('Apply `docs/WORKER_PROTOCOL.md` within P02. Reconcile any legitimate active/recovery work first; if none exists, '
+                      'select the earliest dependency-valid unclaimed P02 task from `docs/TASK_LEDGER.md`. Do not begin P03 until all mandatory '
+                      'P02 tasks are CLOSED, the P02 exit gate passes with exact-head evidence, `evidence/phases/P02/CLOSURE.md` is integrated, '
+                      'and canonical `main` is green. `VERIFIED_FINAL_COMPLETE` remains false.')
+          new_next = ('Apply `docs/WORKER_PROTOCOL.md` within P02. `FCCD-P02-001` through `FCCD-P02-004` are reconciled CLOSED. Reconcile any '
+                      'new legitimate active/recovery work first; otherwise the earliest dependency-valid task is `FCCD-P02-005`. Do not begin P03 '
+                      'until all mandatory P02 tasks are CLOSED, the P02 exit gate passes with exact-head evidence, `evidence/phases/P02/CLOSURE.md` '
+                      'is integrated, and canonical `main` is green. `VERIFIED_FINAL_COMPLETE` remains false.')
+          if old_next not in phase:
+              raise SystemExit('Expected P02 next-action paragraph not found')
+          phase = phase.replace(old_next, new_next, 1)
+          phase_path.write_text(phase, encoding='utf-8', newline='\n')
+
+          evidence_path.parent.mkdir(parents=True, exist_ok=True)
+          evidence_path.write_text('''# P02 Integrated Task Reconciliation — 2026-09-03\n\n## Scope\n\nThis record reconciles validated, already-integrated P02 implementation after a fresh live repository inspection. It is **not** the P02 phase-closure artifact, does not run or claim the P02 exit gate, does not advance to P03, and keeps `VERIFIED_FINAL_COMPLETE=false`.\n\nReconciliation baseline: exact canonical `main` SHA `018da0c93d2711486c06f0a7c30ead4e83a24a9f`.\n\n## Live recovery map\n\n- Open pull requests at reconciliation baseline: none.\n- P02 is the sole legal implementation phase.\n- PR #54 integrated `FCCD-P02-001`; exact candidate `095eab850b3e3efa6c4d69838bdd291125d60c0f` passed Windows CI run `33730508965`.\n- PR #55 integrated `FCCD-P02-002`; exact candidate `be29a4d33df393857f5ff3dffc428a02811d07ae` passed Windows CI run `33733063370`.\n- PR #56 integrated `FCCD-P02-003`; exact candidate `1ffcd179c1a3a7e06086d3862ad0e16833141dea` passed Windows CI run `33738303088`.\n- PR #57 integrated `FCCD-P02-004`; exact candidate `14881ab1a8af2dde4def841f117becacce4926b5` passed Windows CI run `33741648487` after real XAML and negative-fixture defects were repaired rather than waived.\n- Exact resulting canonical main `018da0c93d2711486c06f0a7c30ead4e83a24a9f` passed post-merge Windows CI run `33742182158`.\n\n## Reconciliation result\n\n| Task | Canonical integration / focused evidence | Result |\n|---|---|---|\n| `FCCD-P02-001` | PR #54; exact-head Windows CI `33730508965`; current-main non-regression CI `33742182158`. | CLOSED |\n| `FCCD-P02-002` | PR #55; exact-head Windows CI `33733063370`; current-main non-regression CI `33742182158`. | CLOSED |\n| `FCCD-P02-003` | PR #56; exact-head Windows CI `33738303088`; current-main non-regression CI `33742182158`. | CLOSED |\n| `FCCD-P02-004` | PR #57; exact-head Windows CI `33741648487`; current-main non-regression CI `33742182158`. | CLOSED |\n\n## State after reconciliation\n\n- `FCCD-P02-001` through `FCCD-P02-004` — CLOSED.\n- `FCCD-P02-005` through `FCCD-P02-009` — PENDING unless newer live repository state shows a legitimate active claim.\n- `CURRENT_PHASE` — P02.\n- `CURRENT_PHASE_STATE` — IN_PROGRESS.\n- `PHASE_EXIT_GATE` — NOT_RUN.\n- P02 phase closure — NOT CLAIMED.\n- P03 implementation — PROHIBITED.\n- `VERIFIED_FINAL_COMPLETE` — false.\n\n## Next legitimate action\n\nRe-fetch live state and recover any legitimate current P02 work first. If no worker/PR owns the next dependency-valid task, continue with `FCCD-P02-005 — Navigation/projects/sessions/tasks surfaces`. Do not start P03 and do not claim P02 closure until all remaining P02 tasks are CLOSED and the exact-head phase exit gate passes.\n''', encoding='utf-8', newline='\n')
+
+          if workflow_path.exists():
+              workflow_path.unlink()
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/TASK_LEDGER.md CURRENT_PHASE.md evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md .github/workflows/reconcile-p02-integrated.yml
+          git diff --cached --check
+          git commit -m "P02: reconcile integrated tasks 001-004"
+          git push origin HEAD:reconcile/p02-integrated-task-state-018da0c
