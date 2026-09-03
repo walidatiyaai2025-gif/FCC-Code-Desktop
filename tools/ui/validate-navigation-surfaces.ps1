@@ -43,9 +43,8 @@ function Assert-NavigationContract {
 
     foreach ($literal in @(
         '<chrome:WorkspaceNavigationState x:Key="WorkspaceNavigationState" />',
-        'x:Name="NavigationSurfaceHost"',
-        'State="{StaticResource WorkspaceNavigationState}"',
-        'x:Name="WorkspaceSectionSurfaceHost"',
+        '<chrome:NavigationSurface State="{StaticResource WorkspaceNavigationState}" />',
+        '<chrome:WorkspaceSectionSurface State="{StaticResource WorkspaceNavigationState}" />',
         '<chrome:WorkspaceLayout.LeftContent>',
         '<chrome:WorkspaceLayout.PrimaryContent>'
     )) {
@@ -208,10 +207,12 @@ internal static class Program
         app.InitializeComponent();
         var window = new MainWindow();
 
-        var navigation = window.FindName("NavigationSurfaceHost") as NavigationSurface
-            ?? throw new InvalidOperationException("NavigationSurfaceHost was not created.");
-        var sectionSurface = window.FindName("WorkspaceSectionSurfaceHost") as WorkspaceSectionSurface
-            ?? throw new InvalidOperationException("WorkspaceSectionSurfaceHost was not created.");
+        var layout = window.FindName("WorkspaceLayoutHost") as WorkspaceLayout
+            ?? throw new InvalidOperationException("WorkspaceLayoutHost was not created.");
+        var navigation = layout.LeftContent as NavigationSurface
+            ?? throw new InvalidOperationException("NavigationSurface was not composed into the left region.");
+        var sectionSurface = layout.PrimaryContent as WorkspaceSectionSurface
+            ?? throw new InvalidOperationException("WorkspaceSectionSurface was not composed into the primary region.");
 
         Assert(ReferenceEquals(navigation.State, sectionSurface.State), "shared production state");
         var state = navigation.State;
