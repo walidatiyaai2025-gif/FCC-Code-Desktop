@@ -5,11 +5,11 @@ This file is the fastest canonical resume checkpoint. It must be updated only wh
 ```text
 PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
-CURRENT_PHASE: P01
-CURRENT_PHASE_NAME: Solution foundation / CI
-CURRENT_PHASE_STATE: CLOSED
-NEXT_PHASE: P02
-PHASE_EXIT_GATE: PASS
+CURRENT_PHASE: P02
+CURRENT_PHASE_NAME: Premium design system and shell
+CURRENT_PHASE_STATE: IN_PROGRESS
+NEXT_PHASE: P03
+PHASE_EXIT_GATE: NOT_RUN
 KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
@@ -18,18 +18,21 @@ LAST_RECONCILED: 2026-09-03
 
 ## Active rule
 
-P01 is canonically CLOSED from validated integration of `FCCD-P01-001` through `FCCD-P01-006` plus the complete exact-head phase exit gate. `CURRENT_PHASE` remains P01 until a separate legal P01→P02 transition is integrated; P02 implementation is not active merely because P01 closed.
+P02 is the only legal implementation phase. `FCCD-P02-001` through `FCCD-P02-009` remain truthfully `PENDING` at phase activation; this transition does not claim or implement any P02 task. P01 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`, its exact-head closure evidence is integrated, and the post-closure exact-main Windows Release baseline is green.
 
 Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
-P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative target evidence is integrated and reconciled; no additional provider, Unity, or Blender target rerun is required for P00 closure. P00 closure and its evidence are immutable historical provenance for downstream work.
+P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative target evidence is integrated and reconciled; no additional provider, Unity, or Blender target rerun is required for P00 closure. P00 and P01 closure evidence are immutable historical provenance for downstream work.
 
 ## Current status
 
+- `P02` — IN_PROGRESS as the sole current implementation phase.
+- `FCCD-P02-001` through `FCCD-P02-009` — PENDING; no P02 implementation task was activated by this phase transition.
 - `P01` — CLOSED; `FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration.
 - P01 integrated-task reconciliation evidence: `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
 - P01 exact-head closure evidence: `evidence/phases/P01/CLOSURE.md`.
 - P01 candidate `72ea8b4f891a0558c97e0633c4444388e62ec464` passed the complete cloud-available exit gate on GitHub-hosted Windows: fresh exact checkout, .NET `10.0.400`, locked restore, format/analyzer verification, Release build, unit/integration tests, all P01 deterministic validators, canonical Windows CI baseline, `git diff --check`, tracked-file secret sanity scan, and final clean-worktree assertion.
+- P01 closure was integrated by PR #52. The resulting closure tree remained green on exact canonical `main`; Windows CI run `33728070232` completed SUCCESS on transition base `27c9ab5dbb192d68f5ee629184fc2eabeee087df`.
 - `FCCD-P00-001` — CLOSED.
 - `FCCD-P00-002` — CLOSED from Windows executable/version/help and live loopback health evidence.
 - `FCCD-P00-003` — CLOSED from real structured `system/init` and `system/api_retry` target frames with sanitized raw/parsed evidence.
@@ -70,12 +73,14 @@ KNOWN_BLOCKERS: NONE
 KNOWN_REGRESSIONS: NONE
 OWNER_PENDING: NONE
 EXACT_GATE_RUN: 33726790774
+POST_CLOSURE_MAIN_GREEN_SHA: 27c9ab5dbb192d68f5ee629184fc2eabeee087df
+POST_CLOSURE_WINDOWS_CI_RUN: 33728070232
 CLOSURE_RECORD: evidence/phases/P01/CLOSURE.md
 ```
 
 ## Next legal action
 
-Integrate this focused P01 closure reconciliation normally, verify the resulting exact `main` remains green, and then perform a separate P01→P02 transition. Do not implement P02 while `CURRENT_PHASE` still records P01. `VERIFIED_FINAL_COMPLETE` remains false.
+Apply `docs/WORKER_PROTOCOL.md` within P02. Reconcile any legitimate active/recovery work first; if none exists, select the earliest dependency-valid unclaimed P02 task from `docs/TASK_LEDGER.md`. Do not begin P03 until all mandatory P02 tasks are CLOSED, the P02 exit gate passes with exact-head evidence, `evidence/phases/P02/CLOSURE.md` is integrated, and canonical `main` is green. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## Resume procedure
 
@@ -83,9 +88,9 @@ Integrate this focused P01 closure reconciliation normally, verify the resulting
 2. Read `PROJECT_CONTROL.md`.
 3. Read `docs/EXECUTION_PLAN.md`.
 4. Read `docs/WORKER_PROTOCOL.md`.
-5. Read `docs/P00_TARGET_MACHINE_VALIDATION.md`.
-6. Read `docs/TASK_LEDGER.md`, `docs/PLAN_GAPS.md`, `evidence/phases/P00/CLOSURE.md`, and `evidence/phases/P01/CLOSURE.md`.
-7. Fetch live branches/PRs/issues/commits and verify both P00 and P01 closure ancestry/evidence remain integrated on `main`.
-8. Treat P01 as CLOSED and awaiting the separate transition while `CURRENT_PHASE` remains P01; do not select a new P01 implementation task and do not begin P02 implementation before transition.
+5. Read `docs/TASK_LEDGER.md`, `docs/ACCEPTANCE_MATRIX.md`, `docs/DECISIONS.md`, and `docs/PLAN_GAPS.md`.
+6. Read `evidence/phases/P00/CLOSURE.md` and `evidence/phases/P01/CLOSURE.md` as immutable prior-phase provenance.
+7. Fetch live branches/PRs/issues/commits and current CI before selecting P02 work.
+8. Treat P02 as the sole legal implementation phase; all nine mandatory P02 tasks begin PENDING unless newer live repository state truthfully changes them.
 9. Preserve the integrated FCC/CLI, streaming/session/failure, Unity, Blender, target-runner, P01 engineering-policy, test, CI, and build-metadata evidence as immutable provenance.
-10. Continue strict sequential phase execution; after a legal transition P02 becomes the sole current implementation phase. Do not claim final product completion before canonical P22 closure.
+10. Continue strict sequential phase execution; do not begin P03 until P02 is validly closed, and do not claim final product completion before canonical P22 closure.
