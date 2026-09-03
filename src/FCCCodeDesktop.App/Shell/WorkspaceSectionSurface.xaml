@@ -56,7 +56,7 @@
                 <shell:CommonStateSurface x:Name="SectionEmptyState"
                                           State="{Binding SelectedEmptyState}">
                     <shell:CommonStateSurface.Style>
-                        <Style TargetType="shell:CommonStateSurface">
+                        <Style TargetType="{x:Type shell:CommonStateSurface}">
                             <Setter Property="Visibility" Value="Visible" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding HasSelectedContent}" Value="True">
