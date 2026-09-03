@@ -5,6 +5,9 @@
     <AssemblyName>FCCCodeDesktop.Persistence</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\FCCCodeDesktop.Core\FCCCodeDesktop.Core.csproj" />
     <ProjectReference Include="..\FCCCodeDesktop.Application\FCCCodeDesktop.Application.csproj" />
   </ItemGroup>
