@@ -326,7 +326,7 @@ Write-Host 'Static common empty/loading/error/status validation: PASS.'
 
 if ($RunFixtures) {
     Assert-ContractRejects {
-        Assert-CommonStateContract ($modelText.Replace('Blocked,', 'RemovedBlocked,')) $surfaceText $surfaceCodeText $badgeText $badgeCodeText $navigationStateText $workspaceSurfaceText
+        Assert-CommonStateContract ($modelText.Replace('    Blocked,', '    RemovedState,')) $surfaceText $surfaceCodeText $badgeText $badgeCodeText $navigationStateText $workspaceSurfaceText
     } 'missing blocked state taxonomy'
     Assert-ContractRejects {
         Assert-CommonStateContract $modelText ($surfaceText.Replace('{DynamicResource FccBrushErrorBackground}', '#55112233')) $surfaceCodeText $badgeText $badgeCodeText $navigationStateText $workspaceSurfaceText
