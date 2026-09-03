@@ -18,17 +18,19 @@ LAST_RECONCILED: 2026-09-03
 
 ## Active rule
 
-P03 is the sole legal implementation phase after canonical P02 closure and exact post-closure main verification. `FCCD-P03-001` through `FCCD-P03-007` remain `PENDING`; this phase-transition change does not claim, implement, verify, or close any P03 task.
+P03 is the sole legal implementation phase after canonical P02 closure and exact post-closure main verification. `FCCD-P03-001` is canonically integrated and reconciled as `CLOSED`; `FCCD-P03-002` through `FCCD-P03-007` remain `PENDING`.
 
 Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
-P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative target evidence is integrated and reconciled; no additional provider, Unity, or Blender target rerun is required for P03 activation. P00, P01, and P02 closure evidence are immutable historical provenance for downstream work.
+P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative target evidence is integrated and reconciled; no additional provider, Unity, or Blender target rerun is required for P03 work. P00, P01, and P02 closure evidence are immutable historical provenance for downstream work.
 
 ## Current status
 
 - `P03` — IN_PROGRESS as the sole current implementation phase; `PHASE_EXIT_GATE=NOT_RUN`.
-- `FCCD-P03-001` through `FCCD-P03-007` — PENDING. No P03 implementation is claimed by this transition.
-- P03 activation transition: PR #70 from `transition/p03-phase-activation`; integration and exact resulting-main CI are required before any P03 task is safely claimable.
+- `FCCD-P03-001` — CLOSED after implementation PR #71 was validated on exact candidate `ba30c8f3bef8c56977b59756bf168c480f2ad6b3` by Windows CI run `33796749113`, normally merged as `b7437a659911d17e7b221a6f540bc470f5acf929`, and the exact resulting canonical main passed Windows CI run `33797456382`.
+- P03 integrated-task reconciliation evidence: `evidence/phases/P03/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
+- `FCCD-P03-002` through `FCCD-P03-007` — PENDING.
+- P03 activation transition: PR #70 integrated the phase activation as canonical main `c5be02bc8224f56eff83cca925e0d6e22d4c034a`; its exact resulting-main Windows CI was green before P03-001 work was claimed.
 - `P02` — CLOSED with `PHASE_EXIT_GATE=PASS`.
 - `FCCD-P02-001` through `FCCD-P02-009` — CLOSED from validated canonical integration and exact-current-main non-regression CI.
 - P02 integrated-task reconciliation evidence: `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
@@ -111,7 +113,7 @@ CLOSURE_RECORD: evidence/phases/P02/CLOSURE.md
 
 ## Next legal action
 
-After this P03 activation transition is integrated and exact resulting `main` remains green, apply `docs/WORKER_PROTOCOL.md` within P03. Re-fetch live main, open PRs/branches/claims, current CI, and P03 evidence before claiming work. If no Priority 1–4 recovery work exists, the earliest dependency-valid unclaimed task is `FCCD-P03-001 — SQLite bootstrap and schema migrations`. Do not begin P04 until every mandatory P03 task is CLOSED and the P03 exact-head exit gate passes with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
+Re-fetch live `main`, open PRs/branches/claims, current CI, and P03 evidence before selecting more work. `FCCD-P03-001` is CLOSED; if no Priority 1–4 recovery work exists, the earliest dependency-valid unclaimed current-phase task is `FCCD-P03-002 — Project/session/message persistence`. P03 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. Do not begin P04 until every mandatory P03 task is CLOSED and the P03 exact-head exit gate passes with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## Resume procedure
 
@@ -122,6 +124,6 @@ After this P03 activation transition is integrated and exact resulting `main` re
 5. Read `docs/TASK_LEDGER.md`, `docs/ACCEPTANCE_MATRIX.md`, `docs/DECISIONS.md`, and `docs/PLAN_GAPS.md`.
 6. Read `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, and `evidence/phases/P02/CLOSURE.md` as immutable prior-phase provenance.
 7. Fetch live branches/PRs/issues/commits and current CI before selecting P03 work.
-8. Treat P03 as the sole legal phase only after this transition is integrated and exact resulting main remains green.
-9. Preserve the integrated FCC/CLI, Unity, Blender, P01 engineering-policy, test, CI, build-metadata, and P02 shell evidence as immutable provenance.
+8. Treat P03 as the sole legal phase and keep P04 prohibited until P03 is validly closed.
+9. Preserve the integrated FCC/CLI, Unity, Blender, P01 engineering-policy, test, CI, build-metadata, P02 shell evidence, and P03 integrated-task evidence as immutable provenance.
 10. Continue strict sequential phase execution; do not begin P04 until P03 is validly closed, and do not claim final product completion before canonical P22 closure.
