@@ -105,6 +105,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-common-states.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Common state component validation'
 
+    Write-Host 'CI stage: DPI/resolution layout foundations'
+    & pwsh -NoProfile -File .\tools\ui\validate-dpi-layout.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'DPI/resolution layout validation'
+
     Write-Host 'Windows CI baseline: PASS.'
 }
 finally {

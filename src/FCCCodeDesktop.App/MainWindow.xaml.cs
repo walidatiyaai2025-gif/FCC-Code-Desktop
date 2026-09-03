@@ -1,15 +1,21 @@
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using FCCCodeDesktop.App.Shell;
 
 namespace FCCCodeDesktop.App;
 
 public partial class MainWindow : Window
 {
+    private readonly WorkspaceViewportCoordinator _viewportCoordinator = new();
+
     public MainWindow()
     {
         InitializeComponent();
         ConfigureShellCommandFramework();
+        Loaded += OnViewportLoaded;
+        SizeChanged += OnViewportSizeChanged;
+        DpiChanged += OnViewportDpiChanged;
     }
 
     private void ConfigureShellCommandFramework()
@@ -62,6 +68,29 @@ public partial class MainWindow : Window
             new KeyBinding(
                 layoutState.ToggleBottomPanelCommand,
                 new KeyGesture(Key.J, ModifierKeys.Control)));
+    }
+
+    private void OnViewportLoaded(object sender, RoutedEventArgs e) => ApplyViewportPolicy();
+
+    private void OnViewportSizeChanged(object sender, SizeChangedEventArgs e) => ApplyViewportPolicy();
+
+    private void OnViewportDpiChanged(object sender, DpiChangedEventArgs e) => ApplyViewportPolicy();
+
+    private void ApplyViewportPolicy()
+    {
+        if (ActualWidth <= 0d || ActualHeight <= 0d)
+        {
+            return;
+        }
+
+        var dpi = VisualTreeHelper.GetDpi(this);
+        var layoutState = RequireResource<WorkspaceLayoutState>("WorkspaceLayoutState");
+        _viewportCoordinator.Update(
+            layoutState,
+            ActualWidth,
+            ActualHeight,
+            dpi.DpiScaleX,
+            dpi.DpiScaleY);
     }
 
     private T RequireResource<T>(string key)
