@@ -107,8 +107,28 @@ public sealed class ThemeService
 
     private static bool SourceMatches(ResourceDictionary dictionary, string source)
     {
-        var originalSource = dictionary.Source?.OriginalString.Replace('\\', '/');
-        return originalSource is not null && originalSource.EndsWith(source, StringComparison.OrdinalIgnoreCase);
+        var originalSource = dictionary.Source?.OriginalString;
+        if (originalSource is null)
+        {
+            return false;
+        }
+
+        var expectedPath = GetThemePath(source);
+        var actualPath = GetThemePath(originalSource);
+        return string.Equals(actualPath, expectedPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string GetThemePath(string source)
+    {
+        var normalized = source.Replace('\\', '/');
+        const string componentMarker = ";component/";
+        var componentIndex = normalized.IndexOf(componentMarker, StringComparison.OrdinalIgnoreCase);
+        if (componentIndex >= 0)
+        {
+            normalized = normalized[(componentIndex + componentMarker.Length)..];
+        }
+
+        return normalized.TrimStart('/');
     }
 
     private static void ValidateCandidate(ResourceDictionary dictionary, AppearanceTheme theme)
