@@ -40,8 +40,6 @@ It does **not** own titlebar/window chrome, shell layout, navigation surfaces, t
 
 Views and reusable controls use `FccBrush*` resources. Raw `FccColor*` resources are palette backing values and are primarily consumed by the brush definitions.
 
-Examples:
-
 ```xml
 <Border Background="{DynamicResource FccBrushSurface}"
         BorderBrush="{DynamicResource FccBrushBorder}">
@@ -50,7 +48,7 @@ Examples:
 </Border>
 ```
 
-Use `DynamicResource` for theme-dependent brushes so existing controls can observe a runtime dictionary replacement without architectural reconstruction. Geometry and typography remain `StaticResource`-based because they are theme-neutral P02-001 resources.
+Use `DynamicResource` for theme-dependent brushes so existing controls observe runtime dictionary replacement without architectural reconstruction. Geometry and typography remain `StaticResource`-based because they are theme-neutral P02-001 resources.
 
 ## Semantic resource families
 
@@ -126,8 +124,8 @@ bool TryApply(AppearanceTheme theme, out Exception? error)
 
 The switch sequence is intentionally transactional:
 
-1. Resolve the requested theme source.
-2. Construct and load the candidate dictionary.
+1. Resolve the requested assembly component resource.
+2. Load the complete compiled WPF dictionary with `Application.LoadComponent`.
 3. Validate the candidate's `FccThemeName` identity.
 4. Insert the valid candidate at the current theme position.
 5. Remove prior recognized theme dictionaries.
@@ -135,7 +133,7 @@ The switch sequence is intentionally transactional:
 
 Unsupported themes are rejected without mutating the current resources. Applying the already-active theme is idempotent.
 
-The service normalizes both relative `App.xaml` source URIs and assembly-qualified WPF component URIs so the default theme is recognized correctly on the first runtime switch.
+Theme recognition is based on the semantic `FccThemeName` identity rather than `ResourceDictionary.Source`. This is deliberate: `App.xaml` may materialize the default dictionary from a relative XAML source, while runtime switching loads a referenced component directly. Identity-based recognition avoids URI/base-context coupling and ensures the first switch replaces rather than duplicates the default theme.
 
 P02-002 intentionally does not persist the selected theme; canonical settings persistence belongs to P03.
 
@@ -150,9 +148,9 @@ P02-002 intentionally does not persist the selected theme; canonical settings pe
 - dark/light differentiation,
 - required contrast ratios,
 - default dark composition after P02-001 resources,
-- safe runtime-switch source/rollback contract,
+- safe compiled-component loading and rollback contract,
 - deterministic negative fixtures for missing resources, incorrect brush mapping, low contrast, wrong theme identity, default-theme composition regression, and rollback removal,
 - recovery after all negative fixtures,
-- a disposable Windows WPF runtime fixture that exercises dark→light, idempotent apply, invalid-theme rejection with state preservation, and light→dark recovery.
+- a disposable Windows WPF runtime fixture that loads the real compiled token/typography/theme resources and exercises dark→light, idempotent apply, invalid-theme rejection with state preservation, and light→dark recovery while preserving non-theme dictionaries.
 
 The canonical GitHub-hosted Windows Release CI runs the semantic-theme validator with both negative fixtures and the runtime fixture after the normal solution Release build/tests and the P02-001 design-system contract.
