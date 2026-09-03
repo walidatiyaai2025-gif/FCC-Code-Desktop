@@ -405,7 +405,7 @@ internal static class Program
         Set-Content -LiteralPath $fixtureProjectPath -Value $projectText -Encoding utf8NoBOM
         Set-Content -LiteralPath $programPath -Value $programText -Encoding utf8NoBOM
 
-        & dotnet run --project $fixtureProjectPath -c Release --nologo
+        & dotnet run --project $fixtureProjectPath -c Release
         if ($LASTEXITCODE -ne 0) {
             throw "Runtime app-chrome fixture failed with exit code $LASTEXITCODE."
         }
