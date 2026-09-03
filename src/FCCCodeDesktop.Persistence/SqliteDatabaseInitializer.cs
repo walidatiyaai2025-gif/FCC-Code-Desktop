@@ -90,7 +90,8 @@ public sealed class SqliteDatabaseInitializer
         var builder = new SqliteConnectionStringBuilder
         {
             DataSource = _options.DatabasePath,
-            Mode = SqliteOpenMode.ReadWriteCreate
+            Mode = SqliteOpenMode.ReadWriteCreate,
+            Pooling = false
         };
 
         return builder.ToString();
