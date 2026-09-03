@@ -85,6 +85,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Application chrome validation'
 
+    Write-Host 'CI stage: resizable workspace layout'
+    & pwsh -NoProfile -File .\tools\ui\validate-workspace-layout.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'Workspace layout validation'
+
     Write-Host 'Windows CI baseline: PASS.'
 }
 finally {
