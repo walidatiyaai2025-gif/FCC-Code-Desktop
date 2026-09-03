@@ -1,0 +1,77 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+    <sys:String x:Key="FccThemeName">Light</sys:String>
+
+    <!-- Canvas / surface hierarchy. -->
+    <Color x:Key="FccColorCanvas">#F5F7FA</Color>
+    <Color x:Key="FccColorSurface">#FFFFFF</Color>
+    <Color x:Key="FccColorSurfaceRaised">#FFFFFF</Color>
+    <Color x:Key="FccColorSurfaceSubtle">#EEF2F6</Color>
+
+    <!-- Foreground hierarchy. -->
+    <Color x:Key="FccColorTextPrimary">#18202A</Color>
+    <Color x:Key="FccColorTextSecondary">#465362</Color>
+    <Color x:Key="FccColorTextMuted">#667383</Color>
+    <Color x:Key="FccColorTextDisabled">#8993A1</Color>
+    <Color x:Key="FccColorTextInverse">#FFFFFF</Color>
+
+    <!-- Borders and dividers. -->
+    <Color x:Key="FccColorBorder">#D5DBE3</Color>
+    <Color x:Key="FccColorDivider">#E2E7ED</Color>
+
+    <!-- Accent/action semantics. -->
+    <Color x:Key="FccColorAccent">#235FC7</Color>
+    <Color x:Key="FccColorAccentHover">#1B55B8</Color>
+    <Color x:Key="FccColorAccentPressed">#164A9F</Color>
+    <Color x:Key="FccColorAccentForeground">#FFFFFF</Color>
+
+    <!-- Interaction semantics. -->
+    <Color x:Key="FccColorFocus">#1D64D8</Color>
+    <Color x:Key="FccColorSelectionBackground">#D7E7FF</Color>
+    <Color x:Key="FccColorSelectionForeground">#14305B</Color>
+    <Color x:Key="FccColorHoverOverlay">#0A0F172A</Color>
+    <Color x:Key="FccColorPressedOverlay">#160F172A</Color>
+    <Color x:Key="FccColorDisabledOverlay">#0D0F172A</Color>
+
+    <!-- Status semantics. -->
+    <Color x:Key="FccColorSuccess">#16794B</Color>
+    <Color x:Key="FccColorSuccessBackground">#E7F6EE</Color>
+    <Color x:Key="FccColorWarning">#7A5200</Color>
+    <Color x:Key="FccColorWarningBackground">#FFF4D6</Color>
+    <Color x:Key="FccColorError">#B42318</Color>
+    <Color x:Key="FccColorErrorBackground">#FDECEA</Color>
+    <Color x:Key="FccColorInfo">#175CD3</Color>
+    <Color x:Key="FccColorInfoBackground">#EAF2FF</Color>
+
+    <!-- Brushes are the consumption surface for controls/views. -->
+    <SolidColorBrush x:Key="FccBrushCanvas" Color="{StaticResource FccColorCanvas}" />
+    <SolidColorBrush x:Key="FccBrushSurface" Color="{StaticResource FccColorSurface}" />
+    <SolidColorBrush x:Key="FccBrushSurfaceRaised" Color="{StaticResource FccColorSurfaceRaised}" />
+    <SolidColorBrush x:Key="FccBrushSurfaceSubtle" Color="{StaticResource FccColorSurfaceSubtle}" />
+    <SolidColorBrush x:Key="FccBrushTextPrimary" Color="{StaticResource FccColorTextPrimary}" />
+    <SolidColorBrush x:Key="FccBrushTextSecondary" Color="{StaticResource FccColorTextSecondary}" />
+    <SolidColorBrush x:Key="FccBrushTextMuted" Color="{StaticResource FccColorTextMuted}" />
+    <SolidColorBrush x:Key="FccBrushTextDisabled" Color="{StaticResource FccColorTextDisabled}" />
+    <SolidColorBrush x:Key="FccBrushTextInverse" Color="{StaticResource FccColorTextInverse}" />
+    <SolidColorBrush x:Key="FccBrushBorder" Color="{StaticResource FccColorBorder}" />
+    <SolidColorBrush x:Key="FccBrushDivider" Color="{StaticResource FccColorDivider}" />
+    <SolidColorBrush x:Key="FccBrushAccent" Color="{StaticResource FccColorAccent}" />
+    <SolidColorBrush x:Key="FccBrushAccentHover" Color="{StaticResource FccColorAccentHover}" />
+    <SolidColorBrush x:Key="FccBrushAccentPressed" Color="{StaticResource FccColorAccentPressed}" />
+    <SolidColorBrush x:Key="FccBrushAccentForeground" Color="{StaticResource FccColorAccentForeground}" />
+    <SolidColorBrush x:Key="FccBrushFocus" Color="{StaticResource FccColorFocus}" />
+    <SolidColorBrush x:Key="FccBrushSelectionBackground" Color="{StaticResource FccColorSelectionBackground}" />
+    <SolidColorBrush x:Key="FccBrushSelectionForeground" Color="{StaticResource FccColorSelectionForeground}" />
+    <SolidColorBrush x:Key="FccBrushHoverOverlay" Color="{StaticResource FccColorHoverOverlay}" />
+    <SolidColorBrush x:Key="FccBrushPressedOverlay" Color="{StaticResource FccColorPressedOverlay}" />
+    <SolidColorBrush x:Key="FccBrushDisabledOverlay" Color="{StaticResource FccColorDisabledOverlay}" />
+    <SolidColorBrush x:Key="FccBrushSuccess" Color="{StaticResource FccColorSuccess}" />
+    <SolidColorBrush x:Key="FccBrushSuccessBackground" Color="{StaticResource FccColorSuccessBackground}" />
+    <SolidColorBrush x:Key="FccBrushWarning" Color="{StaticResource FccColorWarning}" />
+    <SolidColorBrush x:Key="FccBrushWarningBackground" Color="{StaticResource FccColorWarningBackground}" />
+    <SolidColorBrush x:Key="FccBrushError" Color="{StaticResource FccColorError}" />
+    <SolidColorBrush x:Key="FccBrushErrorBackground" Color="{StaticResource FccColorErrorBackground}" />
+    <SolidColorBrush x:Key="FccBrushInfo" Color="{StaticResource FccColorInfo}" />
+    <SolidColorBrush x:Key="FccBrushInfoBackground" Color="{StaticResource FccColorInfoBackground}" />
+</ResourceDictionary>
