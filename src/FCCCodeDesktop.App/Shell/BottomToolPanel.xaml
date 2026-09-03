@@ -98,11 +98,12 @@
 
     <Grid Background="{DynamicResource FccBrushSurfaceRaised}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="{StaticResource FccControlHeightComfortable}" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
+                Height="{StaticResource FccControlHeightComfortable}"
                 BorderBrush="{DynamicResource FccBrushDivider}"
                 BorderThickness="0,0,0,1"
                 Background="{DynamicResource FccBrushSurfaceRaised}">
