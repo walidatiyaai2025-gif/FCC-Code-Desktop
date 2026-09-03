@@ -297,7 +297,7 @@ if ($RunFixtures) {
     } 'hard-coded workspace color'
 
     Assert-ContractRejects {
-        Assert-WorkspaceContract $mainText $layoutText $layoutCodeText ($stateText.Replace('CollapseLeftPane()', 'RemovedCollapseLeftPane()'))
+        Assert-WorkspaceContract $mainText $layoutText $layoutCodeText ($stateText.Replace('CollapseLeftPane()', 'RemovedLeftPaneCollapse()'))
     } 'collapse contract removed'
 
     Assert-WorkspaceContract $mainText $layoutText $layoutCodeText $stateText
