@@ -20,6 +20,7 @@
         <chrome:WorkspaceNavigationState x:Key="WorkspaceNavigationState" />
         <chrome:WorkspaceLayoutState x:Key="WorkspaceLayoutState" />
         <chrome:BottomToolPanelState x:Key="BottomToolPanelState" />
+        <chrome:CommandPaletteState x:Key="CommandPaletteState" />
     </Window.Resources>
 
     <shell:WindowChrome.WindowChrome>
@@ -64,6 +65,11 @@
                     </chrome:WorkspaceLayout.BottomContent>
                 </chrome:WorkspaceLayout>
             </ContentControl>
+
+            <chrome:CommandPalette x:Name="CommandPaletteHost"
+                                   Grid.RowSpan="2"
+                                   Panel.ZIndex="100"
+                                   State="{StaticResource CommandPaletteState}" />
         </Grid>
     </Border>
 </Window>
