@@ -43,15 +43,48 @@
                       Focusable="True"
                       AutomationProperties.Name="Resize navigation region" />
 
-        <Border Grid.Column="2"
-                Background="{DynamicResource FccBrushCanvas}">
-            <ContentControl x:Name="PrimaryRegionHost"
-                            Content="{Binding PrimaryContent, ElementName=Root}"
-                            HorizontalContentAlignment="Stretch"
-                            VerticalContentAlignment="Stretch"
-                            Focusable="False"
-                            AutomationProperties.Name="Primary workspace region" />
-        </Border>
+        <Grid Grid.Column="2"
+              Background="{DynamicResource FccBrushCanvas}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="{StaticResource FccWorkspaceSplitterWidth}" />
+                <RowDefinition x:Name="BottomPaneRow"
+                               MinHeight="{StaticResource FccControlHeightComfortable}"
+                               Height="{Binding State.BottomPanelHeight, ElementName=Root, Mode=TwoWay}" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    Background="{DynamicResource FccBrushCanvas}">
+                <ContentControl x:Name="PrimaryRegionHost"
+                                Content="{Binding PrimaryContent, ElementName=Root}"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch"
+                                Focusable="False"
+                                AutomationProperties.Name="Primary workspace region" />
+            </Border>
+
+            <GridSplitter x:Name="BottomSplitter"
+                          Grid.Row="1"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          ResizeDirection="Rows"
+                          ResizeBehavior="PreviousAndNext"
+                          Background="{DynamicResource FccBrushDivider}"
+                          Focusable="True"
+                          AutomationProperties.Name="Resize bottom tool panel" />
+
+            <Border Grid.Row="2"
+                    Background="{DynamicResource FccBrushSurfaceRaised}"
+                    BorderBrush="{DynamicResource FccBrushDivider}"
+                    BorderThickness="0,1,0,0">
+                <ContentControl x:Name="BottomRegionHost"
+                                Content="{Binding BottomContent, ElementName=Root}"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch"
+                                Focusable="False"
+                                AutomationProperties.Name="Bottom tool panel region" />
+            </Border>
+        </Grid>
 
         <GridSplitter x:Name="RightSplitter"
                       Grid.Column="3"
