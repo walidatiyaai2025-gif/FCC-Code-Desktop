@@ -4,7 +4,7 @@ namespace FCCCodeDesktop.Persistence;
 
 internal static class SqliteSchema
 {
-    public const int BaselineVersion = 4;
+    public const int BaselineVersion = 5;
 
     public static ReadOnlyCollection<SqliteMigration> BaselineMigrations { get; } =
         Array.AsReadOnly(
@@ -205,6 +205,33 @@ internal static class SqliteSchema
 
                 CREATE INDEX IX_QueueItems_State_Order
                     ON QueueItems(State, OrderKey, EnqueuedUtc, Id);
+                """),
+            new SqliteMigration(
+                5,
+                "create_global_project_settings",
+                """
+                CREATE TABLE GlobalSettings (
+                    Key TEXT NOT NULL COLLATE NOCASE PRIMARY KEY,
+                    ValueJson TEXT NOT NULL,
+                    UpdatedUtc TEXT NOT NULL,
+                    CONSTRAINT CK_GlobalSettings_Key_NotEmpty CHECK (length(trim(Key)) > 0),
+                    CONSTRAINT CK_GlobalSettings_Value_Json CHECK (json_valid(ValueJson))
+                );
+
+                CREATE TABLE ProjectSettings (
+                    ProjectId TEXT NOT NULL,
+                    Key TEXT NOT NULL COLLATE NOCASE,
+                    ValueJson TEXT NOT NULL,
+                    UpdatedUtc TEXT NOT NULL,
+                    CONSTRAINT PK_ProjectSettings PRIMARY KEY (ProjectId, Key),
+                    CONSTRAINT FK_ProjectSettings_Projects
+                        FOREIGN KEY (ProjectId) REFERENCES Projects(Id) ON DELETE CASCADE,
+                    CONSTRAINT CK_ProjectSettings_Key_NotEmpty CHECK (length(trim(Key)) > 0),
+                    CONSTRAINT CK_ProjectSettings_Value_Json CHECK (json_valid(ValueJson))
+                );
+
+                CREATE INDEX IX_ProjectSettings_ProjectId_Key
+                    ON ProjectSettings(ProjectId, Key COLLATE NOCASE);
                 """)
         ]);
 }
