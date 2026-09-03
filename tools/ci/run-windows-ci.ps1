@@ -81,6 +81,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-semantic-themes.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Semantic theme validation'
 
+    Write-Host 'CI stage: premium application chrome'
+    & pwsh -NoProfile -File .\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'Application chrome validation'
+
     Write-Host 'Windows CI baseline: PASS.'
 }
 finally {
