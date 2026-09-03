@@ -1,0 +1,38 @@
+name: Windows CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Windows Release
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate CI contract
+        shell: pwsh
+        run: .\tools\ci\validate-windows-ci.ps1 -RequireDotNet
+
+      - name: Run Windows Release baseline
+        shell: pwsh
+        run: .\tools\ci\run-windows-ci.ps1

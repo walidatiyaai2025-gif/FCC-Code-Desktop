@@ -5,7 +5,7 @@
 - Windows 10/11 x64 for the canonical product build environment.
 - .NET SDK `10.0.400` exactly. `global.json` disables SDK roll-forward and prerelease selection.
 - PowerShell 7 (`pwsh`) for deterministic validation and test-runner scripts.
-- No provider, Unity, or Blender installation is required to restore, build, or run the P01 unit/integration infrastructure.
+- No provider, Unity, or Blender installation is required to restore, build, test, or run the P01 Windows CI baseline.
 
 Run `dotnet --version` from the repository root before restore. It must report `10.0.400`; use an explicit dependency/toolchain update PR to change that pin.
 
@@ -20,7 +20,7 @@ dotnet format .\FCCCodeDesktop.sln --verify-no-changes --no-restore
 dotnet build .\FCCCodeDesktop.sln -c Release --no-restore
 ```
 
-`FCCD-P01-001` adds no third-party package dependencies. `FCCD-P01-002` uses the analyzers shipped with the .NET 10 SDK and adds no analyzer package dependency. `FCCD-P01-003` establishes the SDK/package/lock policy without adding a product dependency. `FCCD-P01-004` adds only test-infrastructure dependencies using that central policy. Later P01 tasks own permanent CI and build/version metadata.
+`FCCD-P01-001` adds no third-party package dependencies. `FCCD-P01-002` uses the analyzers shipped with the .NET 10 SDK and adds no analyzer package dependency. `FCCD-P01-003` establishes the SDK/package/lock policy without adding a product dependency. `FCCD-P01-004` adds only test-infrastructure dependencies using that central policy. `FCCD-P01-005` owns the permanent Windows Release CI baseline. P01-006 owns build/version metadata.
 
 ## Dependency and lock policy
 
@@ -88,6 +88,22 @@ pwsh -NoProfile -File .\tools\testing\validate-test-infrastructure.ps1 -RequireD
 ```
 
 The unit lane verifies shared disposable-workspace behavior. The integration lane exercises real Windows filesystem/process behavior in OS-temporary workspaces, including non-zero process results, cancellation/child-tree termination, and recovery after cancellation. It never writes fixtures into owner-controlled directories.
+
+## Windows CI baseline
+
+P01 CI is documented in `docs/CI.md`. GitHub Actions and local Windows validation share one executable entrypoint:
+
+```powershell
+pwsh -NoProfile -File .\tools\ci\run-windows-ci.ps1
+```
+
+Validate the workflow/runner contract with:
+
+```powershell
+pwsh -NoProfile -File .\tools\ci\validate-windows-ci.ps1 -RequireDotNet
+```
+
+The permanent `.github/workflows/windows-ci.yml` runs on pushes to `main` and pull requests targeting `main` using GitHub-hosted `windows-2025`, exact .NET SDK `10.0.400`, and read-only repository contents permission. The executable baseline requires locked restore, format verification, Release build, the complete unit/integration lane, and the P01 dependency/quality/test-infrastructure validators.
 
 ## Foundation boundaries
 
