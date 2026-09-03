@@ -18,7 +18,7 @@ LAST_RECONCILED: 2026-09-03
 
 ## Active rule
 
-P02 is the only legal implementation phase. `FCCD-P02-001` through `FCCD-P02-006` are canonically CLOSED from validated integration and exact-current-main non-regression CI; `FCCD-P02-007` through `FCCD-P02-009` remain PENDING unless newer live state shows a legitimate current-phase claim. P01 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`, its exact-head closure evidence is integrated, and the post-closure exact-main Windows Release baseline is green.
+P02 is the only legal implementation phase. `FCCD-P02-001` through `FCCD-P02-007` are canonically CLOSED from validated integration and exact-current-main non-regression CI; `FCCD-P02-008` through `FCCD-P02-009` remain PENDING unless newer live state shows a legitimate current-phase claim. P01 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`, its exact-head closure evidence is integrated, and the post-closure exact-main Windows Release baseline is green.
 
 Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
@@ -27,11 +27,12 @@ P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.m
 ## Current status
 
 - `P02` — IN_PROGRESS as the sole current implementation phase.
-- `FCCD-P02-001` through `FCCD-P02-006` — CLOSED from validated canonical integration and exact-current-main non-regression CI.
-- `FCCD-P02-007` through `FCCD-P02-009` — PENDING.
+- `FCCD-P02-001` through `FCCD-P02-007` — CLOSED from validated canonical integration and exact-current-main non-regression CI.
+- `FCCD-P02-008` through `FCCD-P02-009` — PENDING.
 - P02 integrated-task reconciliation evidence: `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
 - `FCCD-P02-005` was integrated by PR #59 from exact candidate `40f1401451c95c1a66618cae9d1af80d869055cf`; focused Windows CI run `33748156985` completed SUCCESS. The resulting canonical main `fb488d0939233994b6f1a13c7888024bdecffd23` passed post-merge Windows CI run `33748518665`.
 - `FCCD-P02-006` was integrated by PR #61 from exact candidate `bc2b5f034a4b2fa22cb2988360f05326d6605f82`; focused Windows CI run `33752661614` completed SUCCESS after real WPF namescope and typed-resource defects were repaired rather than waived. The resulting canonical main `949379c797f571c0945927681f1b719bee4e1e6f` passed post-merge Windows CI run `33752999860`.
+- `FCCD-P02-007` was integrated by PR #63 from exact candidate `3a25ce5e582a126262803be791f81abc5e6d451d`; focused Windows CI run `33756980148` completed SUCCESS, including the command-palette static/negative/recovery/runtime validation. The resulting canonical main `45ee529bf725ebb1f4c1949c2667afa075ac1dd8` passed post-merge Windows CI run `33757314060`.
 - `P01` — CLOSED; `FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration.
 - P01 integrated-task reconciliation evidence: `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
 - P01 exact-head closure evidence: `evidence/phases/P01/CLOSURE.md`.
@@ -84,7 +85,7 @@ CLOSURE_RECORD: evidence/phases/P01/CLOSURE.md
 
 ## Next legal action
 
-Apply `docs/WORKER_PROTOCOL.md` within P02. `FCCD-P02-001` through `FCCD-P02-006` are reconciled CLOSED. Reconcile any new legitimate active/recovery work first; otherwise the earliest dependency-valid task is `FCCD-P02-007 — Command palette/keyboard framework`. Do not begin P03 until all mandatory P02 tasks are CLOSED, the P02 exit gate passes with exact-head evidence, `evidence/phases/P02/CLOSURE.md` is integrated, and canonical `main` is green. `VERIFIED_FINAL_COMPLETE` remains false.
+Apply `docs/WORKER_PROTOCOL.md` within P02. `FCCD-P02-001` through `FCCD-P02-007` are reconciled CLOSED. Reconcile any new legitimate active/recovery work first; otherwise the earliest dependency-valid task is `FCCD-P02-008 — Common empty/loading/error/status components`. Do not begin P03 until all mandatory P02 tasks are CLOSED, the P02 exit gate passes with exact-head evidence, `evidence/phases/P02/CLOSURE.md` is integrated, and canonical `main` is green. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## Resume procedure
 
@@ -95,6 +96,6 @@ Apply `docs/WORKER_PROTOCOL.md` within P02. `FCCD-P02-001` through `FCCD-P02-006
 5. Read `docs/TASK_LEDGER.md`, `docs/ACCEPTANCE_MATRIX.md`, `docs/DECISIONS.md`, and `docs/PLAN_GAPS.md`.
 6. Read `evidence/phases/P00/CLOSURE.md` and `evidence/phases/P01/CLOSURE.md` as immutable prior-phase provenance.
 7. Fetch live branches/PRs/issues/commits and current CI before selecting P02 work.
-8. Treat P02 as the sole legal implementation phase; `FCCD-P02-001` through `FCCD-P02-006` are CLOSED and `FCCD-P02-007` through `FCCD-P02-009` remain PENDING unless newer live repository state truthfully changes them.
+8. Treat P02 as the sole legal implementation phase; `FCCD-P02-001` through `FCCD-P02-007` are CLOSED and `FCCD-P02-008` through `FCCD-P02-009` remain PENDING unless newer live repository state truthfully changes them.
 9. Preserve the integrated FCC/CLI, streaming/session/failure, Unity, Blender, target-runner, P01 engineering-policy, test, CI, build-metadata, and reconciled P02 shell evidence as immutable provenance.
 10. Continue strict sequential phase execution; do not begin P03 until P02 is validly closed, and do not claim final product completion before canonical P22 closure.
