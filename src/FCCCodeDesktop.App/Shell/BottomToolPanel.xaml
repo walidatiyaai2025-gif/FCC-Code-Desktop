@@ -8,6 +8,8 @@
              Focusable="False"
              AutomationProperties.Name="Bottom tool panel">
     <UserControl.Resources>
+        <Thickness x:Key="FccToolPanelBorderThickness">1</Thickness>
+
         <Style x:Key="FccToolPanelTabButton" TargetType="{x:Type Button}">
             <Setter Property="Height" Value="{StaticResource FccControlHeightCompact}" />
             <Setter Property="MinWidth" Value="72" />
@@ -76,7 +78,7 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource FccBrushTextSecondary}" />
             <Setter Property="BorderBrush" Value="{DynamicResource FccBrushDivider}" />
-            <Setter Property="BorderThickness" Value="{StaticResource FccStrokeThin}" />
+            <Setter Property="BorderThickness" Value="{StaticResource FccToolPanelBorderThickness}" />
             <Setter Property="Cursor" Value="Hand" />
             <Style.Triggers>
                 <Trigger Property="Tag" Value="True">
