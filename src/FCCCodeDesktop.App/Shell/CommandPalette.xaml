@@ -124,7 +124,7 @@
                                Foreground="{DynamicResource FccBrushTextPrimary}" />
                     <TextBlock Grid.Column="1"
                                Text="Ctrl+Shift+P · F1"
-                               Style="{StaticResource FccTextCompactStatus}"
+                               Style="{StaticResource FccTextStatus}"
                                Foreground="{DynamicResource FccBrushTextMuted}" />
                 </Grid>
 
@@ -166,7 +166,7 @@
                                                Margin="16,0,0,0"
                                                VerticalAlignment="Center"
                                                Text="{Binding GestureText}"
-                                               Style="{StaticResource FccTextCompactStatus}"
+                                               Style="{StaticResource FccTextStatus}"
                                                Foreground="{DynamicResource FccBrushTextSecondary}" />
                                 </Grid>
                             </DataTemplate>
@@ -197,7 +197,7 @@
                         BorderBrush="{DynamicResource FccBrushDivider}"
                         BorderThickness="0,1,0,0">
                     <TextBlock Text="Up/Down navigate · Enter run · Esc close"
-                               Style="{StaticResource FccTextCompactStatus}"
+                               Style="{StaticResource FccTextStatus}"
                                Foreground="{DynamicResource FccBrushTextMuted}" />
                 </Border>
             </Grid>
