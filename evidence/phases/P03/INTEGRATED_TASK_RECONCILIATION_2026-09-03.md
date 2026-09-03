@@ -6,19 +6,19 @@ This record reconciles validated, already-integrated P03 persistence tasks after
 
 - `FCCD-P03-001 — SQLite bootstrap and schema migrations`
 - `FCCD-P03-002 — Project/session/message persistence`
+- `FCCD-P03-003 — Task/agent/tool/process event journal`
 
 It is **not** the P03 phase-closure artifact, does not run or claim the P03 exit gate, does not advance to P04, and keeps `VERIFIED_FINAL_COMPLETE=false`.
 
-Reconciliation baseline for the latest integrated task: exact canonical `main` SHA `0d6402d0ee14412a62f2b2f67a54c779d6f47cf2`.
+Reconciliation baseline for the latest integrated task: exact canonical `main` SHA `cb58551f9e8d32b4f0514b199e407ffcda84c188`.
 
 ## Live recovery map
 
 - `CURRENT_PHASE=P03`, `CURRENT_PHASE_STATE=IN_PROGRESS`, `PHASE_EXIT_GATE=NOT_RUN`.
-- Implementation PR #73 was already normally merged before this reconciliation.
-- Exact post-merge canonical-main Windows CI run `33800922990` completed **SUCCESS** on `0d6402d0ee14412a62f2b2f67a54c779d6f47cf2`.
-- There were no open pull requests, no open P03 issues, and no open plan gaps at reconciliation start.
-- No P03-003 branch/PR claim existed at reconciliation start.
+- Implementation PR #75 was normally merged before this reconciliation.
+- Exact post-merge canonical-main Windows CI run `33804999538` completed **SUCCESS** on `cb58551f9e8d32b4f0514b199e407ffcda84c188`.
 - P03 remains the sole legal implementation phase; P04 remains prohibited.
+- `FCCD-P03-004` through `FCCD-P03-007` remain PENDING after this task reconciliation.
 
 ## P03-001 implementation and repair history
 
@@ -105,18 +105,69 @@ No provider/FCC, Unity, Blender, installer, clean-machine, screenshot, manual, o
 - Exact-main integration tests: **13 passed, 0 failed**.
 - Exact-main Windows CI baseline: **PASS**.
 
+## P03-003 implementation and validation history
+
+Implementation PR #75, `P03-003: persist task execution event journal`, extended the persistence model through schema migration v3 and kept later execution semantics out of P03:
+
+- persistence-neutral `PersistedTask`, `PersistedAgentRun`, `PersistedToolRun`, `PersistedProcessRun`, and `PersistedTaskEvent` records in Core;
+- application-owned `IExecutionJournalStore` abstraction;
+- SQLite migration v3 for `Tasks`, `AgentRuns`, `ToolRuns`, `ProcessRuns`, and append-only `TaskEvents`;
+- task ownership tied to durable P03-002 sessions;
+- task-scoped composite foreign keys so correlated agent/tool/process identities cannot cross task boundaries;
+- immutable run identity/start metadata across lifecycle upserts;
+- lifecycle-state/completion updates for tasks and runs;
+- sanitized process argument persistence plus canonical working-directory persistence;
+- optional process IDs and exit codes with positive-process-ID validation;
+- unique non-negative per-task event sequence ordering;
+- event categories restricted to TASK/AGENT/TOOL/PROCESS;
+- optional event metadata validated as syntactically valid JSON before persistence;
+- transactional event append plus monotonic owning-task `UpdatedUtc` advancement;
+- non-pooled SQLite connections with foreign keys and bounded busy timeout;
+- durable contract documentation at `docs/persistence/TASK_EXECUTION_EVENT_JOURNAL.md`.
+
+Integration coverage verifies:
+
+- task, agent-run, tool-run, process-run, and event state survives store recreation;
+- deterministic event ordering;
+- Unicode/Arabic metadata and valid JSON survive persistence;
+- immutable run identity/start metadata remains unchanged across lifecycle updates;
+- duplicate event sequence rejection rolls back without partially advancing task metadata;
+- cross-task run/event correlations are rejected by SQLite foreign keys;
+- malformed JSON and invalid process identity are rejected before persistence;
+- P03 migration checksum/gap/rollback behavior remains valid after baseline schema version 3.
+
+Pre-CI review hardened nullable completion timestamp validation and corrected the lifecycle-update fixture to test immutable-start preservation without supplying an invalid completion-before-start timestamp. These were repaired before the candidate CI run; no analyzer rule, test, or database integrity check was disabled or weakened.
+
+No provider/FCC, Unity, Blender, installer, clean-machine, screenshot, manual, or release evidence is claimed by P03-003.
+
+### P03-003 exact validation evidence
+
+- Exact implementation candidate: `12053c1c3252df45f52ac8c13ee0fc398ce80daa`.
+- PR synthetic merge tested by GitHub-hosted Windows CI: `c52945315d5bd81236f79f2e889aec4cfddfe586`.
+- Focused Windows CI run `33804512765` / run number 93: **SUCCESS**.
+- Release build: **0 warnings, 0 errors**.
+- Unit tests: **9 passed, 0 failed**.
+- Integration tests: **18 passed, 0 failed**.
+- Permanent CI also passed locked restore, format verification, build metadata policy, dependency policy, nullable/analyzer/style quality policy, test-infrastructure policy, and every previously integrated P02 static/negative/recovery/Windows-runtime validator.
+- PR #75 was merged with a normal merge commit, preserving tested ancestry.
+- Canonical implementation merge SHA: `cb58551f9e8d32b4f0514b199e407ffcda84c188`.
+- Exact post-merge canonical-main Windows CI run `33804999538` / run number 94: **SUCCESS** on that exact SHA.
+- Exact-main Windows CI baseline: **PASS**.
+
 ## Reconciliation result
 
 | Task | Canonical integration / focused evidence | Result |
 |---|---|---|
 | `FCCD-P03-001` | PR #71; candidate `ba30c8f3bef8c56977b59756bf168c480f2ad6b3`; Windows CI `33796749113` SUCCESS; normal merge `b7437a659911d17e7b221a6f540bc470f5acf929`; exact-main Windows CI `33797456382` SUCCESS. | CLOSED |
 | `FCCD-P03-002` | PR #73; candidate `9911627c3ccbce4c82bbded9ef0c7e4c7c9173c7`; Windows CI `33800474488` SUCCESS; normal merge `0d6402d0ee14412a62f2b2f67a54c779d6f47cf2`; exact-main Windows CI `33800922990` SUCCESS. | CLOSED |
+| `FCCD-P03-003` | PR #75; candidate `12053c1c3252df45f52ac8c13ee0fc398ce80daa`; Windows CI `33804512765` SUCCESS; normal merge `cb58551f9e8d32b4f0514b199e407ffcda84c188`; exact-main Windows CI `33804999538` SUCCESS. | CLOSED |
 
 ## State after reconciliation
 
 - `FCCD-P03-001` — CLOSED.
 - `FCCD-P03-002` — CLOSED.
-- `FCCD-P03-003` through `FCCD-P03-007` — PENDING.
+- `FCCD-P03-003` — CLOSED.
+- `FCCD-P03-004` through `FCCD-P03-007` — PENDING.
 - `CURRENT_PHASE` — P03.
 - `CURRENT_PHASE_STATE` — IN_PROGRESS.
 - `PHASE_EXIT_GATE` — NOT_RUN.
@@ -126,4 +177,4 @@ No provider/FCC, Unity, Blender, installer, clean-machine, screenshot, manual, o
 
 ## Next legitimate action
 
-Re-fetch live main, open PRs/branches/claims, current CI, and P03 evidence and apply `docs/WORKER_PROTOCOL.md`. If no Priority 1–4 recovery work exists, the earliest dependency-valid unclaimed current-phase task is `FCCD-P03-003 — Task/agent/tool/process event journal`. Do not claim P03 phase closure before all seven mandatory tasks are CLOSED and the P03 exact-head exit gate passes.
+Re-fetch live main, open PRs/branches/claims, current CI, and P03 evidence and apply `docs/WORKER_PROTOCOL.md`. If no Priority 1–4 recovery work exists, the earliest dependency-valid unclaimed current-phase task is `FCCD-P03-004 — Queue persistence`. Do not claim P03 phase closure before all seven mandatory tasks are CLOSED and the P03 exact-head exit gate passes.
