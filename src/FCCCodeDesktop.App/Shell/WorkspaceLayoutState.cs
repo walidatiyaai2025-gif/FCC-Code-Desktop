@@ -1,0 +1,147 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows;
+
+namespace FCCCodeDesktop.App.Shell;
+
+/// <summary>
+/// Presentation state for the resizable P02 workspace. Persistence is intentionally deferred to P03.
+/// </summary>
+public sealed class WorkspaceLayoutState : INotifyPropertyChanged
+{
+    public const double DefaultLeftPaneWidth = 240d;
+    public const double DefaultRightPaneWidth = 300d;
+    public const double MinimumSidePaneWidth = 160d;
+    public const double MaximumSidePaneWidth = 480d;
+
+    private GridLength _leftPaneWidth = new(DefaultLeftPaneWidth);
+    private GridLength _rightPaneWidth = new(DefaultRightPaneWidth);
+    private double _lastExpandedLeftPaneWidth = DefaultLeftPaneWidth;
+    private double _lastExpandedRightPaneWidth = DefaultRightPaneWidth;
+    private bool _isLeftPaneCollapsed;
+    private bool _isRightPaneCollapsed;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public GridLength LeftPaneWidth
+    {
+        get => _leftPaneWidth;
+        set => SetPaneWidth(ref _leftPaneWidth, value, true);
+    }
+
+    public GridLength RightPaneWidth
+    {
+        get => _rightPaneWidth;
+        set => SetPaneWidth(ref _rightPaneWidth, value, false);
+    }
+
+    public bool IsLeftPaneCollapsed
+    {
+        get => _isLeftPaneCollapsed;
+        private set => SetField(ref _isLeftPaneCollapsed, value);
+    }
+
+    public bool IsRightPaneCollapsed
+    {
+        get => _isRightPaneCollapsed;
+        private set => SetField(ref _isRightPaneCollapsed, value);
+    }
+
+    public void CollapseLeftPane()
+    {
+        if (!_leftPaneWidth.IsAbsolute || _leftPaneWidth.Value <= 0d)
+        {
+            return;
+        }
+
+        _lastExpandedLeftPaneWidth = ClampSidePaneWidth(_leftPaneWidth.Value);
+        IsLeftPaneCollapsed = true;
+        SetField(ref _leftPaneWidth, new GridLength(0d), nameof(LeftPaneWidth));
+    }
+
+    public void RestoreLeftPane()
+    {
+        IsLeftPaneCollapsed = false;
+        SetField(ref _leftPaneWidth, new GridLength(ClampSidePaneWidth(_lastExpandedLeftPaneWidth)), nameof(LeftPaneWidth));
+    }
+
+    public void CollapseRightPane()
+    {
+        if (!_rightPaneWidth.IsAbsolute || _rightPaneWidth.Value <= 0d)
+        {
+            return;
+        }
+
+        _lastExpandedRightPaneWidth = ClampSidePaneWidth(_rightPaneWidth.Value);
+        IsRightPaneCollapsed = true;
+        SetField(ref _rightPaneWidth, new GridLength(0d), nameof(RightPaneWidth));
+    }
+
+    public void RestoreRightPane()
+    {
+        IsRightPaneCollapsed = false;
+        SetField(ref _rightPaneWidth, new GridLength(ClampSidePaneWidth(_lastExpandedRightPaneWidth)), nameof(RightPaneWidth));
+    }
+
+    public void Reset()
+    {
+        _lastExpandedLeftPaneWidth = DefaultLeftPaneWidth;
+        _lastExpandedRightPaneWidth = DefaultRightPaneWidth;
+        IsLeftPaneCollapsed = false;
+        IsRightPaneCollapsed = false;
+        SetField(ref _leftPaneWidth, new GridLength(DefaultLeftPaneWidth), nameof(LeftPaneWidth));
+        SetField(ref _rightPaneWidth, new GridLength(DefaultRightPaneWidth), nameof(RightPaneWidth));
+    }
+
+    private void SetPaneWidth(ref GridLength field, GridLength value, bool isLeft)
+    {
+        if (!value.IsAbsolute)
+        {
+            throw new ArgumentOutOfRangeException(nameof(value), "Side-pane widths must be absolute GridLength values.");
+        }
+
+        if (value.Value <= 0d)
+        {
+            SetField(ref field, new GridLength(0d), isLeft ? nameof(LeftPaneWidth) : nameof(RightPaneWidth));
+            if (isLeft)
+            {
+                IsLeftPaneCollapsed = true;
+            }
+            else
+            {
+                IsRightPaneCollapsed = true;
+            }
+
+            return;
+        }
+
+        var clamped = ClampSidePaneWidth(value.Value);
+        if (isLeft)
+        {
+            _lastExpandedLeftPaneWidth = clamped;
+            IsLeftPaneCollapsed = false;
+        }
+        else
+        {
+            _lastExpandedRightPaneWidth = clamped;
+            IsRightPaneCollapsed = false;
+        }
+
+        SetField(ref field, new GridLength(clamped), isLeft ? nameof(LeftPaneWidth) : nameof(RightPaneWidth));
+    }
+
+    private static double ClampSidePaneWidth(double value) =>
+        Math.Clamp(value, MinimumSidePaneWidth, MaximumSidePaneWidth);
+
+    private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value))
+        {
+            return false;
+        }
+
+        field = value;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        return true;
+    }
+}
