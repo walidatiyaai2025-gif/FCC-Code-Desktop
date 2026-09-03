@@ -32,20 +32,15 @@ public sealed class ThemeService
 
         try
         {
-            var source = GetThemeSource(theme);
             var mergedDictionaries = _rootResources.MergedDictionaries;
             var existingThemes = mergedDictionaries.Where(IsThemeDictionary).ToArray();
 
-            if (existingThemes.Length == 1 && SourceMatches(existingThemes[0], source))
+            if (existingThemes.Length == 1 && GetThemeIdentity(existingThemes[0]) == theme)
             {
                 return true;
             }
 
-            var candidate = new ResourceDictionary
-            {
-                Source = new Uri(source, UriKind.Relative),
-            };
-
+            var candidate = LoadTheme(theme);
             ValidateCandidate(candidate, theme);
 
             var insertionIndex = existingThemes.Length == 0
@@ -80,20 +75,13 @@ public sealed class ThemeService
     {
         ArgumentNullException.ThrowIfNull(rootResources);
 
-        foreach (var dictionary in rootResources.MergedDictionaries.Where(IsThemeDictionary))
-        {
-            if (SourceMatches(dictionary, DarkThemeSource))
-            {
-                return AppearanceTheme.Dark;
-            }
+        var identities = rootResources.MergedDictionaries
+            .Select(GetThemeIdentity)
+            .Where(theme => theme.HasValue)
+            .Select(theme => theme!.Value)
+            .ToArray();
 
-            if (SourceMatches(dictionary, LightThemeSource))
-            {
-                return AppearanceTheme.Light;
-            }
-        }
-
-        return null;
+        return identities.Length == 1 ? identities[0] : null;
     }
 
     internal static string GetThemeSource(AppearanceTheme theme) => theme switch
@@ -103,41 +91,38 @@ public sealed class ThemeService
         _ => throw new ArgumentOutOfRangeException(nameof(theme), theme, "Unsupported appearance theme."),
     };
 
-    private static bool IsThemeDictionary(ResourceDictionary dictionary) =>
-        SourceMatches(dictionary, DarkThemeSource) || SourceMatches(dictionary, LightThemeSource);
-
-    private static bool SourceMatches(ResourceDictionary dictionary, string source)
+    private static ResourceDictionary LoadTheme(AppearanceTheme theme)
     {
-        var originalSource = dictionary.Source?.OriginalString;
-        if (originalSource is null)
+        var source = GetThemeSource(theme);
+        var loaded = Application.LoadComponent(new Uri(source, UriKind.Relative));
+        if (loaded is not ResourceDictionary dictionary)
         {
-            return false;
+            throw new InvalidDataException($"Theme component '{source}' did not load as a ResourceDictionary.");
         }
 
-        var expectedPath = GetThemePath(source);
-        var actualPath = GetThemePath(originalSource);
-        return string.Equals(actualPath, expectedPath, StringComparison.OrdinalIgnoreCase);
+        return dictionary;
     }
 
-    private static string GetThemePath(string source)
+    private static bool IsThemeDictionary(ResourceDictionary dictionary) =>
+        GetThemeIdentity(dictionary).HasValue;
+
+    private static AppearanceTheme? GetThemeIdentity(ResourceDictionary dictionary)
     {
-        var normalized = source.Replace('\\', '/');
-        const string componentMarker = ";component/";
-        var componentIndex = normalized.IndexOf(componentMarker, StringComparison.OrdinalIgnoreCase);
-        if (componentIndex >= 0)
+        if (!dictionary.Contains("FccThemeName") || dictionary["FccThemeName"] is not string themeName)
         {
-            normalized = normalized[(componentIndex + componentMarker.Length)..];
+            return null;
         }
 
-        return normalized.TrimStart('/');
+        return Enum.TryParse<AppearanceTheme>(themeName, ignoreCase: false, out var theme)
+            ? theme
+            : null;
     }
 
     private static void ValidateCandidate(ResourceDictionary dictionary, AppearanceTheme theme)
     {
-        if (dictionary["FccThemeName"] is not string themeName ||
-            !string.Equals(themeName, theme.ToString(), StringComparison.Ordinal))
+        if (GetThemeIdentity(dictionary) != theme)
         {
-            throw new InvalidDataException($"Theme resource dictionary '{dictionary.Source}' does not identify itself as '{theme}'.");
+            throw new InvalidDataException($"Loaded theme component does not identify itself as '{theme}'.");
         }
     }
 }
