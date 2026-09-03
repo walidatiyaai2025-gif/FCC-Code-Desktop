@@ -90,19 +90,26 @@ jobs:
             '\bsk-[A-Za-z0-9_-]{20,}\b',
             '\bxox[baprs]-[A-Za-z0-9-]{20,}\b'
           )
+          $approvedFixtureFile = 'tools/contract-probes/fcc/self-test.mjs'
+          $approvedFixtureValue = 'sk-selftest-THIS_MUST_NOT_APPEAR_123456'
           $hits = New-Object System.Collections.Generic.List[string]
           foreach ($file in (git ls-files)) {
             if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { continue }
             try { $text = Get-Content -LiteralPath $file -Raw -ErrorAction Stop } catch { continue }
             foreach ($pattern in $patterns) {
-              if ($text -match $pattern) { $hits.Add("$file :: $pattern") }
+              foreach ($match in [regex]::Matches($text, $pattern)) {
+                if ($file -eq $approvedFixtureFile -and $match.Value -eq $approvedFixtureValue) {
+                  continue
+                }
+                $hits.Add("$file :: $pattern")
+              }
             }
           }
           if ($hits.Count -gt 0) {
-            $hits | ForEach-Object { Write-Error $_ }
-            throw 'Tracked-file secret sanity scan found credential-like material.'
+            foreach ($hit in $hits) { Write-Host "SECRET_SCAN_HIT: $hit" }
+            throw 'Tracked-file secret sanity scan found credential-like material outside the explicit deterministic fixture allowlist.'
           }
-          Write-Host 'Tracked-file secret sanity scan: PASS.'
+          Write-Host 'Tracked-file secret sanity scan: PASS (only explicit deterministic redaction fixture allowed).'
 
       - name: Final clean worktree
         shell: pwsh
