@@ -58,6 +58,7 @@ function Assert-CiPolicy {
         'dotnet format $solutionPath --verify-no-changes --no-restore',
         'dotnet build $solutionPath -c Release --no-restore --nologo',
         '.\tools\testing\run-tests.ps1 -Suite all -Configuration Release -NoRestore -NoBuild',
+        '.\tools\build\validate-build-metadata.ps1 -RequireDotNet',
         '.\tools\dependencies\validate-dependency-policy.ps1 -RequireDotNet',
         '.\tools\quality\validate-quality-policy.ps1 -RequireDotNet',
         '.\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet'
@@ -108,10 +109,11 @@ Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('contents: read', 
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('--locked-mode', '')) } 'unlocked restore'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-c Release', '-c Debug')) } 'non-Release build'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-Suite all', '-Suite unit')) } 'incomplete test lane'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\build\validate-build-metadata.ps1 -RequireDotNet', '')) } 'missing build metadata validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\quality\validate-quality-policy.ps1 -RequireDotNet', '.\tools\quality\validate-quality-policy.ps1')) } 'weakened quality validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, and required quality validation enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, and required quality validation enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {

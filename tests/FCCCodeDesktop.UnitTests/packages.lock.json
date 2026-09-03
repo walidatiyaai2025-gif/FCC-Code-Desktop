@@ -99,6 +99,9 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "fcccodedesktop.core": {
+        "type": "Project"
+      },
       "fcccodedesktop.testing": {
         "type": "Project"
       }

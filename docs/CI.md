@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`FCCD-P01-005` establishes one canonical Windows Release build/test baseline that is shared by GitHub Actions and local Windows validation. The workflow is intentionally thin; executable policy lives in `tools/ci/run-windows-ci.ps1` so CI and developer verification cannot silently diverge.
+`FCCD-P01-005` establishes one canonical Windows Release build/test baseline that is shared by GitHub Actions and local Windows validation. The workflow is intentionally thin; executable policy lives in `tools/ci/run-windows-ci.ps1` so CI and developer verification cannot silently diverge. `FCCD-P01-006` extends that same baseline with deterministic build/version/provenance validation.
 
 ## Trigger and runner contract
 
@@ -29,11 +29,12 @@ It requires Windows, PowerShell 7, and exact .NET SDK `10.0.400`, then executes:
 2. formatting verification with no restore;
 3. Release build with no restore;
 4. the complete unit + integration test lane with no rebuild;
-5. dependency-policy validation;
-6. quality-policy validation;
-7. test-infrastructure validation.
+5. build/version/provenance metadata validation;
+6. dependency-policy validation;
+7. quality-policy validation;
+8. test-infrastructure validation.
 
-Any non-zero stage fails the CI baseline. The runner does not regenerate lock files, bypass locked restore, downgrade Release to Debug, skip failed tests, or use `continue-on-error` semantics.
+Any non-zero stage fails the CI baseline. The runner does not regenerate lock files, bypass locked restore, downgrade Release to Debug, skip failed tests, omit build-provenance validation, or use `continue-on-error` semantics.
 
 ## CI policy validation
 
@@ -51,10 +52,15 @@ The validator checks the permanent workflow and executable runner contract. Dete
 - unlocked restore;
 - non-Release build configuration;
 - an incomplete unit-only test lane;
+- missing build-metadata validation;
 - weakened quality validation.
 
 The negative fixtures do not mutate repository files or owner data.
 
+## Build provenance
+
+GitHub Actions supplies `GITHUB_SHA`, which the central build policy embeds as the exact source identity for assemblies built by the job. Development builds remain visibly `1.0.0-dev`; an ordinary local build without explicit source identity reports `unknown` rather than fabricating provenance. See `docs/BUILD_METADATA.md`.
+
 ## Acceptance boundary
 
-P01-005 integration is cloud-completable when an exact candidate head passes the CI policy validator and the real `Windows CI / Windows Release` GitHub-hosted job, then the normal merge commit's `main` push run passes the same baseline. Phase/task closure bookkeeping and the P01 exit gate remain controller responsibilities.
+The Windows baseline is integration-green only when an exact PR candidate passes `Windows CI / Windows Release`, then the resulting normal merge commit's `main` push passes the same baseline. Phase/task closure bookkeeping and the P01 exit gate remain controller responsibilities.

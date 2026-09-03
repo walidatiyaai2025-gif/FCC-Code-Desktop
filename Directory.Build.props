@@ -9,7 +9,45 @@
     <Deterministic>true</Deterministic>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <RestoreLockedMode Condition="'$(RestoreLockedMode)' == ''">true</RestoreLockedMode>
+
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <Version>$(VersionPrefix)</Version>
+    <FccIsPublicRelease Condition="'$(FccIsPublicRelease)' == ''">false</FccIsPublicRelease>
+    <FccBuildChannel Condition="'$(FccBuildChannel)' == '' and '$(FccIsPublicRelease)' == 'true'">Production</FccBuildChannel>
+    <FccBuildChannel Condition="'$(FccBuildChannel)' == ''">Development</FccBuildChannel>
+    <FccProductVersion Condition="'$(FccIsPublicRelease)' == 'true'">$(VersionPrefix)</FccProductVersion>
+    <FccProductVersion Condition="'$(FccIsPublicRelease)' != 'true'">$(VersionPrefix)-dev</FccProductVersion>
+    <FccGitCommit Condition="'$(FccGitCommit)' == '' and '$(GITHUB_SHA)' != ''">$(GITHUB_SHA)</FccGitCommit>
+    <FccGitCommit Condition="'$(FccGitCommit)' == ''">unknown</FccGitCommit>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>$(FccProductVersion)+$(FccGitCommit)</InformationalVersion>
+    <Product>FCC Code Desktop</Product>
+    <RepositoryUrl>https://github.com/walidatiyaai2025-gif/FCC-Code-Desktop</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>FccProductVersion</_Parameter1>
+      <_Parameter2>$(FccProductVersion)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>FccGitCommit</_Parameter1>
+      <_Parameter2>$(FccGitCommit)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>FccBuildChannel</_Parameter1>
+      <_Parameter2>$(FccBuildChannel)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>FccBuildConfiguration</_Parameter1>
+      <_Parameter2>$(Configuration)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>FccRepositoryUrl</_Parameter1>
+      <_Parameter2>$(RepositoryUrl)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

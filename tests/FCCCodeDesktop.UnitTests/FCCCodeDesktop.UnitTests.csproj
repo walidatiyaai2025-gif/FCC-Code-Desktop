@@ -11,6 +11,7 @@
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\FCCCodeDesktop.Core\FCCCodeDesktop.Core.csproj" />
     <ProjectReference Include="..\FCCCodeDesktop.Testing\FCCCodeDesktop.Testing.csproj" />
   </ItemGroup>
 </Project>
