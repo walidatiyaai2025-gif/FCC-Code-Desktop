@@ -10,8 +10,6 @@
     <Border x:Name="BadgeBorder"
             Padding="6,3"
             HorizontalAlignment="Left"
-            Background="{DynamicResource FccBrushSurfaceSubtle}"
-            BorderBrush="{DynamicResource FccBrushBorder}"
             BorderThickness="1"
             CornerRadius="{StaticResource FccRadiusLarge}">
         <Border.Style>
@@ -60,8 +58,7 @@
                      Width="8"
                      Height="8"
                      Margin="0,0,6,0"
-                     VerticalAlignment="Center"
-                     Fill="{DynamicResource FccBrushTextMuted}">
+                     VerticalAlignment="Center">
                 <Ellipse.Style>
                     <Style TargetType="Ellipse">
                         <Setter Property="Fill" Value="{DynamicResource FccBrushTextMuted}" />
