@@ -7,7 +7,7 @@ namespace FCCCodeDesktop.Persistence;
 public sealed class SqliteDatabaseInitializer
 {
     private readonly SqliteDatabaseOptions _options;
-    private readonly IReadOnlyList<SqliteMigration> _migrations;
+    private readonly ReadOnlyCollection<SqliteMigration> _migrations;
 
     public SqliteDatabaseInitializer(
         SqliteDatabaseOptions options,
