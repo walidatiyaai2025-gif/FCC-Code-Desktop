@@ -10,7 +10,6 @@ $ErrorActionPreference = 'Stop'
 
 function Assert-ContainsLiteral {
     param([string]$Text, [string]$Literal, [string]$Label)
-
     if (-not $Text.Contains($Literal)) {
         throw "$Label is missing required text: $Literal"
     }
@@ -18,13 +17,8 @@ function Assert-ContainsLiteral {
 
 function Assert-ValidXaml {
     param([string]$Text, [string]$Label)
-
-    try {
-        [void][xml]$Text
-    }
-    catch {
-        throw "$Label is not valid XML/XAML: $($_.Exception.Message)"
-    }
+    try { [void][xml]$Text }
+    catch { throw "$Label is not valid XML/XAML: $($_.Exception.Message)" }
 }
 
 function Assert-CommonStateContract {
@@ -43,113 +37,56 @@ function Assert-CommonStateContract {
     Assert-ValidXaml $WorkspaceSurfaceText 'WorkspaceSectionSurface.xaml'
 
     foreach ($literal in @(
-        'public enum CommonStateKind',
-        'Empty,',
-        'Loading,',
-        'Info,',
-        'Success,',
-        'Warning,',
-        'Error,',
-        'Unavailable,',
-        'Offline,',
-        'Blocked,',
-        'public sealed class CommonStateModel',
-        'ICommand? ActionCommand',
-        'bool IsBusy',
-        'bool HasDetail',
-        'bool HasAction',
-        'Enum.IsDefined(kind)',
-        'Action label and action command must be supplied together.',
-        'static CommonStateModel Empty',
-        'static CommonStateModel Loading',
-        'static CommonStateModel Error',
-        'static CommonStateModel Offline',
-        'static CommonStateModel Blocked'
-    )) {
-        Assert-ContainsLiteral $ModelText $literal 'CommonStateModel.cs'
-    }
+        'public enum CommonStateKind', 'Empty,', 'Loading,', 'Info,', 'Success,', 'Warning,',
+        'Error,', 'Unavailable,', 'Offline,', 'Blocked,', 'public sealed class CommonStateModel',
+        'ICommand? ActionCommand', 'bool IsBusy', 'bool HasDetail', 'bool HasAction',
+        'Enum.IsDefined(kind)', 'Action label and action command must be supplied together.',
+        'static CommonStateModel Empty', 'static CommonStateModel Loading', 'static CommonStateModel Error',
+        'static CommonStateModel Offline', 'static CommonStateModel Blocked'
+    )) { Assert-ContainsLiteral $ModelText $literal 'CommonStateModel.cs' }
 
     foreach ($literal in @(
-        'x:Name="StateCard"',
-        'x:Name="StateIndicator"',
-        'x:Name="StateTitle"',
-        'x:Name="StateMessage"',
-        'x:Name="StateDetail"',
-        'x:Name="LoadingProgress"',
-        'IsIndeterminate="True"',
-        'State.IsBusy',
-        'State.HasDetail',
-        'x:Name="StateActionButton"',
-        'State.HasAction',
-        'State.ActionLabel',
-        'State.ActionCommand',
+        'x:Name="StateCard"', 'x:Name="StateIndicator"', 'x:Name="StateTitle"',
+        'x:Name="StateMessage"', 'x:Name="StateDetail"', 'x:Name="LoadingProgress"',
+        'IsIndeterminate="True"', 'State.IsBusy', 'State.HasDetail', 'x:Name="StateActionButton"',
+        'State.HasAction', 'State.ActionLabel', 'State.ActionCommand',
         'AutomationProperties.Name="{Binding State.Title, ElementName=Root}"',
-        '{DynamicResource FccBrushInfoBackground}',
-        '{DynamicResource FccBrushSuccessBackground}',
-        '{DynamicResource FccBrushWarningBackground}',
-        '{DynamicResource FccBrushErrorBackground}',
+        '{DynamicResource FccBrushInfoBackground}', '{DynamicResource FccBrushSuccessBackground}',
+        '{DynamicResource FccBrushWarningBackground}', '{DynamicResource FccBrushErrorBackground}',
         '{DynamicResource FccBrushFocus}'
-    )) {
-        Assert-ContainsLiteral $SurfaceText $literal 'CommonStateSurface.xaml'
-    }
+    )) { Assert-ContainsLiteral $SurfaceText $literal 'CommonStateSurface.xaml' }
 
-    foreach ($literal in @(
-        'DependencyProperty StateProperty',
-        'CommonStateModel.Empty(',
-        'args.NewValue is null'
-    )) {
+    foreach ($literal in @('DependencyProperty StateProperty', 'CommonStateModel.Empty(', 'args.NewValue is null')) {
         Assert-ContainsLiteral $SurfaceCodeText $literal 'CommonStateSurface.xaml.cs'
     }
 
     foreach ($literal in @(
-        'x:Name="BadgeBorder"',
-        'x:Name="BadgeIndicator"',
-        'x:Name="BadgeText"',
+        'x:Name="BadgeBorder"', 'x:Name="BadgeIndicator"', 'x:Name="BadgeText"',
         'Text="{Binding Text, ElementName=Root}"',
         'AutomationProperties.Name="{Binding Text, ElementName=Root}"',
-        '{DynamicResource FccBrushInfoBackground}',
-        '{DynamicResource FccBrushSuccessBackground}',
-        '{DynamicResource FccBrushWarningBackground}',
-        '{DynamicResource FccBrushErrorBackground}'
-    )) {
-        Assert-ContainsLiteral $BadgeText $literal 'CommonStatusBadge.xaml'
-    }
+        '{DynamicResource FccBrushInfoBackground}', '{DynamicResource FccBrushSuccessBackground}',
+        '{DynamicResource FccBrushWarningBackground}', '{DynamicResource FccBrushErrorBackground}'
+    )) { Assert-ContainsLiteral $BadgeText $literal 'CommonStatusBadge.xaml' }
 
-    foreach ($literal in @(
-        'DependencyProperty KindProperty',
-        'DependencyProperty TextProperty',
-        'Enum.IsDefined(value)'
-    )) {
+    foreach ($literal in @('DependencyProperty KindProperty', 'DependencyProperty TextProperty', 'Enum.IsDefined(value)')) {
         Assert-ContainsLiteral $BadgeCodeText $literal 'CommonStatusBadge.xaml.cs'
     }
 
     foreach ($literal in @(
-        'CommonStateModel SelectedEmptyState',
-        'bool HasSelectedContent',
-        '"No project open"',
-        '"No sessions"',
-        '"No tasks"',
-        'OnPropertyChanged(nameof(SelectedEmptyState))',
+        'CommonStateModel SelectedEmptyState', 'bool HasSelectedContent', '"No project open"',
+        '"No sessions"', '"No tasks"', 'OnPropertyChanged(nameof(SelectedEmptyState))',
         'OnPropertyChanged(nameof(HasSelectedContent))'
-    )) {
-        Assert-ContainsLiteral $NavigationStateText $literal 'WorkspaceNavigationState.cs'
-    }
+    )) { Assert-ContainsLiteral $NavigationStateText $literal 'WorkspaceNavigationState.cs' }
 
     foreach ($literal in @(
-        'x:Name="SectionContentHost"',
-        'Binding HasSelectedContent',
-        'x:Name="SectionEmptyState"',
-        'State="{Binding SelectedEmptyState}"',
-        '<shell:CommonStateSurface.Style>'
-    )) {
-        Assert-ContainsLiteral $WorkspaceSurfaceText $literal 'WorkspaceSectionSurface.xaml'
-    }
+        'x:Name="SectionContentHost"', 'Binding HasSelectedContent', 'x:Name="SectionEmptyState"',
+        'State="{Binding SelectedEmptyState}"', '<shell:CommonStateSurface.Style>'
+    )) { Assert-ContainsLiteral $WorkspaceSurfaceText $literal 'WorkspaceSectionSurface.xaml' }
 
     foreach ($text in @($SurfaceText, $BadgeText, $WorkspaceSurfaceText)) {
         if ($text -match '#[0-9A-Fa-f]{6,8}') {
             throw 'P02-008 surfaces must use semantic theme resources rather than hard-coded colors.'
         }
-
         foreach ($placeholder in @('TODO', 'FIXME', 'Coming soon', 'Placeholder')) {
             if ($text.IndexOf($placeholder, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
                 throw "P02-008 surface contains forbidden placeholder text '$placeholder'."
@@ -158,22 +95,12 @@ function Assert-CommonStateContract {
     }
 
     foreach ($forbidden in @(
-        'FCCCodeDesktop.Persistence',
-        'FCCCodeDesktop.Runtime',
-        'FCCCodeDesktop.Fcc',
-        'FCCCodeDesktop.Files',
-        'FCCCodeDesktop.Git',
-        'FCCCodeDesktop.Terminal',
-        'System.IO.File',
-        'Process.Start',
-        'Registry.',
-        'SQLite',
-        'HttpClient'
+        'FCCCodeDesktop.Persistence', 'FCCCodeDesktop.Runtime', 'FCCCodeDesktop.Fcc',
+        'FCCCodeDesktop.Files', 'FCCCodeDesktop.Git', 'FCCCodeDesktop.Terminal',
+        'System.IO.File', 'Process.Start', 'Registry.', 'SQLite', 'HttpClient'
     )) {
-        if ($ModelText.Contains($forbidden) -or
-            $SurfaceCodeText.Contains($forbidden) -or
-            $BadgeCodeText.Contains($forbidden) -or
-            $NavigationStateText.Contains($forbidden)) {
+        if ($ModelText.Contains($forbidden) -or $SurfaceCodeText.Contains($forbidden) -or
+            $BadgeCodeText.Contains($forbidden) -or $NavigationStateText.Contains($forbidden)) {
             throw "P02-008 crossed the presentation/state-only boundary: $forbidden"
         }
     }
@@ -181,27 +108,19 @@ function Assert-CommonStateContract {
 
 function Assert-ContractRejects {
     param([scriptblock]$Action, [string]$Label)
-
-    try {
-        & $Action
-    }
+    try { & $Action }
     catch {
         Write-Host "Negative fixture rejected as expected: $Label"
         return
     }
-
     throw "Negative common-state fixture was not rejected: $Label"
 }
 
 function Invoke-CommonStateRuntimeFixture {
     param([string]$AppProjectPath)
 
-    if (-not $IsWindows) {
-        throw 'Runtime common-state fixture requires Windows/WPF.'
-    }
-    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
-        throw 'dotnet is required for the runtime common-state fixture.'
-    }
+    if (-not $IsWindows) { throw 'Runtime common-state fixture requires Windows/WPF.' }
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw 'dotnet is required for the runtime common-state fixture.' }
 
     $sdkVersion = (& dotnet --version 2>&1 | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or $sdkVersion -ne '10.0.400') {
@@ -250,7 +169,6 @@ internal static class Program
         var app = new App();
         app.InitializeComponent();
         var window = new MainWindow();
-
         var layout = window.FindName("WorkspaceLayoutHost") as WorkspaceLayout
             ?? throw new InvalidOperationException("WorkspaceLayoutHost was not created.");
         var workspace = layout.PrimaryContent as WorkspaceSectionSurface
@@ -258,10 +176,9 @@ internal static class Program
         var state = workspace.State;
 
         Assert(state.SelectedSection == WorkspaceSection.Projects, "default project selection");
-        Assert(!state.HasSelectedContent, "default project content is absent");
+        Assert(!state.HasSelectedContent, "default project content absent");
         Assert(state.SelectedEmptyState.Kind == CommonStateKind.Empty, "project empty kind");
         Assert(state.SelectedEmptyState.Title == "No project open", "project empty title");
-
         state.SelectSection(WorkspaceSection.Sessions);
         Assert(state.SelectedEmptyState.Title == "No sessions", "session empty title");
         state.SelectSection(WorkspaceSection.Tasks);
@@ -270,8 +187,7 @@ internal static class Program
         var projectContent = new TextBlock { Text = "Project runtime fixture" };
         state.ProjectsContent = projectContent;
         state.SelectSection(WorkspaceSection.Projects);
-        Assert(state.HasSelectedContent, "project content presence");
-        Assert(ReferenceEquals(state.SelectedContent, projectContent), "project content seam");
+        Assert(state.HasSelectedContent && ReferenceEquals(state.SelectedContent, projectContent), "project content seam");
 
         var command = new FixtureCommand();
         var states = new[]
@@ -295,29 +211,18 @@ internal static class Program
         Assert(states[5].HasDetail && states[5].HasAction, "error detail/action derivation");
 
         var rejectedPair = false;
-        try
-        {
-            _ = new CommonStateModel(CommonStateKind.Error, "Error", "Message", actionLabel: "Retry");
-        }
-        catch (ArgumentException)
-        {
-            rejectedPair = true;
-        }
+        try { _ = new CommonStateModel(CommonStateKind.Error, "Error", "Message", actionLabel: "Retry"); }
+        catch (ArgumentException) { rejectedPair = true; }
         Assert(rejectedPair, "unpaired action rejection");
 
-        var commonSurface = new CommonStateSurface
-        {
-            Width = 600,
-            Height = 260,
-            State = states[1],
-        };
-        Prepare(commonSurface);
+        var commonSurface = new CommonStateSurface { Width = 600, Height = 260, State = states[1] };
+        Prepare(commonSurface, 600, 260);
         var progress = commonSurface.FindName("LoadingProgress") as ProgressBar
             ?? throw new InvalidOperationException("LoadingProgress was not created.");
         Assert(progress.Visibility == Visibility.Visible, "loading progress visible");
 
         commonSurface.State = states[5];
-        Prepare(commonSurface);
+        Prepare(commonSurface, 600, 260);
         var actionButton = commonSurface.FindName("StateActionButton") as Button
             ?? throw new InvalidOperationException("StateActionButton was not created.");
         Assert(actionButton.Visibility == Visibility.Visible, "state action visible");
@@ -328,12 +233,8 @@ internal static class Program
             ?? throw new InvalidOperationException("StateCard was not created.");
         var darkErrorBackground = RequireBrush(stateCard.Background, "dark error background").Color;
 
-        var badge = new CommonStatusBadge
-        {
-            Kind = CommonStateKind.Success,
-            Text = "Ready",
-        };
-        Prepare(badge);
+        var badge = new CommonStatusBadge { Kind = CommonStateKind.Success, Text = "Ready" };
+        Prepare(badge, 160, 40);
         var badgeBorder = badge.FindName("BadgeBorder") as Border
             ?? throw new InvalidOperationException("BadgeBorder was not created.");
         var darkBadgeBackground = RequireBrush(badgeBorder.Background, "dark success badge background").Color;
@@ -342,16 +243,14 @@ internal static class Program
         themes.Apply(AppearanceTheme.Light);
         commonSurface.Dispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
         badge.Dispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
-        Prepare(commonSurface);
-        Prepare(badge);
-        var lightErrorBackground = RequireBrush(stateCard.Background, "light error background").Color;
-        var lightBadgeBackground = RequireBrush(badgeBorder.Background, "light success badge background").Color;
-        Assert(lightErrorBackground != darkErrorBackground, "common state dynamic theme parity");
-        Assert(lightBadgeBackground != darkBadgeBackground, "status badge dynamic theme parity");
+        Prepare(commonSurface, 600, 260);
+        Prepare(badge, 160, 40);
+        Assert(RequireBrush(stateCard.Background, "light error background").Color != darkErrorBackground, "common state dynamic theme parity");
+        Assert(RequireBrush(badgeBorder.Background, "light success badge background").Color != darkBadgeBackground, "status badge dynamic theme parity");
         themes.Apply(AppearanceTheme.Dark);
 
         state.ProjectsContent = null;
-        Prepare(workspace);
+        Prepare(workspace, 800, 500);
         var sectionEmpty = workspace.FindName("SectionEmptyState") as CommonStateSurface
             ?? throw new InvalidOperationException("SectionEmptyState was not created.");
         var contentHost = workspace.FindName("SectionContentHost") as ContentControl
@@ -360,61 +259,45 @@ internal static class Program
         Assert(contentHost.Visibility == Visibility.Collapsed, "empty workspace hides content host");
 
         state.ProjectsContent = projectContent;
-        Prepare(workspace);
+        Prepare(workspace, 800, 500);
         Assert(sectionEmpty.Visibility == Visibility.Collapsed, "workspace empty fallback clears with content");
         Assert(contentHost.Visibility == Visibility.Visible, "workspace content visible");
 
         Console.WriteLine("Runtime common empty/loading/error/status happy/negative/recovery fixture: PASS.");
     }
 
-    private static void Prepare(FrameworkElement element)
+    private static void Prepare(FrameworkElement element, double width, double height)
     {
-        element.Measure(new Size(Math.Max(1, element.Width), Math.Max(1, element.Height)));
-        element.Arrange(new Rect(0, 0, Math.Max(1, element.DesiredSize.Width), Math.Max(1, element.DesiredSize.Height)));
+        element.Measure(new Size(width, height));
+        element.Arrange(new Rect(0, 0, width, height));
         element.UpdateLayout();
         element.Dispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
+        element.UpdateLayout();
     }
 
     private static SolidColorBrush RequireBrush(Brush? brush, string label) =>
-        brush as SolidColorBrush
-        ?? throw new InvalidOperationException($"Expected SolidColorBrush for {label}.");
+        brush as SolidColorBrush ?? throw new InvalidOperationException($"Expected SolidColorBrush for {label}.");
 
     private static void Assert(bool condition, string label)
     {
-        if (!condition)
-        {
-            throw new InvalidOperationException($"Common-state assertion failed: {label}");
-        }
+        if (!condition) { throw new InvalidOperationException($"Common-state assertion failed: {label}"); }
     }
 
     private sealed class FixtureCommand : ICommand
     {
-        public event EventHandler? CanExecuteChanged
-        {
-            add { }
-            remove { }
-        }
-
+        public event EventHandler? CanExecuteChanged { add { } remove { } }
         public bool CanExecute(object? parameter) => true;
-
-        public void Execute(object? parameter)
-        {
-        }
+        public void Execute(object? parameter) { }
     }
 }
 '@
 
         Set-Content -LiteralPath $projectPath -Value $project -Encoding utf8NoBOM
         Set-Content -LiteralPath $programPath -Value $program -Encoding utf8NoBOM
-
         & dotnet run --project $projectPath -c Release
-        if ($LASTEXITCODE -ne 0) {
-            throw "Runtime common-state fixture failed with exit code $LASTEXITCODE."
-        }
+        if ($LASTEXITCODE -ne 0) { throw "Runtime common-state fixture failed with exit code $LASTEXITCODE." }
     }
-    finally {
-        Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
-    }
+    finally { Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue }
 }
 
 $modelPath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Shell\CommonStateModel.cs'
@@ -427,9 +310,7 @@ $workspaceSurfacePath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Shell\
 $appProjectPath = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\FCCCodeDesktop.App.csproj'
 
 foreach ($path in @($modelPath, $surfacePath, $surfaceCodePath, $badgePath, $badgeCodePath, $navigationStatePath, $workspaceSurfacePath, $appProjectPath)) {
-    if (-not (Test-Path -LiteralPath $path)) {
-        throw "Required common-state path is missing: $path"
-    }
+    if (-not (Test-Path -LiteralPath $path)) { throw "Required common-state path is missing: $path" }
 }
 
 $modelText = Get-Content -LiteralPath $modelPath -Raw
@@ -447,24 +328,18 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-CommonStateContract ($modelText.Replace('Blocked,', 'RemovedBlocked,')) $surfaceText $surfaceCodeText $badgeText $badgeCodeText $navigationStateText $workspaceSurfaceText
     } 'missing blocked state taxonomy'
-
     Assert-ContractRejects {
         Assert-CommonStateContract $modelText ($surfaceText.Replace('{DynamicResource FccBrushErrorBackground}', '#55112233')) $surfaceCodeText $badgeText $badgeCodeText $navigationStateText $workspaceSurfaceText
     } 'hard-coded error background'
-
     Assert-ContractRejects {
         Assert-CommonStateContract $modelText $surfaceText $surfaceCodeText $badgeText $badgeCodeText $navigationStateText ($workspaceSurfaceText.Replace('State="{Binding SelectedEmptyState}"', 'State="{x:Null}"'))
     } 'workspace empty-state binding removed'
-
     Assert-ContractRejects {
         Assert-CommonStateContract $modelText ($surfaceText.Replace('Command="{Binding State.ActionCommand, ElementName=Root}"', 'Command="{x:Null}"')) $surfaceCodeText $badgeText $badgeCodeText $navigationStateText $workspaceSurfaceText
     } 'state action command binding removed'
-
     Assert-CommonStateContract $modelText $surfaceText $surfaceCodeText $badgeText $badgeCodeText $navigationStateText $workspaceSurfaceText
     Write-Host 'Common-state recovery fixture: PASS.'
     Write-Host 'Deterministic common-state negative/recovery fixtures: PASS.'
 }
 
-if ($RequireRuntime) {
-    Invoke-CommonStateRuntimeFixture $appProjectPath
-}
+if ($RequireRuntime) { Invoke-CommonStateRuntimeFixture $appProjectPath }
