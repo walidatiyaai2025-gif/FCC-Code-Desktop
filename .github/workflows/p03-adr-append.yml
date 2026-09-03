@@ -1,0 +1,54 @@
+name: P03 ADR Append
+
+on:
+  push:
+    branches:
+      - worker/fccd-p03-001-sqlite-bootstrap
+
+permissions:
+  contents: write
+
+jobs:
+  append-adr:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: worker/fccd-p03-001-sqlite-bootstrap
+
+      - name: Append persistence ADR and remove harness
+        shell: pwsh
+        run: |
+          $decisionPath = 'docs/DECISIONS.md'
+          $content = Get-Content $decisionPath -Raw
+          if ($content -notmatch 'ADR-021 — P03 persistence uses Microsoft.Data.Sqlite') {
+            $adr = @'
+
+## ADR-021 — P03 persistence uses Microsoft.Data.Sqlite with ordered checksum-verified migrations
+
+**Status:** Accepted  
+**Date:** 2026-09-03
+
+`FCCD-P03-001` uses the stable `Microsoft.Data.Sqlite` 10.0.11 ADO.NET provider rather than introducing EF Core. `FCCCodeDesktop.Persistence` owns an explicit ordered migration plan starting at schema version 1. `SchemaMigrations` records each applied migration version, immutable name, SHA-256 SQL checksum, and UTC application timestamp. Pending migrations execute transactionally with their ledger insert; already-applied migration name/checksum drift and unsupported future schema versions are rejected before new SQL is applied. Initialization enables SQLite foreign-key enforcement and a bounded busy timeout on its connection.
+
+P03-001 creates only the migration ledger/bootstrap contract. Domain entity tables and repositories remain owned by `FCCD-P03-002` and later P03 tasks so the bootstrap does not prematurely couple persistence to unfinished domain schemas.
+
+**Reason:** The architecture already mandates SQLite with versioned migrations. A small explicit ADO.NET boundary provides deterministic SQL and transaction semantics, keeps migration history reviewable, avoids premature ORM/domain coupling, and detects accidental rewriting of migrations that may already exist in owner data.
+
+---
+'@
+            Add-Content -Path $decisionPath -Value $adr -Encoding utf8
+          }
+          Remove-Item '.github/workflows/p03-adr-append.yml'
+
+      - name: Commit ADR
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/DECISIONS.md .github/workflows/p03-adr-append.yml
+          git commit -m "P03-001: record SQLite migration decision"
+          git push origin HEAD:worker/fccd-p03-001-sqlite-bootstrap
