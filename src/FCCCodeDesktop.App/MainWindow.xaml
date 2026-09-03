@@ -59,8 +59,7 @@
                         <chrome:WorkspaceSectionSurface State="{StaticResource WorkspaceNavigationState}" />
                     </chrome:WorkspaceLayout.PrimaryContent>
                     <chrome:WorkspaceLayout.BottomContent>
-                        <chrome:BottomToolPanel x:Name="BottomToolPanelHost"
-                                                State="{StaticResource BottomToolPanelState}"
+                        <chrome:BottomToolPanel State="{StaticResource BottomToolPanelState}"
                                                 LayoutState="{StaticResource WorkspaceLayoutState}" />
                     </chrome:WorkspaceLayout.BottomContent>
                 </chrome:WorkspaceLayout>
