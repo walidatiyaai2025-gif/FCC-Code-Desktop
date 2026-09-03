@@ -4,7 +4,7 @@
 
 This record reconciles validated, already-integrated P02 implementation after a fresh live repository inspection. It is **not** the P02 phase-closure artifact, does not run or claim the P02 exit gate, does not advance to P03, and keeps `VERIFIED_FINAL_COMPLETE=false`.
 
-Reconciliation baseline: exact canonical `main` SHA `45ee529bf725ebb1f4c1949c2667afa075ac1dd8`.
+Reconciliation baseline: exact canonical `main` SHA `429643446e0f24ce3d5707545dc4f1ac06cbf28d`.
 
 ## Live recovery map
 
@@ -17,24 +17,26 @@ Reconciliation baseline: exact canonical `main` SHA `45ee529bf725ebb1f4c1949c266
 - PR #59 integrated `FCCD-P02-005`; exact candidate `40f1401451c95c1a66618cae9d1af80d869055cf` passed Windows CI run `33748156985`. An earlier candidate exposed a stale P02-004 negative fixture after production workspace composition changed; the fixture was hardened rather than waived before the exact candidate passed.
 - PR #61 integrated `FCCD-P02-006`; exact candidate `bc2b5f034a4b2fa22cb2988360f05326d6605f82` passed Windows CI run `33752661614`. Earlier candidates exposed three real WPF contract defects — nested XAML namescope registration, a `Double` resource assigned to `RowDefinition.Height`, and a `Double` resource assigned to `BorderThickness`. Each defect was repaired and the validator was hardened to reject regression rather than waived.
 - PR #63 integrated `FCCD-P02-007`; exact candidate `3a25ce5e582a126262803be791f81abc5e6d451d` passed Windows CI run `33756980148`, including Release build/test, all prior P02 validators, deterministic command-palette negative/recovery coverage, and the Windows/WPF runtime command-palette fixture.
-- Exact resulting canonical main `45ee529bf725ebb1f4c1949c2667afa075ac1dd8` passed post-merge Windows CI run `33757314060`.
+- PR #65 integrated `FCCD-P02-008`; exact candidate `04a0a8176bf16ad6c8d53b9268b46d23126253de` passed Windows CI run `33763285287`. Earlier candidates exposed a false-positive taxonomy negative fixture and a detached-control theme-parity fixture that did not participate in a real WPF logical tree; both defects were repaired rather than waived, and the final runtime common-state fixture passed.
+- Exact resulting canonical main `429643446e0f24ce3d5707545dc4f1ac06cbf28d` passed post-merge Windows CI run `33763898340`.
 
 ## Reconciliation result
 
 | Task | Canonical integration / focused evidence | Result |
 |---|---|---|
-| `FCCD-P02-001` | PR #54; exact-head Windows CI `33730508965`; current-main non-regression CI `33757314060`. | CLOSED |
-| `FCCD-P02-002` | PR #55; exact-head Windows CI `33733063370`; current-main non-regression CI `33757314060`. | CLOSED |
-| `FCCD-P02-003` | PR #56; exact-head Windows CI `33738303088`; current-main non-regression CI `33757314060`. | CLOSED |
-| `FCCD-P02-004` | PR #57; exact-head Windows CI `33741648487`; current-main non-regression CI `33757314060`. | CLOSED |
-| `FCCD-P02-005` | PR #59; exact-head Windows CI `33748156985`; current-main non-regression CI `33757314060`. | CLOSED |
-| `FCCD-P02-006` | PR #61; exact-head Windows CI `33752661614`; current-main non-regression CI `33757314060`. | CLOSED |
-| `FCCD-P02-007` | PR #63; exact-head Windows CI `33756980148`; current-main non-regression CI `33757314060`. | CLOSED |
+| `FCCD-P02-001` | PR #54; exact-head Windows CI `33730508965`; current-main non-regression CI `33763898340`. | CLOSED |
+| `FCCD-P02-002` | PR #55; exact-head Windows CI `33733063370`; current-main non-regression CI `33763898340`. | CLOSED |
+| `FCCD-P02-003` | PR #56; exact-head Windows CI `33738303088`; current-main non-regression CI `33763898340`. | CLOSED |
+| `FCCD-P02-004` | PR #57; exact-head Windows CI `33741648487`; current-main non-regression CI `33763898340`. | CLOSED |
+| `FCCD-P02-005` | PR #59; exact-head Windows CI `33748156985`; current-main non-regression CI `33763898340`. | CLOSED |
+| `FCCD-P02-006` | PR #61; exact-head Windows CI `33752661614`; current-main non-regression CI `33763898340`. | CLOSED |
+| `FCCD-P02-007` | PR #63; exact-head Windows CI `33756980148`; current-main non-regression CI `33763898340`. | CLOSED |
+| `FCCD-P02-008` | PR #65; exact-head Windows CI `33763285287`; current-main non-regression CI `33763898340`. | CLOSED |
 
 ## State after reconciliation
 
-- `FCCD-P02-001` through `FCCD-P02-007` — CLOSED.
-- `FCCD-P02-008` through `FCCD-P02-009` — PENDING unless newer live repository state shows a legitimate active claim.
+- `FCCD-P02-001` through `FCCD-P02-008` — CLOSED.
+- `FCCD-P02-009` — PENDING unless newer live repository state shows a legitimate active claim.
 - `CURRENT_PHASE` — P02.
 - `CURRENT_PHASE_STATE` — IN_PROGRESS.
 - `PHASE_EXIT_GATE` — NOT_RUN.
@@ -44,4 +46,4 @@ Reconciliation baseline: exact canonical `main` SHA `45ee529bf725ebb1f4c1949c266
 
 ## Next legitimate action
 
-Re-fetch live state and recover any legitimate current P02 work first. If no worker/PR owns the next dependency-valid task, continue with `FCCD-P02-008 — Common empty/loading/error/status components`. Do not start P03 and do not claim P02 closure until all remaining P02 tasks are CLOSED and the exact-head phase exit gate passes.
+Re-fetch live state and recover any legitimate current P02 work first. If no worker/PR owns the next dependency-valid task, continue with `FCCD-P02-009 — DPI/resolution layout foundations`. Do not start P03 and do not claim P02 closure until the remaining P02 task is CLOSED and the exact-head phase exit gate passes.
