@@ -79,7 +79,8 @@ public sealed record BuildMetadata
 
     private static void ValidateProductVersion(string productVersion, BuildChannel channel)
     {
-        var coreVersion = productVersion.Split(new[] { '-', '+' }, 2)[0];
+        var separatorIndex = productVersion.AsSpan().IndexOfAny('-', '+');
+        var coreVersion = separatorIndex >= 0 ? productVersion[..separatorIndex] : productVersion;
         if (!Version.TryParse(coreVersion, out var parsedVersion) || parsedVersion.Build < 0)
         {
             throw new ArgumentException("Product version must contain a three-part numeric version core.", nameof(productVersion));
