@@ -13,6 +13,7 @@ function Replace-Exact {
 $phasePath = Join-Path $PWD 'CURRENT_PHASE.md'
 $ledgerPath = Join-Path $PWD 'docs/TASK_LEDGER.md'
 $evidencePath = Join-Path $PWD 'evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md'
+$utf8 = [Text.UTF8Encoding]::new($false)
 
 $phase = Get-Content -LiteralPath $phasePath -Raw
 $phase = Replace-Exact $phase 'LAST_RECONCILED: 2026-09-02' 'LAST_RECONCILED: 2026-09-03' 'CURRENT_PHASE last reconciled date'
@@ -25,7 +26,7 @@ $statusNew = @'
 $phase = Replace-Exact $phase $statusOld $statusNew.TrimEnd() 'CURRENT_PHASE current status'
 $phase = Replace-Exact $phase 'Apply `docs/WORKER_PROTOCOL.md` within P01 and begin only legitimate P01 work after this transition is integrated. Do not open P02 work. `VERIFIED_FINAL_COMPLETE` remains false; P00 closure is only the foundational phase gate, not product completion.' 'Apply `docs/WORKER_PROTOCOL.md` within P01. The next legitimate mandatory implementation task is `FCCD-P01-006` (build metadata/version service). Do not open P02 work until P01-006 is CLOSED and the P01 exit gate passes. `VERIFIED_FINAL_COMPLETE` remains false.' 'CURRENT_PHASE next legal action'
 $phase = Replace-Exact $phase '8. Treat P01 as the sole legal implementation phase; build the live claim/recovery map and claim only legitimate P01 work.' '8. Treat P01 as the sole legal implementation phase; `FCCD-P01-001` through `FCCD-P01-005` are CLOSED, and `FCCD-P01-006` is the remaining mandatory P01 implementation task subject to a fresh live claim map.' 'CURRENT_PHASE resume step'
-Set-Content -LiteralPath $phasePath -Value $phase -Encoding utf8NoBOM
+[IO.File]::WriteAllText($phasePath, $phase, $utf8)
 
 $ledger = Get-Content -LiteralPath $ledgerPath -Raw
 $rows = [ordered]@{
@@ -59,7 +60,7 @@ $newNext = @'
 `FCCD-P01-006` (build metadata/version service) remains PENDING and is the next legitimate mandatory P01 implementation task after a fresh live ownership check. Do not begin P02 until P01-006 is CLOSED, the P01 exit gate is run and PASS, exact-head closure evidence is recorded, and main is green. `VERIFIED_FINAL_COMPLETE` remains false.
 '@
 $ledger = $ledger.Substring(0, $currentNext.Index) + $newNext.TrimEnd() + "`n"
-Set-Content -LiteralPath $ledgerPath -Value $ledger -Encoding utf8NoBOM
+[IO.File]::WriteAllText($ledgerPath, $ledger, $utf8)
 
 New-Item -ItemType Directory -Force -Path (Split-Path $evidencePath) | Out-Null
 $evidence = @'
@@ -98,7 +99,7 @@ Reconciliation baseline before this record: `main` at `9d3098e251d237752542a4602
 
 Release acceptance rows remain governed by `docs/ACCEPTANCE_MATRIX.md`; this task reconciliation does not convert release-level `NOT_RUN` rows into PASS.
 '@
-Set-Content -LiteralPath $evidencePath -Value $evidence.TrimEnd() -Encoding utf8NoBOM
+[IO.File]::WriteAllText($evidencePath, $evidence.TrimEnd() + "`n", $utf8)
 
 $finalPhase = Get-Content -LiteralPath $phasePath -Raw
 if (-not $finalPhase.Contains('`FCCD-P01-006` (build metadata/version service)')) { throw 'CURRENT_PHASE next-task assertion failed.' }
