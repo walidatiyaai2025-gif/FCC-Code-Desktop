@@ -19,7 +19,7 @@ public sealed class SqliteDatabaseInitializerTests
 
         Assert.Equal(Path.GetFullPath(databasePath), result.DatabasePath);
         Assert.Equal(1, result.CurrentVersion);
-        Assert.Equal([1], result.AppliedVersions);
+        Assert.Equal(new[] { 1 }, result.AppliedVersions);
         Assert.True(File.Exists(databasePath));
         Assert.True(await TableExistsAsync(databasePath, "SchemaMigrations"));
         Assert.Equal(1, await CountAppliedMigrationsAsync(databasePath));
@@ -45,7 +45,7 @@ public sealed class SqliteDatabaseInitializerTests
         var first = await initializer.InitializeAsync(CancellationToken.None);
         var second = await initializer.InitializeAsync(CancellationToken.None);
 
-        Assert.Equal([1], first.AppliedVersions);
+        Assert.Equal(new[] { 1 }, first.AppliedVersions);
         Assert.Empty(second.AppliedVersions);
         Assert.Equal(1, second.CurrentVersion);
         Assert.Equal(1, await CountAppliedMigrationsAsync(databasePath));
@@ -81,7 +81,7 @@ public sealed class SqliteDatabaseInitializerTests
 
         var recovered = await recoveredInitializer.InitializeAsync(CancellationToken.None);
 
-        Assert.Equal([2], recovered.AppliedVersions);
+        Assert.Equal(new[] { 2 }, recovered.AppliedVersions);
         Assert.Equal(2, recovered.CurrentVersion);
         Assert.True(await TableExistsAsync(databasePath, "MigrationProbe"));
         Assert.Equal(2, await CountAppliedMigrationsAsync(databasePath));
