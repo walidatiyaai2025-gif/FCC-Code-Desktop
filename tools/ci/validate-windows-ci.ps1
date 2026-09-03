@@ -32,8 +32,8 @@ function Assert-CiPolicy {
         'contents: read',
         'runs-on: windows-2025',
         'timeout-minutes: 30',
-        'uses: actions/checkout@v4',
-        'uses: actions/setup-dotnet@v4',
+        'uses: actions/checkout@v7',
+        'uses: actions/setup-dotnet@v6',
         'dotnet-version: 10.0.400',
         '.\tools\ci\validate-windows-ci.ps1 -RequireDotNet',
         '.\tools\ci\run-windows-ci.ps1'
