@@ -77,6 +77,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-design-system.ps1 -RunFixtures
     Assert-LastExitCode 'Design-system validation'
 
+    Write-Host 'CI stage: semantic dark/light themes'
+    & pwsh -NoProfile -File .\tools\ui\validate-semantic-themes.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'Semantic theme validation'
+
     Write-Host 'Windows CI baseline: PASS.'
 }
 finally {
