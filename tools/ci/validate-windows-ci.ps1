@@ -68,7 +68,8 @@ function Assert-CiPolicy {
         '.\tools\ui\validate-workspace-layout.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-navigation-surfaces.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime',
-        '.\tools\ui\validate-command-palette.ps1 -RunFixtures -RequireRuntime'
+        '.\tools\ui\validate-command-palette.ps1 -RunFixtures -RequireRuntime',
+        '.\tools\ui\validate-common-states.ps1 -RunFixtures -RequireRuntime'
     )) {
         Assert-ContainsLiteral $RunnerText $requiredRunnerText 'Windows CI runner'
     }
@@ -125,9 +126,10 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-navigation-surfaces.ps1 -RunFixtures -RequireRuntime', '')) } 'missing navigation-surface validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime', '')) } 'missing bottom-tool-panel validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-command-palette.ps1 -RunFixtures -RequireRuntime', '')) } 'missing command-palette validation'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-common-states.ps1 -RunFixtures -RequireRuntime', '')) } 'missing common-state validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, bottom-tool-panel, and command-palette enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, bottom-tool-panel, command-palette, and common-state enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {
