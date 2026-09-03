@@ -50,12 +50,10 @@
                             VerticalContentAlignment="Stretch">
                 <chrome:WorkspaceLayout x:Name="WorkspaceLayoutHost">
                     <chrome:WorkspaceLayout.LeftContent>
-                        <chrome:NavigationSurface x:Name="NavigationSurfaceHost"
-                                                  State="{StaticResource WorkspaceNavigationState}" />
+                        <chrome:NavigationSurface State="{StaticResource WorkspaceNavigationState}" />
                     </chrome:WorkspaceLayout.LeftContent>
                     <chrome:WorkspaceLayout.PrimaryContent>
-                        <chrome:WorkspaceSectionSurface x:Name="WorkspaceSectionSurfaceHost"
-                                                        State="{StaticResource WorkspaceNavigationState}" />
+                        <chrome:WorkspaceSectionSurface State="{StaticResource WorkspaceNavigationState}" />
                     </chrome:WorkspaceLayout.PrimaryContent>
                 </chrome:WorkspaceLayout>
             </ContentControl>
