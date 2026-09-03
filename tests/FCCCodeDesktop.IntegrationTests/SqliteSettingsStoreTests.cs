@@ -1,3 +1,4 @@
+using System.Globalization;
 using FCCCodeDesktop.Core.State;
 using FCCCodeDesktop.Persistence;
 using FCCCodeDesktop.Testing;
@@ -230,7 +231,9 @@ public sealed class SqliteSettingsStoreTests
 
         await using var command = connection.CreateCommand();
         command.CommandText = "DELETE FROM Projects WHERE Id = $projectId;";
-        command.Parameters.AddWithValue("$projectId", projectId.ToString("D"));
+        command.Parameters.AddWithValue(
+            "$projectId",
+            projectId.ToString("D", CultureInfo.InvariantCulture));
         Assert.Equal(1, await command.ExecuteNonQueryAsync(CancellationToken.None));
     }
 }
