@@ -18,12 +18,13 @@ public sealed class SqliteDatabaseInitializerTests
         var result = await initializer.InitializeAsync(CancellationToken.None);
 
         Assert.Equal(Path.GetFullPath(databasePath), result.DatabasePath);
-        Assert.Equal(4, result.CurrentVersion);
-        Assert.Equal(4, result.AppliedVersions.Count);
+        Assert.Equal(5, result.CurrentVersion);
+        Assert.Equal(5, result.AppliedVersions.Count);
         Assert.Equal(1, result.AppliedVersions[0]);
         Assert.Equal(2, result.AppliedVersions[1]);
         Assert.Equal(3, result.AppliedVersions[2]);
         Assert.Equal(4, result.AppliedVersions[3]);
+        Assert.Equal(5, result.AppliedVersions[4]);
         Assert.True(File.Exists(databasePath));
         Assert.True(await TableExistsAsync(databasePath, "SchemaMigrations"));
         Assert.True(await TableExistsAsync(databasePath, "Projects"));
@@ -35,7 +36,9 @@ public sealed class SqliteDatabaseInitializerTests
         Assert.True(await TableExistsAsync(databasePath, "ToolRuns"));
         Assert.True(await TableExistsAsync(databasePath, "ProcessRuns"));
         Assert.True(await TableExistsAsync(databasePath, "QueueItems"));
-        Assert.Equal(4, await CountAppliedMigrationsAsync(databasePath));
+        Assert.True(await TableExistsAsync(databasePath, "GlobalSettings"));
+        Assert.True(await TableExistsAsync(databasePath, "ProjectSettings"));
+        Assert.Equal(5, await CountAppliedMigrationsAsync(databasePath));
 
         var baseline = await ReadAppliedMigrationAsync(databasePath, 1);
         Assert.Equal("bootstrap_schema_migrations", baseline.Name);
@@ -58,10 +61,10 @@ public sealed class SqliteDatabaseInitializerTests
         var first = await initializer.InitializeAsync(CancellationToken.None);
         var second = await initializer.InitializeAsync(CancellationToken.None);
 
-        Assert.Equal(4, first.AppliedVersions.Count);
+        Assert.Equal(5, first.AppliedVersions.Count);
         Assert.Empty(second.AppliedVersions);
-        Assert.Equal(4, second.CurrentVersion);
-        Assert.Equal(4, await CountAppliedMigrationsAsync(databasePath));
+        Assert.Equal(5, second.CurrentVersion);
+        Assert.Equal(5, await CountAppliedMigrationsAsync(databasePath));
     }
 
     [Fact]
@@ -71,7 +74,7 @@ public sealed class SqliteDatabaseInitializerTests
         var databasePath = workspace.GetPath("state.db");
         var options = new SqliteDatabaseOptions(databasePath);
         var brokenMigration = new SqliteMigration(
-            5,
+            6,
             "create_migration_probe",
             """
             CREATE TABLE MigrationProbe (Id INTEGER NOT NULL PRIMARY KEY);
@@ -82,22 +85,22 @@ public sealed class SqliteDatabaseInitializerTests
         var failure = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             brokenInitializer.InitializeAsync(CancellationToken.None));
 
-        Assert.Contains("migration 5", failure.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("migration 6", failure.Message, StringComparison.OrdinalIgnoreCase);
         Assert.False(await TableExistsAsync(databasePath, "MigrationProbe"));
-        Assert.Equal(4, await CountAppliedMigrationsAsync(databasePath));
+        Assert.Equal(5, await CountAppliedMigrationsAsync(databasePath));
 
         var correctedMigration = new SqliteMigration(
-            5,
+            6,
             "create_migration_probe",
             "CREATE TABLE MigrationProbe (Id INTEGER NOT NULL PRIMARY KEY);");
         var recoveredInitializer = new SqliteDatabaseInitializer(options, [correctedMigration]);
 
         var recovered = await recoveredInitializer.InitializeAsync(CancellationToken.None);
 
-        Assert.Equal(5, Assert.Single(recovered.AppliedVersions));
-        Assert.Equal(5, recovered.CurrentVersion);
+        Assert.Equal(6, Assert.Single(recovered.AppliedVersions));
+        Assert.Equal(6, recovered.CurrentVersion);
         Assert.True(await TableExistsAsync(databasePath, "MigrationProbe"));
-        Assert.Equal(5, await CountAppliedMigrationsAsync(databasePath));
+        Assert.Equal(6, await CountAppliedMigrationsAsync(databasePath));
     }
 
     [Fact]
@@ -107,7 +110,7 @@ public sealed class SqliteDatabaseInitializerTests
         var databasePath = workspace.GetPath("state.db");
         var options = new SqliteDatabaseOptions(databasePath);
         var originalMigration = new SqliteMigration(
-            5,
+            6,
             "create_probe",
             "CREATE TABLE Probe (Id INTEGER NOT NULL PRIMARY KEY);");
 
@@ -115,7 +118,7 @@ public sealed class SqliteDatabaseInitializerTests
             .InitializeAsync(CancellationToken.None);
 
         var rewrittenMigration = new SqliteMigration(
-            5,
+            6,
             "create_probe",
             "CREATE TABLE Probe (Id INTEGER NOT NULL PRIMARY KEY, Name TEXT NULL);");
         var driftedInitializer = new SqliteDatabaseInitializer(options, [rewrittenMigration]);
@@ -124,7 +127,7 @@ public sealed class SqliteDatabaseInitializerTests
             driftedInitializer.InitializeAsync(CancellationToken.None));
 
         Assert.Contains("checksum mismatch", failure.Message, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(5, await CountAppliedMigrationsAsync(databasePath));
+        Assert.Equal(6, await CountAppliedMigrationsAsync(databasePath));
     }
 
     [Fact]
@@ -132,12 +135,12 @@ public sealed class SqliteDatabaseInitializerTests
     {
         using var workspace = new TemporaryDirectory("fccd-p03-sqlite-gap");
         var databasePath = workspace.GetPath("state.db");
-        var invalidMigration = new SqliteMigration(6, "skipped_version", "SELECT 1;");
+        var invalidMigration = new SqliteMigration(7, "skipped_version", "SELECT 1;");
 
         var failure = Assert.Throws<ArgumentException>(() =>
             new SqliteDatabaseInitializer(new SqliteDatabaseOptions(databasePath), [invalidMigration]));
 
-        Assert.Contains("Expected version 5", failure.Message, StringComparison.Ordinal);
+        Assert.Contains("Expected version 6", failure.Message, StringComparison.Ordinal);
         Assert.False(File.Exists(databasePath));
     }
 

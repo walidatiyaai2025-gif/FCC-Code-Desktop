@@ -239,3 +239,18 @@ P03-001 creates only the migration ledger/bootstrap contract. Domain entity tabl
 **Reason:** The architecture already mandates SQLite with versioned migrations. A small explicit ADO.NET boundary provides deterministic SQL and transaction semantics, keeps migration history reviewable, avoids premature ORM/domain coupling, and detects accidental rewriting of migrations that may already exist in owner data.
 
 ---
+
+## ADR-022 — Settings persistence separates non-secret global and project scopes
+
+**Status:** Accepted  
+**Date:** 2026-09-04
+
+`FCCD-P03-005` persists non-secret settings through an application-owned `ISettingsStore` backed by two SQLite tables: `GlobalSettings` for application-wide preferences and `ProjectSettings` for settings owned by one durable project. Keys are case-insensitive durable identities and values are syntactically valid JSON so later typed feature consumers can evolve independently of SQLite column shape. Project settings cascade with their owning project.
+
+The settings store is explicitly not credential storage. Product-owned API keys, bearer tokens, passwords, provider/FCC credentials, authorization material, or equivalent protected secrets must use a Windows-protected secret boundary if such storage is introduced by an authorized later task; they must not be placed in these plaintext SQLite settings tables.
+
+**Reason:** Explicit global/project scopes avoid ambiguous nullable-scope uniqueness, directly support persistent shell/layout and workspace preferences from the product specification, preserve local-first storage, and prevent a generic JSON settings seam from silently becoming insecure secret storage or prematurely owning later permission/runtime semantics.
+
+See `docs/persistence/SETTINGS_PERSISTENCE.md`.
+
+---
