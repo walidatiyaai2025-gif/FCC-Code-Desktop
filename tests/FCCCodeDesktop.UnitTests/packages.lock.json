@@ -102,6 +102,12 @@
       "fcccodedesktop.core": {
         "type": "Project"
       },
+      "fcccodedesktop.runtime": {
+        "type": "Project",
+        "dependencies": {
+          "FCCCodeDesktop.Core": "[1.0.0, )"
+        }
+      },
       "fcccodedesktop.testing": {
         "type": "Project"
       }
