@@ -191,7 +191,7 @@ Agent task
    ↓
 Blender Adapter
    ↓
-Create / modify / render / export 3D asset
+Create / modify / render 3D asset
    ↓
 Artifact validation + manifest
    ↓
@@ -328,7 +328,7 @@ P22  v1.0.0 release closure
 
 ```text
 ALL CURRENT-PHASE TASKS = CLOSED
-AND PHASE EXIT_GATE = PASS
+AND PHASE EXIT GATE = PASS
 AND EXACT-HEAD EVIDENCE RECORDED
 AND MAIN = GREEN
 AND KNOWN PHASE-LOCAL RELEASE BLOCKERS = 0
