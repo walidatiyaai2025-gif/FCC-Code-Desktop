@@ -85,12 +85,10 @@ jobs:
 
           $recovery = Get-Content -LiteralPath .\tests\FCCCodeDesktop.IntegrationTests\SqliteMigrationRecoveryTests.cs -Raw
           foreach ($required in @(
-            'CompleteStateSurvivesCloseReopenAcrossFreshStores',
-            'VerifiedBackupRecoversCompleteStateAfterPrimaryCorruption',
-            'HistoricalVersionTwoDatabaseUpgradesWithoutDataLoss',
-            'FailedPostBaselineMigrationRollsBackAndCorrectedRetryPreservesState',
-            'MigrationLedgerHoleIsRejectedWithoutDestroyingPersistedState',
-            'FutureSchemaVersionIsRejectedWithoutDestroyingPersistedState'
+            'CompletePhaseStateSurvivesReopenAndVerifiedBackupAfterPrimaryCorruption',
+            'HistoricalVersionTwoStateUpgradesSequentiallyWithoutDataLoss',
+            'FailedPostBaselineMigrationRollsBackAndRetryPreservesCompleteState',
+            'MigrationLedgerHoleAndFutureVersionAreRejectedWithoutDestroyingDomainState'
           )) {
             if (-not $recovery.Contains($required)) { throw "P03 recovery gate is missing required scenario: $required" }
           }
