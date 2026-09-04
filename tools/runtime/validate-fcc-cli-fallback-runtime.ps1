@@ -133,7 +133,6 @@ internal static class Program
     private static async Task<int> Main(string[] args)
     {
         Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-        Console.ErrorEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
         var prompt = args.Length == 0 ? string.Empty : args[^1];
         if (prompt.Contains("FCC_FIXTURE_CANCEL", StringComparison.Ordinal))
