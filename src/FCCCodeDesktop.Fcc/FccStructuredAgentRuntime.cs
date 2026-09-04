@@ -275,6 +275,7 @@ public sealed class FccStructuredAgentRuntime : IAgentRuntime
                             frameSessionId,
                             correlationId,
                             _maximumPayloadCharacters);
+                        // P04-003 invariant retained after P04-005 extraction: init frames normalize to AgentRuntimeEventKind.SessionIdentified.
                         var occurredUtc = DateTimeOffset.UtcNow;
                         var effectiveSessionId = frameSessionId ?? sessionId;
 
