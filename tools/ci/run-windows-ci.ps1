@@ -77,6 +77,10 @@ try {
     & pwsh -NoProfile -File .\tools\runtime\validate-fcc-environment-discovery.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'FCC environment-discovery validation'
 
+    Write-Host 'CI stage: FCC structured runtime adapter'
+    & pwsh -NoProfile -File .\tools\runtime\validate-fcc-structured-runtime.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'FCC structured-runtime validation'
+
     Write-Host 'CI stage: design-system contract'
     & pwsh -NoProfile -File .\tools\ui\validate-design-system.ps1 -RunFixtures
     Assert-LastExitCode 'Design-system validation'
