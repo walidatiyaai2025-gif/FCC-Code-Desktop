@@ -18,7 +18,7 @@ LAST_RECONCILED: 2026-09-04
 
 ## Active rule
 
-P04 is the sole legal implementation phase after canonical P03 closure, normal closure merge `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure canonical-main Windows CI run `33822291095` completed SUCCESS. `FCCD-P04-001` is canonically CLOSED by this task reconciliation. `FCCD-P04-002` through `FCCD-P04-008` remain `PENDING`; P04-002 implementation is already merged by PR #94 and the resulting current main is green, but P04-002 remains Priority-4 integration-pending work until its own evidence/ledger reconciliation completes.
+P04 is the sole legal implementation phase after canonical P03 closure, normal closure merge `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure canonical-main Windows CI run `33822291095` completed SUCCESS. `FCCD-P04-001` is canonically CLOSED by this task reconciliation. `FCCD-P04-002` through `FCCD-P04-008` remain `PENDING`; P04-002 implementation is already merged by PR #94 and current main is green, but P04-002 remains Priority-4 integration-pending work until its own evidence/ledger reconciliation completes.
 
 Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
@@ -78,3 +78,84 @@ P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.m
 - PR #40 integrated sanitized authoritative Unity/Blender target evidence, including `p00TargetValidationComplete=true` and Blender closure support.
 - PR #41 reconciled authoritative Blender target success into the canonical P00 task/contract/compatibility state.
 - The exact-head P00 pre-closure gate passed on `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`: all 6/6 contract-probe self-tests passed, target evidence secret sanity scan passed, required evidence ancestry passed, no open plan gaps or known P00 blockers remained, and the worktree remained clean.
+
+## P00 closure
+
+```text
+P00_CANDIDATE_SHA: 49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9
+MANDATORY_TASKS: 10/10 CLOSED
+EXIT_GATE: PASS
+KNOWN_BLOCKERS: NONE
+KNOWN_REGRESSIONS: NONE
+TARGET_VALIDATION_COMPLETE: true
+PROVIDER_RERUN_DURING_FINAL_GATE: ZERO
+UNITY_TARGET_RERUN_DURING_FINAL_GATE: ZERO
+BLENDER_TARGET_RERUN_DURING_FINAL_GATE: ZERO
+CLOSURE_RECORD: evidence/phases/P00/CLOSURE.md
+```
+
+## P01 closure
+
+```text
+P01_CANDIDATE_SHA: 72ea8b4f891a0558c97e0633c4444388e62ec464
+MANDATORY_TASKS: 6/6 CLOSED
+EXIT_GATE: PASS
+KNOWN_BLOCKERS: NONE
+KNOWN_REGRESSIONS: NONE
+OWNER_PENDING: NONE
+EXACT_GATE_RUN: 33726790774
+POST_CLOSURE_MAIN_GREEN_SHA: 27c9ab5dbb192d68f5ee629184fc2eabeee087df
+POST_CLOSURE_WINDOWS_CI_RUN: 33728070232
+CLOSURE_RECORD: evidence/phases/P01/CLOSURE.md
+```
+
+## P02 closure
+
+```text
+P02_CANDIDATE_SHA: 8b264cc352656030382f95846410ac60d81f7c24
+MANDATORY_TASKS: 9/9 CLOSED
+EXIT_GATE: PASS
+KNOWN_BLOCKERS: NONE
+KNOWN_REGRESSIONS: NONE
+OWNER_PENDING: NONE
+EXACT_GATE_RUN: 33786810686
+PRE_CLOSURE_MAIN_GREEN_SHA: 8b264cc352656030382f95846410ac60d81f7c24
+PRE_CLOSURE_WINDOWS_CI_RUN: 33773829176
+CLOSURE_MERGE_SHA: 6b495178f2a120e745fe09633bbd584851253d71
+POST_CLOSURE_WINDOWS_CI_RUN: 33788321767
+CLOSURE_RECORD: evidence/phases/P02/CLOSURE.md
+```
+
+## P03 closure
+
+```text
+P03_CANDIDATE_SHA: 2d5859cf6abc019471d1f548d8bb398892c229b1
+MANDATORY_TASKS: 7/7 CLOSED
+EXIT_GATE: PASS
+KNOWN_BLOCKERS: NONE
+KNOWN_REGRESSIONS: NONE
+OWNER_PENDING: NONE
+EXACT_GATE_RUN: 33821332906
+PRE_CLOSURE_MAIN_GREEN_SHA: 2d5859cf6abc019471d1f548d8bb398892c229b1
+PRE_CLOSURE_WINDOWS_CI_RUN: 33820435829
+CLOSURE_MERGE_SHA: 62d3162d31cad6ff8c1d52897cf81a93e57bceed
+POST_CLOSURE_WINDOWS_CI_RUN: 33822291095
+CLOSURE_RECORD: evidence/phases/P03/CLOSURE.md
+```
+
+## Next legal action
+
+Apply `docs/WORKER_PROTOCOL.md` within P04. Re-fetch live main, open PRs/branches/claims, current CI, and P04 evidence before claiming work. `FCCD-P04-002` is already implemented and merged by PR #94 but remains canonically `PENDING` at this reconciliation boundary, so it is the next Priority-4 integration-pending task unless newer live state supersedes it. Do not begin P04-003 until P04-002 integration/evidence/ledger reconciliation is complete. Do not begin P05 until every mandatory P04 task is CLOSED and the P04 exact-head exit gate passes with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
+
+## Resume procedure
+
+1. Read `AGENTS.md`.
+2. Read `PROJECT_CONTROL.md`.
+3. Read `docs/EXECUTION_PLAN.md`.
+4. Read `docs/WORKER_PROTOCOL.md`.
+5. Read `docs/TASK_LEDGER.md`, `docs/ACCEPTANCE_MATRIX.md`, `docs/DECISIONS.md`, and `docs/PLAN_GAPS.md`.
+6. Read `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, `evidence/phases/P02/CLOSURE.md`, and `evidence/phases/P03/CLOSURE.md` as immutable prior-phase provenance.
+7. Fetch live branches/PRs/issues/commits and current CI before selecting P04 work.
+8. Treat P04 as the sole legal phase; P04-001 is CLOSED by validated canonical integration, and P04-002 is the next integration-pending recovery item unless newer live state supersedes it.
+9. Preserve the integrated P00 runtime-contract, P01 engineering-policy, P02 shell, and P03 persistence/recovery evidence as immutable provenance.
+10. Continue strict sequential phase execution; do not begin P05 until P04 is validly closed, and do not claim final product completion before canonical P22 closure.
