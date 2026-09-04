@@ -252,7 +252,7 @@ internal static class FccRuntimeEventNormalizer
         }
 
         AddUsageIfPresent(contentOwner, sourceType, frameCorrelationId, events);
-        if (message is not null && !ReferenceEquals(contentOwner, root))
+        if (message is not null)
         {
             AddUsageIfPresent(root, sourceType, frameCorrelationId, events);
         }
