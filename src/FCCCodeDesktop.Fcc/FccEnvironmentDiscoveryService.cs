@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -131,8 +132,8 @@ public sealed class FccEnvironmentDiscoveryService
             return ProcessProbeResult.Failed("Version probe launch failed because the process state was invalid.");
         }
 
-        var standardOutputTask = process.StandardOutput.ReadToEndAsync();
-        var standardErrorTask = process.StandardError.ReadToEndAsync();
+        var standardOutputTask = process.StandardOutput.ReadToEndAsync(CancellationToken.None);
+        var standardErrorTask = process.StandardError.ReadToEndAsync(CancellationToken.None);
         using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutSource.CancelAfter(_options.ProcessTimeout);
 
@@ -290,11 +291,11 @@ public sealed class FccEnvironmentDiscoveryService
         return null;
     }
 
-    private static IReadOnlyList<string> BuildCandidateNames(string logicalName, string pathExtensions)
+    private static ReadOnlyCollection<string> BuildCandidateNames(string logicalName, string pathExtensions)
     {
         if (Path.HasExtension(logicalName))
         {
-            return [logicalName];
+            return Array.AsReadOnly([logicalName]);
         }
 
         var names = new List<string> { logicalName };
