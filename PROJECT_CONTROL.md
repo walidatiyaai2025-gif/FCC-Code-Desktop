@@ -29,9 +29,9 @@ RELEASE_STATE: NOT_RELEASED
 TARGET_VERSION: 1.0.0
 CURRENT_PHASE: P03
 CURRENT_PHASE_NAME: Persistence + canonical state model
-CURRENT_PHASE_STATE: IN_PROGRESS
+CURRENT_PHASE_STATE: CLOSED
 NEXT_PHASE: P04
-PHASE_EXIT_GATE: NOT_RUN
+PHASE_EXIT_GATE: PASS
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
 VERIFIED_IMPLEMENTATION_COMPLETION: 0%
@@ -40,7 +40,7 @@ PUBLIC_RELEASE_ELIGIBLE: false
 
 `CURRENT_PHASE.md` is the fast live resume checkpoint. `docs/EXECUTION_PLAN.md` is the canonical sequential execution contract.
 
-P02 is canonically CLOSED from candidate `8b264cc352656030382f95846410ac60d81f7c24`; all nine mandatory P02 task rows are CLOSED and exact-head exit-gate run `33786810686` passed. P02 closure was integrated by PR #69 as merge `6b495178f2a120e745fe09633bbd584851253d71`, and exact post-closure canonical main Windows CI run `33788321767` completed SUCCESS on that merge SHA. P03 is therefore the sole legal implementation phase. `FCCD-P03-001` through `FCCD-P03-007` are canonically integrated and reconciled as CLOSED after exact candidate validation, normal merge integration, and exact-resulting-main Windows CI. P03-007 implementation PR #83 used exact candidate `f0f21f5aa616c4d2733c6c271f95c269b8b71e66`, focused Windows CI run `33818107766` succeeded, the normal merge produced canonical main `d475f576320a8e7db2521d1f54248fed27a49dd8`, and exact-main Windows CI run `33818509132` succeeded with Release build 0 warnings/0 errors, unit tests 9/9, and integration tests 37/37. All mandatory P03 task rows are now CLOSED, but P03 itself remains IN_PROGRESS with `PHASE_EXIT_GATE=NOT_RUN`; P04 remains prohibited until the dedicated P03 exact-head exit gate passes with canonical closure evidence.
+P00, P01, and P02 are canonically CLOSED with their phase closure evidence retained under `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, and `evidence/phases/P02/CLOSURE.md`. P03 is now closed in this closure state: `FCCD-P03-001` through `FCCD-P03-007` are canonically CLOSED, exact candidate `2d5859cf6abc019471d1f548d8bb398892c229b1` was already green on permanent main Windows CI run `33820435829`, and dedicated exact-head P03 exit-gate run `33821332906` completed SUCCESS on that immutable candidate. The gate used Windows Server 2025 and .NET SDK `10.0.400`, built Release with 0 warnings/0 errors, passed unit tests 9/9, integration tests 37/37, a dedicated SQLite persistence/recovery lane 34/34, the permanent Windows baseline, diff hygiene, tracked-file secret sanity scan, and final clean-worktree assertion. Canonical P03 closure evidence is `evidence/phases/P03/CLOSURE.md`. `CURRENT_PHASE` deliberately remains P03 until this closure state is normally merged and the resulting exact canonical main remains green; only a separate later transition may activate P04. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ---
 
