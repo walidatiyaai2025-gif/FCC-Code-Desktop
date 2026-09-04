@@ -72,7 +72,10 @@ function Assert-FallbackRuntimeContract {
 
 function Assert-ContractRejects {
     param([scriptblock]$Action, [string]$Label)
-    try { & $Action } catch {
+    try {
+        & $Action
+    }
+    catch {
         Write-Host "Negative fixture rejected as expected: $Label"
         return
     }
@@ -89,10 +92,13 @@ function Assert-LastExitCode {
 function Invoke-FallbackRuntimeFixture {
     param([string]$FccProjectPath)
 
-    if (-not $IsWindows) { throw 'CLI fallback FCC runtime fixture requires Windows.' }
+    if (-not $IsWindows) {
+        throw 'CLI fallback FCC runtime fixture requires Windows.'
+    }
     if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
         throw 'dotnet is required for the CLI fallback FCC runtime fixture.'
     }
+
     $sdkVersion = (& dotnet --version 2>&1 | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or $sdkVersion -ne '10.0.400') {
         throw "CLI fallback FCC runtime fixture requires .NET SDK 10.0.400 but resolved '$sdkVersion'."
@@ -119,12 +125,16 @@ function Invoke-FallbackRuntimeFixture {
 </Project>
 '@
         Set-Content -LiteralPath $fakeProgramPath -Encoding utf8NoBOM -Value @'
+using System.Text;
 using System.Text.Json;
 
 internal static class Program
 {
     private static async Task<int> Main(string[] args)
     {
+        Console.OutputEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        Console.ErrorEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
         var prompt = args.Length == 0 ? string.Empty : args[^1];
         if (prompt.Contains("FCC_FIXTURE_CANCEL", StringComparison.Ordinal))
         {
@@ -210,7 +220,10 @@ internal static class Program
             await VerifyMissingCwdAsync(fakeExecutable, cwd);
             Console.WriteLine("Runtime FCC CLI fallback happy/negative/recovery fixture: PASS.");
         }
-        finally { Directory.Delete(cwd, recursive: true); }
+        finally
+        {
+            Directory.Delete(cwd, recursive: true);
+        }
     }
 
     private static async Task VerifyJsonAsync(string executable, string cwd)
@@ -260,7 +273,11 @@ internal static class Program
         Assert(runtimeEvent.Text?.Contains("fixture-plain-secret", StringComparison.Ordinal) == false, "plain secret absent");
     }
 
-    private static async Task VerifyFailureAsync(string executable, string cwd, string prompt, AgentRuntimeFailureKind expected)
+    private static async Task VerifyFailureAsync(
+        string executable,
+        string cwd,
+        string prompt,
+        AgentRuntimeFailureKind expected)
     {
         var runtime = new FccCliFallbackAgentRuntime(executable);
         await using var execution = await runtime.StartAsync(
@@ -343,13 +360,19 @@ internal static class Program
     private static async Task<List<AgentRuntimeEvent>> CollectAsync(IAsyncEnumerable<AgentRuntimeEvent> source)
     {
         var events = new List<AgentRuntimeEvent>();
-        await foreach (var item in source) { events.Add(item); }
+        await foreach (var item in source)
+        {
+            events.Add(item);
+        }
         return events;
     }
 
     private static void Assert(bool condition, string label)
     {
-        if (!condition) { throw new InvalidOperationException($"CLI fallback runtime assertion failed: {label}"); }
+        if (!condition)
+        {
+            throw new InvalidOperationException($"CLI fallback runtime assertion failed: {label}");
+        }
     }
 }
 '@
