@@ -102,7 +102,7 @@ Integrated task reconciliation for `FCCD-P03-001` through `FCCD-P03-005` is reco
 | FCCD-P04-001 | FCC/`fcc-claude` environment discovery | CLOSED |
 | FCCD-P04-002 | `IAgentRuntime` domain contract | CLOSED |
 | FCCD-P04-003 | Primary FCC/Claude structured runtime adapter | CLOSED |
-| FCCD-P04-004 | CLI fallback runtime adapter | PENDING |
+| FCCD-P04-004 | CLI fallback runtime adapter | CLOSED |
 | FCCD-P04-005 | Runtime event normalization | PENDING |
 | FCCD-P04-006 | Runtime health/version compatibility service | PENDING |
 | FCCD-P04-007 | Start/stop/retry supervision | PENDING |
@@ -114,7 +114,9 @@ Integrated task reconciliation for `FCCD-P03-001` through `FCCD-P03-005` is reco
 
 `FCCD-P04-003` is CLOSED after implementation PR #97 exact candidate `3a017c0eec34bd9c80d3dc6ef6e16ec564939e4f` passed Windows CI run `33831874827` / run #131 attempt 2 with Release build 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, the FCC structured-runtime static/negative/recovery/Windows executable fixture PASS, and the complete permanent Windows baseline PASS; PR #97 was normally merged as `8fd24dc124aaca134f19499dae4df3021b63a2fb`, and exact post-merge main Windows CI run `33833049188` / run #132 completed SUCCESS on that exact merge SHA with the same Release/test/runtime-validator baseline green. Task evidence: `evidence/phases/P04/P04_003_INTEGRATED_RECONCILIATION_2026-09-04.md`. This task-level evidence makes no new provider/FCC target-execution claim; P00 target evidence remains the architectural input, while P04-008 and the P04 exit gate own the full real-runtime P04 contract suite.
 
-P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-004` through `FCCD-P04-008` remain `PENDING`.
+`FCCD-P04-004` is CLOSED after implementation PR #106 exact repaired candidate `699749679fe9a4b970e94f3fa18992c12989fe8d` passed Windows CI run `33836177846` / run #137 with Release build 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, and the FCC CLI-fallback static/negative/recovery/Windows executable fixture PASS; PR #106 was normally merged as `30df27e493cb0f4ef9c9d1de7afcb5158a7e7093`, and exact post-merge main Windows CI run `33836542523` / run #138 completed SUCCESS on that exact merge SHA with the same Release/test/runtime-validator baseline green. Earlier candidate run `33835694136` / run #136 failed only because the disposable fake fallback fixture referenced nonexistent .NET API `Console.ErrorEncoding`; commit `699749679fe9a4b970e94f3fa18992c12989fe8d` removed that invalid fixture assignment without weakening production behavior or validation. Task evidence: `evidence/phases/P04/P04_004_INTEGRATED_RECONCILIATION_2026-09-04.md`. This task-level evidence makes no new provider/FCC target-execution claim; P04-008 and the P04 exit gate retain ownership of fresh full real-runtime acceptance.
+
+P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-005` through `FCCD-P04-008` remain `PENDING`.
 
 ## P05 — Conversation/session/task UX
 
@@ -360,9 +362,9 @@ P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-004` through
 
 ## Current next action
 
-`CURRENT_PHASE = P04` and P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P04-001` through `FCCD-P04-003` are CLOSED from validated canonical integration and exact-main/non-regression Windows CI. `FCCD-P04-004` through `FCCD-P04-008` remain `PENDING`.
+`CURRENT_PHASE = P04` and P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P04-001` through `FCCD-P04-004` are CLOSED from validated canonical integration and exact-main/non-regression Windows CI. `FCCD-P04-005` through `FCCD-P04-008` remain `PENDING`.
 
-After this P04-003 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. If no Priority 1–4 recovery work exists, `FCCD-P04-004 — CLI fallback runtime adapter` is the earliest dependency-valid unclaimed task. Do not begin P05 until every mandatory P04 task is CLOSED and the P04 exact-head exit gate passes with canonical evidence.
+After this P04-004 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. If no Priority 1–4 recovery work exists, `FCCD-P04-005 — Runtime event normalization` is the earliest dependency-valid unclaimed task. Do not begin P05 until every mandatory P04 task is CLOSED and the P04 exact-head exit gate passes with canonical evidence.
 
 P03 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`. Exact closure evidence is `evidence/phases/P03/CLOSURE.md`; PR #85 integrated the closure as main SHA `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure Windows CI run `33822291095` completed SUCCESS.
 
