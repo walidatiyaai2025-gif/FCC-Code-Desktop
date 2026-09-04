@@ -254,3 +254,18 @@ The settings store is explicitly not credential storage. Product-owned API keys,
 See `docs/persistence/SETTINGS_PERSISTENCE.md`.
 
 ---
+
+## ADR-023 — FCC runtime normalization is evidence-bounded and loss-preserving
+
+**Status:** Accepted  
+**Date:** 2026-09-04
+
+`FCCD-P04-005` normalizes target-observed `system/init` and `system/api_retry` frames directly into the project-owned runtime envelope. Successful assistant/tool/result shapes that were not observed on the P00 target are recognized only when explicit structural discriminators identify their semantics, and each projection retains the sanitized upstream frame payload and an upstream-derived source type.
+
+Unrecognized valid frames or nested blocks remain `AgentRuntimeEventKind.Unknown`; they are never silently discarded. Projected text is separately redacted for credential-assignment patterns and bounded. Event normalization records retry/error/status observations but does not sleep, relaunch, back off, or make supervision decisions; P04-007 retains that policy. Real successful-provider shape acceptance remains P04-008 / the P04 exit gate.
+
+**Reason:** The product needs stable event semantics without inventing a Claude/FCC schema that target evidence has not proved. Loss-preserving structure-gated normalization lets later UI/persistence code consume stable kinds while keeping future upstream data available for compatibility diagnostics and preventing synthetic fixtures from being misrepresented as provider evidence.
+
+See `docs/runtime/FCC_RUNTIME_EVENT_NORMALIZATION.md`.
+
+---
