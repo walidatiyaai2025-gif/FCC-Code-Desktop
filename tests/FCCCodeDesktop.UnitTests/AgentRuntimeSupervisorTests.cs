@@ -167,7 +167,7 @@ public sealed class AgentRuntimeSupervisorTests
         new(AgentRuntimeTerminalState.Succeeded);
 
     private static ScriptedOutcome CancelWhenRequested() =>
-        new(AgentRuntimeTerminalState.Cancelled, completeOnCancel: true);
+        new(AgentRuntimeTerminalState.Cancelled, CompleteOnCancel: true);
 
     private static ScriptedOutcome Failure(
         AgentRuntimeFailureKind kind,
@@ -261,7 +261,6 @@ public sealed class AgentRuntimeSupervisorTests
         private readonly TaskCompletionSource<AgentRuntimeResult> _completion = new(
             TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly Action _onDisposed;
-        private readonly AgentRuntimeRequest _request;
         private int _disposed;
 
         public ScriptedExecution(
@@ -270,7 +269,6 @@ public sealed class AgentRuntimeSupervisorTests
             Action onDisposed,
             int attempt)
         {
-            _request = request;
             _onDisposed = onDisposed;
             TaskId = request.TaskId;
             RunId = request.RunId;
