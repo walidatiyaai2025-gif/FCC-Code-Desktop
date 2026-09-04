@@ -7,6 +7,7 @@ using FCCCodeDesktop.Runtime;
 internal static class Program
 {
     private static readonly TimeSpan ScenarioTimeout = TimeSpan.FromMinutes(2);
+    private static readonly JsonSerializerOptions EvidenceJsonOptions = new() { WriteIndented = true };
 
     private static async Task<int> Main(string[] args)
     {
@@ -244,7 +245,7 @@ internal static class Program
 
     private static string Observation(
         AgentRuntimeResult result,
-        IReadOnlyCollection<AgentRuntimeEvent> events,
+        List<AgentRuntimeEvent> events,
         string? sessionHash = null)
     {
         var eventKinds = events
@@ -275,7 +276,7 @@ internal static class Program
         return events;
     }
 
-    private static void RequireMonotonic(IReadOnlyList<AgentRuntimeEvent> events)
+    private static void RequireMonotonic(List<AgentRuntimeEvent> events)
     {
         for (var index = 0; index < events.Count; index++)
         {
@@ -306,9 +307,7 @@ internal static class Program
     {
         var fullPath = Path.GetFullPath(path);
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
-        var json = JsonSerializer.Serialize(
-            evidence,
-            new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(evidence, EvidenceJsonOptions);
         await File.WriteAllTextAsync(fullPath, json + Environment.NewLine, Encoding.UTF8);
     }
 
