@@ -39,7 +39,7 @@ function Assert-NormalizationContract {
         '"tool_use"',
         '"tool_result"',
         'SensitiveTextAssignment.Replace',
-        '"[REDACTED]"'
+        '"$1$2[REDACTED]"'
     )) {
         Assert-ContainsLiteral $NormalizerText $literal 'FccRuntimeEventNormalizer.cs'
     }
