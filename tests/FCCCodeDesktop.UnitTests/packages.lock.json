@@ -102,6 +102,9 @@
       "fcccodedesktop.core": {
         "type": "Project"
       },
+      "fcccodedesktop.runtime": {
+        "type": "Project"
+      },
       "fcccodedesktop.testing": {
         "type": "Project"
       }
