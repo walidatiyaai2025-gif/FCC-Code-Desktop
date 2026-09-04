@@ -163,7 +163,7 @@ public sealed class FccEnvironmentDiscoveryService
             Failure: null);
     }
 
-    private ProcessStartInfo CreateVersionProbeStartInfo(string executablePath, string argument)
+    private static ProcessStartInfo CreateVersionProbeStartInfo(string executablePath, string argument)
     {
         var extension = Path.GetExtension(executablePath);
         if (extension.Equals(".cmd", StringComparison.OrdinalIgnoreCase) ||
@@ -300,7 +300,7 @@ public sealed class FccEnvironmentDiscoveryService
         var names = new List<string> { logicalName };
         foreach (var extension in pathExtensions.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            var normalizedExtension = extension.StartsWith('.', StringComparison.Ordinal) ? extension : $".{extension}";
+            var normalizedExtension = extension.StartsWith(".", StringComparison.Ordinal) ? extension : $".{extension}";
             var candidate = logicalName + normalizedExtension;
             if (!names.Contains(candidate, StringComparer.OrdinalIgnoreCase))
             {
