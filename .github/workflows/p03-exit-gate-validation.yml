@@ -1,0 +1,159 @@
+name: P03 Exit Gate Exact Validation
+
+on:
+  push:
+    branches:
+      - validation/p03-exit-gate-2d5859c
+
+permissions:
+  contents: read
+
+jobs:
+  exact-gate:
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact P03 candidate
+        uses: actions/checkout@v7
+        with:
+          ref: 2d5859cf6abc019471d1f548d8bb398892c229b1
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Assert exact candidate and canonical P03 task state
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expected = '2d5859cf6abc019471d1f548d8bb398892c229b1'
+          $head = (git rev-parse HEAD).Trim()
+          if ($head -ne $expected) { throw "Wrong candidate: $head" }
+          if (git status --porcelain) { throw 'Fresh checkout is not clean.' }
+
+          $phase = Get-Content -LiteralPath .\CURRENT_PHASE.md -Raw
+          if (-not $phase.Contains('CURRENT_PHASE: P03')) { throw 'P03 is not the canonical current phase on the candidate.' }
+          if (-not $phase.Contains('CURRENT_PHASE_STATE: IN_PROGRESS')) { throw 'Candidate does not have the expected pre-closure P03 phase state.' }
+          if (-not $phase.Contains('PHASE_EXIT_GATE: NOT_RUN')) { throw 'Candidate does not have the expected pre-closure P03 gate state.' }
+          if (-not $phase.Contains('VERIFIED_FINAL_COMPLETE: false')) { throw 'Final-completion guard is not false.' }
+
+          $ledger = Get-Content -LiteralPath .\docs\TASK_LEDGER.md -Raw
+          foreach ($task in 1..7) {
+            $id = ('FCCD-P03-{0:D3}' -f $task)
+            $pattern = [regex]::Escape($id) + '\s*\|[^\r\n]*\|\s*CLOSED\s*\|'
+            if ($ledger -notmatch $pattern) { throw "$id is not CLOSED in the candidate ledger." }
+          }
+          if (Test-Path -LiteralPath .\evidence\phases\P03\CLOSURE.md) {
+            throw 'Candidate unexpectedly already contains P03 closure evidence.'
+          }
+          Write-Host 'Exact candidate and P03 mandatory-task reconciliation: PASS.'
+
+      - name: Restore format build and complete test baseline
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $sdk = (& dotnet --version 2>&1 | Out-String).Trim()
+          if ($sdk -ne '10.0.400') { throw "Expected .NET SDK 10.0.400 but resolved '$sdk'." }
+          dotnet restore .\FCCCodeDesktop.sln --locked-mode --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Locked restore failed.' }
+          dotnet format .\FCCCodeDesktop.sln --verify-no-changes --no-restore
+          if ($LASTEXITCODE -ne 0) { throw 'Format/analyzer verification failed.' }
+          dotnet build .\FCCCodeDesktop.sln -c Release --no-restore --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Release build failed.' }
+          pwsh -NoProfile -File .\tools\testing\run-tests.ps1 -Suite all -Configuration Release -NoRestore -NoBuild
+          if ($LASTEXITCODE -ne 0) { throw 'Unit/integration test suite failed.' }
+
+      - name: P03 persistence and recovery exit criterion
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $requiredTestFiles = @(
+            '.\tests\FCCCodeDesktop.IntegrationTests\SqliteDatabaseInitializerTests.cs',
+            '.\tests\FCCCodeDesktop.IntegrationTests\SqliteConversationStateStoreTests.cs',
+            '.\tests\FCCCodeDesktop.IntegrationTests\SqliteExecutionJournalStoreTests.cs',
+            '.\tests\FCCCodeDesktop.IntegrationTests\SqliteQueueStateStoreTests.cs',
+            '.\tests\FCCCodeDesktop.IntegrationTests\SqliteSettingsStoreTests.cs',
+            '.\tests\FCCCodeDesktop.IntegrationTests\SqliteDatabaseMaintenanceServiceTests.cs',
+            '.\tests\FCCCodeDesktop.IntegrationTests\SqliteMigrationRecoveryTests.cs'
+          )
+          foreach ($file in $requiredTestFiles) {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Missing P03 integration test file: $file" }
+          }
+
+          $recovery = Get-Content -LiteralPath .\tests\FCCCodeDesktop.IntegrationTests\SqliteMigrationRecoveryTests.cs -Raw
+          foreach ($required in @(
+            'CompleteStateSurvivesCloseReopenAcrossFreshStores',
+            'VerifiedBackupRecoversCompleteStateAfterPrimaryCorruption',
+            'HistoricalVersionTwoDatabaseUpgradesWithoutDataLoss',
+            'FailedPostBaselineMigrationRollsBackAndCorrectedRetryPreservesState',
+            'MigrationLedgerHoleIsRejectedWithoutDestroyingPersistedState',
+            'FutureSchemaVersionIsRejectedWithoutDestroyingPersistedState'
+          )) {
+            if (-not $recovery.Contains($required)) { throw "P03 recovery gate is missing required scenario: $required" }
+          }
+
+          dotnet test .\tests\FCCCodeDesktop.IntegrationTests\FCCCodeDesktop.IntegrationTests.csproj -c Release --no-restore --no-build --filter 'FullyQualifiedName~Sqlite' --nologo
+          if ($LASTEXITCODE -ne 0) { throw 'Dedicated P03 SQLite persistence/recovery suite failed.' }
+          Write-Host 'P03 create/persist/reopen/reconcile, migration, corruption and backup criterion: PASS.'
+
+      - name: Canonical Windows CI baseline
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          pwsh -NoProfile -File .\tools\ci\validate-windows-ci.ps1 -RequireDotNet
+          if ($LASTEXITCODE -ne 0) { throw 'Windows CI contract validation failed.' }
+          pwsh -NoProfile -File .\tools\ci\run-windows-ci.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Canonical Windows Release baseline failed.' }
+
+      - name: Diff hygiene
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+          git diff --cached --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --cached --check failed.' }
+          Write-Host 'Diff hygiene: PASS.'
+
+      - name: Tracked-file secret sanity scan
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $patterns = @(
+            '-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----',
+            '\bAKIA[0-9A-Z]{16}\b',
+            '\bgh[pousr]_[A-Za-z0-9]{30,}\b',
+            '\bgithub_pat_[A-Za-z0-9_]{40,}\b',
+            '\bsk-[A-Za-z0-9_-]{20,}\b',
+            '\bxox[baprs]-[A-Za-z0-9-]{20,}\b'
+          )
+          $approvedFixtureFiles = @(
+            'tools/contract-probes/fcc/self-test.mjs',
+            'evidence/phases/P01/CLOSURE.md',
+            'evidence/phases/P02/CLOSURE.md'
+          )
+          $approvedFixtureValue = 'sk-selftest-THIS_MUST_NOT_APPEAR_123456'
+          $hits = New-Object System.Collections.Generic.List[string]
+          foreach ($file in (git ls-files)) {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { continue }
+            try { $text = Get-Content -LiteralPath $file -Raw -ErrorAction Stop } catch { continue }
+            foreach ($pattern in $patterns) {
+              foreach ($match in [regex]::Matches($text, $pattern)) {
+                if ($approvedFixtureFiles -contains $file -and $match.Value -eq $approvedFixtureValue) { continue }
+                $hits.Add("$file :: $pattern")
+              }
+            }
+          }
+          if ($hits.Count -gt 0) {
+            foreach ($hit in $hits) { Write-Host "SECRET_SCAN_HIT: $hit" }
+            throw 'Tracked-file secret sanity scan found credential-like material outside the exact deterministic fixture allowlist.'
+          }
+          Write-Host 'Tracked-file secret sanity scan: PASS (exact deterministic fixture only).'
+
+      - name: Final clean worktree
+        shell: pwsh
+        run: |
+          if (git status --porcelain) { git status --short; throw 'Validation left tracked/untracked residue.' }
+          Write-Host 'P03 exact-head exit-gate validation: PASS.'
