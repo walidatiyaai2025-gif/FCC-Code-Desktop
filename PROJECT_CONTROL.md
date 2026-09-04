@@ -27,11 +27,11 @@ The owner supervises outcomes. AI workers research, choose, implement, verify an
 PROJECT_STATE: SPECIFICATION_AND_CONTROL_BASELINE
 RELEASE_STATE: NOT_RELEASED
 TARGET_VERSION: 1.0.0
-CURRENT_PHASE: P03
-CURRENT_PHASE_NAME: Persistence + canonical state model
-CURRENT_PHASE_STATE: CLOSED
-NEXT_PHASE: P04
-PHASE_EXIT_GATE: PASS
+CURRENT_PHASE: P04
+CURRENT_PHASE_NAME: FCC / fcc-claude runtime core
+CURRENT_PHASE_STATE: IN_PROGRESS
+NEXT_PHASE: P05
+PHASE_EXIT_GATE: NOT_RUN
 KNOWN_RELEASE_BLOCKERS: 0
 VERIFIED_FINAL_COMPLETE: false
 VERIFIED_IMPLEMENTATION_COMPLETION: 0%
@@ -40,7 +40,7 @@ PUBLIC_RELEASE_ELIGIBLE: false
 
 `CURRENT_PHASE.md` is the fast live resume checkpoint. `docs/EXECUTION_PLAN.md` is the canonical sequential execution contract.
 
-P00, P01, and P02 are canonically CLOSED with their phase closure evidence retained under `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, and `evidence/phases/P02/CLOSURE.md`. P03 is now closed in this closure state: `FCCD-P03-001` through `FCCD-P03-007` are canonically CLOSED, exact candidate `2d5859cf6abc019471d1f548d8bb398892c229b1` was already green on permanent main Windows CI run `33820435829`, and dedicated exact-head P03 exit-gate run `33821332906` completed SUCCESS on that immutable candidate. The gate used Windows Server 2025 and .NET SDK `10.0.400`, built Release with 0 warnings/0 errors, passed unit tests 9/9, integration tests 37/37, a dedicated SQLite persistence/recovery lane 34/34, the permanent Windows baseline, diff hygiene, tracked-file secret sanity scan, and final clean-worktree assertion. Canonical P03 closure evidence is `evidence/phases/P03/CLOSURE.md`. `CURRENT_PHASE` deliberately remains P03 until this closure state is normally merged and the resulting exact canonical main remains green; only a separate later transition may activate P04. `VERIFIED_FINAL_COMPLETE` remains false.
+P00, P01, P02, and P03 are canonically CLOSED with their phase closure evidence retained under `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, `evidence/phases/P02/CLOSURE.md`, and `evidence/phases/P03/CLOSURE.md`. P03 closure was integrated by PR #85 as canonical merge `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure canonical main Windows CI run `33822291095` completed SUCCESS on that merge SHA. P04 is therefore the sole legal implementation phase after this transition is integrated. All eight P04 task rows remain truthfully `PENDING`; this transition implements none of them. ADR-017 and the authoritative P00 FCC/`fcc-claude` target contract evidence govern the runtime architecture, while P04 must produce its own implementation and exact-head runtime evidence before closure. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ---
 
