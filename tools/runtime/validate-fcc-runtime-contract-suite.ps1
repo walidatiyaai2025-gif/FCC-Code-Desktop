@@ -241,7 +241,7 @@ $documentationText = Get-Content -LiteralPath $documentationPath -Raw
 Assert-ContractSuite $harnessText $targetRunnerText $documentationText
 
 Assert-ContractRejects {
-    Assert-ContractSuite ($harnessText.Replace('structured_resume', 'structured_resume_removed')) $targetRunnerText $documentationText
+    Assert-ContractSuite ($harnessText.Replace('structured_resume', 'resume_removed')) $targetRunnerText $documentationText
 } 'resume scenario removed'
 Assert-ContractRejects {
     Assert-ContractSuite ($harnessText.Replace('NOT_INDUCED', 'OBSERVED_429')) $targetRunnerText $documentationText
