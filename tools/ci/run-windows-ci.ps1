@@ -81,6 +81,10 @@ try {
     & pwsh -NoProfile -File .\tools\runtime\validate-fcc-structured-runtime.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'FCC structured-runtime validation'
 
+    Write-Host 'CI stage: FCC CLI fallback runtime adapter'
+    & pwsh -NoProfile -File .\tools\runtime\validate-fcc-cli-fallback-runtime.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'FCC CLI fallback-runtime validation'
+
     Write-Host 'CI stage: design-system contract'
     & pwsh -NoProfile -File .\tools\ui\validate-design-system.ps1 -RunFixtures
     Assert-LastExitCode 'Design-system validation'
