@@ -62,6 +62,7 @@ function Assert-CiPolicy {
         '.\tools\dependencies\validate-dependency-policy.ps1 -RequireDotNet',
         '.\tools\quality\validate-quality-policy.ps1 -RequireDotNet',
         '.\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet',
+        '.\tools\runtime\validate-fcc-environment-discovery.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-design-system.ps1 -RunFixtures',
         '.\tools\ui\validate-semantic-themes.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime',
@@ -120,6 +121,7 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-c Re
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-Suite all', '-Suite unit')) } 'incomplete test lane'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\build\validate-build-metadata.ps1 -RequireDotNet', '')) } 'missing build metadata validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\quality\validate-quality-policy.ps1 -RequireDotNet', '.\tools\quality\validate-quality-policy.ps1')) } 'weakened quality validation'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\runtime\validate-fcc-environment-discovery.ps1 -RunFixtures -RequireRuntime', '')) } 'missing FCC environment-discovery validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-design-system.ps1 -RunFixtures', '')) } 'missing design-system validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-semantic-themes.ps1 -RunFixtures -RequireRuntime', '')) } 'missing semantic-theme validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime', '')) } 'missing app-chrome validation'
@@ -131,7 +133,7 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-dpi-layout.ps1 -RunFixtures -RequireRuntime', '')) } 'missing DPI/resolution layout validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, FCC environment discovery, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {
