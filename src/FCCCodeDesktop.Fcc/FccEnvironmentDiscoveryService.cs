@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.Net;
 using System.Text;
 
 namespace FCCCodeDesktop.Fcc;
@@ -9,6 +8,8 @@ namespace FCCCodeDesktop.Fcc;
 public sealed class FccEnvironmentDiscoveryService
 {
     private const int DefaultFccServerPort = 8082;
+    private const int MinimumTcpPort = 1;
+    private const int MaximumTcpPort = 65535;
     private const int MaximumVersionTextLength = 4096;
     private const string PowerShellVersionWrapper =
         "$exe=[Environment]::GetEnvironmentVariable('FCCD_DISCOVERY_EXECUTABLE','Process');" +
@@ -248,8 +249,8 @@ public sealed class FccEnvironmentDiscoveryService
     {
         if (!string.IsNullOrWhiteSpace(explicitPath))
         {
-            var explicitCandidate = NormalizeCandidatePath(explicitPath);
-            return File.Exists(explicitCandidate) ? explicitCandidate : null;
+            var explicitCandidate = TryNormalizeCandidatePath(explicitPath);
+            return explicitCandidate is not null && File.Exists(explicitCandidate) ? explicitCandidate : null;
         }
 
         var pathValue = _options.PathValue ?? Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
@@ -268,8 +269,18 @@ public sealed class FccEnvironmentDiscoveryService
 
             foreach (var candidateName in candidateNames)
             {
-                var candidatePath = NormalizeCandidatePath(Path.Combine(directory, candidateName));
-                if (File.Exists(candidatePath))
+                string combinedPath;
+                try
+                {
+                    combinedPath = Path.Combine(directory, candidateName);
+                }
+                catch (ArgumentException)
+                {
+                    continue;
+                }
+
+                var candidatePath = TryNormalizeCandidatePath(combinedPath);
+                if (candidatePath is not null && File.Exists(candidatePath))
                 {
                     return candidatePath;
                 }
@@ -315,7 +326,7 @@ public sealed class FccEnvironmentDiscoveryService
     {
         var rawPort = Environment.GetEnvironmentVariable("FCC_PORT");
         return int.TryParse(rawPort, NumberStyles.None, CultureInfo.InvariantCulture, out var port) &&
-               port is >= IPEndPoint.MinPort and <= IPEndPoint.MaxPort
+               port is >= MinimumTcpPort and <= MaximumTcpPort
             ? port
             : null;
     }
@@ -336,27 +347,42 @@ public sealed class FccEnvironmentDiscoveryService
                 "HealthTimeout must be greater than zero and no more than one minute.");
         }
 
-        if (options.FccServerPort is < IPEndPoint.MinPort or > IPEndPoint.MaxPort)
+        if (options.FccServerPort is < MinimumTcpPort or > MaximumTcpPort)
         {
-            throw new ArgumentOutOfRangeException(nameof(options), "FccServerPort must be between 0 and 65535.");
+            throw new ArgumentOutOfRangeException(nameof(options), "FccServerPort must be between 1 and 65535.");
         }
 
-        if (options.HealthUri is not null)
+        if (options.HealthUri is not null &&
+            (!options.HealthUri.IsAbsoluteUri ||
+             !options.HealthUri.IsLoopback ||
+             (!options.HealthUri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) &&
+              !options.HealthUri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))))
         {
-            if (!options.HealthUri.IsAbsoluteUri ||
-                !options.HealthUri.IsLoopback ||
-                (!options.HealthUri.Scheme.Equals(Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase) &&
-                 !options.HealthUri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new ArgumentException(
-                    "HealthUri must be an absolute HTTP(S) loopback URI.",
-                    nameof(options));
-            }
+            throw new ArgumentException(
+                "HealthUri must be an absolute HTTP(S) loopback URI.",
+                nameof(options));
         }
     }
 
-    private static string NormalizeCandidatePath(string path) =>
-        Path.GetFullPath(Environment.ExpandEnvironmentVariables(path.Trim().Trim('"')));
+    private static string? TryNormalizeCandidatePath(string path)
+    {
+        try
+        {
+            return Path.GetFullPath(Environment.ExpandEnvironmentVariables(path.Trim().Trim('"')));
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+        catch (NotSupportedException)
+        {
+            return null;
+        }
+        catch (PathTooLongException)
+        {
+            return null;
+        }
+    }
 
     private static string GetWindowsPowerShellPath()
     {
@@ -433,7 +459,7 @@ public sealed class FccEnvironmentDiscoveryService
         string? Failure)
     {
         public static ProcessProbeResult Failed(string failure) =>
-            new(null, string.Empty, string.Empty, TimedOut: false, failure);
+            new(null, string.Empty, string.Empty, TimedOut: false, Failure: failure);
 
         public static ProcessProbeResult Timeout(string standardOutput, string standardError) =>
             new(null, standardOutput, standardError, TimedOut: true, Failure: null);
