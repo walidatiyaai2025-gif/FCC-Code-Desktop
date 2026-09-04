@@ -81,6 +81,10 @@ try {
     & pwsh -NoProfile -File .\tools\runtime\validate-fcc-structured-runtime.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'FCC structured-runtime validation'
 
+    Write-Host 'CI stage: FCC runtime event normalization'
+    & pwsh -NoProfile -File .\tools\runtime\validate-fcc-runtime-event-normalization.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'FCC runtime event-normalization validation'
+
     Write-Host 'CI stage: FCC CLI fallback runtime adapter'
     & pwsh -NoProfile -File .\tools\runtime\validate-fcc-cli-fallback-runtime.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'FCC CLI fallback-runtime validation'
