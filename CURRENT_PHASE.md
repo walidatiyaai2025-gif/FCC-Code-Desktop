@@ -18,17 +18,18 @@ LAST_RECONCILED: 2026-09-04
 
 ## Active rule
 
-P04 is the sole legal implementation phase after canonical P03 closure, normal closure merge `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure canonical-main Windows CI run `33822291095` completed SUCCESS. `FCCD-P04-001` is canonically CLOSED by this task reconciliation. `FCCD-P04-002` through `FCCD-P04-008` remain `PENDING`; P04-002 implementation is already merged by PR #94 and current main is green, but P04-002 remains Priority-4 integration-pending work until its own evidence/ledger reconciliation completes.
+P04 is the sole legal implementation phase after canonical P03 closure, normal closure merge `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure canonical-main Windows CI run `33822291095` completed SUCCESS. `FCCD-P04-001` and `FCCD-P04-002` are canonically CLOSED by validated task-level reconciliation. `FCCD-P04-003` through `FCCD-P04-008` remain `PENDING`; P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`.
 
 Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
 
-P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative FCC/`fcc-claude`, Unity, and Blender target evidence is integrated and reconciled. P00 contract evidence and ADR-017 are immutable inputs to P04 architecture. P04-001 verifies production environment-discovery mechanics through deterministic Windows CI fixtures without claiming provider prompt execution; P04 must satisfy its own exact-head runtime contract and exit-gate requirements when implemented.
+P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative FCC/`fcc-claude`, Unity, and Blender target evidence is integrated and reconciled. P00 contract evidence and ADR-017 are immutable inputs to P04 architecture. P04-001 verifies production environment-discovery mechanics through deterministic Windows CI fixtures without claiming provider prompt execution; P04-002 establishes the project-owned runtime domain contract without claiming real provider execution. P04 must satisfy its own exact-head runtime contract and exit-gate requirements when implemented.
 
 ## Current status
 
 - `P04` — IN_PROGRESS as the sole current implementation phase; `PHASE_EXIT_GATE=NOT_RUN`.
 - `FCCD-P04-001` — CLOSED after implementation PR #91 was validated on exact candidate `7d613f75805fe0939f823425482e80492fe5536b` by Windows CI run `33825468339` / run #120, normally merged as `c7453dc64304ee149ea1a98b4736043fe644441c`, and the exact resulting canonical main passed Windows CI run `33826581291` / run #123. Candidate Release build passed with 0 warnings/0 errors, unit tests 9/9, integration tests 37/37, and the FCC environment-discovery static/negative/recovery/runtime fixture suite PASS. Current main `0bc04b69838a390386e3cda17bf094ff7817e2ae` also passed non-regression Windows CI run `33826972327` / run #125. Task evidence: `evidence/phases/P04/P04_001_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- `FCCD-P04-002` through `FCCD-P04-008` — PENDING. P04-002 implementation is already normally merged by PR #94 as current main `0bc04b69838a390386e3cda17bf094ff7817e2ae` and exact main Windows CI run `33826972327` is SUCCESS, but this P04-001 reconciliation does not close P04-002; its task-level integration/evidence/ledger reconciliation is the next Priority-4 action unless newer live state supersedes it.
+- `FCCD-P04-002` — CLOSED after implementation PR #94 was validated on exact candidate `7b28a0bdbc76a092ae0df372cb780eb235ef525a` by Windows CI run `33826612463` / run #124, normally merged as `0bc04b69838a390386e3cda17bf094ff7817e2ae`, and the exact resulting canonical main passed Windows CI run `33826972327` / run #125. Candidate Release build passed with 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, and the complete permanent Windows baseline PASS. Current main `e5b6c3e3f9ed9714358a0b402be0b961a9393d5b` also passed non-regression Windows CI run `33828658981` / run #127. Task evidence: `evidence/phases/P04/P04_002_INTEGRATED_RECONCILIATION_2026-09-04.md`.
+- `FCCD-P04-003` through `FCCD-P04-008` — PENDING. No later P04 implementation is claimed by this reconciliation.
 - P04 activation transition was integrated by PR #90 as canonical main `611bfa0091ea496b25758199b777217e52342be5`; exact post-transition Windows CI run `33823741873` / run #116 completed SUCCESS before P04-001 implementation was claimed.
 - `P03` — CLOSED with `PHASE_EXIT_GATE=PASS`.
 - `FCCD-P03-001` — CLOSED after implementation PR #71 was validated on exact candidate `ba30c8f3bef8c56977b59756bf168c480f2ad6b3` by Windows CI run `33796749113`, normally merged as `b7437a659911d17e7b221a6f540bc470f5acf929`, and the exact resulting canonical main passed Windows CI run `33797456382`.
@@ -145,7 +146,7 @@ CLOSURE_RECORD: evidence/phases/P03/CLOSURE.md
 
 ## Next legal action
 
-Apply `docs/WORKER_PROTOCOL.md` within P04. Re-fetch live main, open PRs/branches/claims, current CI, and P04 evidence before claiming work. `FCCD-P04-002` is already implemented and merged by PR #94 but remains canonically `PENDING` at this reconciliation boundary, so it is the next Priority-4 integration-pending task unless newer live state supersedes it. Do not begin P04-003 until P04-002 integration/evidence/ledger reconciliation is complete. Do not begin P05 until every mandatory P04 task is CLOSED and the P04 exact-head exit gate passes with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
+After this P04-002 task reconciliation is integrated and the exact resulting `main` remains green, apply `docs/WORKER_PROTOCOL.md` within P04. Re-fetch live main, open PRs/branches/claims, current CI, and P04 evidence before claiming work. If no Priority 1–4 recovery work exists, `FCCD-P04-003 — Primary FCC/Claude structured runtime adapter` is the earliest dependency-valid unclaimed task. Do not begin P05 until every mandatory P04 task is CLOSED and the P04 exact-head exit gate passes with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## Resume procedure
 
@@ -156,6 +157,6 @@ Apply `docs/WORKER_PROTOCOL.md` within P04. Re-fetch live main, open PRs/branche
 5. Read `docs/TASK_LEDGER.md`, `docs/ACCEPTANCE_MATRIX.md`, `docs/DECISIONS.md`, and `docs/PLAN_GAPS.md`.
 6. Read `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, `evidence/phases/P02/CLOSURE.md`, and `evidence/phases/P03/CLOSURE.md` as immutable prior-phase provenance.
 7. Fetch live branches/PRs/issues/commits and current CI before selecting P04 work.
-8. Treat P04 as the sole legal phase; P04-001 is CLOSED by validated canonical integration, and P04-002 is the next integration-pending recovery item unless newer live state supersedes it.
+8. Treat P04 as the sole legal phase; P04-001 and P04-002 are CLOSED by validated canonical integration, and P04-003 is the earliest dependency-valid unclaimed task only if no higher-priority recovery work exists.
 9. Preserve the integrated P00 runtime-contract, P01 engineering-policy, P02 shell, and P03 persistence/recovery evidence as immutable provenance.
 10. Continue strict sequential phase execution; do not begin P05 until P04 is validly closed, and do not claim final product completion before canonical P22 closure.
