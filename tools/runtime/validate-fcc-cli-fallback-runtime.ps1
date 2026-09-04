@@ -231,7 +231,8 @@ internal static class Program
         var result = await execution.Completion;
         Assert(result.State == AgentRuntimeTerminalState.Succeeded, "JSON fallback succeeds");
         Assert(result.SessionId is null, "fallback does not invent session id");
-        var runtimeEvent = Assert.Single(events);
+        Assert(events.Count == 1, "one JSON compatibility event emitted");
+        var runtimeEvent = events[0];
         Assert(runtimeEvent.Kind == AgentRuntimeEventKind.Unknown, "compatibility event remains unknown");
         Assert(runtimeEvent.SourceType == "cli-fallback/json", "JSON source retained");
         using var document = JsonDocument.Parse(runtimeEvent.PayloadJson!);
@@ -251,7 +252,8 @@ internal static class Program
             CancellationToken.None);
         var events = await CollectAsync(execution.Events);
         Assert((await execution.Completion).State == AgentRuntimeTerminalState.Succeeded, "text fallback succeeds");
-        var runtimeEvent = Assert.Single(events);
+        Assert(events.Count == 1, "one text compatibility event emitted");
+        var runtimeEvent = events[0];
         Assert(runtimeEvent.SourceType == "cli-fallback/stdout", "text source retained");
         Assert(runtimeEvent.Text?.Contains("مرحبا من fallback", StringComparison.Ordinal) == true, "Unicode text retained");
         Assert(runtimeEvent.Text?.Contains("[REDACTED]", StringComparison.Ordinal) == true, "plain secret assignment redacted");
@@ -300,7 +302,8 @@ internal static class Program
             CancellationToken.None);
         var events = await CollectAsync(execution.Events);
         Assert((await execution.Completion).State == AgentRuntimeTerminalState.Succeeded, "bounded fallback succeeds");
-        var runtimeEvent = Assert.Single(events);
+        Assert(events.Count == 1, "one bounded compatibility event emitted");
+        var runtimeEvent = events[0];
         Assert(runtimeEvent.Text?.Length <= 1024, "stdout retention bounded");
         using var metadata = JsonDocument.Parse(runtimeEvent.PayloadJson!);
         Assert(metadata.RootElement.GetProperty("fccdTruncated").GetBoolean(), "truncation marker set");
