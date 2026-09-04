@@ -191,7 +191,7 @@ Agent task
    ↓
 Blender Adapter
    ↓
-Create / modify / render 3D asset
+Create / modify / render / export 3D asset
    ↓
 Artifact validation + manifest
    ↓
