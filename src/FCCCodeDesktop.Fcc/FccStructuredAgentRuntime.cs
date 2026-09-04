@@ -262,23 +262,35 @@ public sealed class FccStructuredAgentRuntime : IAgentRuntime
                             sessionId = frameSessionId.Trim();
                         }
 
-                        var kind = IsSessionInitialization(sourceType, root, frameSessionId)
-                            ? AgentRuntimeEventKind.SessionIdentified
-                            : AgentRuntimeEventKind.Unknown;
+                        var normalizedSourceType = IsSessionInitialization(sourceType, root, frameSessionId)
+                            ? "system/init"
+                            : sourceType;
                         var correlationId = TryGetString(root, "uuid") ?? TryGetString(root, "id");
                         var payloadJson = FccStructuredPayloadSanitizer.Sanitize(
                             root,
                             _maximumPayloadCharacters);
+                        var projections = FccRuntimeEventNormalizer.Normalize(
+                            root,
+                            normalizedSourceType,
+                            frameSessionId,
+                            correlationId,
+                            _maximumPayloadCharacters);
+                        var occurredUtc = DateTimeOffset.UtcNow;
+                        var effectiveSessionId = frameSessionId ?? sessionId;
 
-                        _events.Writer.TryWrite(
-                            new AgentRuntimeEvent(
-                                sequence++,
-                                DateTimeOffset.UtcNow,
-                                kind,
-                                sessionId: frameSessionId,
-                                correlationId: correlationId,
-                                sourceType: sourceType,
-                                payloadJson: payloadJson));
+                        foreach (var projection in projections)
+                        {
+                            _events.Writer.TryWrite(
+                                new AgentRuntimeEvent(
+                                    sequence++,
+                                    occurredUtc,
+                                    projection.Kind,
+                                    text: projection.Text,
+                                    sessionId: effectiveSessionId,
+                                    correlationId: projection.CorrelationId,
+                                    sourceType: projection.SourceType,
+                                    payloadJson: payloadJson));
+                        }
                     }
                     catch (JsonException)
                     {
