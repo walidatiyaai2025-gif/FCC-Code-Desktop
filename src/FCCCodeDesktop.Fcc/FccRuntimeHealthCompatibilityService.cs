@@ -86,8 +86,8 @@ public sealed class FccRuntimeHealthCompatibilityService
 {
     public const string TestedFccClaudeVersionText = "2.1.251";
 
-    private static readonly Version TestedFccClaudeVersion = new(2, 1, 251);
     private readonly FccEnvironmentDiscoveryService _discoveryService;
+    private readonly Version _testedFccClaudeVersion = new(2, 1, 251);
 
     public FccRuntimeHealthCompatibilityService(FccEnvironmentDiscoveryService discoveryService)
     {
@@ -120,7 +120,7 @@ public sealed class FccRuntimeHealthCompatibilityService
             summary);
     }
 
-    private static FccRuntimeVersionEvidenceState ClassifyVersion(FccExecutableDiscovery discovery)
+    private FccRuntimeVersionEvidenceState ClassifyVersion(FccExecutableDiscovery discovery)
     {
         if (!discovery.IsFound)
         {
@@ -132,7 +132,7 @@ public sealed class FccRuntimeHealthCompatibilityService
             return FccRuntimeVersionEvidenceState.UnverifiedVersion;
         }
 
-        return discovery.ParsedVersion.Equals(TestedFccClaudeVersion)
+        return discovery.ParsedVersion.Equals(_testedFccClaudeVersion)
             ? FccRuntimeVersionEvidenceState.TestedBaseline
             : FccRuntimeVersionEvidenceState.DetectedUntestedVersion;
     }
