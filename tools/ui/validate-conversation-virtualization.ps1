@@ -71,7 +71,7 @@ function Assert-ConversationVirtualizationContract {
         'VirtualizingPanel.SetScrollUnit(listBox, ScrollUnit.Pixel);',
         'VirtualizingPanel.SetCacheLength(listBox, new VirtualizationCacheLength(1d));',
         'VirtualizingPanel.SetCacheLengthUnit(listBox, VirtualizationCacheLengthUnit.Page);',
-        'e.ExtentHeightChange != 0d || e.ViewportHeightChange != 0d',
+        'e.VerticalChange == 0d && (e.ExtentHeightChange != 0d || e.ViewportHeightChange != 0d)',
         '_conversationFollowsTail = IsNearTail(e);',
         'if (!_conversationFollowsTail)',
         'ConversationItems.ScrollIntoView(State.Messages[^1]);',
@@ -348,6 +348,10 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-ConversationVirtualizationContract $stateText $surfaceXamlText ($surfaceCodeText.Replace('if (!_conversationFollowsTail)', 'if (false)'))
     } 'history viewport preservation removed'
+
+    Assert-ContractRejects {
+        Assert-ConversationVirtualizationContract $stateText $surfaceXamlText ($surfaceCodeText.Replace('e.VerticalChange == 0d && ', ''))
+    } 'user vertical movement ignored during extent changes'
 
     Write-Host 'P05-008 deterministic negative fixtures: PASS.'
 }
