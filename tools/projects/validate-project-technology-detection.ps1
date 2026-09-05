@@ -60,7 +60,7 @@ function Assert-TechnologyDetectionContract {
         'MaximumSupportedEntries = 100_000',
         'Task.Run(() => DetectCore(rootPath, cancellationToken), cancellationToken)',
         'cancellationToken.ThrowIfCancellationRequested()',
-        'Directory.EnumerateFileSystemEntries(directoryPath)',
+        '.EnumerateFileSystemEntries(directoryPath)',
         '.Take(remainingCapacity + 1)',
         'FileAttributes.ReparsePoint',
         'IgnoredDirectoryNames.Contains(directoryName)',
@@ -190,6 +190,9 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-TechnologyDetectionContract $contractText ($detectorText.Replace('DefaultMaximumEntries = 4096', 'DefaultMaximumEntriesRemoved = 4096')) $stateText $surfaceXamlText $surfaceCodeText $mainWindowText $testText $testProjectText $lockText $docText
     } 'entry bound removed'
+    Assert-ContractRejects {
+        Assert-TechnologyDetectionContract $contractText ($detectorText.Replace('.EnumerateFileSystemEntries(directoryPath)', '.EnumerateFileSystemEntriesRemoved(directoryPath)')) $stateText $surfaceXamlText $surfaceCodeText $mainWindowText $testText $testProjectText $lockText $docText
+    } 'file-system enumeration removed'
     Assert-ContractRejects {
         Assert-TechnologyDetectionContract $contractText ($detectorText.Replace('.Take(remainingCapacity + 1)', '.Skip(0)')) $stateText $surfaceXamlText $surfaceCodeText $mainWindowText $testText $testProjectText $lockText $docText
     } 'bounded directory materialization removed'
