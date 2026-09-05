@@ -11,7 +11,7 @@ namespace FCCCodeDesktop.App;
 public partial class MainWindow : Window
 {
     private readonly WorkspaceViewportCoordinator _viewportCoordinator = new();
-    private readonly SemaphoreSlim _sessionInitializationGate = new(1, 1);
+    private Task<SessionWorkspaceState>? _sessionInitializationTask;
     private SessionWorkspaceState? _sessionWorkspaceState;
 
     public MainWindow()
@@ -76,40 +76,29 @@ public partial class MainWindow : Window
         CancellationToken cancellationToken)
     {
         VerifyAccess();
-        if (_sessionWorkspaceState is not null)
+        _sessionInitializationTask ??= InitializeSessionWorkspaceCoreAsync();
+        return await _sessionInitializationTask.WaitAsync(cancellationToken).ConfigureAwait(true);
+    }
+
+    private async Task<SessionWorkspaceState> InitializeSessionWorkspaceCoreAsync()
+    {
+        VerifyAccess();
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        if (string.IsNullOrWhiteSpace(localAppData))
         {
-            return _sessionWorkspaceState;
+            throw new InvalidOperationException("Windows LocalApplicationData could not be resolved for session persistence.");
         }
 
-        await _sessionInitializationGate.WaitAsync(cancellationToken).ConfigureAwait(true);
-        try
-        {
-            if (_sessionWorkspaceState is not null)
-            {
-                return _sessionWorkspaceState;
-            }
+        var stateDirectory = Path.Combine(localAppData, "FCC Code Desktop", "State");
+        Directory.CreateDirectory(stateDirectory);
+        var options = new SqliteDatabaseOptions(Path.Combine(stateDirectory, "fcc-code-desktop.db"));
+        await new SqliteDatabaseInitializer(options).InitializeAsync(CancellationToken.None).ConfigureAwait(true);
 
-            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            if (string.IsNullOrWhiteSpace(localAppData))
-            {
-                throw new InvalidOperationException("Windows LocalApplicationData could not be resolved for session persistence.");
-            }
-
-            var stateDirectory = Path.Combine(localAppData, "FCC Code Desktop", "State");
-            Directory.CreateDirectory(stateDirectory);
-            var options = new SqliteDatabaseOptions(Path.Combine(stateDirectory, "fcc-code-desktop.db"));
-            await new SqliteDatabaseInitializer(options).InitializeAsync(cancellationToken).ConfigureAwait(true);
-
-            var state = new SessionWorkspaceState(new SqliteConversationStateStore(options));
-            state.SessionChanged += OnSessionChanged;
-            _sessionWorkspaceState = state;
-            RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface").State = state;
-            return state;
-        }
-        finally
-        {
-            _sessionInitializationGate.Release();
-        }
+        var state = new SessionWorkspaceState(new SqliteConversationStateStore(options));
+        state.SessionChanged += OnSessionChanged;
+        _sessionWorkspaceState = state;
+        RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface").State = state;
+        return state;
     }
 
     private void OnSessionChanged(object? sender, SessionChangedEventArgs e)
