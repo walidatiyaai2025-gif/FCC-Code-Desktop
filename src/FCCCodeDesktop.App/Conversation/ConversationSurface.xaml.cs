@@ -145,7 +145,7 @@ public partial class ConversationSurface : UserControl
 
     private void OnConversationScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        if (e.ExtentHeightChange != 0d || e.ViewportHeightChange != 0d)
+        if (e.VerticalChange == 0d && (e.ExtentHeightChange != 0d || e.ViewportHeightChange != 0d))
         {
             return;
         }
@@ -155,7 +155,7 @@ public partial class ConversationSurface : UserControl
 
     private void OnToolTimelineScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        if (e.ExtentHeightChange != 0d || e.ViewportHeightChange != 0d)
+        if (e.VerticalChange == 0d && (e.ExtentHeightChange != 0d || e.ViewportHeightChange != 0d))
         {
             return;
         }
