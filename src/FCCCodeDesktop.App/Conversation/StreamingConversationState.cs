@@ -24,9 +24,15 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
 {
     private readonly StringBuilder _text = new();
     private bool _isStreaming;
+    private bool _contentParsed;
     private IReadOnlyList<ConversationContentBlock> _contentBlocks = Array.Empty<ConversationContentBlock>();
 
-    internal ConversationMessageState(long messageId, ConversationMessageRole role, string initialText, bool isStreaming)
+    internal ConversationMessageState(
+        long messageId,
+        ConversationMessageRole role,
+        string initialText,
+        bool isStreaming,
+        bool deferContentParsing = false)
     {
         if (messageId <= 0)
         {
@@ -37,9 +43,10 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
         Role = role;
         _isStreaming = isStreaming;
         _text.Append(initialText);
-        if (!isStreaming)
+        if (!isStreaming && !deferContentParsing)
         {
             _contentBlocks = ConversationContentParser.Parse(initialText);
+            _contentParsed = true;
         }
     }
 
@@ -58,7 +65,19 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
 
     public string Text => _text.ToString();
 
-    public IReadOnlyList<ConversationContentBlock> ContentBlocks => _contentBlocks;
+    public IReadOnlyList<ConversationContentBlock> ContentBlocks
+    {
+        get
+        {
+            if (!IsStreaming && !_contentParsed)
+            {
+                _contentBlocks = ConversationContentParser.Parse(Text);
+                _contentParsed = true;
+            }
+
+            return _contentBlocks;
+        }
+    }
 
     public bool IsStreaming
     {
@@ -88,12 +107,13 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
 
     internal void Complete()
     {
-        if (!IsStreaming && _contentBlocks.Count > 0)
+        if (!IsStreaming && _contentParsed)
         {
             return;
         }
 
         _contentBlocks = ConversationContentParser.Parse(Text);
+        _contentParsed = true;
         OnPropertyChanged(nameof(ContentBlocks));
         IsStreaming = false;
     }
@@ -305,7 +325,12 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
                 throw new InvalidOperationException("Persisted conversation messages must contain visible text.");
             }
 
-            AddMessage(new ConversationMessageState(NextMessageId(), role, message.Content, false));
+            AddMessage(new ConversationMessageState(
+                NextMessageId(),
+                role,
+                message.Content,
+                false,
+                deferContentParsing: true));
             previousSequence = message.Sequence;
         }
     }
@@ -329,10 +354,7 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     public void Reset()
     {
         VerifyAccess();
-        foreach (var message in _messages)
-        {
-            message.Complete();
-        }
+        _activeAssistantMessage?.Complete();
 
         _messages.Clear();
         _toolActivities.Clear();
