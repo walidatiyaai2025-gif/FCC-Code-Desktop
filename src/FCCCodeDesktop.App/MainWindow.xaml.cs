@@ -58,7 +58,6 @@ public partial class MainWindow : Window
 
         _projectWorkspaceSurface = new ProjectWorkspaceSurface();
         composerState.SubmissionRequested += OnComposerSubmissionRequested;
-        navigationState.ProjectsContent = _projectWorkspaceSurface;
         navigationState.SessionsContent = sessionWorkspaceSurface;
         navigationState.TasksContent = taskExecutionSurface;
     }
@@ -118,6 +117,8 @@ public partial class MainWindow : Window
                 new SystemProjectDirectoryProbe()),
             state);
         projectSurface.State = projectState;
+        var navigationState = RequireResource<WorkspaceNavigationState>("WorkspaceNavigationState");
+        navigationState.ProjectsContent = _projectWorkspaceSurface;
         await projectState.InitializeAsync(CancellationToken.None).ConfigureAwait(true);
 
         await InitializeTaskExecutionAsync(options, state).ConfigureAwait(true);
