@@ -75,6 +75,52 @@ function Get-PhaseField {
     return $match.Groups[1].Value.Trim()
 }
 
+function Get-ControlField {
+    param(
+        [string]$ControlText,
+        [string]$Name
+    )
+
+    $match = [regex]::Match($ControlText, '(?m)^' + [regex]::Escape($Name) + ':\s*(.*?)\s*$')
+    if (-not $match.Success -or [string]::IsNullOrWhiteSpace($match.Groups[1].Value)) {
+        throw "PROJECT_CONTROL.md is missing required owner-last state field '$Name'."
+    }
+
+    return $match.Groups[1].Value.Trim()
+}
+
+function Assert-ProjectControlAligned {
+    param(
+        [string]$PhaseText,
+        [string]$ProjectControlText
+    )
+
+    foreach ($field in @(
+        'CURRENT_PHASE',
+        'CURRENT_PHASE_NAME',
+        'CURRENT_PHASE_STATE',
+        'NEXT_PHASE',
+        'PHASE_EXIT_GATE',
+        'KNOWN_RELEASE_BLOCKERS',
+        'VERIFIED_FINAL_COMPLETE',
+        'OWNER_LAST_MODE',
+        'DEFERRED_OWNER_ACCEPTANCE_COUNT',
+        'DEFERRED_OWNER_ACCEPTANCE_ITEMS'
+    )) {
+        $phaseValue = Get-PhaseField $PhaseText $field
+        $controlValue = Get-ControlField $ProjectControlText $field
+        if (-not $phaseValue.Equals($controlValue, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Canonical state drift: CURRENT_PHASE.md has $field='$phaseValue' but PROJECT_CONTROL.md has '$controlValue'."
+        }
+    }
+
+    if (-not $ProjectControlText.Contains('docs/OWNER_LAST_EXECUTION_POLICY.md', [StringComparison]::OrdinalIgnoreCase) -or
+        -not $ProjectControlText.Contains('docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md', [StringComparison]::OrdinalIgnoreCase) -or
+        -not $ProjectControlText.Contains('P22 remains prohibited while any required owner queue item is `QUEUED`', [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'PROJECT_CONTROL.md is missing required owner-last scheduling/release-blocking invariants.'
+    }
+}
+
 function Convert-PhaseToNumber {
     param(
         [string]$Phase,
@@ -356,10 +402,11 @@ $policyPath = Join-Path $root 'docs\OWNER_LAST_EXECUTION_POLICY.md'
 $queuePath = Join-Path $root 'docs\FINAL_OWNER_ACCEPTANCE_QUEUE.md'
 $ledgerPath = Join-Path $root 'docs\TASK_LEDGER.md'
 $phasePath = Join-Path $root 'CURRENT_PHASE.md'
+$projectControlPath = Join-Path $root 'PROJECT_CONTROL.md'
 $targetRunnerPath = Join-Path $root 'tools\runtime\run-p04-runtime-target-validation.ps1'
 $finalRunnerPath = Join-Path $root 'tools\final-acceptance\run-final-owner-acceptance.ps1'
 
-foreach ($path in @($policyPath, $queuePath, $ledgerPath, $phasePath, $targetRunnerPath, $finalRunnerPath)) {
+foreach ($path in @($policyPath, $queuePath, $ledgerPath, $phasePath, $projectControlPath, $targetRunnerPath, $finalRunnerPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
         throw "Required owner-last governance path is missing: $path"
     }
@@ -369,13 +416,23 @@ $policyText = Get-Content -LiteralPath $policyPath -Raw
 $queueText = Get-Content -LiteralPath $queuePath -Raw
 $ledgerText = Get-Content -LiteralPath $ledgerPath -Raw
 $phaseText = Get-Content -LiteralPath $phasePath -Raw
+$projectControlText = Get-Content -LiteralPath $projectControlPath -Raw
 $targetRunnerText = Get-Content -LiteralPath $targetRunnerPath -Raw
 $finalRunnerText = Get-Content -LiteralPath $finalRunnerPath -Raw
 
+Assert-ProjectControlAligned $phaseText $projectControlText
 Assert-OwnerLastContract $root $policyText $queueText $ledgerText $phaseText $targetRunnerText $finalRunnerText $true
 Write-Host 'Static owner-last execution governance validation: PASS.'
 
 if ($RunNegativeFixtures) {
+    Assert-Rejected {
+        Assert-ProjectControlAligned $phaseText ($projectControlText.Replace('CURRENT_PHASE: P05', 'CURRENT_PHASE: P04'))
+    } 'PROJECT_CONTROL current-phase drift'
+
+    Assert-Rejected {
+        Assert-ProjectControlAligned $phaseText ($projectControlText.Replace('KNOWN_RELEASE_BLOCKERS: 1', 'KNOWN_RELEASE_BLOCKERS: 0'))
+    } 'PROJECT_CONTROL release-blocker drift'
+
     Assert-Rejected {
         Assert-OwnerLastContract $root $policyText ($queueText.Replace('OWNER_ACCEPTANCE_QUEUE_JSON_BEGIN', 'OWNER_QUEUE_REMOVED')) $ledgerText $phaseText $targetRunnerText $finalRunnerText $false
     } 'missing canonical queue JSON markers'
