@@ -38,7 +38,7 @@ public partial class ConversationSurface : UserControl
         if (args.OldValue is StreamingConversationState oldState)
         {
             oldState.PropertyChanged -= surface.OnStatePropertyChanged;
-            oldState.Messages.CollectionChanged -= surface.OnMessagesChanged;
+            ((INotifyCollectionChanged)oldState.Messages).CollectionChanged -= surface.OnMessagesChanged;
         }
 
         if (args.NewValue is not StreamingConversationState newState)
@@ -48,7 +48,7 @@ public partial class ConversationSurface : UserControl
         }
 
         newState.PropertyChanged += surface.OnStatePropertyChanged;
-        newState.Messages.CollectionChanged += surface.OnMessagesChanged;
+        ((INotifyCollectionChanged)newState.Messages).CollectionChanged += surface.OnMessagesChanged;
         surface.ScheduleScrollToLatest();
     }
 
@@ -73,11 +73,12 @@ public partial class ConversationSurface : UserControl
 
         _scrollPending = true;
         _ = Dispatcher.BeginInvoke(
-            () =>
-            {
-                _scrollPending = false;
-                ScrollToLatest();
-            },
+            new Action(
+                () =>
+                {
+                    _scrollPending = false;
+                    ScrollToLatest();
+                }),
             DispatcherPriority.Background);
     }
 
