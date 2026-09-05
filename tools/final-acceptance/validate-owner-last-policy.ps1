@@ -34,6 +34,7 @@ function Assert-RequiredProperty {
     if ($Object.PSObject.Properties.Name -notcontains $Name) {
         throw "Owner queue item '$ItemId' is missing required property '$Name'."
     }
+
     $value = $Object.$Name
     if ($null -eq $value -or ($value -is [string] -and [string]::IsNullOrWhiteSpace($value))) {
         throw "Owner queue item '$ItemId' has an empty required property '$Name'."
@@ -50,12 +51,62 @@ function Resolve-RepositoryPath {
     if ([IO.Path]::IsPathRooted($RelativePath) -or $RelativePath.Contains('..', [StringComparison]::Ordinal)) {
         throw "$Label must be repository-relative without traversal: $RelativePath"
     }
+
     $fullPath = [IO.Path]::GetFullPath((Join-Path $Root $RelativePath))
     $rootPrefix = [IO.Path]::GetFullPath($Root).TrimEnd('\') + [IO.Path]::DirectorySeparatorChar
     if (-not $fullPath.StartsWith($rootPrefix, [StringComparison]::OrdinalIgnoreCase)) {
         throw "$Label escaped the repository root: $RelativePath"
     }
+
     return $fullPath
+}
+
+function Get-PhaseField {
+    param(
+        [string]$PhaseText,
+        [string]$Name
+    )
+
+    $match = [regex]::Match($PhaseText, '(?m)^' + [regex]::Escape($Name) + ':\s*(.*?)\s*$')
+    if (-not $match.Success -or [string]::IsNullOrWhiteSpace($match.Groups[1].Value)) {
+        throw "CURRENT_PHASE.md is missing required field '$Name'."
+    }
+
+    return $match.Groups[1].Value.Trim()
+}
+
+function Convert-PhaseToNumber {
+    param(
+        [string]$Phase,
+        [string]$Label
+    )
+
+    $match = [regex]::Match($Phase, '^P(\d{2})$')
+    if (-not $match.Success) {
+        throw "$Label has invalid phase value '$Phase'."
+    }
+
+    return [int]$match.Groups[1].Value
+}
+
+function Get-LedgerRows {
+    param([string]$LedgerText)
+
+    $pattern = '(?m)^\|\s*(FCCD-P(\d{2})-\d{3})\s*\|[^|\r\n]*\|\s*(PENDING|CLAIMED|IN_PROGRESS|BLOCKED|IMPLEMENTED|VERIFIED|CLOSED)\s*\|\s*$'
+    $rows = [System.Collections.Generic.List[object]]::new()
+    foreach ($match in [regex]::Matches($LedgerText, $pattern)) {
+        $rows.Add([pscustomobject]@{
+            TaskId = $match.Groups[1].Value
+            PhaseNumber = [int]$match.Groups[2].Value
+            State = $match.Groups[3].Value
+        })
+    }
+
+    if ($rows.Count -eq 0) {
+        throw 'Canonical task ledger rows could not be parsed.'
+    }
+
+    return $rows
 }
 
 function Assert-OwnerLastContract {
@@ -71,12 +122,16 @@ function Assert-OwnerLastContract {
     )
 
     foreach ($literal in @(
-        'scheduling amendment',
-        'does **not** weaken',
+        'controls **scheduling only**',
+        'CURRENT_PHASE.md',
+        'PROJECT_CONTROL.md',
+        'docs/TASK_LEDGER.md',
+        'one current cloud implementation phase',
+        'every earlier non-CLOSED task has exactly one valid `QUEUED` owner item',
+        'P22 is the final release/acceptance closure phase',
         'A deferred source task is not `CLOSED`',
         'docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md',
-        'P22 release closure and `VERIFIED_FINAL_COMPLETE=true` are prohibited',
-        'No known code defect, failed CI, missing automated test, security defect, data-integrity defect, repairable repository problem, or missing implementation is being relabeled as owner-only.'
+        'VERIFIED_FINAL_COMPLETE=true'
     )) {
         if (-not $PolicyText.Contains($literal, [StringComparison]::OrdinalIgnoreCase)) {
             throw "Owner-last policy is missing required invariant: $literal"
@@ -96,7 +151,7 @@ function Assert-OwnerLastContract {
     $ids = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     $allowedClassifications = @('REAL_TARGET', 'MANUAL_VISUAL', 'INSTALLER_LIFECYCLE', 'CLEAN_MACHINE', 'EXTERNAL_HARDWARE')
     $allowedStates = @('QUEUED', 'PASS_INTEGRATED')
-    $queuedCount = 0
+    $queuedItems = [System.Collections.Generic.List[object]]::new()
 
     foreach ($item in $items) {
         $itemId = if ($item.PSObject.Properties.Name -contains 'id') { [string]$item.id } else { '<missing-id>' }
@@ -126,7 +181,7 @@ function Assert-OwnerLastContract {
         if (-not [bool]$item.releaseBlocking) {
             throw "Owner queue item '$($item.id)' must remain releaseBlocking=true."
         }
-        if ([string]$item.whyOwnerOnly -match '(?i)failed CI|code defect|missing implementation|missing test|security defect|data-integrity defect') {
+        if ([string]$item.whyOwnerOnly -match '(?i)failed\s+CI|code\s+defect|missing\s+implementation|missing\s+(automated\s+)?test|security\s+defect|data[- ]integrity\s+defect|repairable\s+repository') {
             throw "Owner queue item '$($item.id)' appears to classify a repairable product/CI defect as owner-only."
         }
 
@@ -149,19 +204,17 @@ function Assert-OwnerLastContract {
             if (-not (Test-Path -LiteralPath $commandPath -PathType Leaf)) {
                 throw "Tracked owner command is missing for '$($item.id)': $commandPath"
             }
+
             $cloudEvidencePath = Resolve-RepositoryPath $Root ([string]$item.cloudEvidence) "Cloud evidence for $($item.id)"
             if (-not (Test-Path -LiteralPath $cloudEvidencePath -PathType Leaf)) {
                 throw "Cloud-complete evidence is missing for '$($item.id)': $cloudEvidencePath"
             }
+
             [void](Resolve-RepositoryPath $Root ([string]$item.expectedEvidencePath) "Expected evidence for $($item.id)")
         }
 
         if ($item.state -eq 'QUEUED') {
-            $queuedCount++
-            $closedPattern = '(?m)^\|\s*' + [regex]::Escape([string]$item.sourceTask) + '\s*\|.*\|\s*CLOSED\s*\|\s*$'
-            if ([regex]::IsMatch($LedgerText, $closedPattern)) {
-                throw "Queued owner source task '$($item.sourceTask)' is falsely marked CLOSED in the canonical ledger."
-            }
+            $queuedItems.Add($item)
         }
         else {
             if ($item.PSObject.Properties.Name -notcontains 'integratedEvidence' -or
@@ -183,8 +236,71 @@ function Assert-OwnerLastContract {
         throw 'Current P04-008 REAL_TARGET obligation is missing or has been weakened in the owner queue.'
     }
 
-    if ($queuedCount -gt 0 -and $PhaseText.Contains('VERIFIED_FINAL_COMPLETE: true', [StringComparison]::OrdinalIgnoreCase)) {
+    $currentPhase = Get-PhaseField $PhaseText 'CURRENT_PHASE'
+    $currentPhaseNumber = Convert-PhaseToNumber $currentPhase 'CURRENT_PHASE'
+    $ownerLastMode = Get-PhaseField $PhaseText 'OWNER_LAST_MODE'
+    $knownReleaseBlockersText = Get-PhaseField $PhaseText 'KNOWN_RELEASE_BLOCKERS'
+    $deferredCountText = Get-PhaseField $PhaseText 'DEFERRED_OWNER_ACCEPTANCE_COUNT'
+    $deferredItemsText = Get-PhaseField $PhaseText 'DEFERRED_OWNER_ACCEPTANCE_ITEMS'
+
+    $knownReleaseBlockers = 0
+    if (-not [int]::TryParse($knownReleaseBlockersText, [ref]$knownReleaseBlockers) -or $knownReleaseBlockers -lt 0) {
+        throw "KNOWN_RELEASE_BLOCKERS must be a non-negative integer, got '$knownReleaseBlockersText'."
+    }
+
+    $deferredCount = 0
+    if (-not [int]::TryParse($deferredCountText, [ref]$deferredCount) -or $deferredCount -lt 0) {
+        throw "DEFERRED_OWNER_ACCEPTANCE_COUNT must be a non-negative integer, got '$deferredCountText'."
+    }
+
+    if ($knownReleaseBlockers -lt $queuedItems.Count) {
+        throw "KNOWN_RELEASE_BLOCKERS=$knownReleaseBlockers is below unresolved owner queue count $($queuedItems.Count)."
+    }
+    if ($deferredCount -ne $queuedItems.Count) {
+        throw "DEFERRED_OWNER_ACCEPTANCE_COUNT=$deferredCount does not match unresolved owner queue count $($queuedItems.Count)."
+    }
+
+    if ($queuedItems.Count -gt 0 -and $ownerLastMode -ne 'ACTIVE') {
+        throw 'OWNER_LAST_MODE must be ACTIVE while owner queue items remain QUEUED and cloud progression is recorded.'
+    }
+    foreach ($item in $queuedItems) {
+        if (-not $deferredItemsText.Contains([string]$item.id, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "CURRENT_PHASE.md does not record queued owner item '$($item.id)' in DEFERRED_OWNER_ACCEPTANCE_ITEMS."
+        }
+    }
+
+    if ($currentPhase -eq 'P22' -and $queuedItems.Count -gt 0) {
+        throw 'P22 cannot become CURRENT_PHASE while required owner acceptance items remain QUEUED.'
+    }
+    if ($queuedItems.Count -gt 0 -and $PhaseText.Contains('VERIFIED_FINAL_COMPLETE: true', [StringComparison]::OrdinalIgnoreCase)) {
         throw 'VERIFIED_FINAL_COMPLETE cannot be true while owner acceptance items remain QUEUED.'
+    }
+
+    $ledgerRows = Get-LedgerRows $LedgerText
+    foreach ($row in $ledgerRows) {
+        if ($row.PhaseNumber -ge $currentPhaseNumber -or $row.State -eq 'CLOSED') {
+            continue
+        }
+
+        $matches = @($queuedItems | Where-Object sourceTask -eq $row.TaskId)
+        if ($matches.Count -ne 1) {
+            throw "Earlier unresolved task '$($row.TaskId)' in state '$($row.State)' has $($matches.Count) QUEUED owner mappings; exactly one is required before cloud phase $currentPhase may be active."
+        }
+    }
+
+    foreach ($item in $queuedItems) {
+        $sourcePhaseNumber = Convert-PhaseToNumber ([string]$item.sourcePhase) "sourcePhase for $($item.id)"
+        if ($sourcePhaseNumber -gt $currentPhaseNumber) {
+            throw "Owner item '$($item.id)' belongs to future phase '$($item.sourcePhase)' and was queued before that phase became cloud-current."
+        }
+
+        $sourceRows = @($ledgerRows | Where-Object TaskId -eq [string]$item.sourceTask)
+        if ($sourceRows.Count -ne 1) {
+            throw "Owner item '$($item.id)' source task '$($item.sourceTask)' was not found exactly once in the canonical ledger."
+        }
+        if ($sourceRows[0].State -eq 'CLOSED') {
+            throw "Queued owner source task '$($item.sourceTask)' is falsely marked CLOSED in the canonical ledger."
+        }
     }
 
     foreach ($literal in @(
@@ -222,7 +338,13 @@ function Assert-Rejected {
     )
 
     $rejected = $false
-    try { & $Action } catch { $rejected = $true }
+    try {
+        & $Action
+    }
+    catch {
+        $rejected = $true
+    }
+
     if (-not $rejected) {
         throw "Owner-last negative fixture was not rejected: $Label"
     }
@@ -278,9 +400,34 @@ if ($RunNegativeFixtures) {
     } 'queued source task falsely closed'
 
     Assert-Rejected {
+        $badLedger = $ledgerText.Replace('| FCCD-P04-007 | Start/stop/retry supervision | CLOSED |', '| FCCD-P04-007 | Start/stop/retry supervision | PENDING |')
+        Assert-OwnerLastContract $root $policyText $queueText $badLedger $phaseText $targetRunnerText $finalRunnerText $false
+    } 'earlier unresolved task without owner queue mapping'
+
+    Assert-Rejected {
+        $badPhase = $phaseText.Replace('OWNER_LAST_MODE: ACTIVE', 'OWNER_LAST_MODE: DISABLED')
+        Assert-OwnerLastContract $root $policyText $queueText $ledgerText $badPhase $targetRunnerText $finalRunnerText $false
+    } 'cloud phase advanced without active owner-last mode'
+
+    Assert-Rejected {
+        $badPhase = $phaseText.Replace('DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET', 'DEFERRED_OWNER_ACCEPTANCE_ITEMS: MISSING')
+        Assert-OwnerLastContract $root $policyText $queueText $ledgerText $badPhase $targetRunnerText $finalRunnerText $false
+    } 'queued owner id omitted from current phase state'
+
+    Assert-Rejected {
+        $badPhase = $phaseText.Replace('KNOWN_RELEASE_BLOCKERS: 1', 'KNOWN_RELEASE_BLOCKERS: 0')
+        Assert-OwnerLastContract $root $policyText $queueText $ledgerText $badPhase $targetRunnerText $finalRunnerText $false
+    } 'release blocker count below queued owner count'
+
+    Assert-Rejected {
         $badPhase = $phaseText.Replace('VERIFIED_FINAL_COMPLETE: false', 'VERIFIED_FINAL_COMPLETE: true')
         Assert-OwnerLastContract $root $policyText $queueText $ledgerText $badPhase $targetRunnerText $finalRunnerText $false
     } 'final completion while queue unresolved'
+
+    Assert-Rejected {
+        $badPhase = $phaseText.Replace('CURRENT_PHASE: P05', 'CURRENT_PHASE: P22')
+        Assert-OwnerLastContract $root $policyText $queueText $ledgerText $badPhase $targetRunnerText $finalRunnerText $false
+    } 'P22 activation while queue unresolved'
 
     Assert-Rejected {
         $badTargetRunner = $targetRunnerText.Replace('OWNER-P04-008-REAL-TARGET', 'OWNER-P04-008-REMOVED')
