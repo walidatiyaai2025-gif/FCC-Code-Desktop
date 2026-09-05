@@ -52,3 +52,7 @@ jobs:
       - name: Validate P05-008 conversation virtualization performance
         shell: pwsh
         run: .\tools\ui\validate-conversation-virtualization.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-001 project workflows
+        shell: pwsh
+        run: .\tools\projects\validate-project-workflows.ps1 -RunFixtures -RequireRuntime
