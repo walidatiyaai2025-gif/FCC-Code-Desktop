@@ -121,6 +121,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-navigation-surfaces.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Navigation surface validation'
 
+    Write-Host 'CI stage: streaming conversation rendering'
+    & pwsh -NoProfile -File .\tools\ui\validate-streaming-conversation.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'Streaming conversation validation'
+
     Write-Host 'CI stage: bottom tool-panel framework'
     & pwsh -NoProfile -File .\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Bottom tool-panel validation'

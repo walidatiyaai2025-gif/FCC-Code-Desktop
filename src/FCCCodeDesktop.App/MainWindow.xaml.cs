@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using FCCCodeDesktop.App.Conversation;
 using FCCCodeDesktop.App.Shell;
 
 namespace FCCCodeDesktop.App;
@@ -12,10 +13,18 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        ConfigureConversationSurface();
         ConfigureShellCommandFramework();
         Loaded += OnViewportLoaded;
         SizeChanged += OnViewportSizeChanged;
         DpiChanged += OnViewportDpiChanged;
+    }
+
+    private void ConfigureConversationSurface()
+    {
+        var navigationState = RequireResource<WorkspaceNavigationState>("WorkspaceNavigationState");
+        var conversationSurface = RequireResource<ConversationSurface>("ConversationSurface");
+        navigationState.SessionsContent = conversationSurface;
     }
 
     private void ConfigureShellCommandFramework()

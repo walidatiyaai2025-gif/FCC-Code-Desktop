@@ -1,0 +1,130 @@
+<UserControl x:Class="FCCCodeDesktop.App.Conversation.ConversationSurface"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conversation="clr-namespace:FCCCodeDesktop.App.Conversation"
+             x:Name="Root"
+             Background="{DynamicResource FccBrushCanvas}"
+             Foreground="{DynamicResource FccBrushTextPrimary}"
+             Focusable="False"
+             AutomationProperties.Name="Agent conversation">
+    <Grid DataContext="{Binding State, ElementName=Root}"
+          Background="{DynamicResource FccBrushCanvas}">
+        <ListBox x:Name="ConversationItems"
+                 ItemsSource="{Binding Messages}"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 Padding="{StaticResource FccInset16}"
+                 HorizontalContentAlignment="Stretch"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling"
+                 AutomationProperties.Name="Conversation messages">
+            <ListBox.Style>
+                <Style TargetType="ListBox">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasMessages}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListBox.Style>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Focusable" Value="False" />
+                    <Setter Property="IsHitTestVisible" Value="False" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0,0,0,12" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type conversation:ConversationMessageState}">
+                    <Border x:Name="MessageBubble"
+                            MaxWidth="760"
+                            Padding="{StaticResource FccInset12}"
+                            HorizontalAlignment="Left"
+                            Background="{DynamicResource FccBrushSurfaceRaised}"
+                            BorderBrush="{DynamicResource FccBrushBorder}"
+                            BorderThickness="1"
+                            CornerRadius="{StaticResource FccRadiusMedium}">
+                        <StackPanel>
+                            <DockPanel LastChildFill="False">
+                                <TextBlock Text="{Binding SenderLabel}"
+                                           Style="{StaticResource FccTextStatus}"
+                                           Foreground="{DynamicResource FccBrushTextSecondary}" />
+                                <TextBlock x:Name="MessageStatus"
+                                           Margin="8,0,0,0"
+                                           Text="Complete"
+                                           Style="{StaticResource FccTextStatus}"
+                                           Foreground="{DynamicResource FccBrushTextMuted}" />
+                            </DockPanel>
+                            <TextBlock x:Name="MessageText"
+                                       Margin="0,8,0,0"
+                                       Text="{Binding Text}"
+                                       TextWrapping="Wrap"
+                                       Style="{StaticResource FccTextBody}"
+                                       Foreground="{DynamicResource FccBrushTextPrimary}" />
+                        </StackPanel>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Role}" Value="{x:Static conversation:ConversationMessageRole.User}">
+                            <Setter TargetName="MessageBubble" Property="HorizontalAlignment" Value="Right" />
+                            <Setter TargetName="MessageBubble" Property="Background" Value="{DynamicResource FccBrushSelectionBackground}" />
+                            <Setter TargetName="MessageStatus" Property="Text" Value="Sent" />
+                            <Setter TargetName="MessageStatus" Property="Foreground" Value="{DynamicResource FccBrushSelectionForeground}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding IsStreaming}" Value="True">
+                            <Setter TargetName="MessageStatus" Property="Text" Value="Streaming" />
+                            <Setter TargetName="MessageStatus" Property="Foreground" Value="{DynamicResource FccBrushAccent}" />
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Border x:Name="ConversationEmptyState"
+                Margin="{StaticResource FccInset16}"
+                Padding="{StaticResource FccInset24}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{DynamicResource FccBrushSurface}"
+                BorderBrush="{DynamicResource FccBrushBorder}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource FccRadiusLarge}"
+                AutomationProperties.Name="Empty conversation">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasMessages}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <StackPanel MaxWidth="420">
+                <TextBlock Text="Conversation ready"
+                           Style="{StaticResource FccTextSection}"
+                           TextAlignment="Center"
+                           Foreground="{DynamicResource FccBrushTextPrimary}" />
+                <TextBlock Margin="0,8,0,0"
+                           Text="Assistant output will appear here incrementally when a task starts."
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           Style="{StaticResource FccTextBody}"
+                           Foreground="{DynamicResource FccBrushTextMuted}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
