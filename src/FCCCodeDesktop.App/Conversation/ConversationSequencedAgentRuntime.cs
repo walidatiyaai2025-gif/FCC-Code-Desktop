@@ -4,7 +4,7 @@ namespace FCCCodeDesktop.App.Conversation;
 
 /// <summary>
 /// Keeps conversation-facing runtime event sequences monotonic across logical task executions
-/// while independently verifying that each source execution emits a contiguous sequence.
+/// while independently verifying that each source execution emits a contiguous zero-based sequence.
 /// </summary>
 public sealed class ConversationSequencedAgentRuntime : IAgentRuntime
 {
@@ -59,6 +59,12 @@ public sealed class ConversationSequencedAgentRuntime : IAgentRuntime
             long? priorSourceSequence = null;
             await foreach (var runtimeEvent in _inner.Events.ConfigureAwait(false))
             {
+                if (priorSourceSequence is null && runtimeEvent.Sequence != 0)
+                {
+                    throw new InvalidOperationException(
+                        $"Source runtime event sequence must start at zero. Received {runtimeEvent.Sequence}.");
+                }
+
                 if (priorSourceSequence is long prior)
                 {
                     var expected = checked(prior + 1);
