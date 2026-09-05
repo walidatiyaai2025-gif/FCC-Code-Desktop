@@ -115,6 +115,7 @@ public partial class MainWindow : Window
             new ProjectCatalogService(
                 new SqliteProjectCatalogStore(options),
                 new SystemProjectDirectoryProbe()),
+            new FileSystemProjectTechnologyDetectionService(),
             state);
         projectSurface.State = projectState;
         var navigationState = RequireResource<WorkspaceNavigationState>("WorkspaceNavigationState");
