@@ -157,7 +157,7 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 
 | ID | Task | State |
 |---|---|---|
-| FCCD-P06-001 | Add/open/recent project workflows | PENDING |
+| FCCD-P06-001 | Add/open/recent project workflows | CLOSED |
 | FCCD-P06-002 | Project technology/tool detection framework | PENDING |
 | FCCD-P06-003 | Lazy file explorer | PENDING |
 | FCCD-P06-004 | Safe file service | PENDING |
@@ -165,6 +165,8 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 | FCCD-P06-006 | Editor tabs/save/reload/dirty state | PENDING |
 | FCCD-P06-007 | Workspace content/file/regex search | PENDING |
 | FCCD-P06-008 | Large file/tree safeguards | PENDING |
+
+`FCCD-P06-001` is CLOSED from the production add/open/recent project workflow and permanent validation. The implementation introduced application-owned project catalog orchestration, persistent recent-project lookup over the existing SQLite Projects schema, durable identity reuse on reopen, Git/non-Git folder support without source mutation, a real Projects workspace surface, and activation of the existing session workspace. Cloud-repairable CI issues were fixed without weakening locked restore, analyzers, P05 validators, or common-state behavior. Final exact candidate `2b51797dcf2b6ac674c116bfeb1cc33497f8b878` passed Windows CI run `33991050636` / run #250 with the complete Windows Release baseline, inherited P05 regression gates, and dedicated P06-001 project-workflow gate PASS. PR #142 was normally merged as `dc08e0cb9eb98bd4eb8d8290b1d69fef1402697a`; exact post-merge canonical-main Windows CI run `33991429277` / run #251 completed SUCCESS on that exact merge SHA with the same gates green. Task evidence: `evidence/phases/P06/P06_001_INTEGRATED_RECONCILIATION_2026-09-05.md`. This evidence is cloud/self-test plus canonical integration provenance only; it adds no owner-only obligation and does not claim P05 exit-gate PASS, P06 phase closure, release eligibility, or `VERIFIED_FINAL_COMPLETE`.
 
 ## P07 — Changes and Git
 
@@ -384,10 +386,10 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 
 ## Current next action
 
-`CURRENT_PHASE = P05` and P05 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P05-001` through `FCCD-P05-008` are CLOSED after exact PR-head validation, normal merge integration, and exact post-merge canonical-main Windows CI. All mandatory P05 implementation task rows are now integrated and task-closed, but the P05 phase exit gate has not yet been run or claimed PASS.
+`CURRENT_PHASE = P06` and P06 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P06-001` is CLOSED after exact PR-head validation, normal merge integration, and exact post-merge canonical-main Windows CI. `FCCD-P06-002` through `FCCD-P06-008` remain PENDING.
 
-P04 remains acceptance-unresolved solely through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. The P04 exit gate remains `NOT_RUN`; owner-last scheduling permits later cloud implementation only under its explicit fail-closed rules and does not close P04, waive the real-target requirement, or permit release.
+P04 remains acceptance-unresolved through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. P05 cloud implementation remains integrated, but its standalone exit observation remains queued as `OWNER-P05-EXIT-REAL-TARGET`. Their phase gates remain `P04=NOT_RUN;P05=NOT_RUN`; owner-last scheduling permits P06 cloud implementation but does not close either deferred acceptance requirement or permit release.
 
-After this P05-008 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any Priority 1–4 legitimate work first; if none exists, the next legal cloud action is **P05 phase-exit convergence**. Run the strongest honest phase-level cloud gate, repair any cloud-actionable defect it reveals, and prepare or queue only genuinely owner/environment-bound remainder when the owner-last policy permits. Do not begin P06 until P05's gate/scheduling requirements are truthfully satisfied; P07 remains future work behind P06.
+After this P06-001 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any higher-priority legitimate work first; if none exists, `FCCD-P06-002 — Project technology/tool detection framework` is the next dependency-valid P06 task. Do not begin P07 until P06 cloud work is complete and governance truthfully advances the current cloud phase.
 
 P03 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`. Exact closure evidence is `evidence/phases/P03/CLOSURE.md`; PR #85 integrated the closure as main SHA `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure Windows CI run `33822291095` completed SUCCESS.
