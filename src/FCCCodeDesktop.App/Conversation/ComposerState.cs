@@ -204,7 +204,8 @@ public sealed class ComposerState : DispatcherObject, INotifyPropertyChanged
         catch (Exception exception) when (exception is ArgumentException
                                            or IOException
                                            or UnauthorizedAccessException
-                                           or NotSupportedException)
+                                           or NotSupportedException
+                                           or InvalidOperationException)
         {
             SetValidationMessage(exception.Message);
             return false;
