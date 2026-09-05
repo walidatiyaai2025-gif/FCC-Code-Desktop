@@ -14,6 +14,43 @@ function Assert-LastExitCode {
     }
 }
 
+function Test-QueuedOwnerAcceptance {
+    param(
+        [string]$QueuePath,
+        [string]$ExpectedId,
+        [string]$ExpectedTask
+    )
+
+    if (-not (Test-Path -LiteralPath $QueuePath -PathType Leaf)) {
+        return $false
+    }
+
+    $queueText = Get-Content -LiteralPath $QueuePath -Raw
+    $pattern = '(?s)<!-- OWNER_ACCEPTANCE_QUEUE_JSON_BEGIN -->\s*```json\s*(.*?)\s*```\s*<!-- OWNER_ACCEPTANCE_QUEUE_JSON_END -->'
+    $match = [regex]::Match($queueText, $pattern)
+    if (-not $match.Success) {
+        throw 'Final owner acceptance queue exists but its canonical JSON block is malformed.'
+    }
+
+    try {
+        $queue = $match.Groups[1].Value | ConvertFrom-Json -Depth 20
+    }
+    catch {
+        throw "Final owner acceptance queue JSON is invalid: $($_.Exception.Message)"
+    }
+
+    $items = @(
+        $queue.items | Where-Object {
+            $_.id -eq $ExpectedId -and
+            $_.sourceTask -eq $ExpectedTask -and
+            $_.classification -eq 'REAL_TARGET' -and
+            $_.state -eq 'QUEUED' -and
+            [bool]$_.releaseBlocking
+        }
+    )
+    return $items.Count -eq 1
+}
+
 if (-not $IsWindows) {
     throw 'Authoritative P04 runtime target validation must run on the owner Windows target.'
 }
@@ -58,11 +95,18 @@ try {
     }
 
     $phaseText = Get-Content -LiteralPath (Join-Path $resolvedRoot 'CURRENT_PHASE.md') -Raw
-    if (-not $phaseText.Contains('CURRENT_PHASE: P04')) {
-        throw 'P04 target validation cannot run as authoritative closure evidence when P04 is not current.'
+    $isP04Current = $phaseText.Contains('CURRENT_PHASE: P04')
+    $ownerQueuePath = Join-Path $resolvedRoot 'docs\FINAL_OWNER_ACCEPTANCE_QUEUE.md'
+    $isQueuedOwnerAcceptance = Test-QueuedOwnerAcceptance `
+        -QueuePath $ownerQueuePath `
+        -ExpectedId 'OWNER-P04-008-REAL-TARGET' `
+        -ExpectedTask 'FCCD-P04-008'
+
+    if (-not ($isP04Current -or $isQueuedOwnerAcceptance)) {
+        throw 'P04 target validation requires either current P04 ownership or the canonical QUEUED OWNER-P04-008-REAL-TARGET owner-last authorization.'
     }
-    if (-not $phaseText.Contains('FCCD-P04-008')) {
-        throw 'CURRENT_PHASE.md does not retain FCCD-P04-008 target-validation ownership.'
+    if ($isP04Current -and -not $phaseText.Contains('FCCD-P04-008')) {
+        throw 'CURRENT_PHASE.md does not retain FCCD-P04-008 target-validation ownership while P04 is current.'
     }
 
     $harnessProject = Join-Path $resolvedRoot 'tools\runtime\P04RuntimeTargetHarness\P04RuntimeTargetHarness.csproj'
@@ -141,7 +185,7 @@ try {
 - Rate-limit observation: `NOT_INDUCED` (no provider 429 was manufactured)
 - Scenarios: structured success/stream/session, resume, invalid-session failure, cancellation, fallback-after-failure — all PASS.
 
-This file is a sanitized summary of `$(Split-Path -Leaf $fullEvidencePath)`. It is target evidence only; a convergence worker must still verify ancestry, integrate the evidence, reconcile `FCCD-P04-008`, and run the exact-head P04 exit gate before P05 may begin.
+This file is a sanitized summary of `$(Split-Path -Leaf $fullEvidencePath)`. It is target evidence only; a convergence worker must still verify ancestry/applicability, integrate the evidence, reconcile `FCCD-P04-008`, and update the final owner acceptance queue. The runner itself never closes a task, phase, acceptance row, or queue item.
 "@
     Set-Content -LiteralPath $summaryPath -Value $summary -Encoding utf8NoBOM
 
