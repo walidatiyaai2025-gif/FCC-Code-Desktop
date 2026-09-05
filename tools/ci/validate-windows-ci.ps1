@@ -39,7 +39,8 @@ function Assert-CiPolicy {
         '.\tools\ci\run-windows-ci.ps1',
         '.\tools\ui\validate-task-state-machine.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-task-controls.ps1 -RunFixtures -RequireRuntime',
-        '.\tools\ui\validate-conversation-content-rendering.ps1 -RunFixtures -RequireRuntime'
+        '.\tools\ui\validate-conversation-content-rendering.ps1 -RunFixtures -RequireRuntime',
+        '.\tools\ui\validate-conversation-virtualization.ps1 -RunFixtures -RequireRuntime'
     )) {
         Assert-ContainsLiteral $WorkflowText $requiredWorkflowText 'Windows CI workflow'
     }
@@ -132,6 +133,7 @@ Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('contents: read', 
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\validate-task-state-machine.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P05-005 task-state validation'
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\validate-task-controls.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P05-006 task-controls validation'
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\validate-conversation-content-rendering.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P05-007 content-rendering validation'
+Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\validate-conversation-virtualization.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P05-008 conversation virtualization validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('--locked-mode', '')) } 'unlocked restore'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-c Release', '-c Debug')) } 'non-Release build'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-Suite all', '-Suite unit')) } 'incomplete test lane'
@@ -159,7 +161,7 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-dpi-layout.ps1 -RunFixtures -RequireRuntime', '')) } 'missing DPI/resolution layout validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, P05-005 task-state gate, P05-006 task-controls gate, P05-007 content-rendering gate, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, conversation-composer, session-workspace, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, P05-005 task-state gate, P05-006 task-controls gate, P05-007 content-rendering gate, P05-008 conversation virtualization gate, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, conversation-composer, session-workspace, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {
