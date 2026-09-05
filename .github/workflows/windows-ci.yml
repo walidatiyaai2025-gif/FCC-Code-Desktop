@@ -44,3 +44,7 @@ jobs:
       - name: Validate P05-006 stop cancel retry UX
         shell: pwsh
         run: .\tools\ui\validate-task-controls.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P05-007 Markdown code diff rendering
+        shell: pwsh
+        run: .\tools\ui\validate-conversation-content-rendering.ps1 -RunFixtures -RequireRuntime
