@@ -1,5 +1,4 @@
 using FCCCodeDesktop.Application.Projects;
-using FCCCodeDesktop.Files;
 using FCCCodeDesktop.Persistence;
 using FCCCodeDesktop.Testing;
 using Xunit;
@@ -22,7 +21,7 @@ public sealed class ProjectCatalogServiceTests
         await new SqliteDatabaseInitializer(options).InitializeAsync(CancellationToken.None);
         var clock = new MutableTimeProvider(new DateTimeOffset(2026, 9, 5, 20, 30, 0, TimeSpan.Zero));
         var store = new SqliteProjectCatalogStore(options);
-        var service = new ProjectCatalogService(store, new SystemProjectDirectoryProbe(), clock);
+        var service = new ProjectCatalogService(store, new PhysicalProjectDirectoryProbe(), clock);
 
         var firstOpen = await service.OpenProjectAsync(firstRoot, CancellationToken.None);
         clock.UtcNow = clock.UtcNow.AddMinutes(1);
@@ -64,7 +63,7 @@ public sealed class ProjectCatalogServiceTests
         await new SqliteDatabaseInitializer(options).InitializeAsync(CancellationToken.None);
         var service = new ProjectCatalogService(
             new SqliteProjectCatalogStore(options),
-            new SystemProjectDirectoryProbe(),
+            new PhysicalProjectDirectoryProbe(),
             new MutableTimeProvider(new DateTimeOffset(2026, 9, 5, 21, 0, 0, TimeSpan.Zero)));
 
         var plain = await service.OpenProjectAsync(nonGitRoot, CancellationToken.None);
@@ -86,7 +85,7 @@ public sealed class ProjectCatalogServiceTests
         await new SqliteDatabaseInitializer(options).InitializeAsync(CancellationToken.None);
         var service = new ProjectCatalogService(
             new SqliteProjectCatalogStore(options),
-            new SystemProjectDirectoryProbe());
+            new PhysicalProjectDirectoryProbe());
 
         var failure = await Assert.ThrowsAsync<DirectoryNotFoundException>(() =>
             service.OpenProjectAsync(missingRoot, CancellationToken.None));
@@ -106,7 +105,7 @@ public sealed class ProjectCatalogServiceTests
         var clock = new MutableTimeProvider(new DateTimeOffset(2026, 9, 5, 22, 0, 0, TimeSpan.Zero));
         var service = new ProjectCatalogService(
             new SqliteProjectCatalogStore(options),
-            new SystemProjectDirectoryProbe(),
+            new PhysicalProjectDirectoryProbe(),
             clock);
 
         for (var index = 0; index < 3; index++)
@@ -124,6 +123,25 @@ public sealed class ProjectCatalogServiceTests
         Assert.Throws<ArgumentOutOfRangeException>(() => service.ListRecentProjectsAsync(0));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             service.ListRecentProjectsAsync(ProjectCatalogService.MaximumRecentProjectCount + 1));
+    }
+
+    private sealed class PhysicalProjectDirectoryProbe : IProjectDirectoryProbe
+    {
+        public string NormalizeRootPath(string rootPath) => Path.GetFullPath(rootPath);
+
+        public bool DirectoryExists(string normalizedRootPath) => Directory.Exists(normalizedRootPath);
+
+        public string GetDisplayName(string normalizedRootPath)
+        {
+            var directory = new DirectoryInfo(normalizedRootPath);
+            if (!string.IsNullOrWhiteSpace(directory.Name))
+            {
+                return directory.Name;
+            }
+
+            var root = Path.GetPathRoot(normalizedRootPath);
+            return string.IsNullOrWhiteSpace(root) ? normalizedRootPath : root;
+        }
     }
 
     private sealed class MutableTimeProvider : TimeProvider
