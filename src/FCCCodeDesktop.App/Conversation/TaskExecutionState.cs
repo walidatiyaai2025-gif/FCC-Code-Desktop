@@ -37,6 +37,7 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
     private Guid? _taskSessionId;
     private DateTimeOffset _taskCreatedUtc;
     private DateTimeOffset _runStartedUtc;
+    private string? _prompt;
     private string? _summary;
     private string? _failureMessage;
     private int _attempt;
@@ -94,6 +95,17 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         or TaskLifecycleState.Running
         or TaskLifecycleState.StopRequested;
 
+    public bool CanStop => State == TaskLifecycleState.Running && _activeExecution is not null;
+
+    public bool CanRetry =>
+        State is TaskLifecycleState.Failed or TaskLifecycleState.Cancelled
+        && _activePumpTask is null
+        && _activeExecution is null
+        && _runtime is not null
+        && _activeTaskId is not null
+        && _taskSessionId is not null
+        && !string.IsNullOrWhiteSpace(_prompt);
+
     public string StateLabel => State switch
     {
         TaskLifecycleState.Idle => "Idle",
@@ -139,21 +151,151 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
 
         var activeSession = _sessionWorkspace.ActiveSession
             ?? throw new InvalidOperationException("An active session is required to own the task.");
-        var activeProject = _sessionWorkspace.ActiveProject
-            ?? throw new InvalidOperationException("An active project is required to execute the task.");
         var now = _timeProvider.GetUtcNow();
 
         _activeTaskId = Guid.NewGuid();
-        _activeRunId = Guid.NewGuid();
         _taskSessionId = activeSession.Id;
         _taskCreatedUtc = now;
-        _runStartedUtc = now;
+        _prompt = prompt;
         _summary = NormalizeSummary(prompt);
-        SetFailureMessage(null);
-        _attempt = 1;
-        _automaticRetryCount = 0;
+        _attempt = 0;
         Interlocked.Exchange(ref _nextJournalSequence, 0);
         NotifyIdentityChanged();
+
+        await StartAttemptAsync(isManualRetry: false, cancellationToken).ConfigureAwait(true);
+    }
+
+    public async Task RequestStopAsync(CancellationToken cancellationToken = default)
+    {
+        VerifyAccess();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (State == TaskLifecycleState.StopRequested)
+        {
+            return;
+        }
+
+        if (!CanStop || _activeExecution is null)
+        {
+            throw new InvalidOperationException("The active task cannot be stopped in its current state.");
+        }
+
+        var execution = _activeExecution;
+        var occurredUtc = _timeProvider.GetUtcNow();
+        TransitionTo(TaskLifecycleState.StopRequested);
+
+        string? persistenceDiagnostic = null;
+        try
+        {
+            await PersistTaskAsync("StopRequested", occurredUtc, CancellationToken.None).ConfigureAwait(true);
+            await AppendJournalEventAsync(
+                ExecutionJournalCategory.Task,
+                "StopRequested",
+                occurredUtc,
+                CancellationToken.None).ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            persistenceDiagnostic = $"Stop-request journal update failed: {SanitizeFailureMessage(exception.Message)}";
+            SetFailureMessage(persistenceDiagnostic);
+        }
+
+        try
+        {
+            await execution.CancelAsync(CancellationToken.None).ConfigureAwait(true);
+        }
+        catch (Exception exception)
+        {
+            var cancelDiagnostic = $"Runtime stop request failed: {SanitizeFailureMessage(exception.Message)}";
+            var combined = CombineDiagnostics(persistenceDiagnostic, cancelDiagnostic);
+            SetFailureMessage(combined);
+            try
+            {
+                await AppendJournalEventAsync(
+                    ExecutionJournalCategory.Task,
+                    "StopRequestFailed",
+                    _timeProvider.GetUtcNow(),
+                    CancellationToken.None,
+                    JsonSerializer.Serialize(new { stopRequestFailed = true })).ConfigureAwait(true);
+            }
+            catch (Exception journalException) when (journalException is not OperationCanceledException)
+            {
+                SetFailureMessage(CombineDiagnostics(
+                    combined,
+                    $"Stop-failure journal update also failed: {SanitizeFailureMessage(journalException.Message)}"));
+            }
+
+            throw new InvalidOperationException(cancelDiagnostic, exception);
+        }
+    }
+
+    public async Task RetryAsync(CancellationToken cancellationToken = default)
+    {
+        VerifyAccess();
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (!CanRetry || _activeTaskId is null || _taskSessionId is null || _prompt is null)
+        {
+            throw new InvalidOperationException(
+                "Only a failed or cancelled task can be retried after its prior run is fully settled.");
+        }
+
+        if (_sessionWorkspace.ActiveSessionId != _taskSessionId)
+        {
+            throw new InvalidOperationException("Return to the task's owning session before retrying it.");
+        }
+
+        var events = await _journalStore
+            .ListEventsAsync(_activeTaskId.Value, cancellationToken)
+            .ConfigureAwait(true);
+        var nextSequence = events.Count == 0 ? 0 : checked(events[^1].Sequence + 1);
+        Interlocked.Exchange(ref _nextJournalSequence, nextSequence);
+
+        await StartAttemptAsync(isManualRetry: true, cancellationToken).ConfigureAwait(true);
+    }
+
+    public void ReportControlError(string message)
+    {
+        VerifyAccess();
+        SetFailureMessage(message);
+    }
+
+    private async Task StartAttemptAsync(bool isManualRetry, CancellationToken cancellationToken)
+    {
+        VerifyAccess();
+        if (_runtime is null || _prompt is null || _activeTaskId is null || _taskSessionId is null)
+        {
+            throw new InvalidOperationException("Task execution prerequisites are incomplete.");
+        }
+
+        if (_activePumpTask is not null || _activeExecution is not null)
+        {
+            throw new InvalidOperationException("The previous task run is still settling.");
+        }
+
+        var activeProject = _sessionWorkspace.ActiveProject
+            ?? throw new InvalidOperationException("An active project is required to execute the task.");
+        if (_sessionWorkspace.ActiveSessionId != _taskSessionId)
+        {
+            throw new InvalidOperationException("The task can run only inside its owning session.");
+        }
+
+        if (!Directory.Exists(activeProject.RootPath))
+        {
+            throw new DirectoryNotFoundException(
+                $"The active project directory does not exist: '{activeProject.RootPath}'.");
+        }
+
+        var now = _timeProvider.GetUtcNow();
+        _activeRunId = Guid.NewGuid();
+        _runStartedUtc = now;
+        _attempt = checked(_attempt + 1);
+        _automaticRetryCount = 0;
+        SetFailureMessage(null);
+        OnPropertyChanged(nameof(ActiveRunId));
+        OnPropertyChanged(nameof(Attempt));
+        OnPropertyChanged(nameof(AutomaticRetryCount));
+        OnPropertyChanged(nameof(CanRetry));
         TransitionTo(TaskLifecycleState.Starting);
 
         IAgentRuntimeExecution? startedExecution = null;
@@ -163,19 +305,21 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
             await PersistAgentRunAsync("Starting", completedUtc: null, cancellationToken).ConfigureAwait(true);
             await AppendJournalEventAsync(
                 ExecutionJournalCategory.Task,
-                "TaskStarting",
+                isManualRetry ? "ManualRetryStarting" : "TaskStarting",
                 now,
                 cancellationToken).ConfigureAwait(true);
 
             var request = new AgentRuntimeRequest(
                 _activeTaskId.Value,
                 _activeRunId.Value,
-                prompt,
+                _prompt,
                 activeProject.RootPath,
                 _sessionWorkspace.ActiveRuntimeSessionId);
-            startedExecution = await _runtime!.StartAsync(request, cancellationToken).ConfigureAwait(true);
+            startedExecution = await _runtime.StartAsync(request, cancellationToken).ConfigureAwait(true);
             EnsureExecutionIdentity(startedExecution, request);
             _activeExecution = startedExecution;
+            OnPropertyChanged(nameof(CanStop));
+            OnPropertyChanged(nameof(CanRetry));
 
             var runningUtc = _timeProvider.GetUtcNow();
             TransitionTo(TaskLifecycleState.Running);
@@ -193,6 +337,7 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
                 _activeRunId.Value,
                 _taskSessionId.Value);
             _activePumpTask = pumpTask;
+            OnPropertyChanged(nameof(CanRetry));
             _ = TrackPumpCompletionAsync(pumpTask);
             startedExecution = null;
         }
@@ -304,6 +449,9 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
                     {
                         _activeExecution = null;
                     }
+
+                    OnPropertyChanged(nameof(CanStop));
+                    OnPropertyChanged(nameof(CanRetry));
                 }).ConfigureAwait(false);
         }
     }
@@ -323,6 +471,9 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
                     {
                         _activePumpTask = null;
                     }
+
+                    OnPropertyChanged(nameof(CanStop));
+                    OnPropertyChanged(nameof(CanRetry));
                 }).ConfigureAwait(false);
         }
     }
@@ -364,6 +515,8 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
             _activeExecution = null;
         }
 
+        OnPropertyChanged(nameof(CanStop));
+        OnPropertyChanged(nameof(CanRetry));
         return cleanupDiagnostic;
     }
 
@@ -569,6 +722,8 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         OnPropertyChanged(nameof(State));
         OnPropertyChanged(nameof(StateLabel));
         OnPropertyChanged(nameof(IsActive));
+        OnPropertyChanged(nameof(CanStop));
+        OnPropertyChanged(nameof(CanRetry));
     }
 
     private static bool IsAllowedTransition(TaskLifecycleState current, TaskLifecycleState next) =>
@@ -671,6 +826,8 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         OnPropertyChanged(nameof(Attempt));
         OnPropertyChanged(nameof(AutomaticRetryCount));
         OnPropertyChanged(nameof(HasTask));
+        OnPropertyChanged(nameof(CanStop));
+        OnPropertyChanged(nameof(CanRetry));
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
