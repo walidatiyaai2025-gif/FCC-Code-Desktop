@@ -73,6 +73,10 @@ try {
     & pwsh -NoProfile -File .\tools\testing\validate-test-infrastructure.ps1 -RequireDotNet
     Assert-LastExitCode 'Test infrastructure validation'
 
+    Write-Host 'CI stage: owner-last execution governance'
+    & pwsh -NoProfile -File .\tools\final-acceptance\validate-owner-last-policy.ps1 -RunNegativeFixtures
+    Assert-LastExitCode 'Owner-last execution governance validation'
+
     Write-Host 'CI stage: FCC environment discovery'
     & pwsh -NoProfile -File .\tools\runtime\validate-fcc-environment-discovery.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'FCC environment-discovery validation'
