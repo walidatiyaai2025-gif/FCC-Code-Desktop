@@ -27,6 +27,8 @@
         <conversation:ConversationSurface x:Key="ConversationSurface"
                                          State="{StaticResource StreamingConversationState}"
                                          Composer="{StaticResource ComposerState}" />
+        <conversation:SessionWorkspaceSurface x:Key="SessionWorkspaceSurface"
+                                              ConversationContent="{StaticResource ConversationSurface}" />
     </Window.Resources>
 
     <shell:WindowChrome.WindowChrome>
