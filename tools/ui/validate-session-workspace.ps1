@@ -183,6 +183,7 @@ function Invoke-RuntimeFixture {
 "@
 
         $program = @'
+using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
