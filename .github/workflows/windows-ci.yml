@@ -36,3 +36,7 @@ jobs:
       - name: Run Windows Release baseline
         shell: pwsh
         run: .\tools\ci\run-windows-ci.ps1
+
+      - name: Validate P05-005 task state machine
+        shell: pwsh
+        run: .\tools\ui\validate-task-state-machine.ps1 -RunFixtures -RequireRuntime
