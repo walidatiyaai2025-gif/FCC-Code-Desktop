@@ -57,13 +57,13 @@ ALL CLOUD-ACTIONABLE WORK IN THE SOURCE PHASE IS INTEGRATED
 AND PERMANENT CI IS GREEN
 AND EVERY REMAINING SOURCE-PHASE OBLIGATION IS GENUINELY ENVIRONMENT-BOUND
 AND EVERY EARLIER NON-CLOSED TASK HAS EXACTLY ONE VALID QUEUED OWNER TASK ITEM
-AND EVERY DEFERRED UNRESOLVED PHASE GATE HAS EXACTLY ONE VALID QUEUED OWNER PHASE-GATE ITEM
+AND EVERY STANDALONE DEFERRED PHASE GATE WHOSE TASKS ARE ALL CLOSED HAS EXACTLY ONE VALID QUEUED OWNER PHASE-GATE ITEM
 AND EVERY QUEUED ITEM IS releaseBlocking=true
 AND NO LATER CLOUD WORK MATERIALLY DEPENDS ON THE MISSING OBSERVATION
 AND CURRENT_PHASE.md RECORDS OWNER_LAST_MODE=ACTIVE + THE DEFERRED ITEM IDS + DEFERRED_PHASE_GATES
 ```
 
-The canonical enforcement statement is: every earlier non-CLOSED task has exactly one valid `QUEUED` task-sourced owner item, and every phase gate explicitly recorded in `DEFERRED_PHASE_GATES` has exactly one valid `QUEUED` phase-gate-sourced owner item.
+The canonical enforcement statement is: every earlier non-CLOSED task has exactly one valid `QUEUED` task-sourced owner item. A deferred phase gate does not require a duplicate queue item when its unresolved task already carries the environment-bound obligation; however, when all mandatory tasks in that phase are `CLOSED` and an additional environment-bound phase-exit observation still remains, that standalone gate must have exactly one valid `QUEUED` phase-gate-sourced owner item.
 
 Then `CURRENT_PHASE` may advance to the next sequential cloud implementation phase while the earlier source task and/or phase gate remain truthfully unresolved.
 
@@ -74,7 +74,7 @@ At all times:
 - ordinary phase order is preserved: P05 → P06 → ...; no phase may be skipped merely because an owner item is queued;
 - a regression in an earlier guarantee immediately regains Priority 1/2 repair status;
 - no earlier unresolved task may exist unless it is represented one-to-one by a valid `QUEUED` task-sourced owner item;
-- no deferred unresolved phase gate may exist unless it is represented one-to-one by a valid `QUEUED` phase-gate-sourced owner item;
+- no standalone deferred unresolved phase gate with all mandatory phase tasks already `CLOSED` may exist unless it is represented one-to-one by a valid `QUEUED` phase-gate-sourced owner item;
 - a `PASS_INTEGRATED` queue item is no longer an excuse for leaving its source task or phase-gate reconciliation stale;
 - `KNOWN_RELEASE_BLOCKERS` in `CURRENT_PHASE.md` must be at least the count of unresolved release-blocking queue items.
 
@@ -168,7 +168,7 @@ The first owner-last transition is intentionally narrow:
 - `FCCD-P04-001` through `FCCD-P04-007` are canonically CLOSED.
 - `FCCD-P04-008` cloud implementation is integrated and green but fresh owner-Windows/provider `REAL_TARGET` evidence remains required.
 - `OWNER-P04-008-REAL-TARGET` is the canonical queued release blocker for that task obligation.
-- P04 remains acceptance-unresolved; its gate remains `NOT_RUN`.
+- P04 remains acceptance-unresolved; its gate remains `NOT_RUN` because the same missing task evidence also prevents ordinary P04 gate closure; no duplicate phase-gate queue entry is required for that same observation.
 - P05 is activated only as the next sequential **cloud implementation phase**.
 - If the eventual P04 real-target run reveals a defect, P05+ forward work stops as necessary to repair the earliest affected guarantee and rerun impacted verification.
 
@@ -185,7 +185,7 @@ That validator must fail for at least:
 - missing tracked command/evidence metadata;
 - queued source task falsely marked `CLOSED`;
 - an earlier non-CLOSED task with no one-to-one queued task item;
-- a deferred phase gate with no one-to-one queued phase-gate item;
+- a standalone deferred phase gate whose tasks are all `CLOSED` with no one-to-one queued phase-gate item;
 - a queued phase-gate requirement represented as `PASS`;
 - current cloud phase advanced without `OWNER_LAST_MODE=ACTIVE`, deferred item IDs, and deferred phase-gate state;
 - release-blocker count below unresolved owner queue count;
@@ -198,7 +198,7 @@ The validator is a loophole-prevention mechanism. It must never generate owner e
 
 ## 13. Current P05 phase-exit deferral boundary
 
-P05 demonstrates the phase-gate form of owner-last deferral. `FCCD-P05-001` through `FCCD-P05-008` must already be integrated and `CLOSED`, the permanent Windows cloud baseline must be green, and a tracked fail-closed owner runner must exist before the P05 exit requirement can be queued.
+P05 demonstrates the standalone phase-gate form of owner-last deferral. `FCCD-P05-001` through `FCCD-P05-008` must already be integrated and `CLOSED`, the permanent Windows cloud baseline must be green, and a tracked fail-closed owner runner must exist before the P05 exit requirement can be queued.
 
 The P05 source is `sourceKind=PHASE_GATE`, `sourceRequirement=P05_EXIT_GATE`, not a fabricated ninth P05 task. Its required real interaction remains `REAL_TARGET`: issue a genuine task through FCC Code Desktop on the owner Windows/FCC/provider environment, observe structured execution, exercise stop/retry, close/reopen, and verify durable session resume. While that item is `QUEUED`, P05's exit gate remains `NOT_RUN`; no `CLOSURE.md` PASS is permitted.
 
