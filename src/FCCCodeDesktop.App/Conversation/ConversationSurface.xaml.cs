@@ -20,11 +20,32 @@ public partial class ConversationSurface : UserControl
         typeof(ConversationSurface),
         new PropertyMetadata(null, OnComposerChanged));
 
-    private bool _scrollPending;
+    private static readonly TimeSpan TailScrollCoalesceInterval = TimeSpan.FromMilliseconds(50);
+    private const double TailTolerancePixels = 32d;
+
+    private readonly DispatcherTimer _tailScrollTimer;
+    private bool _conversationFollowsTail = true;
+    private bool _toolTimelineFollowsTail = true;
+    private bool _conversationScrollRequested;
+    private bool _toolTimelineScrollRequested;
 
     public ConversationSurface()
     {
         InitializeComponent();
+        ConfigureVirtualization(ConversationItems);
+        ConfigureVirtualization(ToolTimelineItems);
+        ConversationItems.AddHandler(
+            ScrollViewer.ScrollChangedEvent,
+            new ScrollChangedEventHandler(OnConversationScrollChanged));
+        ToolTimelineItems.AddHandler(
+            ScrollViewer.ScrollChangedEvent,
+            new ScrollChangedEventHandler(OnToolTimelineScrollChanged));
+        _tailScrollTimer = new DispatcherTimer(DispatcherPriority.Background, Dispatcher)
+        {
+            Interval = TailScrollCoalesceInterval,
+        };
+        _tailScrollTimer.Tick += OnTailScrollTimerTick;
+
         State ??= new StreamingConversationState();
         Composer ??= new ComposerState();
     }
@@ -39,6 +60,16 @@ public partial class ConversationSurface : UserControl
     {
         get => (ComposerState)GetValue(ComposerProperty);
         set => SetValue(ComposerProperty, value ?? throw new ArgumentNullException(nameof(value)));
+    }
+
+    private static void ConfigureVirtualization(ListBox listBox)
+    {
+        ScrollViewer.SetCanContentScroll(listBox, true);
+        VirtualizingPanel.SetIsVirtualizing(listBox, true);
+        VirtualizingPanel.SetVirtualizationMode(listBox, VirtualizationMode.Recycling);
+        VirtualizingPanel.SetScrollUnit(listBox, ScrollUnit.Pixel);
+        VirtualizingPanel.SetCacheLength(listBox, new VirtualizationCacheLength(1d));
+        VirtualizingPanel.SetCacheLengthUnit(listBox, VirtualizationCacheLengthUnit.Page);
     }
 
     private static void OnStateChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
@@ -64,7 +95,10 @@ public partial class ConversationSurface : UserControl
         newState.PropertyChanged += surface.OnStatePropertyChanged;
         ((INotifyCollectionChanged)newState.Messages).CollectionChanged += surface.OnPresentationCollectionChanged;
         ((INotifyCollectionChanged)newState.ToolActivities).CollectionChanged += surface.OnPresentationCollectionChanged;
-        surface.ScheduleScrollToLatest();
+        surface._conversationFollowsTail = true;
+        surface._toolTimelineFollowsTail = true;
+        surface.ScheduleConversationTail(force: true);
+        surface.ScheduleToolTimelineTail(force: true);
     }
 
     private static void OnComposerChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
@@ -75,45 +109,112 @@ public partial class ConversationSurface : UserControl
         }
     }
 
-    private void OnPresentationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
-        ScheduleScrollToLatest();
+    private void OnPresentationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (ReferenceEquals(sender, State.Messages))
+        {
+            ScheduleConversationTail(force: e.Action == NotifyCollectionChangedAction.Reset);
+            return;
+        }
+
+        if (ReferenceEquals(sender, State.ToolActivities))
+        {
+            ScheduleToolTimelineTail(force: e.Action == NotifyCollectionChangedAction.Reset);
+        }
+    }
 
     private void OnStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(StreamingConversationState.LastRuntimeSequence)
-            or nameof(StreamingConversationState.IsStreaming)
-            or nameof(StreamingConversationState.HasToolActivities))
+            or nameof(StreamingConversationState.IsStreaming))
         {
-            ScheduleScrollToLatest();
+            ScheduleConversationTail();
+        }
+
+        if (e.PropertyName is nameof(StreamingConversationState.HasToolActivities))
+        {
+            ScheduleToolTimelineTail();
         }
     }
 
-    private void ScheduleScrollToLatest()
+    private void OnConversationScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        if (_scrollPending)
+        if (e.ExtentHeightChange != 0d || e.ViewportHeightChange != 0d)
         {
             return;
         }
 
-        _scrollPending = true;
-        _ = Dispatcher.BeginInvoke(
-            new Action(
-                () =>
-                {
-                    _scrollPending = false;
-                    ScrollToLatest();
-                }),
-            DispatcherPriority.Background);
+        _conversationFollowsTail = IsNearTail(e);
     }
 
-    private void ScrollToLatest()
+    private void OnToolTimelineScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        if (State.Messages.Count > 0)
+        if (e.ExtentHeightChange != 0d || e.ViewportHeightChange != 0d)
+        {
+            return;
+        }
+
+        _toolTimelineFollowsTail = IsNearTail(e);
+    }
+
+    private static bool IsNearTail(ScrollChangedEventArgs e) =>
+        e.VerticalOffset >= Math.Max(0d, e.ExtentHeight - e.ViewportHeight - TailTolerancePixels);
+
+    private void ScheduleConversationTail(bool force = false)
+    {
+        if (force)
+        {
+            _conversationFollowsTail = true;
+        }
+
+        if (!_conversationFollowsTail)
+        {
+            return;
+        }
+
+        _conversationScrollRequested = true;
+        EnsureTailScrollTimer();
+    }
+
+    private void ScheduleToolTimelineTail(bool force = false)
+    {
+        if (force)
+        {
+            _toolTimelineFollowsTail = true;
+        }
+
+        if (!_toolTimelineFollowsTail)
+        {
+            return;
+        }
+
+        _toolTimelineScrollRequested = true;
+        EnsureTailScrollTimer();
+    }
+
+    private void EnsureTailScrollTimer()
+    {
+        if (!_tailScrollTimer.IsEnabled)
+        {
+            _tailScrollTimer.Start();
+        }
+    }
+
+    private void OnTailScrollTimerTick(object? sender, EventArgs e)
+    {
+        _tailScrollTimer.Stop();
+
+        var scrollConversation = _conversationScrollRequested;
+        var scrollToolTimeline = _toolTimelineScrollRequested;
+        _conversationScrollRequested = false;
+        _toolTimelineScrollRequested = false;
+
+        if (scrollConversation && _conversationFollowsTail && State.Messages.Count > 0)
         {
             ConversationItems.ScrollIntoView(State.Messages[^1]);
         }
 
-        if (State.ToolActivities.Count > 0)
+        if (scrollToolTimeline && _toolTimelineFollowsTail && State.ToolActivities.Count > 0)
         {
             ToolTimelineItems.ScrollIntoView(State.ToolActivities[^1]);
         }
