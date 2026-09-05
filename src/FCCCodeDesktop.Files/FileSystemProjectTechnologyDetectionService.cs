@@ -278,7 +278,7 @@ public sealed class FileSystemProjectTechnologyDetectionService : IProjectTechno
         new(id, displayName, toolchain, markerPath, confidence);
 
     private static void AddOrUpgradeDetection(
-        IDictionary<string, ProjectTechnologyDetection> detections,
+        Dictionary<string, ProjectTechnologyDetection> detections,
         ProjectTechnologyDetection candidate)
     {
         if (!detections.TryGetValue(candidate.Id, out var existing)
