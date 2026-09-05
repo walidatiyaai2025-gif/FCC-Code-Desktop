@@ -178,10 +178,7 @@ function Assert-CommandPaletteContract {
         }
     }
 
-    $shellFrameworkText = Get-CSharpMethodBlock \
-        $MainCodeText \
-        'private void ConfigureShellCommandFramework()' \
-        'MainWindow.ConfigureShellCommandFramework'
+    $shellFrameworkText = Get-CSharpMethodBlock $MainCodeText 'private void ConfigureShellCommandFramework()' 'MainWindow.ConfigureShellCommandFramework'
 
     foreach ($forbidden in @(
         'FCCCodeDesktop.Persistence',
