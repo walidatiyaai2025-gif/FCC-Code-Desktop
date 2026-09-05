@@ -294,12 +294,13 @@ function Assert-OwnerLastContract {
             throw "Owner item '$($item.id)' belongs to future phase '$($item.sourcePhase)' and was queued before that phase became cloud-current."
         }
 
-        $sourceRows = @($ledgerRows | Where-Object TaskId -eq [string]$item.sourceTask)
+        $sourceTaskId = [string]$item.sourceTask
+        $sourceRows = @($ledgerRows | Where-Object { $_.TaskId -eq $sourceTaskId })
         if ($sourceRows.Count -ne 1) {
-            throw "Owner item '$($item.id)' source task '$($item.sourceTask)' was not found exactly once in the canonical ledger."
+            throw "Owner item '$($item.id)' source task '$sourceTaskId' was not found exactly once in the canonical ledger."
         }
         if ($sourceRows[0].State -eq 'CLOSED') {
-            throw "Queued owner source task '$($item.sourceTask)' is falsely marked CLOSED in the canonical ledger."
+            throw "Queued owner source task '$sourceTaskId' is falsely marked CLOSED in the canonical ledger."
         }
     }
 
