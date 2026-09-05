@@ -7,7 +7,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$validator = Join-Path $PSScriptRoot 'validate-owner-last-policy-v2.ps1'
+$validator = Join-Path $PSScriptRoot 'owner-last-policy-validator.ps1'
 if (-not (Test-Path -LiteralPath $validator -PathType Leaf)) {
     throw "Owner-last validator implementation is missing: $validator"
 }
