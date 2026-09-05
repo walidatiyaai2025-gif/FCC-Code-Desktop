@@ -54,6 +54,7 @@ function Assert-ComposerContract {
         'Path.GetFullPath(path.Trim())',
         'File.Exists(fullPath)',
         'string.Equals(item.FullPath, fullPath, StringComparison.OrdinalIgnoreCase)',
+        'or InvalidOperationException',
         'public bool TryAddContextReference(ComposerContextKind kind, string reference, string label)',
         'public ComposerSubmission CreateSubmission()',
         'public bool RequestSubmission()',
@@ -202,7 +203,7 @@ function Invoke-ComposerRuntimeFixture {
         $projectPath = Join-Path $fixtureRoot 'ComposerFixture.csproj'
         $programPath = Join-Path $fixtureRoot 'Program.cs'
         $projectReference = [Security.SecurityElement]::Escape($AppProjectPath)
-        $fixturePathLiteral = $fixtureFile.Replace('\', '\\').Replace('"', '\"')
+        $fixturePathLiteral = $fixtureFile.Replace('"', '""')
 
         $project = @"
 <Project Sdk="Microsoft.NET.Sdk">
@@ -220,7 +221,7 @@ function Invoke-ComposerRuntimeFixture {
 </Project>
 "@
 
-        $program = @"
+        $programTemplate = @'
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -256,12 +257,13 @@ internal static class Program
         Assert(detached.HasValidationMessage, "missing-handler validation is visible");
 
         Assert(!composer.TryAddAttachment(Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".missing")), "missing attachment rejected");
-        Assert(composer.TryAddAttachment("$fixturePathLiteral"), "attachment accepted");
-        Assert(!composer.TryAddAttachment("$fixturePathLiteral"), "duplicate attachment rejected");
+        Assert(composer.TryAddAttachment(@"__FIXTURE_PATH__"), "attachment accepted");
+        Assert(!composer.TryAddAttachment(@"__FIXTURE_PATH__"), "duplicate attachment rejected");
+        Assert(composer.HasValidationMessage, "duplicate attachment produces visible validation");
         Assert(composer.Attachments.Count == 1 && composer.Attachments[0].SizeBytes > 0, "attachment metadata retained without content read");
 
-        Assert(composer.TryAddContextReference(ComposerContextKind.File, "$fixturePathLiteral", "fixture context.txt"), "context accepted");
-        Assert(!composer.TryAddContextReference(ComposerContextKind.File, "$fixturePathLiteral", "duplicate"), "duplicate context rejected");
+        Assert(composer.TryAddContextReference(ComposerContextKind.File, @"__FIXTURE_PATH__", "fixture context.txt"), "context accepted");
+        Assert(!composer.TryAddContextReference(ComposerContextKind.File, @"__FIXTURE_PATH__", "duplicate"), "duplicate context rejected");
         Assert(composer.ContextReferences.Count == 1, "context deduplicated");
 
         ComposerSubmission? captured = null;
@@ -280,21 +282,22 @@ internal static class Program
         Assert(composerControl.FindName("ContextItems") is ItemsControl contextItems && contextItems.Items.Count == 1, "context chip rendered");
         Assert(composerControl.FindName("SubmitComposerButton") is Button submitButton && submitButton.IsEnabled, "submit button enabled");
 
-        var darkBackground = RequireBrush(((TextBox)composerControl.FindName("ComposerTextBox")!).Background, "dark composer background").Color;
+        var composerTextBox = (TextBox)composerControl.FindName("ComposerTextBox")!;
+        var darkBackground = RequireBrush(composerTextBox.Background, "dark composer background").Color;
         var themes = new ThemeService(app.Resources);
         themes.Apply(AppearanceTheme.Light);
         window.Dispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
-        var lightBackground = RequireBrush(((TextBox)composerControl.FindName("ComposerTextBox")!).Background, "light composer background").Color;
+        var lightBackground = RequireBrush(composerTextBox.Background, "light composer background").Color;
         Assert(lightBackground != darkBackground, "dynamic theme parity");
         themes.Apply(AppearanceTheme.Dark);
 
         composer.SubmitCommand.Execute(null);
         window.Dispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
 
-        Assert(captured is not null, "immutable submission emitted");
-        Assert(captured.Text == "inspect this fixture safely", "submission text normalized");
-        Assert(captured.Attachments.Count == 1 && captured.Attachments[0].FullPath == "$fixturePathLiteral", "attachment snapshot emitted");
-        Assert(captured.ContextReferences.Count == 1 && captured.ContextReferences[0].Kind == ComposerContextKind.File, "context snapshot emitted");
+        var submission = captured ?? throw new InvalidOperationException("Immutable composer submission was not emitted.");
+        Assert(submission.Text == "inspect this fixture safely", "submission text normalized");
+        Assert(submission.Attachments.Count == 1 && submission.Attachments[0].FullPath == @"__FIXTURE_PATH__", "attachment snapshot emitted");
+        Assert(submission.ContextReferences.Count == 1 && submission.ContextReferences[0].Kind == ComposerContextKind.File, "context snapshot emitted");
         Assert(conversation.Messages.Count == 1 && conversation.Messages[0].Role == ConversationMessageRole.User, "submission adds one user message");
         Assert(conversation.Messages[0].Text == "inspect this fixture safely", "user message text preserved");
         Assert(!composer.HasDraftContent && composer.Attachments.Count == 0 && composer.ContextReferences.Count == 0, "accepted submission clears composer");
@@ -327,7 +330,8 @@ internal static class Program
         }
     }
 }
-"@
+'@
+        $program = $programTemplate.Replace('__FIXTURE_PATH__', $fixturePathLiteral)
 
         Set-Content -LiteralPath $projectPath -Value $project -Encoding utf8NoBOM
         Set-Content -LiteralPath $programPath -Value $program -Encoding utf8NoBOM
