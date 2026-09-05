@@ -14,18 +14,31 @@ public partial class ConversationSurface : UserControl
         typeof(ConversationSurface),
         new PropertyMetadata(null, OnStateChanged));
 
+    public static readonly DependencyProperty ComposerProperty = DependencyProperty.Register(
+        nameof(Composer),
+        typeof(ComposerState),
+        typeof(ConversationSurface),
+        new PropertyMetadata(null, OnComposerChanged));
+
     private bool _scrollPending;
 
     public ConversationSurface()
     {
         InitializeComponent();
         State ??= new StreamingConversationState();
+        Composer ??= new ComposerState();
     }
 
     public StreamingConversationState State
     {
         get => (StreamingConversationState)GetValue(StateProperty);
         set => SetValue(StateProperty, value ?? throw new ArgumentNullException(nameof(value)));
+    }
+
+    public ComposerState Composer
+    {
+        get => (ComposerState)GetValue(ComposerProperty);
+        set => SetValue(ComposerProperty, value ?? throw new ArgumentNullException(nameof(value)));
     }
 
     private static void OnStateChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
@@ -52,6 +65,14 @@ public partial class ConversationSurface : UserControl
         ((INotifyCollectionChanged)newState.Messages).CollectionChanged += surface.OnPresentationCollectionChanged;
         ((INotifyCollectionChanged)newState.ToolActivities).CollectionChanged += surface.OnPresentationCollectionChanged;
         surface.ScheduleScrollToLatest();
+    }
+
+    private static void OnComposerChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
+    {
+        if (dependencyObject is ConversationSurface surface && args.NewValue is null)
+        {
+            surface.SetCurrentValue(ComposerProperty, new ComposerState());
+        }
     }
 
     private void OnPresentationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>

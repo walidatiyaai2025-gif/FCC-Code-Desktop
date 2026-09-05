@@ -76,6 +76,7 @@ function Assert-CiPolicy {
         '.\tools\ui\validate-navigation-surfaces.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-streaming-conversation.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-tool-activity-timeline.ps1 -RunFixtures -RequireRuntime',
+        '.\tools\ui\validate-conversation-composer.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-command-palette.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-common-states.ps1 -RunFixtures -RequireRuntime',
@@ -143,13 +144,14 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-navigation-surfaces.ps1 -RunFixtures -RequireRuntime', '')) } 'missing navigation-surface validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-streaming-conversation.ps1 -RunFixtures -RequireRuntime', '')) } 'missing streaming-conversation validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-tool-activity-timeline.ps1 -RunFixtures -RequireRuntime', '')) } 'missing tool-activity timeline validation'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-conversation-composer.ps1 -RunFixtures -RequireRuntime', '')) } 'missing conversation-composer validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime', '')) } 'missing bottom-tool-panel validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-command-palette.ps1 -RunFixtures -RequireRuntime', '')) } 'missing command-palette validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-common-states.ps1 -RunFixtures -RequireRuntime', '')) } 'missing common-state validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-dpi-layout.ps1 -RunFixtures -RequireRuntime', '')) } 'missing DPI/resolution layout validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, conversation-composer, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {

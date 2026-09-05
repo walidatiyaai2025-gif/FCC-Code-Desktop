@@ -24,7 +24,22 @@ public partial class MainWindow : Window
     {
         var navigationState = RequireResource<WorkspaceNavigationState>("WorkspaceNavigationState");
         var conversationSurface = RequireResource<ConversationSurface>("ConversationSurface");
+        var composerState = RequireResource<ComposerState>("ComposerState");
+
+        composerState.SubmissionRequested += OnComposerSubmissionRequested;
         navigationState.SessionsContent = conversationSurface;
+    }
+
+    private void OnComposerSubmissionRequested(object? sender, ComposerSubmissionRequestedEventArgs e)
+    {
+        if (sender is not ComposerState composerState)
+        {
+            throw new InvalidOperationException("Composer submission sender is invalid.");
+        }
+
+        var conversationState = RequireResource<StreamingConversationState>("StreamingConversationState");
+        conversationState.AddUserMessage(e.Submission.Text);
+        composerState.AcceptSubmission(e.Submission.SubmissionId);
     }
 
     private void ConfigureShellCommandFramework()
