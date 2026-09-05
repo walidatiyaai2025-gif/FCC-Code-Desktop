@@ -43,7 +43,11 @@ public partial class ProjectWorkspaceSurface : UserControl
             return;
         }
 
-        await ExecuteProjectActionAsync(() => state.OpenProjectAsync(dialog.FolderName, CancellationToken.None));
+        await ExecuteProjectActionAsync(
+            async () =>
+            {
+                _ = await state.OpenProjectAsync(dialog.FolderName, CancellationToken.None).ConfigureAwait(true);
+            });
     }
 
     private async void OnOpenRecentProjectClick(object sender, RoutedEventArgs e)
@@ -54,7 +58,11 @@ public partial class ProjectWorkspaceSurface : UserControl
             return;
         }
 
-        await ExecuteProjectActionAsync(() => state.OpenRecentProjectAsync(project, CancellationToken.None));
+        await ExecuteProjectActionAsync(
+            async () =>
+            {
+                _ = await state.OpenRecentProjectAsync(project, CancellationToken.None).ConfigureAwait(true);
+            });
     }
 
     private async void OnRefreshClick(object sender, RoutedEventArgs e)
@@ -64,19 +72,10 @@ public partial class ProjectWorkspaceSurface : UserControl
             return;
         }
 
-        await ExecuteProjectActionAsync(async () =>
-        {
-            await state.RefreshAsync(CancellationToken.None).ConfigureAwait(true);
-            return state.ActiveProject ?? new PersistedProject(
-                Guid.NewGuid(),
-                Environment.CurrentDirectory,
-                "Refresh",
-                DateTimeOffset.UtcNow,
-                DateTimeOffset.UtcNow);
-        });
+        await ExecuteProjectActionAsync(() => state.RefreshAsync(CancellationToken.None));
     }
 
-    private static async Task ExecuteProjectActionAsync(Func<Task<PersistedProject>> action)
+    private static async Task ExecuteProjectActionAsync(Func<Task> action)
     {
         try
         {
