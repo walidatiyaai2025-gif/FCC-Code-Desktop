@@ -16,6 +16,39 @@ function Assert-ContainsLiteral {
     }
 }
 
+function Get-CSharpMethodBlock {
+    param(
+        [string]$Text,
+        [string]$Signature,
+        [string]$Label
+    )
+
+    $signatureIndex = $Text.IndexOf($Signature, [StringComparison]::Ordinal)
+    if ($signatureIndex -lt 0) {
+        throw "$Label method signature was not found: $Signature"
+    }
+
+    $openingBraceIndex = $Text.IndexOf('{', $signatureIndex + $Signature.Length)
+    if ($openingBraceIndex -lt 0) {
+        throw "$Label method body opening brace was not found."
+    }
+
+    $depth = 0
+    for ($index = $openingBraceIndex; $index -lt $Text.Length; $index++) {
+        if ($Text[$index] -eq '{') {
+            $depth++
+        }
+        elseif ($Text[$index] -eq '}') {
+            $depth--
+            if ($depth -eq 0) {
+                return $Text.Substring($signatureIndex, ($index - $signatureIndex) + 1)
+            }
+        }
+    }
+
+    throw "$Label method body was not balanced."
+}
+
 function Assert-DpiLayoutContract {
     param(
         [string]$ManifestText,
@@ -45,6 +78,9 @@ function Assert-DpiLayoutContract {
         'Loaded += OnViewportLoaded;',
         'SizeChanged += OnViewportSizeChanged;',
         'DpiChanged += OnViewportDpiChanged;',
+        'private void OnViewportLoaded(object sender, RoutedEventArgs e) => ApplyViewportPolicy();',
+        'private void OnViewportSizeChanged(object sender, SizeChangedEventArgs e) => ApplyViewportPolicy();',
+        'private void OnViewportDpiChanged(object sender, DpiChangedEventArgs e) => ApplyViewportPolicy();',
         'VisualTreeHelper.GetDpi(this)',
         '_viewportCoordinator.Update('
     )) {
@@ -68,14 +104,21 @@ function Assert-DpiLayoutContract {
         Assert-ContainsLiteral $CoordinatorText $literal 'WorkspaceViewportCoordinator.cs'
     }
 
+    $viewportPolicyText = Get-CSharpMethodBlock $MainCodeText 'private void ApplyViewportPolicy()' 'MainWindow.ApplyViewportPolicy'
+
     foreach ($forbidden in @(
         'FCCCodeDesktop.Persistence',
+        'FCCCodeDesktop.Runtime',
+        'FCCCodeDesktop.Files',
+        'FCCCodeDesktop.Git',
+        'FCCCodeDesktop.Terminal',
         'System.IO.File',
         'Process.Start',
         'Registry.',
-        'Microsoft.Win32'
+        'Microsoft.Win32',
+        'SQLite'
     )) {
-        if ($MainCodeText.Contains($forbidden) -or $CoordinatorText.Contains($forbidden)) {
+        if ($viewportPolicyText.Contains($forbidden) -or $CoordinatorText.Contains($forbidden)) {
             throw "P02-009 crossed the presentation-only responsive-layout boundary: $forbidden"
         }
     }
@@ -245,6 +288,13 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-DpiLayoutContract $manifestText $projectText $mainCodeText ($coordinatorText.Replace('RestoreForcedRightPane(state)', 'RemovedForcedRightPaneRecovery(state)'))
     } 'forced-pane recovery removed'
+
+    Assert-ContractRejects {
+        $leakedMainCodeText = $mainCodeText.Replace(
+            'var dpi = VisualTreeHelper.GetDpi(this);',
+            "// FCCCodeDesktop.Persistence`n        var dpi = VisualTreeHelper.GetDpi(this);")
+        Assert-DpiLayoutContract $manifestText $projectText $leakedMainCodeText $coordinatorText
+    } 'persistence leaked into responsive layout policy'
 
     Assert-DpiLayoutContract $manifestText $projectText $mainCodeText $coordinatorText
     Write-Host 'DPI/resolution layout recovery fixture: PASS.'

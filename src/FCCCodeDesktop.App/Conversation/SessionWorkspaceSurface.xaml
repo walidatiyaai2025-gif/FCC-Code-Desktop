@@ -1,0 +1,176 @@
+<UserControl x:Class="FCCCodeDesktop.App.Conversation.SessionWorkspaceSurface"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             Background="{DynamicResource FccBrushCanvas}"
+             Foreground="{DynamicResource FccBrushTextPrimary}"
+             Focusable="False"
+             AutomationProperties.Name="Session workspace">
+    <Grid Background="{DynamicResource FccBrushCanvas}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="280" MinWidth="220" MaxWidth="420" />
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="*" MinWidth="320" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                Margin="0,0,1,0"
+                Padding="{StaticResource FccInset12}"
+                Background="{DynamicResource FccBrushSurface}"
+                BorderBrush="{DynamicResource FccBrushBorder}"
+                BorderThickness="0,0,1,0">
+            <Grid DataContext="{Binding State, ElementName=Root}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0">
+                    <TextBlock Text="Sessions"
+                               Style="{StaticResource FccTextSection}"
+                               Foreground="{DynamicResource FccBrushTextPrimary}" />
+                    <TextBlock Margin="0,4,0,0"
+                               Text="{Binding ActiveProjectName}"
+                               TextTrimming="CharacterEllipsis"
+                               Style="{StaticResource FccTextStatus}"
+                               Foreground="{DynamicResource FccBrushTextSecondary}" />
+                    <TextBlock Margin="0,4,0,0"
+                               Text="{Binding StatusText}"
+                               TextWrapping="Wrap"
+                               Style="{StaticResource FccTextStatus}"
+                               Foreground="{DynamicResource FccBrushTextMuted}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1"
+                            Margin="0,12,0,0"
+                            Orientation="Horizontal">
+                    <Button x:Name="NewSessionButton"
+                            MinWidth="104"
+                            Padding="10,6"
+                            Content="New session"
+                            IsEnabled="{Binding HasActiveProject}"
+                            Click="OnNewSessionClicked"
+                            AutomationProperties.Name="Create session" />
+                    <Button x:Name="RefreshSessionsButton"
+                            Margin="8,0,0,0"
+                            MinWidth="72"
+                            Padding="10,6"
+                            Content="Refresh"
+                            IsEnabled="{Binding HasActiveProject}"
+                            Click="OnRefreshClicked"
+                            AutomationProperties.Name="Refresh session history" />
+                </StackPanel>
+
+                <Border Grid.Row="2"
+                        Margin="0,10,0,0"
+                        Padding="8"
+                        Background="{DynamicResource FccBrushErrorBackground}"
+                        BorderBrush="{DynamicResource FccBrushError}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource FccRadiusSmall}">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasError}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="{Binding ErrorMessage}"
+                               TextWrapping="Wrap"
+                               Style="{StaticResource FccTextStatus}"
+                               Foreground="{DynamicResource FccBrushError}" />
+                </Border>
+
+                <ListBox x:Name="SessionHistoryItems"
+                         Grid.Row="3"
+                         Margin="0,12,0,0"
+                         ItemsSource="{Binding Sessions}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         HorizontalContentAlignment="Stretch"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         SelectionChanged="OnSessionSelectionChanged"
+                         AutomationProperties.Name="Session history">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0,0,0,8" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="SessionCard"
+                                                Padding="10"
+                                                Background="{DynamicResource FccBrushSurfaceRaised}"
+                                                BorderBrush="{DynamicResource FccBrushBorder}"
+                                                BorderThickness="1"
+                                                CornerRadius="{StaticResource FccRadiusSmall}">
+                                            <ContentPresenter />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="SessionCard" Property="Background" Value="{DynamicResource FccBrushSelectionBackground}" />
+                                                <Setter TargetName="SessionCard" Property="BorderBrush" Value="{DynamicResource FccBrushAccent}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Title}"
+                                           TextTrimming="CharacterEllipsis"
+                                           Style="{StaticResource FccTextBody}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource FccBrushTextPrimary}" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Text="{Binding UpdatedUtc, StringFormat={}{0:yyyy-MM-dd HH:mm} UTC}"
+                                           Style="{StaticResource FccTextStatus}"
+                                           Foreground="{DynamicResource FccBrushTextMuted}" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Text="{Binding RuntimeSessionId, TargetNullValue=Local session}"
+                                           TextTrimming="CharacterEllipsis"
+                                           Style="{StaticResource FccTextStatus}"
+                                           Foreground="{DynamicResource FccBrushTextSecondary}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <TextBlock Grid.Row="4"
+                           Margin="0,10,0,0"
+                           Text="Project selection is supplied by the project workspace; session state remains durable across app restarts."
+                           TextWrapping="Wrap"
+                           Style="{StaticResource FccTextStatus}"
+                           Foreground="{DynamicResource FccBrushTextMuted}" />
+            </Grid>
+        </Border>
+
+        <GridSplitter Grid.Column="1"
+                      Width="5"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="{DynamicResource FccBrushBorder}"
+                      ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext"
+                      AutomationProperties.Name="Resize session history" />
+
+        <ContentControl Grid.Column="2"
+                        Content="{Binding ConversationContent, ElementName=Root}"
+                        HorizontalContentAlignment="Stretch"
+                        VerticalContentAlignment="Stretch"
+                        Focusable="False" />
+    </Grid>
+</UserControl>

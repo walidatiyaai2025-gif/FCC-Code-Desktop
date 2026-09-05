@@ -27,6 +27,39 @@ function Assert-ValidXaml {
     }
 }
 
+function Get-CSharpMethodBlock {
+    param(
+        [string]$Text,
+        [string]$Signature,
+        [string]$Label
+    )
+
+    $signatureIndex = $Text.IndexOf($Signature, [StringComparison]::Ordinal)
+    if ($signatureIndex -lt 0) {
+        throw "$Label method signature was not found: $Signature"
+    }
+
+    $openingBraceIndex = $Text.IndexOf('{', $signatureIndex + $Signature.Length)
+    if ($openingBraceIndex -lt 0) {
+        throw "$Label method body opening brace was not found."
+    }
+
+    $depth = 0
+    for ($index = $openingBraceIndex; $index -lt $Text.Length; $index++) {
+        if ($Text[$index] -eq '{') {
+            $depth++
+        }
+        elseif ($Text[$index] -eq '}') {
+            $depth--
+            if ($depth -eq 0) {
+                return $Text.Substring($signatureIndex, ($index - $signatureIndex) + 1)
+            }
+        }
+    }
+
+    throw "$Label method body was not balanced."
+}
+
 function Assert-CommandPaletteContract {
     param(
         [string]$MainText,
@@ -145,6 +178,8 @@ function Assert-CommandPaletteContract {
         }
     }
 
+    $shellFrameworkText = Get-CSharpMethodBlock $MainCodeText 'private void ConfigureShellCommandFramework()' 'MainWindow.ConfigureShellCommandFramework'
+
     foreach ($forbidden in @(
         'FCCCodeDesktop.Persistence',
         'FCCCodeDesktop.Runtime',
@@ -157,7 +192,7 @@ function Assert-CommandPaletteContract {
         'Microsoft.Win32',
         'SQLite'
     )) {
-        if ($MainCodeText.Contains($forbidden) -or
+        if ($shellFrameworkText.Contains($forbidden) -or
             $PaletteCodeText.Contains($forbidden) -or
             $PaletteStateText.Contains($forbidden)) {
             throw "P02-007 crossed the shell-framework-only boundary: $forbidden"
@@ -449,6 +484,13 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-CommandPaletteContract $mainText $mainCodeText $paletteText $paletteCodeText ($paletteStateText.Replace('StringComparison.OrdinalIgnoreCase', 'StringComparison.Ordinal'))
     } 'case-insensitive filtering removed'
+
+    Assert-ContractRejects {
+        $leakedMainCodeText = $mainCodeText.Replace(
+            'var paletteState = RequireResource<CommandPaletteState>("CommandPaletteState");',
+            "// FCCCodeDesktop.Persistence`n        var paletteState = RequireResource<CommandPaletteState>(`"CommandPaletteState`");")
+        Assert-CommandPaletteContract $mainText $leakedMainCodeText $paletteText $paletteCodeText $paletteStateText
+    } 'persistence leaked into shell command framework'
 
     Assert-CommandPaletteContract $mainText $mainCodeText $paletteText $paletteCodeText $paletteStateText
     Write-Host 'Command-palette recovery fixture: PASS.'

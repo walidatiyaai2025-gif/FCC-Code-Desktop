@@ -43,7 +43,9 @@ function Assert-StreamingConversationContract {
         'xmlns:conversation="clr-namespace:FCCCodeDesktop.App.Conversation"',
         '<conversation:StreamingConversationState x:Key="StreamingConversationState" />',
         '<conversation:ConversationSurface x:Key="ConversationSurface"',
-        'State="{StaticResource StreamingConversationState}"'
+        'State="{StaticResource StreamingConversationState}"',
+        '<conversation:SessionWorkspaceSurface x:Key="SessionWorkspaceSurface"',
+        'ConversationContent="{StaticResource ConversationSurface}"'
     )) {
         Assert-ContainsLiteral $MainXamlText $literal 'MainWindow.xaml'
     }
@@ -51,7 +53,8 @@ function Assert-StreamingConversationContract {
     foreach ($literal in @(
         'ConfigureConversationSurface();',
         'RequireResource<ConversationSurface>("ConversationSurface")',
-        'navigationState.SessionsContent = conversationSurface;'
+        'RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface")',
+        'navigationState.SessionsContent = sessionWorkspaceSurface;'
     )) {
         Assert-ContainsLiteral $MainCodeText $literal 'MainWindow.xaml.cs'
     }
@@ -203,11 +206,14 @@ internal static class Program
             ?? throw new InvalidOperationException("StreamingConversationState production resource is missing.");
         var surface = window.Resources["ConversationSurface"] as ConversationSurface
             ?? throw new InvalidOperationException("ConversationSurface production resource is missing.");
+        var sessionWorkspace = window.Resources["SessionWorkspaceSurface"] as SessionWorkspaceSurface
+            ?? throw new InvalidOperationException("SessionWorkspaceSurface production resource is missing.");
         var navigation = window.Resources["WorkspaceNavigationState"] as WorkspaceNavigationState
             ?? throw new InvalidOperationException("WorkspaceNavigationState production resource is missing.");
 
         Assert(ReferenceEquals(surface.State, state), "surface/state composition");
-        Assert(ReferenceEquals(navigation.SessionsContent, surface), "sessions production composition");
+        Assert(ReferenceEquals(sessionWorkspace.ConversationContent, surface), "session workspace/conversation composition");
+        Assert(ReferenceEquals(navigation.SessionsContent, sessionWorkspace), "sessions production composition");
         Assert(!state.HasMessages && state.Messages.Count == 0, "initial empty state");
 
         var whitespaceRejected = false;
@@ -364,8 +370,12 @@ if ($RunFixtures) {
     } 'runtime ordering guard removed'
 
     Assert-ContractRejects {
-        Assert-StreamingConversationContract $mainXamlText ($mainCodeText.Replace('navigationState.SessionsContent = conversationSurface;', '')) $surfaceXamlText $surfaceCodeText $stateText
-    } 'sessions composition removed'
+        Assert-StreamingConversationContract ($mainXamlText.Replace('ConversationContent="{StaticResource ConversationSurface}"', '')) $mainCodeText $surfaceXamlText $surfaceCodeText $stateText
+    } 'conversation surface removed from session workspace composition'
+
+    Assert-ContractRejects {
+        Assert-StreamingConversationContract $mainXamlText ($mainCodeText.Replace('navigationState.SessionsContent = sessionWorkspaceSurface;', '')) $surfaceXamlText $surfaceCodeText $stateText
+    } 'session workspace removed from sessions navigation composition'
 
     Assert-StreamingConversationContract $mainXamlText $mainCodeText $surfaceXamlText $surfaceCodeText $stateText
     Write-Host 'Streaming-conversation recovery fixture: PASS.'

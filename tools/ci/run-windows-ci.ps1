@@ -133,6 +133,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-conversation-composer.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Conversation composer validation'
 
+    Write-Host 'CI stage: session create/history/resume workspace'
+    & pwsh -NoProfile -File .\tools\ui\validate-session-workspace.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'Session workspace validation'
+
     Write-Host 'CI stage: bottom tool-panel framework'
     & pwsh -NoProfile -File .\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Bottom tool-panel validation'
