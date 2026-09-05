@@ -151,7 +151,7 @@
                                                Style="{StaticResource FccTextMetadata}"
                                                Foreground="{DynamicResource FccBrushTextMuted}" />
                                     <TextBlock Margin="0,3,16,0"
-                                               Text="{Binding UpdatedUtc, StringFormat=Last opened {0:g}}"
+                                               Text="{Binding UpdatedUtc, StringFormat='Last opened {0:g}'}"
                                                Style="{StaticResource FccTextMetadata}"
                                                Foreground="{DynamicResource FccBrushTextSecondary}" />
                                 </StackPanel>
@@ -160,7 +160,7 @@
                                         VerticalAlignment="Center"
                                         Content="Open"
                                         Tag="{Binding}"
-                                        IsEnabled="{Binding DataContext.CanOpenProject, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        IsEnabled="{Binding DataContext.CanOpenProject, RelativeSource={RelativeSource AncestorType=ListBox}}"
                                         Style="{StaticResource ProjectActionButton}"
                                         Click="OnOpenRecentProjectClick"
                                         AutomationProperties.Name="Open recent project" />
