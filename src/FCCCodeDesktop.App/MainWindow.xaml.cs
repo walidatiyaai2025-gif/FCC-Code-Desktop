@@ -116,7 +116,8 @@ public partial class MainWindow : Window
         string? unavailableReason = null;
         if (discovery.IsFccClaudeAvailable)
         {
-            runtime = new AgentRuntimeSupervisor(new FccStructuredAgentRuntime(discovery.FccClaude));
+            runtime = new ConversationSequencedAgentRuntime(
+                new AgentRuntimeSupervisor(new FccStructuredAgentRuntime(discovery.FccClaude)));
         }
         else
         {
