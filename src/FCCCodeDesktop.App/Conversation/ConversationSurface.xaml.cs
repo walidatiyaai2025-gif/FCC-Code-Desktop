@@ -38,7 +38,8 @@ public partial class ConversationSurface : UserControl
         if (args.OldValue is StreamingConversationState oldState)
         {
             oldState.PropertyChanged -= surface.OnStatePropertyChanged;
-            ((INotifyCollectionChanged)oldState.Messages).CollectionChanged -= surface.OnMessagesChanged;
+            ((INotifyCollectionChanged)oldState.Messages).CollectionChanged -= surface.OnPresentationCollectionChanged;
+            ((INotifyCollectionChanged)oldState.ToolActivities).CollectionChanged -= surface.OnPresentationCollectionChanged;
         }
 
         if (args.NewValue is not StreamingConversationState newState)
@@ -48,17 +49,19 @@ public partial class ConversationSurface : UserControl
         }
 
         newState.PropertyChanged += surface.OnStatePropertyChanged;
-        ((INotifyCollectionChanged)newState.Messages).CollectionChanged += surface.OnMessagesChanged;
+        ((INotifyCollectionChanged)newState.Messages).CollectionChanged += surface.OnPresentationCollectionChanged;
+        ((INotifyCollectionChanged)newState.ToolActivities).CollectionChanged += surface.OnPresentationCollectionChanged;
         surface.ScheduleScrollToLatest();
     }
 
-    private void OnMessagesChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+    private void OnPresentationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
         ScheduleScrollToLatest();
 
     private void OnStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(StreamingConversationState.LastRuntimeSequence)
-            or nameof(StreamingConversationState.IsStreaming))
+            or nameof(StreamingConversationState.IsStreaming)
+            or nameof(StreamingConversationState.HasToolActivities))
         {
             ScheduleScrollToLatest();
         }
@@ -84,11 +87,14 @@ public partial class ConversationSurface : UserControl
 
     private void ScrollToLatest()
     {
-        if (State.Messages.Count == 0)
+        if (State.Messages.Count > 0)
         {
-            return;
+            ConversationItems.ScrollIntoView(State.Messages[^1]);
         }
 
-        ConversationItems.ScrollIntoView(State.Messages[^1]);
+        if (State.ToolActivities.Count > 0)
+        {
+            ToolTimelineItems.ScrollIntoView(State.ToolActivities[^1]);
+        }
     }
 }

@@ -125,6 +125,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-streaming-conversation.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Streaming conversation validation'
 
+    Write-Host 'CI stage: structured tool activity timeline'
+    & pwsh -NoProfile -File .\tools\ui\validate-tool-activity-timeline.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'Tool activity timeline validation'
+
     Write-Host 'CI stage: bottom tool-panel framework'
     & pwsh -NoProfile -File .\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Bottom tool-panel validation'

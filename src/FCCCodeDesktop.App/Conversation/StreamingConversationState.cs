@@ -13,6 +13,12 @@ public enum ConversationMessageRole
     Assistant,
 }
 
+public enum ToolActivityStatus
+{
+    Running,
+    ResultReceived,
+}
+
 public sealed class ConversationMessageState : INotifyPropertyChanged
 {
     private readonly StringBuilder _text = new();
@@ -81,24 +87,168 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 }
 
+public sealed class ToolActivityState : INotifyPropertyChanged
+{
+    private string? _progressText;
+    private string? _resultText;
+    private ToolActivityStatus _status;
+    private DateTimeOffset _lastUpdatedUtc;
+
+    internal ToolActivityState(
+        long activityId,
+        string? correlationId,
+        string toolName,
+        DateTimeOffset startedUtc)
+    {
+        if (activityId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(activityId), "Tool activity identifier must be positive.");
+        }
+
+        ActivityId = activityId;
+        CorrelationId = string.IsNullOrWhiteSpace(correlationId) ? null : correlationId.Trim();
+        ToolName = string.IsNullOrWhiteSpace(toolName) ? "Tool" : toolName.Trim();
+        StartedUtc = startedUtc.ToUniversalTime();
+        _lastUpdatedUtc = StartedUtc;
+        _status = ToolActivityStatus.Running;
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public long ActivityId { get; }
+
+    public string? CorrelationId { get; }
+
+    public string ToolName { get; }
+
+    public DateTimeOffset StartedUtc { get; }
+
+    public DateTimeOffset LastUpdatedUtc
+    {
+        get => _lastUpdatedUtc;
+        private set
+        {
+            if (_lastUpdatedUtc == value)
+            {
+                return;
+            }
+
+            _lastUpdatedUtc = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public ToolActivityStatus Status
+    {
+        get => _status;
+        private set
+        {
+            if (_status == value)
+            {
+                return;
+            }
+
+            _status = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(StatusLabel));
+        }
+    }
+
+    public string StatusLabel => Status switch
+    {
+        ToolActivityStatus.Running => "Running",
+        ToolActivityStatus.ResultReceived => "Result",
+        _ => throw new InvalidOperationException($"Unsupported tool activity status: {Status}"),
+    };
+
+    public string? ProgressText
+    {
+        get => _progressText;
+        private set
+        {
+            if (string.Equals(_progressText, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _progressText = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasProgress));
+        }
+    }
+
+    public string? ResultText
+    {
+        get => _resultText;
+        private set
+        {
+            if (string.Equals(_resultText, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _resultText = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(HasResult));
+        }
+    }
+
+    public bool HasProgress => !string.IsNullOrWhiteSpace(ProgressText);
+
+    public bool HasResult => !string.IsNullOrWhiteSpace(ResultText);
+
+    internal void RecordProgress(string? text, DateTimeOffset occurredUtc)
+    {
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            ProgressText = text;
+        }
+
+        LastUpdatedUtc = occurredUtc.ToUniversalTime();
+    }
+
+    internal void RecordResult(string? text, DateTimeOffset occurredUtc)
+    {
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            ResultText = text;
+        }
+
+        LastUpdatedUtc = occurredUtc.ToUniversalTime();
+        Status = ToolActivityStatus.ResultReceived;
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+
 public sealed class StreamingConversationState : DispatcherObject, INotifyPropertyChanged
 {
     private readonly ObservableCollection<ConversationMessageState> _messages = [];
+    private readonly ObservableCollection<ToolActivityState> _toolActivities = [];
+    private readonly Dictionary<string, ToolActivityState> _activeToolsByCorrelation = new(StringComparer.Ordinal);
     private readonly ReadOnlyObservableCollection<ConversationMessageState> _readonlyMessages;
+    private readonly ReadOnlyObservableCollection<ToolActivityState> _readonlyToolActivities;
     private ConversationMessageState? _activeAssistantMessage;
     private long? _lastRuntimeSequence;
     private long _nextMessageId = 1;
+    private long _nextToolActivityId = 1;
 
     public StreamingConversationState()
     {
         _readonlyMessages = new ReadOnlyObservableCollection<ConversationMessageState>(_messages);
+        _readonlyToolActivities = new ReadOnlyObservableCollection<ToolActivityState>(_toolActivities);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public ReadOnlyObservableCollection<ConversationMessageState> Messages => _readonlyMessages;
 
+    public ReadOnlyObservableCollection<ToolActivityState> ToolActivities => _readonlyToolActivities;
+
     public bool HasMessages => _messages.Count > 0;
+
+    public bool HasToolActivities => _toolActivities.Count > 0;
 
     public bool IsStreaming => _activeAssistantMessage is not null;
 
@@ -143,10 +293,14 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
         }
 
         _messages.Clear();
+        _toolActivities.Clear();
+        _activeToolsByCorrelation.Clear();
         _activeAssistantMessage = null;
         _lastRuntimeSequence = null;
         _nextMessageId = 1;
+        _nextToolActivityId = 1;
         OnPropertyChanged(nameof(HasMessages));
+        OnPropertyChanged(nameof(HasToolActivities));
         OnPropertyChanged(nameof(IsStreaming));
         OnPropertyChanged(nameof(LastRuntimeSequence));
     }
@@ -164,12 +318,21 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
             case AgentRuntimeEventKind.AssistantTextDelta:
                 AppendAssistantDelta(runtimeEvent.Text);
                 break;
+            case AgentRuntimeEventKind.ToolStarted:
+                RecordToolStarted(runtimeEvent);
+                break;
+            case AgentRuntimeEventKind.ToolProgress:
+                RecordToolProgress(runtimeEvent);
+                break;
+            case AgentRuntimeEventKind.ToolResult:
+                RecordToolResult(runtimeEvent);
+                break;
             case AgentRuntimeEventKind.Completion:
                 CompleteAssistantMessage();
                 break;
             default:
-                // P05-001 intentionally projects only assistant text. Tool/runtime/status events
-                // remain typed and are rendered by their owning later conversation tasks.
+                // Product presentation consumes only normalized typed events owned by P05 tasks.
+                // Provider payload parsing and process execution remain below this UI boundary.
                 break;
         }
     }
@@ -207,6 +370,69 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
         OnPropertyChanged(nameof(IsStreaming));
     }
 
+    private void RecordToolStarted(AgentRuntimeEvent runtimeEvent)
+    {
+        var activity = CreateToolActivity(
+            runtimeEvent.CorrelationId,
+            string.IsNullOrWhiteSpace(runtimeEvent.Text) ? "Tool" : runtimeEvent.Text,
+            runtimeEvent.OccurredUtc);
+
+        if (activity.CorrelationId is { } correlationId)
+        {
+            _activeToolsByCorrelation[correlationId] = activity;
+        }
+    }
+
+    private void RecordToolProgress(AgentRuntimeEvent runtimeEvent)
+    {
+        var activity = ResolveToolActivity(runtimeEvent.CorrelationId)
+            ?? CreateToolActivity(runtimeEvent.CorrelationId, "Tool activity", runtimeEvent.OccurredUtc);
+
+        activity.RecordProgress(runtimeEvent.Text, runtimeEvent.OccurredUtc);
+    }
+
+    private void RecordToolResult(AgentRuntimeEvent runtimeEvent)
+    {
+        var activity = ResolveToolActivity(runtimeEvent.CorrelationId)
+            ?? CreateToolActivity(runtimeEvent.CorrelationId, "Tool result", runtimeEvent.OccurredUtc);
+
+        activity.RecordResult(runtimeEvent.Text, runtimeEvent.OccurredUtc);
+
+        if (activity.CorrelationId is { } correlationId
+            && _activeToolsByCorrelation.TryGetValue(correlationId, out var activeActivity)
+            && ReferenceEquals(activeActivity, activity))
+        {
+            _activeToolsByCorrelation.Remove(correlationId);
+        }
+    }
+
+    private ToolActivityState? ResolveToolActivity(string? correlationId)
+    {
+        if (string.IsNullOrWhiteSpace(correlationId))
+        {
+            return null;
+        }
+
+        return _activeToolsByCorrelation.TryGetValue(correlationId.Trim(), out var activity)
+            ? activity
+            : null;
+    }
+
+    private ToolActivityState CreateToolActivity(
+        string? correlationId,
+        string toolName,
+        DateTimeOffset occurredUtc)
+    {
+        var activity = new ToolActivityState(
+            NextToolActivityId(),
+            correlationId,
+            toolName,
+            occurredUtc);
+        _toolActivities.Add(activity);
+        OnPropertyChanged(nameof(HasToolActivities));
+        return activity;
+    }
+
     private void AssertRuntimeSequence(long sequence)
     {
         if (_lastRuntimeSequence is not long lastSequence)
@@ -227,6 +453,13 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
         var messageId = _nextMessageId;
         _nextMessageId = checked(_nextMessageId + 1);
         return messageId;
+    }
+
+    private long NextToolActivityId()
+    {
+        var activityId = _nextToolActivityId;
+        _nextToolActivityId = checked(_nextToolActivityId + 1);
+        return activityId;
     }
 
     private void AddMessage(ConversationMessageState message)

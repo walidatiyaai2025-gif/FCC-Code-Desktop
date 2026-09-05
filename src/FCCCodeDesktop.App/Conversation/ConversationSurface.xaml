@@ -9,7 +9,13 @@
              AutomationProperties.Name="Agent conversation">
     <Grid DataContext="{Binding State, ElementName=Root}"
           Background="{DynamicResource FccBrushCanvas}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" MinHeight="180" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
         <ListBox x:Name="ConversationItems"
+                 Grid.Row="0"
                  ItemsSource="{Binding Messages}"
                  Background="Transparent"
                  BorderThickness="0"
@@ -94,6 +100,7 @@
         </ListBox>
 
         <Border x:Name="ConversationEmptyState"
+                Grid.Row="0"
                 Margin="{StaticResource FccInset16}"
                 Padding="{StaticResource FccInset24}"
                 HorizontalAlignment="Center"
@@ -125,6 +132,135 @@
                            Style="{StaticResource FccTextBody}"
                            Foreground="{DynamicResource FccBrushTextMuted}" />
             </StackPanel>
+        </Border>
+
+        <Border x:Name="ToolTimelinePanel"
+                Grid.Row="1"
+                MaxHeight="240"
+                Margin="16,0,16,16"
+                Background="{DynamicResource FccBrushSurface}"
+                BorderBrush="{DynamicResource FccBrushBorder}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource FccRadiusMedium}"
+                AutomationProperties.Name="Tool activity timeline">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasToolActivities}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" Margin="12,10,12,8">
+                    <TextBlock Text="Tool activity"
+                               Style="{StaticResource FccTextSection}"
+                               Foreground="{DynamicResource FccBrushTextPrimary}" />
+                    <TextBlock Margin="10,0,0,0"
+                               Text="Structured runtime events"
+                               Style="{StaticResource FccTextStatus}"
+                               Foreground="{DynamicResource FccBrushTextMuted}" />
+                </DockPanel>
+                <ListBox x:Name="ToolTimelineItems"
+                         Grid.Row="1"
+                         ItemsSource="{Binding ToolActivities}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="12,0,12,8"
+                         HorizontalContentAlignment="Stretch"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         VirtualizingPanel.VirtualizationMode="Recycling"
+                         AutomationProperties.Name="Tool activity items">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Focusable" Value="False" />
+                            <Setter Property="IsHitTestVisible" Value="False" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0,0,0,8" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <ContentPresenter />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type conversation:ToolActivityState}">
+                            <Border Padding="10"
+                                    Background="{DynamicResource FccBrushSurfaceRaised}"
+                                    BorderBrush="{DynamicResource FccBrushBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource FccRadiusSmall}">
+                                <StackPanel>
+                                    <DockPanel LastChildFill="False">
+                                        <TextBlock Text="{Binding ToolName}"
+                                                   Style="{StaticResource FccTextBody}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource FccBrushTextPrimary}" />
+                                        <TextBlock x:Name="ToolStatus"
+                                                   Margin="10,0,0,0"
+                                                   Text="{Binding StatusLabel}"
+                                                   Style="{StaticResource FccTextStatus}"
+                                                   Foreground="{DynamicResource FccBrushAccent}" />
+                                        <TextBlock Margin="10,0,0,0"
+                                                   Text="{Binding LastUpdatedUtc, StringFormat={}{0:HH:mm:ss} UTC}"
+                                                   Style="{StaticResource FccTextStatus}"
+                                                   Foreground="{DynamicResource FccBrushTextMuted}" />
+                                    </DockPanel>
+                                    <TextBlock Margin="0,6,0,0"
+                                               Text="{Binding ProgressText}"
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource FccBrushTextSecondary}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource FccTextStatus}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasProgress}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <TextBlock Margin="0,6,0,0"
+                                               Text="{Binding ResultText}"
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource FccBrushTextSecondary}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource FccTextStatus}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasResult}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Status}" Value="{x:Static conversation:ToolActivityStatus.ResultReceived}">
+                                    <Setter TargetName="ToolStatus" Property="Foreground" Value="{DynamicResource FccBrushTextSecondary}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
         </Border>
     </Grid>
 </UserControl>
