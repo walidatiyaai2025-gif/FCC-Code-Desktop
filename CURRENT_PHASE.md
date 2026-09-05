@@ -24,7 +24,7 @@ LAST_RECONCILED: 2026-09-05
 
 `CURRENT_PHASE` now means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
-P05 is the sole legal cloud implementation phase. `FCCD-P05-001 — Streaming chat rendering` has been normally integrated and exact-main verified; subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, the earliest unclaimed mandatory task is now `FCCD-P05-002 — Structured tool activity timeline`.
+P05 is the sole legal cloud implementation phase. `FCCD-P05-001 — Streaming chat rendering` and `FCCD-P05-002 — Structured tool activity timeline` have been normally integrated and exact-main verified; subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, the earliest unclaimed mandatory task is now `FCCD-P05-003 — Composer/attachments/context`.
 
 This is **not** a P04 closure and does not weaken P04 acceptance. `FCCD-P04-008 — Runtime contract suite` remains unresolved in `docs/TASK_LEDGER.md`; the P04 exit gate remains `NOT_RUN`; no P04 `CLOSURE.md` PASS is claimed by this scheduling transition. Its fresh owner-Windows/provider `REAL_TARGET` obligation is durably queued as `OWNER-P04-008-REAL-TARGET`, remains `releaseBlocking=true`, and must later be genuinely executed, reviewed, integrated, and reconciled.
 
@@ -59,7 +59,7 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 ## P05 cloud task inventory
 
 - `FCCD-P05-001` — Streaming chat rendering — CLOSED.
-- `FCCD-P05-002` — Structured tool activity timeline — PENDING.
+- `FCCD-P05-002` — Structured tool activity timeline — CLOSED.
 - `FCCD-P05-003` — Composer/attachments/context — PENDING.
 - `FCCD-P05-004` — Session create/history/resume — PENDING.
 - `FCCD-P05-005` — Explicit task state machine — PENDING.
@@ -76,6 +76,15 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 - Integrated evidence: `evidence/phases/P05/P05_001_INTEGRATED_RECONCILIATION_2026-09-05.md`.
 - Evidence class remains cloud/self-test for UI mechanics; no provider-backed P04 acceptance is implied.
 
+## P05-002 integration provenance
+
+- Exact implementation candidate: `d17643560b2ec8e36f24b052ab0ee322a6b0a4c5`.
+- PR #122 exact-head Windows CI: run `33942370655` / run #179 — SUCCESS.
+- Normal merge commit: `94d639ba0d4f2afe4e28054152b15df04e33f76a`.
+- Exact post-merge canonical-main Windows CI: run `33942655208` / run #180 — SUCCESS.
+- Integrated evidence: `evidence/phases/P05/P05_002_INTEGRATED_RECONCILIATION_2026-09-05.md`.
+- Evidence class remains cloud/self-test for structured timeline mechanics; no provider-backed P04 acceptance is implied.
+
 ## Activation provenance
 
 - Owner-last bootstrap base before PR #117: `2e76d7f6a44bf120e16efab21a01df9784cd8380`.
@@ -88,4 +97,4 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 
 ## Next legitimate action after this reconciliation is integrated
 
-Re-fetch live main, queue, open PRs/branches/issues, and CI. If no Priority 1–4 repair/recovery/integration work exists, select exactly one unclaimed P05 task beginning with the earliest dependency-valid row, `FCCD-P05-002 — Structured tool activity timeline`, and execute it normally. Do not execute queued owner acceptance until the final-owner lane is intentionally reached, do not treat that deferral as release PASS, and do not advance to P06 until P05's normal cloud implementation and gate requirements are genuinely satisfied.
+Re-fetch live main, queue, open PRs/branches/issues, and CI. If no Priority 1–4 repair/recovery/integration work exists, select exactly one unclaimed P05 task beginning with the earliest dependency-valid row, `FCCD-P05-003 — Composer/attachments/context`, and execute it normally. Do not execute queued owner acceptance until the final-owner lane is intentionally reached, do not treat that deferral as release PASS, and do not advance to P06 until P05's normal cloud implementation and gate requirements are genuinely satisfied.
