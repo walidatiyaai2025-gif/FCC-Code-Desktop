@@ -125,8 +125,14 @@ public partial class ConversationSurface : UserControl
 
     private void OnStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(StreamingConversationState.LastRuntimeSequence)
-            or nameof(StreamingConversationState.IsStreaming))
+        if (e.PropertyName is nameof(StreamingConversationState.LastRuntimeSequence))
+        {
+            ScheduleConversationTail();
+            ScheduleToolTimelineTail();
+            return;
+        }
+
+        if (e.PropertyName is nameof(StreamingConversationState.IsStreaming))
         {
             ScheduleConversationTail();
         }
