@@ -39,6 +39,7 @@ function Assert-TaskStateContract {
         'Idle = 0',
         'Starting = 1',
         'Running = 2',
+        'StopRequested = 3',
         'Succeeded = 4',
         'Failed = 5',
         'Cancelled = 6',
@@ -46,13 +47,18 @@ function Assert-TaskStateContract {
         'SessionWorkspaceState _sessionWorkspace',
         'StreamingConversationState _conversation',
         'public async Task StartTaskAsync(',
-        'Another task is already active in this workspace.',
+        'IsActive || _activePumpTask is not null || _activeExecution is not null',
+        'Another task is already active or still settling in this workspace.',
         'Create or resume a persisted project session before starting a task.',
         'new AgentRuntimeRequest(',
-        'EnsureExecutionIdentity(execution, request)',
+        'EnsureExecutionIdentity(startedExecution, request)',
         'EnsureResultIdentity(result, taskId, runId)',
+        'CleanupUnownedExecutionAsync(startedExecution)',
+        'TrackPumpCompletionAsync(pumpTask)',
+        'RecordStartCancellationAsync(cleanupDiagnostic)',
         'The active session changed while a task was running.',
         'AppendMessageAsync("assistant", assistantText.ToString()',
+        'SetFailureMessage(result.Failure?.Message)',
         'UpsertTaskAsync(',
         'UpsertAgentRunAsync(',
         'AppendEventAsync(taskEvent',
@@ -70,11 +76,12 @@ function Assert-TaskStateContract {
     }
 
     if ($StateText.Contains('runtimeEvent.PayloadJson', [StringComparison]::Ordinal)) {
-        throw 'P05-005 must not persist or project raw provider payload JSON into the task journal.'
+        throw 'P05-005 must not persist raw provider payload JSON into the task journal.'
     }
 
     foreach ($literal in @(
         'public sealed class ConversationSequencedAgentRuntime : IAgentRuntime',
+        'Source runtime event sequence must start at zero.',
         'Source runtime event sequence must remain contiguous.',
         '_owner.NextPresentationSequence()',
         'runtimeEvent.PayloadJson'
@@ -98,11 +105,7 @@ function Assert-TaskStateContract {
         Assert-ContainsLiteral $SurfaceText $literal 'TaskExecutionSurface.xaml'
     }
 
-    foreach ($literal in @(
-        'DependencyProperty StateProperty',
-        'typeof(TaskExecutionState)',
-        'nameof(State)'
-    )) {
+    foreach ($literal in @('DependencyProperty StateProperty', 'typeof(TaskExecutionState)', 'nameof(State)')) {
         Assert-ContainsLiteral $SurfaceCodeText $literal 'TaskExecutionSurface.xaml.cs'
     }
 
@@ -247,10 +250,10 @@ internal static class Program
         await sessionState.AppendMessageAsync("user", "first prompt", CancellationToken.None);
         conversation.AddUserMessage("first prompt");
         await state.StartTaskAsync("first prompt", CancellationToken.None);
-        await WaitForTerminalAsync(state);
+        await WaitForSettledAsync(state);
         Assert(state.State == TaskLifecycleState.Succeeded, "first task success state");
-        Assert(state.ActiveTaskId is Guid firstTaskId, "first task id");
-        Assert(state.ActiveRunId is Guid firstRunId, "first run id");
+        var firstTaskId = state.ActiveTaskId ?? throw new InvalidOperationException("P05-005 assertion failed: first task id");
+        var firstRunId = state.ActiveRunId ?? throw new InvalidOperationException("P05-005 assertion failed: first run id");
         Assert(sessionState.ActiveRuntimeSessionId == "runtime-session-1", "runtime session binding");
         var firstPersisted = await journalStore.GetTaskAsync(firstTaskId, CancellationToken.None);
         Assert(firstPersisted?.State == "Succeeded" && firstPersisted.SessionId == session.Id, "first durable task");
@@ -260,10 +263,12 @@ internal static class Program
         await sessionState.AppendMessageAsync("user", "second prompt", CancellationToken.None);
         conversation.AddUserMessage("second prompt");
         await state.StartTaskAsync("second prompt", CancellationToken.None);
-        await WaitForTerminalAsync(state);
+        await WaitForSettledAsync(state);
         Assert(state.State == TaskLifecycleState.Succeeded, "second task success state");
-        Assert(state.ActiveTaskId is Guid secondTaskId && secondTaskId != firstTaskId, "new logical task identity");
-        Assert(state.ActiveRunId is Guid secondRunId && secondRunId != firstRunId, "new run identity");
+        var secondTaskId = state.ActiveTaskId ?? throw new InvalidOperationException("P05-005 assertion failed: second task id");
+        var secondRunId = state.ActiveRunId ?? throw new InvalidOperationException("P05-005 assertion failed: second run id");
+        Assert(secondTaskId != firstTaskId, "new logical task identity");
+        Assert(secondRunId != firstRunId, "new run identity");
         Assert(conversation.LastRuntimeSequence == 5, "monotonic presentation sequence across executions");
         var messages = await conversationStore.ListMessagesAsync(session.Id, CancellationToken.None);
         Assert(messages.Count == 4, "durable user and assistant history");
@@ -280,38 +285,61 @@ internal static class Program
         Assert(activeState.State == TaskLifecycleState.Running, "active task running");
         var activeRejected = false;
         try { activeState.ValidateCanStart(); }
-        catch (InvalidOperationException) { activeRejected = true; }
+        catch (InvalidOperationException exception) when (exception.Message.Contains("active or still settling", StringComparison.Ordinal))
+        {
+            activeRejected = true;
+        }
         Assert(activeRejected, "one-active-task guard");
         activeRuntime.LastExecution!.CompleteSucceeded();
-        await WaitForTerminalAsync(activeState);
+        await WaitForSettledAsync(activeState);
         Assert(activeState.State == TaskLifecycleState.Succeeded, "manual execution completion");
 
-        var failure = new AgentRuntimeFailure(
+        var longFailure = new AgentRuntimeFailure(
             AgentRuntimeFailureKind.ProviderUnavailable,
-            "provider unavailable",
+            new string('x', 5000),
             AgentRuntimeRetryability.NotRetryable,
             AgentRuntimeUserAction.NotRequired);
-        var failingRuntime = new ScriptedRuntime(Scenario.Failed(failure));
         var failingState = new TaskExecutionState(
             journalStore,
             sessionState,
             new StreamingConversationState(),
-            new ConversationSequencedAgentRuntime(failingRuntime));
+            new ConversationSequencedAgentRuntime(new ScriptedRuntime(Scenario.Failed(longFailure))));
         await failingState.StartTaskAsync("failure task", CancellationToken.None);
-        await WaitForTerminalAsync(failingState);
-        Assert(failingState.State == TaskLifecycleState.Failed && failingState.HasFailure, "classified failure state");
-        var failedTask = await journalStore.GetTaskAsync(failingState.ActiveTaskId!.Value, CancellationToken.None);
+        await WaitForSettledAsync(failingState);
+        Assert(failingState.State == TaskLifecycleState.Failed, "classified failure state");
+        Assert(failingState.FailureMessage?.Length == 1024, "failure diagnostic bound");
+        var failedTaskId = failingState.ActiveTaskId ?? throw new InvalidOperationException("P05-005 assertion failed: failed task id");
+        var failedTask = await journalStore.GetTaskAsync(failedTaskId, CancellationToken.None);
         Assert(failedTask?.State == "Failed", "failed task durable state");
 
-        var gapRuntime = new ScriptedRuntime(Scenario.SequenceGap());
         var gapState = new TaskExecutionState(
             journalStore,
             sessionState,
             new StreamingConversationState(),
-            new ConversationSequencedAgentRuntime(gapRuntime));
+            new ConversationSequencedAgentRuntime(new ScriptedRuntime(Scenario.SequenceGap())));
         await gapState.StartTaskAsync("gap task", CancellationToken.None);
-        await WaitForTerminalAsync(gapState);
+        await WaitForSettledAsync(gapState);
         Assert(gapState.State == TaskLifecycleState.Failed, "source sequence gap fails closed");
+
+        var originState = new TaskExecutionState(
+            journalStore,
+            sessionState,
+            new StreamingConversationState(),
+            new ConversationSequencedAgentRuntime(new ScriptedRuntime(Scenario.InvalidOrigin())));
+        await originState.StartTaskAsync("origin task", CancellationToken.None);
+        await WaitForSettledAsync(originState);
+        Assert(originState.State == TaskLifecycleState.Failed, "source sequence origin fails closed");
+
+        var mismatchRuntime = new MismatchedRuntime();
+        var mismatchState = new TaskExecutionState(
+            journalStore,
+            sessionState,
+            new StreamingConversationState(),
+            mismatchRuntime);
+        await mismatchState.StartTaskAsync("identity task", CancellationToken.None);
+        Assert(mismatchState.State == TaskLifecycleState.Failed, "mismatched runtime identity fails closed");
+        Assert(mismatchRuntime.Execution is { CancelCalled: true, DisposeCalled: true }, "mismatched execution cleanup");
+        mismatchState.ValidateCanStart();
 
         var unavailable = new TaskExecutionState(
             journalStore,
@@ -334,17 +362,28 @@ internal static class Program
         Assert(surface.State.State == TaskLifecycleState.Succeeded, "production task surface state binding");
         window.Close();
 
-        Console.WriteLine("Runtime P05-005 task-state success/failure/guard/persistence/sequence fixture: PASS.");
+        Console.WriteLine("Runtime P05-005 task-state lifecycle/persistence/cleanup/sequence fixture: PASS.");
     }
 
-    private static async Task WaitForTerminalAsync(TaskExecutionState state)
+    private static async Task WaitForSettledAsync(TaskExecutionState state)
     {
         var timeout = DateTimeOffset.UtcNow.AddSeconds(10);
-        while (state.IsActive && DateTimeOffset.UtcNow < timeout)
+        while (DateTimeOffset.UtcNow < timeout)
         {
+            if (!state.IsActive)
+            {
+                try
+                {
+                    state.ValidateCanStart();
+                    return;
+                }
+                catch (InvalidOperationException exception) when (exception.Message.Contains("still settling", StringComparison.Ordinal))
+                {
+                }
+            }
             await Task.Delay(20);
         }
-        Assert(!state.IsActive, "task terminal timeout");
+        throw new InvalidOperationException("P05-005 assertion failed: task did not fully settle before timeout.");
     }
 
     private static void Assert(bool condition, string label)
@@ -389,6 +428,16 @@ internal static class Program
                 {
                     new(0, DateTimeOffset.UtcNow, AgentRuntimeEventKind.AssistantTextDelta, text: "partial", sourceType: "fixture/delta"),
                     new(2, DateTimeOffset.UtcNow, AgentRuntimeEventKind.Completion, sourceType: "fixture/completion"),
+                });
+
+        public static Scenario InvalidOrigin() =>
+            new(
+                AgentRuntimeTerminalState.Succeeded,
+                null,
+                null,
+                new AgentRuntimeEvent[]
+                {
+                    new(1, DateTimeOffset.UtcNow, AgentRuntimeEventKind.Completion, sourceType: "fixture/completion"),
                 });
     }
 
@@ -486,6 +535,54 @@ internal static class Program
         }
     }
 
+    private sealed class MismatchedRuntime : IAgentRuntime
+    {
+        public AgentRuntimeDescriptor Descriptor { get; } = FixtureDescriptor();
+        public MismatchedExecution? Execution { get; private set; }
+
+        public Task<IAgentRuntimeExecution> StartAsync(AgentRuntimeRequest request, CancellationToken cancellationToken = default)
+        {
+            Execution = new MismatchedExecution(request);
+            return Task.FromResult<IAgentRuntimeExecution>(Execution);
+        }
+    }
+
+    private sealed class MismatchedExecution : IAgentRuntimeExecution
+    {
+        private readonly TaskCompletionSource<AgentRuntimeResult> _completion =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public MismatchedExecution(AgentRuntimeRequest request)
+        {
+            TaskId = Guid.NewGuid();
+            RunId = request.RunId;
+        }
+
+        public Guid TaskId { get; }
+        public Guid RunId { get; }
+        public bool CancelCalled { get; private set; }
+        public bool DisposeCalled { get; private set; }
+        public IAsyncEnumerable<AgentRuntimeEvent> Events => EmptyEvents();
+        public Task<AgentRuntimeResult> Completion => _completion.Task;
+        public ValueTask CancelAsync(CancellationToken cancellationToken = default)
+        {
+            CancelCalled = true;
+            _completion.TrySetResult(new AgentRuntimeResult(TaskId, RunId, AgentRuntimeTerminalState.Cancelled));
+            return ValueTask.CompletedTask;
+        }
+        public ValueTask DisposeAsync()
+        {
+            DisposeCalled = true;
+            return ValueTask.CompletedTask;
+        }
+
+        private static async IAsyncEnumerable<AgentRuntimeEvent> EmptyEvents()
+        {
+            await Task.CompletedTask;
+            yield break;
+        }
+    }
+
     private static AgentRuntimeDescriptor FixtureDescriptor() =>
         new(
             "fixture.p05-005",
@@ -535,10 +632,12 @@ Assert-TaskStateContract $stateText $surfaceText $surfaceCodeText $sequenceText 
 Write-Host 'Static P05-005 task state-machine validation: PASS.'
 
 if ($RunFixtures) {
-    Assert-Rejected { Assert-TaskStateContract ($stateText.Replace('Another task is already active in this workspace.', 'Removed active guard.')) $surfaceText $surfaceCodeText $sequenceText $mainWindowText $mainWindowCodeText } 'one-active-task guard removed'
+    Assert-Rejected { Assert-TaskStateContract ($stateText.Replace('IsActive || _activePumpTask is not null || _activeExecution is not null', 'IsActive')) $surfaceText $surfaceCodeText $sequenceText $mainWindowText $mainWindowCodeText } 'settling-task guard removed'
     Assert-Rejected { Assert-TaskStateContract ($stateText.Replace('(TaskLifecycleState.Running, TaskLifecycleState.Succeeded) => true', '(TaskLifecycleState.Running, TaskLifecycleState.Succeeded) => false')) $surfaceText $surfaceCodeText $sequenceText $mainWindowText $mainWindowCodeText } 'success transition removed'
     Assert-Rejected { Assert-TaskStateContract ($stateText.Replace('AppendEventAsync(taskEvent', 'AppendEventAsync_REMOVED(taskEvent')) $surfaceText $surfaceCodeText $sequenceText $mainWindowText $mainWindowCodeText } 'durable event journal removed'
-    Assert-Rejected { Assert-TaskStateContract $stateText $surfaceText $surfaceCodeText ($sequenceText.Replace('Source runtime event sequence must remain contiguous.', 'Sequence unchecked.')) $mainWindowText $mainWindowCodeText } 'source sequence guard removed'
+    Assert-Rejected { Assert-TaskStateContract ($stateText.Replace('CleanupUnownedExecutionAsync(startedExecution)', 'Task.FromResult<string?>(null)')) $surfaceText $surfaceCodeText $sequenceText $mainWindowText $mainWindowCodeText } 'startup execution cleanup removed'
+    Assert-Rejected { Assert-TaskStateContract $stateText $surfaceText $surfaceCodeText ($sequenceText.Replace('Source runtime event sequence must start at zero.', 'Sequence origin unchecked.')) $mainWindowText $mainWindowCodeText } 'source sequence origin guard removed'
+    Assert-Rejected { Assert-TaskStateContract $stateText $surfaceText $surfaceCodeText ($sequenceText.Replace('Source runtime event sequence must remain contiguous.', 'Sequence unchecked.')) $mainWindowText $mainWindowCodeText } 'source sequence continuity guard removed'
     Assert-Rejected { Assert-TaskStateContract $stateText ($surfaceText.Replace('{DynamicResource FccBrushCanvas}', '#112233')) $surfaceCodeText $sequenceText $mainWindowText $mainWindowCodeText } 'hard-coded task surface color'
     Assert-Rejected { Assert-TaskStateContract $stateText $surfaceText $surfaceCodeText $sequenceText $mainWindowText ($mainWindowCodeText.Replace('navigationState.TasksContent = taskExecutionSurface', '')) } 'task navigation composition removed'
     Write-Host 'Negative P05-005 fixtures: PASS.'
