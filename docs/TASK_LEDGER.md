@@ -122,13 +122,13 @@ Integrated task reconciliation for `FCCD-P03-001` through `FCCD-P03-005` is reco
 
 `FCCD-P04-007` is CLOSED after implementation PR #113 exact candidate `a1e0d023e8450692aea2bf6f634323e1898c7b96` passed Windows CI run `33849646661` / run #155 with Release build 0 warnings/0 errors, unit tests 24/24, integration tests 37/37, and the complete permanent Windows baseline PASS. PR #113 was normally merged as `9e0dc4e805913a5beceeb20224d3b726581d449c`, preserving the exact candidate as a parent, and exact post-merge canonical-main Windows CI run `33850126499` / run #156 completed SUCCESS. Deterministic supervision coverage verifies bounded serial retry, explicit retry events, conservative retryability/user-action gating, idempotent cancellation, retry suppression after cancellation, task/run identity preservation, monotonic event sequencing, disabled auto-retry, and invalid-attempt-bound rejection. Task evidence: `evidence/phases/P04/P04_007_INTEGRATED_RECONCILIATION_2026-09-04.md`. This task-level evidence is GitHub-hosted deterministic/runtime-fixture evidence plus canonical integration provenance; it makes no new provider/FCC successful-execution, provider-readiness, real 429, fresh session/resume, fresh fallback-switching, P04 exit-gate, or P05 claim.
 
-P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008` remains `PENDING` unless separately and canonically reconciled.
+P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008` remains `PENDING` and is represented one-to-one by the genuine release-blocking `OWNER-P04-008-REAL-TARGET` queue item under the owner-last scheduling policy. This does not authorize any P04 closure claim.
 
 ## P05 — Conversation/session/task UX
 
 | ID | Task | State |
 |---|---|---|
-| FCCD-P05-001 | Streaming chat rendering | PENDING |
+| FCCD-P05-001 | Streaming chat rendering | CLOSED |
 | FCCD-P05-002 | Structured tool activity timeline | PENDING |
 | FCCD-P05-003 | Composer/attachments/context | PENDING |
 | FCCD-P05-004 | Session create/history/resume | PENDING |
@@ -136,6 +136,8 @@ P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008` remains
 | FCCD-P05-006 | Stop/cancel/retry UX | PENDING |
 | FCCD-P05-007 | Markdown/code/diff content rendering | PENDING |
 | FCCD-P05-008 | Conversation virtualization/performance | PENDING |
+
+`FCCD-P05-001` is CLOSED from production streaming-conversation implementation and permanent validation. Exact implementation candidate `b261a511222dfa79b77172b0fd390345b6af10c6` passed Windows CI run `33940749591` / run #175 with Release build 0 warnings/0 errors, unit tests 24/24, integration tests 37/37, streaming-conversation static/negative/recovery validation PASS, executable Windows/WPF streaming-conversation happy/negative/recovery fixture PASS, and the complete permanent Windows baseline PASS. PR #120 was normally merged as `994c2cb91fbd22bd622b27cfb1041774eaafafd0`; exact post-merge canonical-main Windows CI run `33941044692` / run #176 completed SUCCESS on that exact merge SHA with the same permanent baseline green. Task evidence: `evidence/phases/P05/P05_001_INTEGRATED_RECONCILIATION_2026-09-05.md`. This task-level evidence is cloud/self-test plus canonical integration provenance only and does not claim provider-backed P04 acceptance; `OWNER-P04-008-REAL-TARGET` remains queued and release-blocking.
 
 ## P06 — Projects/files/editor/search
 
@@ -368,9 +370,11 @@ P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008` remains
 
 ## Current next action
 
-`CURRENT_PHASE = P04` and P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P04-001` through `FCCD-P04-007` are CLOSED from validated canonical integration and exact-main/non-regression Windows CI. `FCCD-P04-008` remains `PENDING` unless separately and canonically reconciled.
+`CURRENT_PHASE = P05` and P05 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P05-001` is CLOSED after exact PR-head validation, normal merge integration, and exact post-merge canonical-main Windows CI. `FCCD-P05-002` through `FCCD-P05-008` remain PENDING.
 
-After this P04-007 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any existing legitimate P04-008 work; if no Priority 1–4 recovery work exists, `FCCD-P04-008 — Runtime contract suite` is the only remaining dependency-valid P04 task. Do not begin P05 until P04-008 is CLOSED and the P04 exact-head exit gate passes with canonical evidence.
+P04 remains acceptance-unresolved solely through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. The P04 exit gate remains `NOT_RUN`; owner-last scheduling permits P05 cloud implementation but does not close P04, waive the real-target requirement, or permit release.
+
+After this P05-001 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any Priority 1–4 legitimate work first; if none exists, `FCCD-P05-002 — Structured tool activity timeline` is the next dependency-valid P05 task. Do not begin P06 until P05 cloud work and its gate are genuinely satisfied, and do not execute or relabel the queued owner evidence as PASS outside the intentional final-owner lane.
 
 P03 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`. Exact closure evidence is `evidence/phases/P03/CLOSURE.md`; PR #85 integrated the closure as main SHA `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure Windows CI run `33822291095` completed SUCCESS.
 
