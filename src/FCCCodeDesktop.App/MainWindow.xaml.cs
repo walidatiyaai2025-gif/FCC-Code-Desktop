@@ -105,8 +105,7 @@ public partial class MainWindow : Window
         var options = new SqliteDatabaseOptions(Path.Combine(stateDirectory, "fcc-code-desktop.db"));
         await new SqliteDatabaseInitializer(options).InitializeAsync(CancellationToken.None).ConfigureAwait(true);
 
-        var conversationStore = new SqliteConversationStateStore(options);
-        var state = new SessionWorkspaceState(conversationStore);
+        var state = new SessionWorkspaceState(new SqliteConversationStateStore(options));
         state.SessionChanged += OnSessionChanged;
         _sessionWorkspaceState = state;
         RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface").State = state;
