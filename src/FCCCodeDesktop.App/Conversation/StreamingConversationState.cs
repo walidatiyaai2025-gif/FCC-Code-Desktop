@@ -22,8 +22,11 @@ public enum ToolActivityStatus
 
 public sealed class ConversationMessageState : INotifyPropertyChanged
 {
+    public const int MaxPreviewCharacters = 512 * 1024;
+
     private readonly StringBuilder _text = new();
     private bool _isStreaming;
+    private bool _isTextTruncated;
     private IReadOnlyList<ConversationContentBlock> _contentBlocks = Array.Empty<ConversationContentBlock>();
 
     internal ConversationMessageState(long messageId, ConversationMessageRole role, string initialText, bool isStreaming)
@@ -36,10 +39,10 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
         MessageId = messageId;
         Role = role;
         _isStreaming = isStreaming;
-        _text.Append(initialText);
+        AppendBounded(initialText);
         if (!isStreaming)
         {
-            _contentBlocks = ConversationContentParser.Parse(initialText);
+            RebuildContentBlocks();
         }
     }
 
@@ -59,6 +62,8 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
     public string Text => _text.ToString();
 
     public IReadOnlyList<ConversationContentBlock> ContentBlocks => _contentBlocks;
+
+    public bool IsTextTruncated => _isTextTruncated;
 
     public bool IsStreaming
     {
@@ -82,20 +87,53 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
             return;
         }
 
-        _text.Append(delta);
-        OnPropertyChanged(nameof(Text));
+        var beforeLength = _text.Length;
+        AppendBounded(delta);
+        if (_text.Length != beforeLength)
+        {
+            OnPropertyChanged(nameof(Text));
+        }
     }
 
     internal void Complete()
     {
-        if (!IsStreaming && _contentBlocks.Count > 0)
+        RebuildContentBlocks();
+        IsStreaming = false;
+    }
+
+    private void AppendBounded(string value)
+    {
+        if (string.IsNullOrEmpty(value))
         {
             return;
         }
 
-        _contentBlocks = ConversationContentParser.Parse(Text);
+        var remaining = MaxPreviewCharacters - _text.Length;
+        if (remaining > 0)
+        {
+            _text.Append(value.AsSpan(0, Math.Min(remaining, value.Length)));
+        }
+
+        if (value.Length > remaining && !_isTextTruncated)
+        {
+            _isTextTruncated = true;
+            OnPropertyChanged(nameof(IsTextTruncated));
+        }
+    }
+
+    private void RebuildContentBlocks()
+    {
+        var parsed = ConversationContentParser.Parse(Text).ToList();
+        if (IsTextTruncated)
+        {
+            parsed.Add(
+                new ConversationContentBlock(
+                    ConversationContentBlockKind.Paragraph,
+                    $"Preview limited to {MaxPreviewCharacters:N0} characters for UI performance; durable history remains stored separately."));
+        }
+
+        _contentBlocks = parsed.AsReadOnly();
         OnPropertyChanged(nameof(ContentBlocks));
-        IsStreaming = false;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
@@ -109,11 +147,7 @@ public sealed class ToolActivityState : INotifyPropertyChanged
     private ToolActivityStatus _status;
     private DateTimeOffset _lastUpdatedUtc;
 
-    internal ToolActivityState(
-        long activityId,
-        string? correlationId,
-        string toolName,
-        DateTimeOffset startedUtc)
+    internal ToolActivityState(long activityId, string? correlationId, string toolName, DateTimeOffset startedUtc)
     {
         if (activityId <= 0)
         {
@@ -129,13 +163,9 @@ public sealed class ToolActivityState : INotifyPropertyChanged
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
     public long ActivityId { get; }
-
     public string? CorrelationId { get; }
-
     public string ToolName { get; }
-
     public DateTimeOffset StartedUtc { get; }
 
     public DateTimeOffset LastUpdatedUtc
@@ -143,11 +173,7 @@ public sealed class ToolActivityState : INotifyPropertyChanged
         get => _lastUpdatedUtc;
         private set
         {
-            if (_lastUpdatedUtc == value)
-            {
-                return;
-            }
-
+            if (_lastUpdatedUtc == value) return;
             _lastUpdatedUtc = value;
             OnPropertyChanged();
         }
@@ -158,11 +184,7 @@ public sealed class ToolActivityState : INotifyPropertyChanged
         get => _status;
         private set
         {
-            if (_status == value)
-            {
-                return;
-            }
-
+            if (_status == value) return;
             _status = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(StatusLabel));
@@ -181,11 +203,7 @@ public sealed class ToolActivityState : INotifyPropertyChanged
         get => _progressText;
         private set
         {
-            if (string.Equals(_progressText, value, StringComparison.Ordinal))
-            {
-                return;
-            }
-
+            if (string.Equals(_progressText, value, StringComparison.Ordinal)) return;
             _progressText = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(HasProgress));
@@ -197,11 +215,7 @@ public sealed class ToolActivityState : INotifyPropertyChanged
         get => _resultText;
         private set
         {
-            if (string.Equals(_resultText, value, StringComparison.Ordinal))
-            {
-                return;
-            }
-
+            if (string.Equals(_resultText, value, StringComparison.Ordinal)) return;
             _resultText = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(HasResult));
@@ -209,26 +223,17 @@ public sealed class ToolActivityState : INotifyPropertyChanged
     }
 
     public bool HasProgress => !string.IsNullOrWhiteSpace(ProgressText);
-
     public bool HasResult => !string.IsNullOrWhiteSpace(ResultText);
 
     internal void RecordProgress(string? text, DateTimeOffset occurredUtc)
     {
-        if (!string.IsNullOrWhiteSpace(text))
-        {
-            ProgressText = text;
-        }
-
+        if (!string.IsNullOrWhiteSpace(text)) ProgressText = text;
         LastUpdatedUtc = occurredUtc.ToUniversalTime();
     }
 
     internal void RecordResult(string? text, DateTimeOffset occurredUtc)
     {
-        if (!string.IsNullOrWhiteSpace(text))
-        {
-            ResultText = text;
-        }
-
+        if (!string.IsNullOrWhiteSpace(text)) ResultText = text;
         LastUpdatedUtc = occurredUtc.ToUniversalTime();
         Status = ToolActivityStatus.ResultReceived;
     }
@@ -239,6 +244,9 @@ public sealed class ToolActivityState : INotifyPropertyChanged
 
 public sealed class StreamingConversationState : DispatcherObject, INotifyPropertyChanged
 {
+    public const int MaxVisibleMessages = 500;
+    public const int MaxVisibleToolActivities = 250;
+
     private readonly ObservableCollection<ConversationMessageState> _messages = [];
     private readonly ObservableCollection<ToolActivityState> _toolActivities = [];
     private readonly Dictionary<string, ToolActivityState> _activeToolsByCorrelation = new(StringComparer.Ordinal);
@@ -248,6 +256,7 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     private long? _lastRuntimeSequence;
     private long _nextMessageId = 1;
     private long _nextToolActivityId = 1;
+    private int _hiddenMessageCount;
 
     public StreamingConversationState()
     {
@@ -256,18 +265,17 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
-
     public ReadOnlyObservableCollection<ConversationMessageState> Messages => _readonlyMessages;
-
     public ReadOnlyObservableCollection<ToolActivityState> ToolActivities => _readonlyToolActivities;
-
     public bool HasMessages => _messages.Count > 0;
-
     public bool HasToolActivities => _toolActivities.Count > 0;
-
     public bool IsStreaming => _activeAssistantMessage is not null;
-
     public long? LastRuntimeSequence => _lastRuntimeSequence;
+    public int HiddenMessageCount => _hiddenMessageCount;
+    public bool HasHiddenMessages => HiddenMessageCount > 0;
+    public string HistoryWindowText => HasHiddenMessages
+        ? $"{HiddenMessageCount:N0} older messages are outside the live rendering window; durable session history remains stored."
+        : string.Empty;
 
     public void AddUserMessage(string text)
     {
@@ -294,19 +302,27 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
                 throw new InvalidOperationException("Persisted conversation messages must have a strictly increasing sequence.");
             }
 
-            var role = message.Role.Trim().ToLowerInvariant() switch
-            {
-                "user" => ConversationMessageRole.User,
-                "assistant" => ConversationMessageRole.Assistant,
-                _ => throw new InvalidOperationException($"Unsupported persisted conversation role: {message.Role}"),
-            };
+            _ = ResolveRole(message.Role);
             if (string.IsNullOrWhiteSpace(message.Content))
             {
                 throw new InvalidOperationException("Persisted conversation messages must contain visible text.");
             }
 
-            AddMessage(new ConversationMessageState(NextMessageId(), role, message.Content, false));
             previousSequence = message.Sequence;
+        }
+
+        var startIndex = Math.Max(0, messages.Count - MaxVisibleMessages);
+        SetHiddenMessageCount(startIndex);
+        for (var index = startIndex; index < messages.Count; index++)
+        {
+            var message = messages[index];
+            AddMessage(
+                new ConversationMessageState(
+                    NextMessageId(),
+                    ResolveRole(message.Role),
+                    message.Content,
+                    false),
+                incrementHiddenOnTrim: false);
         }
     }
 
@@ -329,11 +345,7 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     public void Reset()
     {
         VerifyAccess();
-        foreach (var message in _messages)
-        {
-            message.Complete();
-        }
-
+        foreach (var message in _messages) message.Complete();
         _messages.Clear();
         _toolActivities.Clear();
         _activeToolsByCorrelation.Clear();
@@ -341,6 +353,7 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
         _lastRuntimeSequence = null;
         _nextMessageId = 1;
         _nextToolActivityId = 1;
+        SetHiddenMessageCount(0);
         OnPropertyChanged(nameof(HasMessages));
         OnPropertyChanged(nameof(HasToolActivities));
         OnPropertyChanged(nameof(IsStreaming));
@@ -371,25 +384,15 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
             case AgentRuntimeEventKind.Completion:
                 CompleteAssistantMessage();
                 break;
-            default:
-                break;
         }
     }
 
     private void AppendAssistantDelta(string? delta)
     {
-        if (string.IsNullOrEmpty(delta))
-        {
-            return;
-        }
-
+        if (string.IsNullOrEmpty(delta)) return;
         if (_activeAssistantMessage is null)
         {
-            _activeAssistantMessage = new ConversationMessageState(
-                NextMessageId(),
-                ConversationMessageRole.Assistant,
-                string.Empty,
-                true);
+            _activeAssistantMessage = new ConversationMessageState(NextMessageId(), ConversationMessageRole.Assistant, string.Empty, true);
             AddMessage(_activeAssistantMessage);
             OnPropertyChanged(nameof(IsStreaming));
         }
@@ -399,11 +402,7 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
 
     private void CompleteAssistantMessage()
     {
-        if (_activeAssistantMessage is null)
-        {
-            return;
-        }
-
+        if (_activeAssistantMessage is null) return;
         _activeAssistantMessage.Complete();
         _activeAssistantMessage = null;
         OnPropertyChanged(nameof(IsStreaming));
@@ -411,14 +410,8 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
 
     private void RecordToolStarted(AgentRuntimeEvent runtimeEvent)
     {
-        var activity = CreateToolActivity(
-            runtimeEvent.CorrelationId,
-            string.IsNullOrWhiteSpace(runtimeEvent.Text) ? "Tool" : runtimeEvent.Text,
-            runtimeEvent.OccurredUtc);
-        if (activity.CorrelationId is { } correlationId)
-        {
-            _activeToolsByCorrelation[correlationId] = activity;
-        }
+        var activity = CreateToolActivity(runtimeEvent.CorrelationId, string.IsNullOrWhiteSpace(runtimeEvent.Text) ? "Tool" : runtimeEvent.Text, runtimeEvent.OccurredUtc);
+        if (activity.CorrelationId is { } correlationId) _activeToolsByCorrelation[correlationId] = activity;
     }
 
     private void RecordToolProgress(AgentRuntimeEvent runtimeEvent)
@@ -439,40 +432,42 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
         {
             _activeToolsByCorrelation.Remove(correlationId);
         }
+
+        TrimToolActivityWindow();
     }
 
     private ToolActivityState? ResolveToolActivity(string? correlationId)
     {
-        if (string.IsNullOrWhiteSpace(correlationId))
-        {
-            return null;
-        }
-
-        return _activeToolsByCorrelation.TryGetValue(correlationId.Trim(), out var activity)
-            ? activity
-            : null;
+        if (string.IsNullOrWhiteSpace(correlationId)) return null;
+        return _activeToolsByCorrelation.TryGetValue(correlationId.Trim(), out var activity) ? activity : null;
     }
 
     private ToolActivityState CreateToolActivity(string? correlationId, string toolName, DateTimeOffset occurredUtc)
     {
         var activity = new ToolActivityState(NextToolActivityId(), correlationId, toolName, occurredUtc);
         _toolActivities.Add(activity);
+        TrimToolActivityWindow();
         OnPropertyChanged(nameof(HasToolActivities));
         return activity;
     }
 
+    private void TrimToolActivityWindow()
+    {
+        while (_toolActivities.Count > MaxVisibleToolActivities)
+        {
+            var removable = _toolActivities.FirstOrDefault(item => item.Status == ToolActivityStatus.ResultReceived);
+            if (removable is null) return;
+            _toolActivities.Remove(removable);
+        }
+    }
+
     private void AssertRuntimeSequence(long sequence)
     {
-        if (_lastRuntimeSequence is not long lastSequence)
-        {
-            return;
-        }
-
+        if (_lastRuntimeSequence is not long lastSequence) return;
         var expectedSequence = checked(lastSequence + 1);
         if (sequence != expectedSequence)
         {
-            throw new InvalidOperationException(
-                $"Runtime event sequence must remain contiguous. Expected {expectedSequence}, received {sequence}.");
+            throw new InvalidOperationException($"Runtime event sequence must remain contiguous. Expected {expectedSequence}, received {sequence}.");
         }
     }
 
@@ -490,11 +485,35 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
         return activityId;
     }
 
-    private void AddMessage(ConversationMessageState message)
+    private void AddMessage(ConversationMessageState message, bool incrementHiddenOnTrim = true)
     {
         _messages.Add(message);
+        while (_messages.Count > MaxVisibleMessages)
+        {
+            var oldest = _messages[0];
+            if (ReferenceEquals(oldest, _activeAssistantMessage)) break;
+            _messages.RemoveAt(0);
+            if (incrementHiddenOnTrim) SetHiddenMessageCount(checked(HiddenMessageCount + 1));
+        }
+
         OnPropertyChanged(nameof(HasMessages));
     }
+
+    private void SetHiddenMessageCount(int value)
+    {
+        if (_hiddenMessageCount == value) return;
+        _hiddenMessageCount = value;
+        OnPropertyChanged(nameof(HiddenMessageCount));
+        OnPropertyChanged(nameof(HasHiddenMessages));
+        OnPropertyChanged(nameof(HistoryWindowText));
+    }
+
+    private static ConversationMessageRole ResolveRole(string role) => role.Trim().ToLowerInvariant() switch
+    {
+        "user" => ConversationMessageRole.User,
+        "assistant" => ConversationMessageRole.Assistant,
+        _ => throw new InvalidOperationException($"Unsupported persisted conversation role: {role}"),
+    };
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

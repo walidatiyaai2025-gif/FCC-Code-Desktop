@@ -8,6 +8,8 @@ namespace FCCCodeDesktop.App.Conversation;
 
 public partial class ConversationSurface : UserControl
 {
+    private static readonly TimeSpan ScrollThrottle = TimeSpan.FromMilliseconds(75);
+
     public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
         nameof(State),
         typeof(StreamingConversationState),
@@ -20,11 +22,16 @@ public partial class ConversationSurface : UserControl
         typeof(ConversationSurface),
         new PropertyMetadata(null, OnComposerChanged));
 
-    private bool _scrollPending;
+    private readonly DispatcherTimer _scrollTimer;
 
     public ConversationSurface()
     {
         InitializeComponent();
+        _scrollTimer = new DispatcherTimer(DispatcherPriority.Background, Dispatcher)
+        {
+            Interval = ScrollThrottle,
+        };
+        _scrollTimer.Tick += OnScrollTimerTick;
         State ??= new StreamingConversationState();
         Composer ??= new ComposerState();
     }
@@ -43,11 +50,7 @@ public partial class ConversationSurface : UserControl
 
     private static void OnStateChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs args)
     {
-        if (dependencyObject is not ConversationSurface surface)
-        {
-            return;
-        }
-
+        if (dependencyObject is not ConversationSurface surface) return;
         if (args.OldValue is StreamingConversationState oldState)
         {
             oldState.PropertyChanged -= surface.OnStatePropertyChanged;
@@ -75,8 +78,7 @@ public partial class ConversationSurface : UserControl
         }
     }
 
-    private void OnPresentationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
-        ScheduleScrollToLatest();
+    private void OnPresentationCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => ScheduleScrollToLatest();
 
     private void OnStatePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -90,32 +92,21 @@ public partial class ConversationSurface : UserControl
 
     private void ScheduleScrollToLatest()
     {
-        if (_scrollPending)
+        if (!_scrollTimer.IsEnabled)
         {
-            return;
+            _scrollTimer.Start();
         }
+    }
 
-        _scrollPending = true;
-        _ = Dispatcher.BeginInvoke(
-            new Action(
-                () =>
-                {
-                    _scrollPending = false;
-                    ScrollToLatest();
-                }),
-            DispatcherPriority.Background);
+    private void OnScrollTimerTick(object? sender, EventArgs e)
+    {
+        _scrollTimer.Stop();
+        ScrollToLatest();
     }
 
     private void ScrollToLatest()
     {
-        if (State.Messages.Count > 0)
-        {
-            ConversationItems.ScrollIntoView(State.Messages[^1]);
-        }
-
-        if (State.ToolActivities.Count > 0)
-        {
-            ToolTimelineItems.ScrollIntoView(State.ToolActivities[^1]);
-        }
+        if (State.Messages.Count > 0) ConversationItems.ScrollIntoView(State.Messages[^1]);
+        if (State.ToolActivities.Count > 0) ToolTimelineItems.ScrollIntoView(State.ToolActivities[^1]);
     }
 }
