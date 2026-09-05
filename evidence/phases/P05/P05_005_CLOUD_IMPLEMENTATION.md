@@ -4,7 +4,7 @@ Evidence class: `SELF_TEST_ONLY / CLOUD`
 
 Task: `FCCD-P05-005 — Explicit task state machine`
 
-Status: `IMPLEMENTED — exact PR-head CI, normal merge, and exact-main verification still required before CLOSED reconciliation`.
+Status: `INTEGRATED — exact PR-head CI, normal merge, and exact-main verification succeeded; see integrated reconciliation evidence for canonical closure provenance`.
 
 ## Recovered implementation
 
@@ -64,11 +64,12 @@ Static and negative fixtures additionally protect terminal persistence ordering,
 - No new owner-only obligation is introduced by P05-005 cloud mechanics.
 - P15 retains ownership of crash/reboot reconciliation for interrupted work.
 
-## Closure rule
+## Integrated provenance
 
-Do not mark `FCCD-P05-005` `CLOSED` from this file alone. Closure requires:
+- Exact implementation candidate: `cb7edc6909235a275949b6e184ceabb2a8340859`.
+- Exact PR-head Windows CI: run `33953673037` / run #217 — SUCCESS.
+- PR #132 was normally merged as `7ee9feab02a5691246452d4e472d110cd420e443`.
+- Exact post-merge canonical-main Windows CI: run `33953912542` / run #218 — SUCCESS on exact merge SHA `7ee9feab02a5691246452d4e472d110cd420e443`.
+- Canonical integration evidence: `evidence/phases/P05/P05_005_INTEGRATED_RECONCILIATION_2026-09-05.md`.
 
-1. exact implementation PR-head Windows CI SUCCESS;
-2. normal merge commit into canonical `main`;
-3. exact merge-SHA Windows CI SUCCESS;
-4. integrated reconciliation updating the canonical task ledger/current-phase checkpoint without weakening owner-last governance.
+This file remains cloud/self-test evidence. It does not convert the queued P04 REAL_TARGET obligation into provider-backed PASS.
