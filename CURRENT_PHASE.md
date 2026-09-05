@@ -11,12 +11,12 @@ CURRENT_PHASE_STATE: IN_PROGRESS
 NEXT_PHASE: P06
 PHASE_EXIT_GATE: NOT_RUN
 KNOWN_PHASE_BLOCKERS: 0
-KNOWN_RELEASE_BLOCKERS: 1
+KNOWN_RELEASE_BLOCKERS: 2
 VERIFIED_FINAL_COMPLETE: false
 OWNER_LAST_MODE: ACTIVE
-DEFERRED_OWNER_ACCEPTANCE_COUNT: 1
-DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET
-DEFERRED_PHASE_GATES: P04=NOT_RUN
+DEFERRED_OWNER_ACCEPTANCE_COUNT: 2
+DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET;OWNER-P05-EXIT-REAL-TARGET
+DEFERRED_PHASE_GATES: P04=NOT_RUN;P05=NOT_RUN
 LAST_RECONCILED: 2026-09-05
 ```
 
@@ -24,7 +24,9 @@ LAST_RECONCILED: 2026-09-05
 
 `CURRENT_PHASE` now means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
-P05 remains the sole legal cloud implementation/convergence phase. `FCCD-P05-001` through `FCCD-P05-008` have now been normally integrated and exact-main verified. There is no remaining unclaimed P05 implementation task. The next legal cloud action is P05 phase-exit convergence: run or prepare the strongest honest phase-level gate allowed by the integrated owner-last policy, repair any cloud-actionable defect it reveals, and do not activate P06 unless canonical governance explicitly permits the transition while preserving every unresolved owner requirement and final acceptance criterion.
+P05 remains the sole legal cloud implementation/convergence phase. `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified. There is no remaining unclaimed P05 implementation task. P05 phase-exit cloud convergence is now prepared: the strongest deterministic cloud evidence is integrated on the convergence candidate, exact canonical-main Windows CI at baseline `47fabb4aa9ea7e29d7526374ed6120d76c4e16d4` succeeded in run `33986684958`, and a fail-closed exact-head owner runner is tracked at `tools/ui/run-p05-phase-exit-owner-validation.ps1`.
+
+The P05 exit criterion still requires genuine owner Windows/FCC/provider interaction: a real task in the application conversation surface, structured execution, stop/retry, close/reopen, and durable session resume. That requirement is queued as `OWNER-P05-EXIT-REAL-TARGET`, remains `releaseBlocking=true`, and does **not** convert `PHASE_EXIT_GATE` to `PASS`. P05 therefore remains `IN_PROGRESS / NOT_RUN` until a separate legal transition is integrated under owner-last governance.
 
 This is **not** a P04 closure and does not weaken P04 acceptance. `FCCD-P04-008 — Runtime contract suite` remains unresolved in `docs/TASK_LEDGER.md`; the P04 exit gate remains `NOT_RUN`; no P04 `CLOSURE.md` PASS is claimed by this scheduling transition. Its fresh owner-Windows/provider `REAL_TARGET` obligation is durably queued as `OWNER-P04-008-REAL-TARGET`, remains `releaseBlocking=true`, and must later be genuinely executed, reviewed, integrated, and reconciled.
 
@@ -33,10 +35,11 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 ## Owner-last invariants
 
 - Exactly one cloud implementation/convergence phase remains active: P05.
-- Earlier unresolved work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
+- Earlier unresolved task work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
+- A phase-exit requirement may be queued only when all cloud-actionable implementation/tests/CI are complete, the remaining evidence is genuinely environment-bound, and the phase gate remains truthfully unresolved rather than being represented as PASS.
 - Code defects, failed CI, missing tests/implementation, security/data-integrity defects, and repairable repository problems are never deferrable.
-- A queued source task is not `CLOSED`; its phase exit gate is not converted to `PASS`.
-- Any later-discovered regression in P04 or any failed final-owner run regains repair priority immediately.
+- A queued source task is not `CLOSED`; a queued phase-gate requirement is not converted to `PASS`.
+- Any later-discovered regression in P04/P05 or any failed final-owner run regains repair priority immediately.
 - `KNOWN_RELEASE_BLOCKERS` must never be lower than the number of unresolved release-blocking owner queue items.
 - P22 cannot become the current cloud implementation phase while any required owner queue item remains `QUEUED`.
 - `VERIFIED_FINAL_COMPLETE` remains false until canonical P22 closure after every mandatory task/gate/acceptance row and every owner queue obligation genuinely passes on the required exact candidate.
@@ -45,6 +48,7 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 
 ### OWNER-P04-008-REAL-TARGET
 
+- Source kind: task.
 - Source task: `FCCD-P04-008`.
 - Source phase: P04.
 - Source task state: unresolved / not CLOSED.
@@ -55,6 +59,20 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 - Canonical queue: `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
 - Final execution runner: `tools/final-acceptance/run-final-owner-acceptance.ps1`.
 - Release status: blocking until genuine PASS evidence is integrated and reconciled.
+
+### OWNER-P05-EXIT-REAL-TARGET
+
+- Source kind: phase gate.
+- Source requirement: `P05_EXIT_GATE`.
+- Source phase: P05.
+- P05 task rows: 8/8 CLOSED.
+- P05 exit gate: `NOT_RUN`.
+- Classification: `REAL_TARGET`.
+- Reason: requires the owner Windows FCC Code Desktop application plus installed `fcc-claude`/FCC/provider environment and an actual close/reopen persistence interaction; GitHub-hosted CI proves only deterministic mechanics.
+- Cloud convergence evidence: `evidence/phases/P05/P05_PHASE_EXIT_CLOUD_COMPLETE_OWNER_TARGET_REQUIRED_2026-09-05.md`.
+- Tracked owner runner: `tools/ui/run-p05-phase-exit-owner-validation.ps1`.
+- Expected evidence: `evidence/phases/P05/owner/P05_PHASE_EXIT_REAL_TARGET.json`.
+- Release status: blocking until genuine exact-head PASS evidence is reviewed, integrated and reconciled.
 
 ## P05 cloud task inventory
 
@@ -139,6 +157,15 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 - Integrated evidence: `evidence/phases/P05/P05_008_INTEGRATED_RECONCILIATION_2026-09-05.md`.
 - Evidence class remains cloud/self-test for conversation virtualization, progressive parsing, bounded rendering, and viewport/tail-follow behavior; no provider-backed P04 acceptance, P05 phase exit-gate PASS, or release eligibility is implied.
 
+## P05 phase-exit cloud convergence provenance
+
+- Canonical cloud baseline before this convergence unit: `47fabb4aa9ea7e29d7526374ed6120d76c4e16d4`.
+- Exact baseline Windows CI: run `33986684958` / run #238 — SUCCESS.
+- Cloud convergence evidence: `evidence/phases/P05/P05_PHASE_EXIT_CLOUD_COMPLETE_OWNER_TARGET_REQUIRED_2026-09-05.md`.
+- Owner runner: `tools/ui/run-p05-phase-exit-owner-validation.ps1`.
+- Queue item: `OWNER-P05-EXIT-REAL-TARGET` — QUEUED / release blocking.
+- P05 exit gate remains `NOT_RUN`; no `evidence/phases/P05/CLOSURE.md` PASS is claimed.
+
 ## Activation provenance
 
 - Owner-last bootstrap base before PR #117: `2e76d7f6a44bf120e16efab21a01df9784cd8380`.
@@ -151,4 +178,4 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 
 ## Next legitimate action after this reconciliation is integrated
 
-Re-fetch live main, queue, open PRs/branches/issues, and CI. If no Priority 1–4 repair/recovery/integration work exists, execute **P05 phase-exit convergence** as the next legal cloud action. Run the strongest phase-level cloud gate available, repair any cloud-actionable defect, and prepare or queue only genuinely owner/environment-bound evidence in accordance with `docs/OWNER_LAST_EXECUTION_POLICY.md`. Do not execute queued owner acceptance until the final-owner lane is intentionally reached, do not treat deferral as release PASS, and do not advance to P06 until governance truthfully permits it. P07 remains future work behind P06.
+Re-fetch live main, queue, open PRs/branches/issues, and exact-head CI. If this P05 phase-exit convergence is integrated and green with both owner obligations truthfully queued, the next legal unit is a **separate owner-last P05 → P06 cloud-phase transition**. That transition must preserve `P04=NOT_RUN` and `P05=NOT_RUN`, preserve both release-blocking queue items, keep `VERIFIED_FINAL_COMPLETE=false`, and activate only P06. P07 remains future work behind P06.

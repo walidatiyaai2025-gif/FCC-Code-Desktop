@@ -32,18 +32,21 @@ CURRENT_PHASE_NAME: Conversation + session + task experience
 CURRENT_PHASE_STATE: IN_PROGRESS
 NEXT_PHASE: P06
 PHASE_EXIT_GATE: NOT_RUN
-KNOWN_RELEASE_BLOCKERS: 1
+KNOWN_RELEASE_BLOCKERS: 2
 VERIFIED_FINAL_COMPLETE: false
 OWNER_LAST_MODE: ACTIVE
-DEFERRED_OWNER_ACCEPTANCE_COUNT: 1
-DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET
+DEFERRED_OWNER_ACCEPTANCE_COUNT: 2
+DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET;OWNER-P05-EXIT-REAL-TARGET
+DEFERRED_PHASE_GATES: P04=NOT_RUN;P05=NOT_RUN
 VERIFIED_IMPLEMENTATION_COMPLETION: 0%
 PUBLIC_RELEASE_ELIGIBLE: false
 ```
 
 `CURRENT_PHASE.md` is the fast live resume checkpoint. `docs/EXECUTION_PLAN.md` is the canonical sequential execution contract. While `OWNER_LAST_MODE: ACTIVE`, `docs/OWNER_LAST_EXECUTION_POLICY.md` is the narrow owner-authorized scheduling amendment for genuinely environment-bound evidence only; it does not weaken task, phase, acceptance, or release criteria.
 
-P00, P01, P02, and P03 are canonically CLOSED with their phase closure evidence retained under `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, `evidence/phases/P02/CLOSURE.md`, and `evidence/phases/P03/CLOSURE.md`. P04 remains acceptance-unresolved solely because `FCCD-P04-008 — Runtime contract suite` still requires fresh genuine owner-Windows/provider `REAL_TARGET` evidence. `FCCD-P04-001` through `FCCD-P04-007` are CLOSED; `FCCD-P04-008` remains PENDING, its P04 exit gate remains `NOT_RUN`, and its owner-only obligation is queued one-to-one as `OWNER-P04-008-REAL-TARGET` in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` with `releaseBlocking=true`. Under the owner-last scheduling amendment, P05 is therefore the sole legal **cloud implementation phase**. This scheduling transition is not a P04 closure and does not convert any missing real-target evidence to PASS. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
+P00, P01, P02, and P03 are canonically CLOSED with their phase closure evidence retained under `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, `evidence/phases/P02/CLOSURE.md`, and `evidence/phases/P03/CLOSURE.md`. P04 remains acceptance-unresolved solely because `FCCD-P04-008 — Runtime contract suite` still requires fresh genuine owner-Windows/provider `REAL_TARGET` evidence. `FCCD-P04-001` through `FCCD-P04-007` are CLOSED; `FCCD-P04-008` remains PENDING, its P04 exit gate remains `NOT_RUN`, and its owner-only obligation is queued one-to-one as `OWNER-P04-008-REAL-TARGET` in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` with `releaseBlocking=true`.
+
+P05 is the sole legal cloud implementation/convergence phase. `FCCD-P05-001` through `FCCD-P05-008` are integrated and CLOSED, and exact canonical-main Windows CI is green. The only remaining P05 exit-gate evidence requires genuine owner Windows/FCC/provider interaction: a real application task, structured execution, stop/retry, close/reopen, and durable session resume. That phase-gate obligation is queued as `OWNER-P05-EXIT-REAL-TARGET` with `releaseBlocking=true`; P05 itself remains `IN_PROGRESS` and its exit gate remains `NOT_RUN`. This is not a phase PASS and does not authorize P06 until a separate owner-last transition is truthfully integrated. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
 
 ---
 
@@ -271,7 +274,7 @@ Only one active coding-agent run executes at a time by default. External resourc
 ACTIVE_PROJECT_PHASE_COUNT = 1
 ```
 
-Only the phase recorded in `CURRENT_PHASE.md` is authorized for implementation. When owner-last mode is active, that means exactly one current **cloud implementation phase**; any earlier unresolved obligation must be one-to-one represented by a valid environment-bound `QUEUED`, `releaseBlocking=true` item under `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
+Only the phase recorded in `CURRENT_PHASE.md` is authorized for implementation. When owner-last mode is active, that means exactly one current **cloud implementation phase**; any earlier/current unresolved owner-only task or phase-gate obligation must be represented by a valid environment-bound `QUEUED`, `releaseBlocking=true` item under `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` according to `docs/OWNER_LAST_EXECUTION_POLICY.md`.
 
 Multiple workers may execute non-overlapping tasks inside that phase, but the project may not have implementation teams working ahead in later phases.
 
