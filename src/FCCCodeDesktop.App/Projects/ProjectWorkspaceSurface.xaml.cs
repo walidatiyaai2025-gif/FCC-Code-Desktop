@@ -75,6 +75,16 @@ public partial class ProjectWorkspaceSurface : UserControl
         await ExecuteProjectActionAsync(() => state.RefreshAsync(CancellationToken.None));
     }
 
+    private async void OnRescanTechnologiesClick(object sender, RoutedEventArgs e)
+    {
+        if (State is not { CanRescanTechnologies: true } state)
+        {
+            return;
+        }
+
+        await ExecuteProjectActionAsync(() => state.RefreshTechnologyDetectionAsync(CancellationToken.None));
+    }
+
     private static async Task ExecuteProjectActionAsync(Func<Task> action)
     {
         try
