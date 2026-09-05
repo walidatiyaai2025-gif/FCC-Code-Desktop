@@ -24,6 +24,7 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
 {
     private readonly StringBuilder _text = new();
     private bool _isStreaming;
+    private IReadOnlyList<ConversationContentBlock> _contentBlocks = Array.Empty<ConversationContentBlock>();
 
     internal ConversationMessageState(long messageId, ConversationMessageRole role, string initialText, bool isStreaming)
     {
@@ -36,6 +37,10 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
         Role = role;
         _isStreaming = isStreaming;
         _text.Append(initialText);
+        if (!isStreaming)
+        {
+            _contentBlocks = ConversationContentParser.Parse(initialText);
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -52,6 +57,8 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
     };
 
     public string Text => _text.ToString();
+
+    public IReadOnlyList<ConversationContentBlock> ContentBlocks => _contentBlocks;
 
     public bool IsStreaming
     {
@@ -81,6 +88,13 @@ public sealed class ConversationMessageState : INotifyPropertyChanged
 
     internal void Complete()
     {
+        if (!IsStreaming && _contentBlocks.Count > 0)
+        {
+            return;
+        }
+
+        _contentBlocks = ConversationContentParser.Parse(Text);
+        OnPropertyChanged(nameof(ContentBlocks));
         IsStreaming = false;
     }
 
@@ -258,7 +272,6 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     public void AddUserMessage(string text)
     {
         VerifyAccess();
-
         if (string.IsNullOrWhiteSpace(text))
         {
             throw new ArgumentException("A user message must contain visible text.", nameof(text));
@@ -301,7 +314,6 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     {
         ArgumentNullException.ThrowIfNull(runtimeEvent);
         cancellationToken.ThrowIfCancellationRequested();
-
         if (Dispatcher.CheckAccess())
         {
             ApplyRuntimeEventCore(runtimeEvent);
@@ -317,7 +329,6 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     public void Reset()
     {
         VerifyAccess();
-
         foreach (var message in _messages)
         {
             message.Complete();
@@ -340,7 +351,6 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     {
         VerifyAccess();
         AssertRuntimeSequence(runtimeEvent.Sequence);
-
         _lastRuntimeSequence = runtimeEvent.Sequence;
         OnPropertyChanged(nameof(LastRuntimeSequence));
 
@@ -362,8 +372,6 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
                 CompleteAssistantMessage();
                 break;
             default:
-                // Product presentation consumes only normalized typed events owned by P05 tasks.
-                // Provider payload parsing and process execution remain below this UI boundary.
                 break;
         }
     }
@@ -407,7 +415,6 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
             runtimeEvent.CorrelationId,
             string.IsNullOrWhiteSpace(runtimeEvent.Text) ? "Tool" : runtimeEvent.Text,
             runtimeEvent.OccurredUtc);
-
         if (activity.CorrelationId is { } correlationId)
         {
             _activeToolsByCorrelation[correlationId] = activity;
@@ -418,7 +425,6 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     {
         var activity = ResolveToolActivity(runtimeEvent.CorrelationId)
             ?? CreateToolActivity(runtimeEvent.CorrelationId, "Tool activity", runtimeEvent.OccurredUtc);
-
         activity.RecordProgress(runtimeEvent.Text, runtimeEvent.OccurredUtc);
     }
 
@@ -426,9 +432,7 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
     {
         var activity = ResolveToolActivity(runtimeEvent.CorrelationId)
             ?? CreateToolActivity(runtimeEvent.CorrelationId, "Tool result", runtimeEvent.OccurredUtc);
-
         activity.RecordResult(runtimeEvent.Text, runtimeEvent.OccurredUtc);
-
         if (activity.CorrelationId is { } correlationId
             && _activeToolsByCorrelation.TryGetValue(correlationId, out var activeActivity)
             && ReferenceEquals(activeActivity, activity))
@@ -449,16 +453,9 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
             : null;
     }
 
-    private ToolActivityState CreateToolActivity(
-        string? correlationId,
-        string toolName,
-        DateTimeOffset occurredUtc)
+    private ToolActivityState CreateToolActivity(string? correlationId, string toolName, DateTimeOffset occurredUtc)
     {
-        var activity = new ToolActivityState(
-            NextToolActivityId(),
-            correlationId,
-            toolName,
-            occurredUtc);
+        var activity = new ToolActivityState(NextToolActivityId(), correlationId, toolName, occurredUtc);
         _toolActivities.Add(activity);
         OnPropertyChanged(nameof(HasToolActivities));
         return activity;
