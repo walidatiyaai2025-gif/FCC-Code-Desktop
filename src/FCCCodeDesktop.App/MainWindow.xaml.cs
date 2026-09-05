@@ -3,8 +3,11 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using FCCCodeDesktop.App.Conversation;
+using FCCCodeDesktop.App.Projects;
 using FCCCodeDesktop.App.Shell;
+using FCCCodeDesktop.Application.Projects;
 using FCCCodeDesktop.Fcc;
+using FCCCodeDesktop.Files;
 using FCCCodeDesktop.Persistence;
 using FCCCodeDesktop.Runtime;
 
@@ -16,6 +19,7 @@ public partial class MainWindow : Window
     private Task<SessionWorkspaceState>? _sessionInitializationTask;
     private SessionWorkspaceState? _sessionWorkspaceState;
     private TaskExecutionState? _taskExecutionState;
+    private ProjectWorkspaceSurface? _projectWorkspaceSurface;
 
     public MainWindow()
     {
@@ -52,6 +56,7 @@ public partial class MainWindow : Window
         var taskExecutionSurface = RequireResource<TaskExecutionSurface>("TaskExecutionSurface");
         var composerState = RequireResource<ComposerState>("ComposerState");
 
+        _projectWorkspaceSurface = new ProjectWorkspaceSurface();
         composerState.SubmissionRequested += OnComposerSubmissionRequested;
         navigationState.SessionsContent = sessionWorkspaceSurface;
         navigationState.TasksContent = taskExecutionSurface;
@@ -70,7 +75,7 @@ public partial class MainWindow : Window
         {
             MessageBox.Show(
                 this,
-                $"Session/task storage could not be initialized. {exception.Message}",
+                $"Workspace storage could not be initialized. {exception.Message}",
                 "Workspace storage unavailable",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -91,7 +96,7 @@ public partial class MainWindow : Window
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         if (string.IsNullOrWhiteSpace(localAppData))
         {
-            throw new InvalidOperationException("Windows LocalApplicationData could not be resolved for session persistence.");
+            throw new InvalidOperationException("Windows LocalApplicationData could not be resolved for workspace persistence.");
         }
 
         var stateDirectory = Path.Combine(localAppData, "FCC Code Desktop", "State");
@@ -103,6 +108,19 @@ public partial class MainWindow : Window
         state.SessionChanged += OnSessionChanged;
         _sessionWorkspaceState = state;
         RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface").State = state;
+
+        var projectSurface = _projectWorkspaceSurface
+            ?? throw new InvalidOperationException("Project workspace surface was not composed before persistence initialization.");
+        var projectState = new ProjectWorkspaceState(
+            new ProjectCatalogService(
+                new SqliteProjectCatalogStore(options),
+                new SystemProjectDirectoryProbe()),
+            state);
+        projectSurface.State = projectState;
+        var navigationState = RequireResource<WorkspaceNavigationState>("WorkspaceNavigationState");
+        navigationState.ProjectsContent = _projectWorkspaceSurface;
+        await projectState.InitializeAsync(CancellationToken.None).ConfigureAwait(true);
+
         await InitializeTaskExecutionAsync(options, state).ConfigureAwait(true);
         return state;
     }

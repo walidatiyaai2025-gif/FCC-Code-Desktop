@@ -1,0 +1,212 @@
+<UserControl x:Class="FCCCodeDesktop.App.Projects.ProjectWorkspaceSurface"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             Background="{DynamicResource FccBrushCanvas}"
+             Foreground="{DynamicResource FccBrushTextPrimary}"
+             Focusable="False"
+             AutomationProperties.Name="Projects workspace">
+    <UserControl.Resources>
+        <Style x:Key="ProjectActionButton" TargetType="Button">
+            <Setter Property="MinHeight" Value="{StaticResource FccControlHeightStandard}" />
+            <Setter Property="Padding" Value="12,4" />
+            <Setter Property="Background" Value="{DynamicResource FccBrushSurfaceRaised}" />
+            <Setter Property="Foreground" Value="{DynamicResource FccBrushTextPrimary}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource FccBrushBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style x:Key="PrimaryProjectActionButton"
+               TargetType="Button"
+               BasedOn="{StaticResource ProjectActionButton}">
+            <Setter Property="Background" Value="{DynamicResource FccBrushAccent}" />
+            <Setter Property="Foreground" Value="{DynamicResource FccBrushAccentForeground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource FccBrushAccent}" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid DataContext="{Binding State, ElementName=Root}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Padding="{StaticResource FccInset16}"
+                Background="{DynamicResource FccBrushSurface}"
+                BorderBrush="{DynamicResource FccBrushBorder}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource FccRadiusMedium}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding ActiveProjectName}"
+                               Style="{StaticResource FccTextSection}"
+                               Foreground="{DynamicResource FccBrushTextPrimary}" />
+                    <TextBlock Margin="0,4,16,0"
+                               Text="{Binding ActiveProjectPath}"
+                               TextTrimming="CharacterEllipsis"
+                               Style="{StaticResource FccTextMetadata}"
+                               Foreground="{DynamicResource FccBrushTextMuted}" />
+                    <TextBlock Margin="0,8,16,0"
+                               Text="{Binding StatusText}"
+                               Style="{StaticResource FccTextMetadata}"
+                               Foreground="{DynamicResource FccBrushTextSecondary}" />
+                </StackPanel>
+                <Button x:Name="OpenProjectButton"
+                        Grid.Column="1"
+                        MinWidth="132"
+                        VerticalAlignment="Top"
+                        Content="Open project…"
+                        IsEnabled="{Binding CanOpenProject}"
+                        Style="{StaticResource PrimaryProjectActionButton}"
+                        Click="OnOpenProjectClick"
+                        AutomationProperties.Name="Open project folder" />
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1"
+                Margin="0,12,0,0"
+                Padding="{StaticResource FccInset12}"
+                Background="{DynamicResource FccBrushErrorBackground}"
+                BorderBrush="{DynamicResource FccBrushError}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource FccRadiusSmall}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasError}" Value="True">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <TextBlock Text="{Binding ErrorMessage}"
+                       TextWrapping="Wrap"
+                       Style="{StaticResource FccTextBody}"
+                       Foreground="{DynamicResource FccBrushError}" />
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,16,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0"
+                           VerticalAlignment="Center"
+                           Text="Recent projects"
+                           Style="{StaticResource FccTextSection}"
+                           Foreground="{DynamicResource FccBrushTextPrimary}" />
+                <Button Grid.Column="1"
+                        Content="Refresh"
+                        IsEnabled="{Binding CanOpenProject}"
+                        Style="{StaticResource ProjectActionButton}"
+                        Click="OnRefreshClick"
+                        AutomationProperties.Name="Refresh recent projects" />
+            </Grid>
+
+            <ListBox x:Name="RecentProjectsList"
+                     Grid.Row="1"
+                     Margin="0,8,0,0"
+                     ItemsSource="{Binding RecentProjects}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     VirtualizingPanel.IsVirtualizing="True"
+                     VirtualizingPanel.VirtualizationMode="Recycling"
+                     AutomationProperties.Name="Recent projects">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="0,0,0,8"
+                                Padding="{StaticResource FccInset12}"
+                                Background="{DynamicResource FccBrushSurface}"
+                                BorderBrush="{DynamicResource FccBrushDivider}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource FccRadiusSmall}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               Style="{StaticResource FccTextBody}"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource FccBrushTextPrimary}" />
+                                    <TextBlock Margin="0,3,16,0"
+                                               Text="{Binding RootPath}"
+                                               TextTrimming="CharacterEllipsis"
+                                               Style="{StaticResource FccTextMetadata}"
+                                               Foreground="{DynamicResource FccBrushTextMuted}" />
+                                    <TextBlock Margin="0,3,16,0"
+                                               Text="{Binding UpdatedUtc, StringFormat='Last opened {0:g}'}"
+                                               Style="{StaticResource FccTextMetadata}"
+                                               Foreground="{DynamicResource FccBrushTextSecondary}" />
+                                </StackPanel>
+                                <Button Grid.Column="1"
+                                        MinWidth="72"
+                                        VerticalAlignment="Center"
+                                        Content="Open"
+                                        Tag="{Binding}"
+                                        IsEnabled="{Binding DataContext.CanOpenProject, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                        Style="{StaticResource ProjectActionButton}"
+                                        Click="OnOpenRecentProjectClick"
+                                        AutomationProperties.Name="Open recent project" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Border Grid.Row="1"
+                    Margin="0,8,0,0"
+                    Padding="{StaticResource FccInset20}"
+                    Background="{DynamicResource FccBrushSurface}"
+                    BorderBrush="{DynamicResource FccBrushDivider}"
+                    BorderThickness="1"
+                    CornerRadius="{StaticResource FccRadiusMedium}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasRecentProjects}" Value="False">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock HorizontalAlignment="Center"
+                               Text="No recent projects"
+                               Style="{StaticResource FccTextSection}"
+                               Foreground="{DynamicResource FccBrushTextPrimary}" />
+                    <TextBlock Margin="0,4,0,0"
+                               HorizontalAlignment="Center"
+                               Text="Open an existing Git or non-Git folder. Only workspace metadata is stored; source files stay in place."
+                               TextAlignment="Center"
+                               TextWrapping="Wrap"
+                               Style="{StaticResource FccTextMetadata}"
+                               Foreground="{DynamicResource FccBrushTextMuted}" />
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <TextBlock Grid.Row="3"
+                   Margin="0,12,0,0"
+                   Text="Opening a project never copies, moves, or modifies the selected source folder."
+                   Style="{StaticResource FccTextMetadata}"
+                   Foreground="{DynamicResource FccBrushTextMuted}" />
+    </Grid>
+</UserControl>
