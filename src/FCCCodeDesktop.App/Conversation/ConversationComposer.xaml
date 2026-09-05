@@ -228,7 +228,6 @@
                     <TextBlock Margin="0,6,0,0"
                                Text="{Binding ValidationMessage}"
                                TextWrapping="Wrap"
-                               Style="{StaticResource FccTextStatus}"
                                Foreground="{DynamicResource FccBrushError}">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock" BasedOn="{StaticResource FccTextStatus}">
