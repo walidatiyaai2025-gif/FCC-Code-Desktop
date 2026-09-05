@@ -61,6 +61,24 @@
                     <TextBlock Grid.Row="2" Grid.Column="1" Margin="12,6,0,0" Text="{Binding Attempt}" Style="{StaticResource FccTextStatus}" Foreground="{DynamicResource FccBrushTextSecondary}" />
                 </Grid>
 
+                <StackPanel Margin="0,18,0,0" Orientation="Horizontal">
+                    <Button x:Name="StopTaskButton"
+                            MinWidth="96"
+                            Padding="12,7"
+                            Content="Stop"
+                            IsEnabled="{Binding CanStop}"
+                            Click="OnStopClick"
+                            AutomationProperties.Name="Stop active task" />
+                    <Button x:Name="RetryTaskButton"
+                            MinWidth="96"
+                            Margin="8,0,0,0"
+                            Padding="12,7"
+                            Content="Retry"
+                            IsEnabled="{Binding CanRetry}"
+                            Click="OnRetryClick"
+                            AutomationProperties.Name="Retry task" />
+                </StackPanel>
+
                 <Border Margin="0,16,0,0"
                         Padding="{StaticResource FccInset12}"
                         Background="{DynamicResource FccBrushSurfaceRaised}"
