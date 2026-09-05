@@ -82,9 +82,16 @@ function Assert-StreamingConversationContract {
         'INotifyCollectionChanged',
         'StreamingConversationState.LastRuntimeSequence',
         'ConversationItems.ScrollIntoView',
-        'Dispatcher.BeginInvoke'
+        'DispatcherPriority.Background'
     )) {
         Assert-ContainsLiteral $SurfaceCodeText $literal 'ConversationSurface.xaml.cs'
+    }
+
+    $hasDeferredScrollScheduler =
+        $SurfaceCodeText.Contains('Dispatcher.BeginInvoke', [StringComparison]::Ordinal) -or
+        $SurfaceCodeText.Contains('DispatcherTimer', [StringComparison]::Ordinal)
+    if (-not $hasDeferredScrollScheduler) {
+        throw 'ConversationSurface.xaml.cs must defer/coalesce scroll-to-tail work through a dispatcher scheduler.'
     }
 
     foreach ($literal in @(
@@ -376,6 +383,11 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-StreamingConversationContract $mainXamlText ($mainCodeText.Replace('navigationState.SessionsContent = sessionWorkspaceSurface;', '')) $surfaceXamlText $surfaceCodeText $stateText
     } 'session workspace removed from sessions navigation composition'
+
+    Assert-ContractRejects {
+        $withoutDeferredScroll = $surfaceCodeText.Replace('Dispatcher.BeginInvoke', 'RemovedBeginInvoke').Replace('DispatcherTimer', 'RemovedDispatcherTimer')
+        Assert-StreamingConversationContract $mainXamlText $mainCodeText $surfaceXamlText $withoutDeferredScroll $stateText
+    } 'deferred/coalesced scroll scheduler removed'
 
     Assert-StreamingConversationContract $mainXamlText $mainCodeText $surfaceXamlText $surfaceCodeText $stateText
     Write-Host 'Streaming-conversation recovery fixture: PASS.'
