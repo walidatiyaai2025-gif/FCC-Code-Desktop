@@ -5,163 +5,78 @@ This file is the fastest canonical resume checkpoint. It must be updated only wh
 ```text
 PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
-CURRENT_PHASE: P04
-CURRENT_PHASE_NAME: FCC / fcc-claude runtime core
+CURRENT_PHASE: P05
+CURRENT_PHASE_NAME: Conversation + session + task experience
 CURRENT_PHASE_STATE: IN_PROGRESS
-NEXT_PHASE: P05
+NEXT_PHASE: P06
 PHASE_EXIT_GATE: NOT_RUN
 KNOWN_PHASE_BLOCKERS: 0
-KNOWN_RELEASE_BLOCKERS: 0
+KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
-LAST_RECONCILED: 2026-09-04
+OWNER_LAST_MODE: ACTIVE
+DEFERRED_OWNER_ACCEPTANCE_COUNT: 1
+DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET
+DEFERRED_PHASE_GATES: P04=NOT_RUN
+LAST_RECONCILED: 2026-09-05
 ```
 
-## Active rule
+## Active scheduling rule
 
-P04 is the sole legal implementation phase after canonical P03 closure, normal closure merge `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure canonical-main Windows CI run `33822291095` completed SUCCESS. `FCCD-P04-001` through `FCCD-P04-007` are canonically CLOSED by validated task-level reconciliation. `FCCD-P04-008` remains `PENDING`; P04 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`.
+`CURRENT_PHASE` now means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
-Before any worker selects new work, it must apply `docs/WORKER_PROTOCOL.md`: repair broken canonical state, resolve blockers, recover abandoned/stale work, and finish integration-pending work before claiming an unrelated new task.
+P05 is the sole legal cloud implementation phase. Its first unclaimed mandatory task is `FCCD-P05-001 — Streaming chat rendering`, subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`.
 
-P00 target-dependent contract work follows `docs/P00_TARGET_MACHINE_VALIDATION.md`. Authoritative FCC/`fcc-claude`, Unity, and Blender target evidence is integrated and reconciled. P00 contract evidence and ADR-017 are immutable inputs to P04 architecture. P04-001 verifies production environment-discovery mechanics through deterministic Windows CI fixtures without claiming provider prompt execution; P04-002 establishes the project-owned runtime domain contract without claiming real provider execution; P04-003 implements the primary structured owned-process adapter and validates it through permanent synthetic Windows fixtures without making a new provider execution claim; P04-004 implements the plain `fcc-claude --print <prompt>` compatibility fallback and validates it through permanent synthetic Windows fixtures without making a new provider execution claim; P04-005 adds evidence-bounded, loss-preserving runtime event normalization and validates it through permanent static/negative/recovery/Windows executable fixtures without claiming new provider execution; P04-006 adds evidence-aware runtime health/version compatibility classification and permanent deterministic Windows validation without treating FCC loopback health as provider readiness; P04-007 adds transport-neutral start/stop/retry supervision with conservative evidence-bounded retry classification, idempotent cancellation, serialized attempts, bounded retries, and deterministic lifecycle validation without claiming new live provider behavior. P04-008 and the P04 exact-head exit gate retain ownership of the full real-runtime P04 contract suite required before phase closure.
+This is **not** a P04 closure and does not weaken P04 acceptance. `FCCD-P04-008 — Runtime contract suite` remains unresolved in `docs/TASK_LEDGER.md`; the P04 exit gate remains `NOT_RUN`; no P04 `CLOSURE.md` PASS is claimed by this scheduling transition. Its fresh owner-Windows/provider `REAL_TARGET` obligation is durably queued as `OWNER-P04-008-REAL-TARGET`, remains `releaseBlocking=true`, and must later be genuinely executed, reviewed, integrated, and reconciled.
 
-## Current status
+The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-lock model. That scheduling statement is superseded only by the owner-authorized owner-last policy and the activation evidence at `evidence/governance/OWNER_LAST_P05_CLOUD_ACTIVATION_2026-09-05.md`. All P04 functional/acceptance requirements remain unchanged.
 
-- `P04` — IN_PROGRESS as the sole current implementation phase; `PHASE_EXIT_GATE=NOT_RUN`.
-- `FCCD-P04-001` — CLOSED after implementation PR #91 was validated on exact candidate `7d613f75805fe0939f823425482e80492fe5536b` by Windows CI run `33825468339` / run #120, normally merged as `c7453dc64304ee149ea1a98b4736043fe644441c`, and the exact resulting canonical main passed Windows CI run `33826581291` / run #123. Candidate Release build passed with 0 warnings/0 errors, unit tests 9/9, integration tests 37/37, and the FCC environment-discovery static/negative/recovery/runtime fixture suite PASS. Current main `0bc04b69838a390386e3cda17bf094ff7817e2ae` also passed non-regression Windows CI run `33826972327` / run #125. Task evidence: `evidence/phases/P04/P04_001_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- `FCCD-P04-002` — CLOSED after implementation PR #94 was validated on exact candidate `7b28a0bdbc76a092ae0df372cb780eb235ef525a` by Windows CI run `33826612463` / run #124, normally merged as `0bc04b69838a390386e3cda17bf094ff7817e2ae`, and the exact resulting canonical main passed Windows CI run `33826972327` / run #125. Candidate Release build passed with 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, and the complete permanent Windows baseline PASS. Current main `e5b6c3e3f9ed9714358a0b402be0b961a9393d5b` also passed non-regression Windows CI run `33828658981` / run #127. Task evidence: `evidence/phases/P04/P04_002_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- `FCCD-P04-003` — CLOSED after implementation PR #97 was validated on exact candidate `3a017c0eec34bd9c80d3dc6ef6e16ec564939e4f` by Windows CI run `33831874827` / run #131 attempt 2, normally merged as `8fd24dc124aaca134f19499dae4df3021b63a2fb`, and the exact resulting canonical main passed Windows CI run `33833049188` / run #132. Candidate and exact-main Release builds passed with 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, the FCC structured-runtime static/negative/recovery/Windows executable fixture PASS, and the complete permanent Windows baseline PASS. Task evidence: `evidence/phases/P04/P04_003_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- `FCCD-P04-004` — CLOSED after implementation PR #106 exact repaired candidate `699749679fe9a4b970e94f3fa18992c12989fe8d` passed Windows CI run `33836177846` / run #137, normally merged as `30df27e493cb0f4ef9c9d1de7afcb5158a7e7093`, and the exact resulting canonical main passed Windows CI run `33836542523` / run #138. Candidate and exact-main Release builds passed with 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, the FCC CLI-fallback static/negative/recovery/Windows executable fixture PASS, and the complete permanent Windows baseline PASS. Earlier run `33835694136` / run #136 failed only because the disposable fake fallback fixture referenced nonexistent .NET API `Console.ErrorEncoding`; the fixture-only compile defect was repaired without weakening production behavior or validation. Task evidence: `evidence/phases/P04/P04_004_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- `FCCD-P04-005` — CLOSED after implementation PR #108 initial exact head `ec173f27bb8a8676d2e227d884f812f7a78a9dd9` exposed a task-local static validator false positive in Windows CI run `33839726434` / run #144 after the Release build and all 16 unit / 37 integration tests had already passed. The validator was repaired without weakening redaction or executable assertions; repaired exact head `5e733d7424a73e02d3c03a86abf5c076b64b4552` passed Windows CI run `33841968757` / run #147, was normally merged as `bba771de1e10ac702d73a6bdc20bb2143eddc526`, and the exact resulting canonical main passed Windows CI run `33842288621` / run #148. Candidate Release build passed with 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, normalization static/negative/recovery/Windows executable fixtures PASS, and the complete permanent Windows baseline PASS. Task evidence: `evidence/phases/P04/P04_005_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- `FCCD-P04-006` — CLOSED after stale/integration-pending PR #110 was recovered without rebase/squash/force-push. Prior tested head `c6bb80954593282e8af9a21f1cc05a6ab6dc39aa` was preserved with current green base `15348bb824a06fde28414c095574084a6ba6050b` in two-parent recovery head `22c83e6f6565ab3cf17965d5c747a119dd8a7f2c`; shared CI registry conflicts were resolved by retaining both P04-005 normalization and P04-006 health/version validators. Recovered exact head passed Windows CI `33845074580` / run #151 with Release build 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, P04-006 static/negative/recovery/Windows fixture PASS, P04-005 normalization PASS, and the complete baseline PASS. PR #110 was normally merged as `3b178d62ec1235c9e9b6d727251218f790c78fc4`, and exact post-merge canonical-main Windows CI `33845439369` / run #152 completed SUCCESS. Task evidence: `evidence/phases/P04/P04_006_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- `FCCD-P04-007` — CLOSED after implementation PR #113 exact candidate `a1e0d023e8450692aea2bf6f634323e1898c7b96` passed Windows CI run `33849646661` / run #155 with Release build 0 warnings/0 errors, unit tests 24/24, integration tests 37/37, and the complete permanent Windows baseline PASS. PR #113 was normally merged as `9e0dc4e805913a5beceeb20224d3b726581d449c`, preserving the exact candidate as a parent, and exact post-merge canonical-main Windows CI run `33850126499` / run #156 completed SUCCESS. Deterministic supervision coverage verifies bounded serial retry, explicit retry events, conservative retryability/user-action gating, idempotent cancellation, retry suppression after cancellation, task/run identity preservation, monotonic event sequencing, disabled auto-retry, and invalid-attempt-bound rejection. Task evidence: `evidence/phases/P04/P04_007_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- `FCCD-P04-008` — PENDING unless separately and canonically reconciled by its authorized work. No P04 phase closure is claimed here.
-- P04 activation transition was integrated by PR #90 as canonical main `611bfa0091ea496b25758199b777217e52342be5`; exact post-transition Windows CI run `33823741873` / run #116 completed SUCCESS before P04-001 implementation was claimed.
-- `P03` — CLOSED with `PHASE_EXIT_GATE=PASS`.
-- `FCCD-P03-001` — CLOSED after implementation PR #71 was validated on exact candidate `ba30c8f3bef8c56977b59756bf168c480f2ad6b3` by Windows CI run `33796749113`, normally merged as `b7437a659911d17e7b221a6f540bc470f5acf929`, and the exact resulting canonical main passed Windows CI run `33797456382`.
-- `FCCD-P03-002` — CLOSED after implementation PR #73 was validated on exact candidate `9911627c3ccbce4c82bbded9ef0c7e4c7c9173c7` by Windows CI run `33800474488`, normally merged as `0d6402d0ee14412a62f2b2f67a54c779d6f47cf2`, and the exact resulting canonical main passed Windows CI run `33800922990` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 13/13, and the complete permanent Windows baseline PASS.
-- `FCCD-P03-003` — CLOSED after implementation PR #75 was validated on exact candidate `12053c1c3252df45f52ac8c13ee0fc398ce80daa` by Windows CI run `33804512765`, normally merged as `cb58551f9e8d32b4f0514b199e407ffcda84c188`, and the exact resulting canonical main passed Windows CI run `33804999538` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 18/18, and the complete permanent Windows baseline PASS.
-- `FCCD-P03-004` — CLOSED after implementation PR #77 was validated on exact candidate `2a1f3d0296765507e15b9b7e4a8934940c4e4b57` by Windows CI run `33808119260`, normally merged as `7ee0b5ef6b0d6810421c7b6087e712916c9babbd`, and the exact resulting canonical main passed Windows CI run `33808499136` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 23/23, and the complete permanent Windows baseline PASS.
-- `FCCD-P03-005` — CLOSED after implementation PR #79 was validated on exact candidate `bd717c0acd625f1ba660175a9506849047e54be7` by Windows CI run `33811688597`, normally merged as `46d1f49ba69df48c16246fa9632457fc5c0ecea6`, and the exact resulting canonical main passed Windows CI run `33812108965` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 28/28, and the complete permanent Windows baseline PASS.
-- `FCCD-P03-006` — CLOSED after implementation PR #81 was validated on exact candidate `308a8856850290f8c18b434a5e33a8d448c299da` by Windows CI run `33815261012`, normally merged as `cc3259710b3ca2ba1800dcd818267bcf6d77ad40`, and the exact resulting canonical main passed Windows CI run `33815707175` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 33/33, and the complete permanent Windows baseline PASS. Task evidence: `evidence/phases/P03/P03_006_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- `FCCD-P03-007` — CLOSED after implementation PR #83 was validated on exact candidate `f0f21f5aa616c4d2733c6c271f95c269b8b71e66` by Windows CI run `33818107766`, normally merged as `d475f576320a8e7db2521d1f54248fed27a49dd8`, and the exact resulting canonical main passed Windows CI run `33818509132` with Release build 0 warnings/0 errors, unit tests 9/9, integration tests 37/37, and the complete permanent Windows baseline PASS. Task evidence: `evidence/phases/P03/P03_007_INTEGRATED_RECONCILIATION_2026-09-04.md`.
-- P03 integrated-task reconciliation evidence for P03-001 through P03-005: `evidence/phases/P03/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
-- P03 activation transition: PR #70 integrated the phase activation as canonical main `c5be02bc8224f56eff83cca925e0d6e22d4c034a`; its exact resulting-main Windows CI was green before P03-001 work was claimed.
-- P03 exact-head closure evidence: `evidence/phases/P03/CLOSURE.md`.
-- P03 candidate `2d5859cf6abc019471d1f548d8bb398892c229b1` was already green on permanent main Windows CI run `33820435829` / run #112 before closure.
-- Dedicated exact-head P03 gate run `33821332906` completed SUCCESS on immutable candidate `2d5859cf6abc019471d1f548d8bb398892c229b1`: Windows Server 2025, .NET `10.0.400`, locked restore, format/analyzers, Release build 0 warnings/0 errors, unit 9/9, integration 37/37, dedicated SQLite persistence/recovery 34/34, canonical Windows baseline, diff hygiene, tracked-file secret scan, and final clean-worktree assertion all passed.
-- P03 closure was integrated by PR #85 as canonical merge `62d3162d31cad6ff8c1d52897cf81a93e57bceed`; exact post-closure canonical main Windows CI run `33822291095` completed SUCCESS on that merge SHA.
-- The initial validation-only guard used descriptive recovery scenario labels instead of the canonical test method names; the harness was corrected before authoritative run `33821332906`. No P03 product code or test was weakened.
-- P15 automatic startup backup selection/restoration, crash/reboot orchestration, and interrupted external-operation recovery are not claimed by P03 closure.
-- `P02` — CLOSED with `PHASE_EXIT_GATE=PASS`.
-- `FCCD-P02-001` through `FCCD-P02-009` — CLOSED from validated canonical integration and exact-current-main non-regression Windows CI.
-- P02 integrated-task reconciliation evidence: `evidence/phases/P02/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
-- P02 exact-head closure evidence: `evidence/phases/P02/CLOSURE.md`.
-- P02 candidate `8b264cc352656030382f95846410ac60d81f7c24` passed exact-head gate run `33786810686`, including locked restore, format/analyzers, Release build, unit/integration tests, all P02 static/negative/recovery/Windows-runtime validators, minimum-resolution/DPI baseline checks, canonical Windows CI, diff hygiene, exact deterministic-fixture-aware tracked-file secret scan, and final clean-worktree assertion.
-- Candidate `8b264cc352656030382f95846410ac60d81f7c24` was already green on permanent main Windows CI run `33773829176` before closure.
-- Initial dedicated gate run `33786155633` exposed only a validation-harness false positive because historical P01 closure evidence truthfully quotes the deterministic redaction fixture literal. The scanner was narrowed to that exact literal in exactly two canonical files; rerun `33786810686` then passed. No P02 product defect was waived.
-- P02 closure was integrated by PR #69 as canonical merge `6b495178f2a120e745fe09633bbd584851253d71`; exact post-closure canonical main Windows CI run `33788321767` completed SUCCESS on that exact main SHA.
-- `FCCD-P02-005` was integrated by PR #59 from exact candidate `40f1401451c95c1a66618cae9d1af80d869055cf`; focused Windows CI run `33748156985` completed SUCCESS. The resulting canonical main `fb488d0939233994b6f1a13c7888024bdecffd23` passed post-merge Windows CI run `33748518665`.
-- `FCCD-P02-006` was integrated by PR #61 from exact candidate `bc2b5f034a4b2fa22cb2988360f05326d6605f82`; focused Windows CI run `33752661614` completed SUCCESS after real WPF namescope and typed-resource defects were repaired rather than waived. The resulting canonical main `949379c797f571c0945927681f1b719bee4e1e6f` passed post-merge Windows CI run `33752999860`.
-- `FCCD-P02-007` was integrated by PR #63 from exact candidate `3a25ce5e582a126262803be791f81abc5e6d451d`; focused Windows CI run `33756980148` completed SUCCESS, including the command-palette static/negative/recovery/runtime validation. The resulting canonical main `45ee529bf725ebb1f4c1949c2667afa075ac1dd8` passed post-merge Windows CI run `33757314060`.
-- `FCCD-P02-008` was integrated by PR #65 from exact candidate `04a0a8176bf16ad6c8d53b9268b46d23126253de`; focused Windows CI run `33763285287` completed SUCCESS after the taxonomy negative fixture and detached-control theme-parity fixture were repaired rather than waived. The resulting canonical main `429643446e0f24ce3d5707545dc4f1ac06cbf28d` passed post-merge Windows CI run `33763898340`.
-- `FCCD-P02-009` was integrated by PR #67 from exact candidate `b6e397e842978f4ac3efadcd9259ab8c01cd4ca7`; focused Windows CI run `33767348642` completed SUCCESS, including Per-Monitor V2 manifest validation and deterministic DPI/resolution layout static/negative/recovery/runtime validation. The resulting canonical main `4a9e6979861ec01c40317c14ec59c2d93605cf5e` passed post-merge Windows CI run `33767862127`.
-- `P01` — CLOSED; `FCCD-P01-001` through `FCCD-P01-006` are CLOSED from validated canonical integration.
-- P01 integrated-task reconciliation evidence: `evidence/phases/P01/INTEGRATED_TASK_RECONCILIATION_2026-09-03.md`.
-- P01 exact-head closure evidence: `evidence/phases/P01/CLOSURE.md`.
-- P01 candidate `72ea8b4f891a0558c97e0633c4444388e62ec464` passed the complete cloud-available exit gate on GitHub-hosted Windows: fresh exact checkout, .NET `10.0.400`, locked restore, format/analyzer verification, Release build, unit/integration tests, all P01 deterministic validators, canonical Windows CI baseline, `git diff --check`, tracked-file secret sanity scan, and final clean-worktree assertion.
-- P01 closure was integrated by PR #52. The resulting closure tree remained green on exact canonical `main`; Windows CI run `33728070232` completed SUCCESS on transition base `27c9ab5dbb192d68f5ee629184fc2eabeee087df`.
-- `FCCD-P00-001` — CLOSED.
-- `FCCD-P00-002` — CLOSED from Windows executable/version/help and live loopback health evidence.
-- `FCCD-P00-003` — CLOSED from real structured `system/init` and `system/api_retry` target frames with sanitized raw/parsed evidence.
-- `FCCD-P00-004` — CLOSED from authoritative Windows provider-backed first-turn and new-process session-resume continuity evidence, including invalid-session rejection, valid-session recovery after the negative case, and owned-process cleanup.
-- `FCCD-P00-005` — CLOSED from authoritative exact-head Windows failure/cancellation evidence at tested source SHA `015ffd8c0e2a6e725e33ed153441ff51e7952556`: provider baseline SUCCESS, cancellation INTERRUPTED, graceful interrupt, hardened descendant observation, residual owned-process cleanup by previously observed PID/identity, zero remaining owned processes, and explicit `RATE_LIMIT = NOT_OBSERVED_ON_TARGET` under the resolved PG-002 safe closure policy. No artificial 429 traffic was generated.
-- `FCCD-P00-006` — CLOSED after the primary runtime adapter decision was reconciled against the complete target evidence set and the exact-head P00 pre-closure gate passed on candidate `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`.
-- `FCCD-P00-007` — CLOSED from authoritative Windows CLI fallback evidence covering provider-backed completion across normal, spaced, and Unicode/Arabic working directories, stdout/stderr observability, graceful cancellation, and owned-process cleanup.
-- `FCCD-P00-008` — CLOSED after abandoned Worker 3 work was recovered, Windows probe defects were repaired, and the complete real Unity target contract passed.
-- `FCCD-P00-009` — CLOSED from authoritative Windows Blender `5.2.0` execution at tested source SHA `e6932783b30ab0bdbb596c7959e03143753bff9a`: discovery/version, background/Python automation, save/render/export artifact validation, controlled failure, owned cancellation/cleanup, and 29/29 deterministic self-tests passed; evidence was integrated by PR #40.
-- `FCCD-P00-010` — CLOSED after the evidence-based runtime/version compatibility baseline was reconciled with real Blender `5.2.0` target success and the exact-head P00 pre-closure gate passed on candidate `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`.
-- `PG-002-P00-RATE-LIMIT-CLOSURE` — RESOLVED. `NOT_OBSERVED_ON_TARGET` remains distinct from PASS/actual observation, but is an accepted P00-005 closure boundary when deterministic classifier mechanics and the rest of the exact-head target contract pass without manufacturing provider load.
-- PR #40 integrated sanitized authoritative Unity/Blender target evidence, including `p00TargetValidationComplete=true` and Blender closure support.
-- PR #41 reconciled authoritative Blender target success into the canonical P00 task/contract/compatibility state.
-- The exact-head P00 pre-closure gate passed on `49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9`: all 6/6 contract-probe self-tests passed, target evidence secret sanity scan passed, required evidence ancestry passed, no open plan gaps or known P00 blockers remained, and the worktree remained clean.
+## Owner-last invariants
 
-## P00 closure
+- Exactly one cloud implementation phase remains active: P05.
+- Earlier unresolved work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
+- Code defects, failed CI, missing tests/implementation, security/data-integrity defects, and repairable repository problems are never deferrable.
+- A queued source task is not `CLOSED`; its phase exit gate is not converted to `PASS`.
+- Any later-discovered regression in P04 or any failed final-owner run regains repair priority immediately.
+- `KNOWN_RELEASE_BLOCKERS` must never be lower than the number of unresolved release-blocking owner queue items.
+- P22 cannot become the current cloud implementation phase while any required owner queue item remains `QUEUED`.
+- `VERIFIED_FINAL_COMPLETE` remains false until canonical P22 closure after every mandatory task/gate/acceptance row and every owner queue obligation genuinely passes on the required exact candidate.
 
-```text
-P00_CANDIDATE_SHA: 49840a7c9c7c9300dbeb3f2ec7077acb2f8bebe9
-MANDATORY_TASKS: 10/10 CLOSED
-EXIT_GATE: PASS
-KNOWN_BLOCKERS: NONE
-KNOWN_REGRESSIONS: NONE
-TARGET_VALIDATION_COMPLETE: true
-PROVIDER_RERUN_DURING_FINAL_GATE: ZERO
-UNITY_TARGET_RERUN_DURING_FINAL_GATE: ZERO
-BLENDER_TARGET_RERUN_DURING_FINAL_GATE: ZERO
-CLOSURE_RECORD: evidence/phases/P00/CLOSURE.md
-```
+## Deferred owner acceptance
 
-## P01 closure
+### OWNER-P04-008-REAL-TARGET
 
-```text
-P01_CANDIDATE_SHA: 72ea8b4f891a0558c97e0633c4444388e62ec464
-MANDATORY_TASKS: 6/6 CLOSED
-EXIT_GATE: PASS
-KNOWN_BLOCKERS: NONE
-KNOWN_REGRESSIONS: NONE
-OWNER_PENDING: NONE
-EXACT_GATE_RUN: 33726790774
-POST_CLOSURE_MAIN_GREEN_SHA: 27c9ab5dbb192d68f5ee629184fc2eabeee087df
-POST_CLOSURE_WINDOWS_CI_RUN: 33728070232
-CLOSURE_RECORD: evidence/phases/P01/CLOSURE.md
-```
+- Source task: `FCCD-P04-008`.
+- Source phase: P04.
+- Source task state: unresolved / not CLOSED.
+- P04 exit gate: `NOT_RUN`.
+- Classification: `REAL_TARGET`.
+- Reason: requires the owner's installed Windows `fcc-claude`/FCC/provider environment; GitHub-hosted CI proves only deterministic `SELF_TEST_ONLY` mechanics.
+- Cloud implementation evidence: `evidence/phases/P04/P04_008_CLOUD_COMPLETE_TARGET_VALIDATION_REQUIRED_2026-09-04.md`.
+- Canonical queue: `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
+- Final execution runner: `tools/final-acceptance/run-final-owner-acceptance.ps1`.
+- Release status: blocking until genuine PASS evidence is integrated and reconciled.
 
-## P02 closure
+## P05 cloud task inventory
 
-```text
-P02_CANDIDATE_SHA: 8b264cc352656030382f95846410ac60d81f7c24
-MANDATORY_TASKS: 9/9 CLOSED
-EXIT_GATE: PASS
-KNOWN_BLOCKERS: NONE
-KNOWN_REGRESSIONS: NONE
-OWNER_PENDING: NONE
-EXACT_GATE_RUN: 33786810686
-PRE_CLOSURE_MAIN_GREEN_SHA: 8b264cc352656030382f95846410ac60d81f7c24
-PRE_CLOSURE_WINDOWS_CI_RUN: 33773829176
-CLOSURE_MERGE_SHA: 6b495178f2a120e745fe09633bbd584851253d71
-POST_CLOSURE_WINDOWS_CI_RUN: 33788321767
-CLOSURE_RECORD: evidence/phases/P02/CLOSURE.md
-```
+- `FCCD-P05-001` — Streaming chat rendering — PENDING.
+- `FCCD-P05-002` — Structured tool activity timeline — PENDING.
+- `FCCD-P05-003` — Composer/attachments/context — PENDING.
+- `FCCD-P05-004` — Session create/history/resume — PENDING.
+- `FCCD-P05-005` — Explicit task state machine — PENDING.
+- `FCCD-P05-006` — Stop/cancel/retry UX — PENDING.
+- `FCCD-P05-007` — Markdown/code/diff content rendering — PENDING.
+- `FCCD-P05-008` — Conversation virtualization/performance — PENDING.
 
-## P03 closure
+## Activation provenance
 
-```text
-P03_CANDIDATE_SHA: 2d5859cf6abc019471d1f548d8bb398892c229b1
-MANDATORY_TASKS: 7/7 CLOSED
-EXIT_GATE: PASS
-KNOWN_BLOCKERS: NONE
-KNOWN_REGRESSIONS: NONE
-OWNER_PENDING: NONE
-EXACT_GATE_RUN: 33821332906
-PRE_CLOSURE_MAIN_GREEN_SHA: 2d5859cf6abc019471d1f548d8bb398892c229b1
-PRE_CLOSURE_WINDOWS_CI_RUN: 33820435829
-CLOSURE_MERGE_SHA: 62d3162d31cad6ff8c1d52897cf81a93e57bceed
-POST_CLOSURE_WINDOWS_CI_RUN: 33822291095
-CLOSURE_RECORD: evidence/phases/P03/CLOSURE.md
-```
+- Owner-last bootstrap base before PR #117: `2e76d7f6a44bf120e16efab21a01df9784cd8380`.
+- Owner-last mechanism PR #117 candidate: `cf2def8d93a5cbaf161cd836985d1e6c9ed57fce`.
+- Owner-last mechanism normal merge: `cfe43774b7c43605e119cb6b94f34b29694612f2`.
+- Exact post-merge canonical-main Windows CI: run `33937019700` / run #167 — SUCCESS.
+- Open PRs at activation recovery: none.
+- Open issues at activation recovery: none.
+- P05 branch/claim found before this governance repair: none.
 
-## Next legal action
+## Next legitimate action after this governance repair is integrated
 
-After this P04-007 task reconciliation is integrated and the exact resulting `main` remains green, apply `docs/WORKER_PROTOCOL.md` within P04. Re-fetch live main, open PRs/branches/claims, current CI, and P04 evidence before selecting work. Recover/integrate any existing legitimate P04-008 work; if no Priority 1–4 recovery work exists, `FCCD-P04-008 — Runtime contract suite` is the only remaining dependency-valid P04 task. Do not begin P05 until P04-008 is CLOSED and the P04 exact-head exit gate passes with canonical evidence. `VERIFIED_FINAL_COMPLETE` remains false.
-
-## Resume procedure
-
-1. Read `AGENTS.md`.
-2. Read `PROJECT_CONTROL.md`.
-3. Read `docs/EXECUTION_PLAN.md`.
-4. Read `docs/WORKER_PROTOCOL.md`.
-5. Read `docs/TASK_LEDGER.md`, `docs/ACCEPTANCE_MATRIX.md`, `docs/DECISIONS.md`, and `docs/PLAN_GAPS.md`.
-6. Read `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, `evidence/phases/P02/CLOSURE.md`, and `evidence/phases/P03/CLOSURE.md` as immutable prior-phase provenance.
-7. Fetch live branches/PRs/issues/commits and current CI before selecting P04 work.
-8. Treat P04 as the sole legal phase; P04-001 through P04-007 are CLOSED by validated canonical integration, and P04-008 is the only remaining dependency-valid task if no higher-priority recovery work exists and no active owner already owns it.
-9. Preserve the integrated P00 runtime-contract, P01 engineering-policy, P02 shell, and P03 persistence/recovery evidence as immutable provenance.
-10. Continue strict sequential phase execution; do not begin P05 until P04 is validly closed, and do not claim final product completion before canonical P22 closure.
+Re-fetch live main, queue, open PRs/branches/issues, and CI. If no higher-priority regression/recovery work exists, select exactly one unclaimed P05 task beginning with the earliest dependency-valid row (`FCCD-P05-001`) and execute it normally. Do not execute queued owner acceptance until the final-owner lane is intentionally reached, and never treat that deferral as release PASS.
