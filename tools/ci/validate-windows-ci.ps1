@@ -36,7 +36,8 @@ function Assert-CiPolicy {
         'uses: actions/setup-dotnet@v6',
         'dotnet-version: 10.0.400',
         '.\tools\ci\validate-windows-ci.ps1 -RequireDotNet',
-        '.\tools\ci\run-windows-ci.ps1'
+        '.\tools\ci\run-windows-ci.ps1',
+        '.\tools\ui\validate-task-state-machine.ps1 -RunFixtures -RequireRuntime'
     )) {
         Assert-ContainsLiteral $WorkflowText $requiredWorkflowText 'Windows CI workflow'
     }
@@ -126,6 +127,7 @@ Assert-CiPolicy $workflowText $runnerText
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('windows-2025', 'ubuntu-latest')) $runnerText } 'non-Windows runner'
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('dotnet-version: 10.0.400', 'dotnet-version: 10.0.401')) $runnerText } 'wrong SDK'
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('contents: read', 'contents: write')) $runnerText } 'write permissions'
+Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\validate-task-state-machine.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P05-005 task-state validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('--locked-mode', '')) } 'unlocked restore'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-c Release', '-c Debug')) } 'non-Release build'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-Suite all', '-Suite unit')) } 'incomplete test lane'
@@ -153,7 +155,7 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-dpi-layout.ps1 -RunFixtures -RequireRuntime', '')) } 'missing DPI/resolution layout validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, conversation-composer, session-workspace, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, P05-005 task-state gate, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, conversation-composer, session-workspace, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {

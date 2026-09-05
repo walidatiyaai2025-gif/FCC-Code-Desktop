@@ -29,6 +29,7 @@
                                          Composer="{StaticResource ComposerState}" />
         <conversation:SessionWorkspaceSurface x:Key="SessionWorkspaceSurface"
                                               ConversationContent="{StaticResource ConversationSurface}" />
+        <conversation:TaskExecutionSurface x:Key="TaskExecutionSurface" />
     </Window.Resources>
 
     <shell:WindowChrome.WindowChrome>

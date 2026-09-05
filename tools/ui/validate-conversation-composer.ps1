@@ -127,8 +127,10 @@ function Assert-ComposerContract {
 
     foreach ($literal in @(
         'composerState.SubmissionRequested += OnComposerSubmissionRequested',
+        'taskState.ValidateCanStart()',
         'conversationState.AddUserMessage(e.Submission.Text)',
-        'composerState.AcceptSubmission(e.Submission.SubmissionId)'
+        'composerState.AcceptSubmission(e.Submission.SubmissionId)',
+        'composerState.RejectSubmission(e.Submission.SubmissionId, exception.Message)'
     )) {
         Assert-ContainsLiteral $MainWindowCodeText $literal 'MainWindow.xaml.cs'
     }
@@ -223,6 +225,7 @@ function Invoke-ComposerRuntimeFixture {
 
         $programTemplate = @'
 using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -237,6 +240,9 @@ internal static class Program
     [STAThread]
     private static void Main()
     {
+        SynchronizationContext.SetSynchronizationContext(
+            new DispatcherSynchronizationContext(Dispatcher.CurrentDispatcher));
+
         var app = new App();
         app.InitializeComponent();
         var window = new MainWindow();
@@ -257,24 +263,39 @@ internal static class Program
         Assert(!detached.RequestSubmission(), "submission fails closed without a handler");
         Assert(detached.HasValidationMessage, "missing-handler validation is visible");
 
-        Assert(!composer.TryAddAttachment(Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".missing")), "missing attachment rejected");
-        Assert(composer.TryAddAttachment(@"__FIXTURE_PATH__"), "attachment accepted");
-        Assert(!composer.TryAddAttachment(@"__FIXTURE_PATH__"), "duplicate attachment rejected");
-        Assert(composer.HasValidationMessage, "duplicate attachment produces visible validation");
-        Assert(composer.Attachments.Count == 1 && composer.Attachments[0].SizeBytes > 0, "attachment metadata retained without content read");
-
-        Assert(composer.TryAddContextReference(ComposerContextKind.File, @"__FIXTURE_PATH__", "fixture context.txt"), "context accepted");
-        Assert(!composer.TryAddContextReference(ComposerContextKind.File, @"__FIXTURE_PATH__", "duplicate"), "duplicate context rejected");
-        Assert(composer.ContextReferences.Count == 1, "context deduplicated");
+        var accepted = new ComposerState();
+        Assert(!accepted.TryAddAttachment(Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".missing")), "missing attachment rejected");
+        Assert(accepted.TryAddAttachment(@"__FIXTURE_PATH__"), "attachment accepted");
+        Assert(!accepted.TryAddAttachment(@"__FIXTURE_PATH__"), "duplicate attachment rejected");
+        Assert(accepted.HasValidationMessage, "duplicate attachment produces visible validation");
+        Assert(accepted.Attachments.Count == 1 && accepted.Attachments[0].SizeBytes > 0, "attachment metadata retained without content read");
+        Assert(accepted.TryAddContextReference(ComposerContextKind.File, @"__FIXTURE_PATH__", "fixture context.txt"), "context accepted");
+        Assert(!accepted.TryAddContextReference(ComposerContextKind.File, @"__FIXTURE_PATH__", "duplicate"), "duplicate context rejected");
+        Assert(accepted.ContextReferences.Count == 1, "context deduplicated");
 
         ComposerSubmission? captured = null;
-        composer.SubmissionRequested += (_, args) => captured = args.Submission;
-        composer.DraftText = "  inspect this fixture safely  ";
-        Assert(composer.CanSubmit, "visible text enables submit");
+        accepted.SubmissionRequested += (_, args) =>
+        {
+            captured = args.Submission;
+            accepted.AcceptSubmission(args.Submission.SubmissionId);
+        };
+        accepted.DraftText = "  inspect this fixture safely  ";
+        Assert(accepted.RequestSubmission(), "standalone submission emitted");
+        var submission = captured ?? throw new InvalidOperationException("Immutable composer submission was not emitted.");
+        Assert(submission.Text == "inspect this fixture safely", "submission text normalized");
+        Assert(submission.Attachments.Count == 1 && submission.Attachments[0].FullPath == @"__FIXTURE_PATH__", "attachment snapshot emitted");
+        Assert(submission.ContextReferences.Count == 1 && submission.ContextReferences[0].Kind == ComposerContextKind.File, "context snapshot emitted");
+        Assert(!accepted.HasDraftContent && accepted.Attachments.Count == 0 && accepted.ContextReferences.Count == 0, "exact acknowledgement clears accepted submission");
+        Assert(!accepted.CanSubmit, "empty accepted composer cannot submit again");
+
+        Assert(composer.TryAddAttachment(@"__FIXTURE_PATH__"), "production attachment accepted");
+        Assert(composer.TryAddContextReference(ComposerContextKind.File, @"__FIXTURE_PATH__", "fixture context.txt"), "production context accepted");
+        composer.DraftText = "production preflight";
+        Assert(composer.CanSubmit, "visible production text enables submit");
 
         navigation.SelectSection(WorkspaceSection.Sessions);
         window.Show();
-        window.Dispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
+        PumpUntil(() => window.IsLoaded, "production window loaded");
 
         var composerControl = surface.FindName("ConversationComposerHost") as ConversationComposer
             ?? throw new InvalidOperationException("Production conversation composer host is missing.");
@@ -293,16 +314,12 @@ internal static class Program
         themes.Apply(AppearanceTheme.Dark);
 
         composer.SubmitCommand.Execute(null);
-        window.Dispatcher.Invoke(() => { }, DispatcherPriority.DataBind);
+        PumpUntil(() => composer.HasValidationMessage && composer.CanSubmit, "production preflight rejection settles");
+        Assert(conversation.Messages.Count == 0, "failed execution preflight does not add a user message");
+        Assert(composer.HasDraftContent && composer.Attachments.Count == 1 && composer.ContextReferences.Count == 1, "rejected production submission preserves draft context");
 
-        var submission = captured ?? throw new InvalidOperationException("Immutable composer submission was not emitted.");
-        Assert(submission.Text == "inspect this fixture safely", "submission text normalized");
-        Assert(submission.Attachments.Count == 1 && submission.Attachments[0].FullPath == @"__FIXTURE_PATH__", "attachment snapshot emitted");
-        Assert(submission.ContextReferences.Count == 1 && submission.ContextReferences[0].Kind == ComposerContextKind.File, "context snapshot emitted");
-        Assert(conversation.Messages.Count == 1 && conversation.Messages[0].Role == ConversationMessageRole.User, "submission adds one user message");
-        Assert(conversation.Messages[0].Text == "inspect this fixture safely", "user message text preserved");
-        Assert(!composer.HasDraftContent && composer.Attachments.Count == 0 && composer.ContextReferences.Count == 0, "accepted submission clears composer");
-        Assert(!composer.CanSubmit, "empty accepted composer cannot submit again");
+        composer.Clear();
+        Assert(!composer.HasDraftContent, "rejected submission can be cleared after settling");
 
         var tooLongRejected = false;
         try
@@ -316,7 +333,22 @@ internal static class Program
         Assert(tooLongRejected, "programmatic over-limit draft rejected");
 
         window.Close();
-        Console.WriteLine("Runtime conversation-composer happy/negative/recovery fixture: PASS.");
+        Console.WriteLine("Runtime conversation-composer happy/negative/recovery/downstream-preflight fixture: PASS.");
+    }
+
+    private static void PumpUntil(Func<bool> condition, string label)
+    {
+        var deadline = DateTimeOffset.UtcNow.AddSeconds(15);
+        while (!condition() && DateTimeOffset.UtcNow < deadline)
+        {
+            var frame = new DispatcherFrame();
+            Dispatcher.CurrentDispatcher.BeginInvoke(
+                DispatcherPriority.Background,
+                new Action(() => frame.Continue = false));
+            Dispatcher.PushFrame(frame);
+        }
+
+        Assert(condition(), label);
     }
 
     private static SolidColorBrush RequireBrush(Brush? brush, string label) =>
@@ -404,9 +436,19 @@ if ($RunFixtures) {
     } 'shared composer state binding removed'
 
     Assert-ContractRejects {
+        $mutated = $mainWindowCodeText.Replace('taskState.ValidateCanStart()', '/* removed task preflight */')
+        Assert-ComposerContract $composerStateText $composerXamlText $composerCodeText $conversationSurfaceText $conversationSurfaceCodeText $mainWindowText $mutated
+    } 'downstream task preflight removed'
+
+    Assert-ContractRejects {
         $mutated = $mainWindowCodeText.Replace('composerState.AcceptSubmission(e.Submission.SubmissionId)', 'composerState.Clear()')
         Assert-ComposerContract $composerStateText $composerXamlText $composerCodeText $conversationSurfaceText $conversationSurfaceCodeText $mainWindowText $mutated
     } 'submission identity acknowledgement removed'
+
+    Assert-ContractRejects {
+        $mutated = $mainWindowCodeText.Replace('composerState.RejectSubmission(e.Submission.SubmissionId, exception.Message)', 'composerState.Clear()')
+        Assert-ComposerContract $composerStateText $composerXamlText $composerCodeText $conversationSurfaceText $conversationSurfaceCodeText $mainWindowText $mutated
+    } 'submission rejection identity path removed'
 
     Assert-ContractRejects {
         $mutated = $composerXamlText.Replace('{DynamicResource FccBrushSurfaceRaised}', '#112233')

@@ -4,7 +4,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using FCCCodeDesktop.App.Conversation;
 using FCCCodeDesktop.App.Shell;
+using FCCCodeDesktop.Fcc;
 using FCCCodeDesktop.Persistence;
+using FCCCodeDesktop.Runtime;
 
 namespace FCCCodeDesktop.App;
 
@@ -13,6 +15,7 @@ public partial class MainWindow : Window
     private readonly WorkspaceViewportCoordinator _viewportCoordinator = new();
     private Task<SessionWorkspaceState>? _sessionInitializationTask;
     private SessionWorkspaceState? _sessionWorkspaceState;
+    private TaskExecutionState? _taskExecutionState;
 
     public MainWindow()
     {
@@ -46,10 +49,12 @@ public partial class MainWindow : Window
         var navigationState = RequireResource<WorkspaceNavigationState>("WorkspaceNavigationState");
         _ = RequireResource<ConversationSurface>("ConversationSurface");
         var sessionWorkspaceSurface = RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface");
+        var taskExecutionSurface = RequireResource<TaskExecutionSurface>("TaskExecutionSurface");
         var composerState = RequireResource<ComposerState>("ComposerState");
 
         composerState.SubmissionRequested += OnComposerSubmissionRequested;
         navigationState.SessionsContent = sessionWorkspaceSurface;
+        navigationState.TasksContent = taskExecutionSurface;
     }
 
     private async void OnSessionPersistenceLoaded(object sender, RoutedEventArgs e)
@@ -65,8 +70,8 @@ public partial class MainWindow : Window
         {
             MessageBox.Show(
                 this,
-                $"Session storage could not be initialized. {exception.Message}",
-                "Session storage unavailable",
+                $"Session/task storage could not be initialized. {exception.Message}",
+                "Workspace storage unavailable",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
@@ -98,7 +103,35 @@ public partial class MainWindow : Window
         state.SessionChanged += OnSessionChanged;
         _sessionWorkspaceState = state;
         RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface").State = state;
+        await InitializeTaskExecutionAsync(options, state).ConfigureAwait(true);
         return state;
+    }
+
+    private async Task InitializeTaskExecutionAsync(SqliteDatabaseOptions options, SessionWorkspaceState sessionState)
+    {
+        var discovery = await new FccEnvironmentDiscoveryService()
+            .DiscoverAsync(CancellationToken.None)
+            .ConfigureAwait(true);
+        IAgentRuntime? runtime = null;
+        string? unavailableReason = null;
+        if (discovery.IsFccClaudeAvailable)
+        {
+            runtime = new ConversationSequencedAgentRuntime(
+                new AgentRuntimeSupervisor(new FccStructuredAgentRuntime(discovery.FccClaude)));
+        }
+        else
+        {
+            unavailableReason = discovery.FccClaude.ProbeFailure ?? "fcc-claude was not discovered.";
+        }
+
+        var taskState = new TaskExecutionState(
+            new SqliteExecutionJournalStore(options),
+            sessionState,
+            RequireResource<StreamingConversationState>("StreamingConversationState"),
+            runtime,
+            unavailableReason);
+        _taskExecutionState = taskState;
+        RequireResource<TaskExecutionSurface>("TaskExecutionSurface").State = taskState;
     }
 
     private void OnSessionChanged(object? sender, SessionChangedEventArgs e)
@@ -122,15 +155,21 @@ public partial class MainWindow : Window
         var conversationState = RequireResource<StreamingConversationState>("StreamingConversationState");
         try
         {
-            if (_sessionWorkspaceState?.HasActiveSession == true)
+            var sessionState = await EnsureSessionWorkspaceInitializedAsync(CancellationToken.None).ConfigureAwait(true);
+            var taskState = _taskExecutionState
+                ?? throw new InvalidOperationException("Task execution state is not initialized.");
+            taskState.ValidateCanStart();
+            if (!sessionState.HasActiveSession)
             {
-                await _sessionWorkspaceState.AppendMessageAsync(
-                    "user",
-                    e.Submission.Text,
-                    CancellationToken.None).ConfigureAwait(true);
+                throw new InvalidOperationException("Create or resume a session before starting a task.");
             }
 
+            await sessionState.AppendMessageAsync(
+                "user",
+                e.Submission.Text,
+                CancellationToken.None).ConfigureAwait(true);
             conversationState.AddUserMessage(e.Submission.Text);
+            await taskState.StartTaskAsync(e.Submission.Text, CancellationToken.None).ConfigureAwait(true);
             composerState.AcceptSubmission(e.Submission.SubmissionId);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
