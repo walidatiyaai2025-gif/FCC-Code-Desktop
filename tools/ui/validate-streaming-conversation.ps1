@@ -385,7 +385,7 @@ if ($RunFixtures) {
     } 'session workspace removed from sessions navigation composition'
 
     Assert-ContractRejects {
-        $withoutDeferredScroll = $surfaceCodeText.Replace('Dispatcher.BeginInvoke', 'RemovedBeginInvoke').Replace('DispatcherTimer', 'RemovedDispatcherTimer')
+        $withoutDeferredScroll = $surfaceCodeText.Replace('Dispatcher.BeginInvoke', 'NoBeginInvokeScheduler').Replace('DispatcherTimer', 'NoTailScheduler')
         Assert-StreamingConversationContract $mainXamlText $mainCodeText $surfaceXamlText $withoutDeferredScroll $stateText
     } 'deferred/coalesced scroll scheduler removed'
 
