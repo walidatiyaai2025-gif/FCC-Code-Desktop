@@ -24,7 +24,7 @@ LAST_RECONCILED: 2026-09-05
 
 `CURRENT_PHASE` means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
-P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001` through `FCCD-P06-008` remain pending and must execute in normal current-phase order according to live claims and recovery priority. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
+P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows` has been normally integrated and exact-main verified. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, the earliest dependency-valid unclaimed mandatory task is now `FCCD-P06-002 — Project technology/tool detection framework`. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
 
 P05 cloud implementation is complete: `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified. Its mandatory exit observation still requires genuine owner Windows/FCC/provider interaction: a real task in the application conversation surface, structured execution, stop/retry, close/reopen, and durable session resume. That standalone phase-gate requirement is queued as `OWNER-P05-EXIT-REAL-TARGET`, remains `releaseBlocking=true`, and P05 remains deferred as `P05=NOT_RUN`; no P05 `CLOSURE.md` PASS is claimed.
 
@@ -76,7 +76,7 @@ The owner-last policy permits this exact sequential transition only because P05 
 
 ## P06 cloud task inventory
 
-- `FCCD-P06-001` — Add/open/recent project workflows — PENDING.
+- `FCCD-P06-001` — Add/open/recent project workflows — CLOSED.
 - `FCCD-P06-002` — Project technology/tool detection framework — PENDING.
 - `FCCD-P06-003` — Lazy file explorer — PENDING.
 - `FCCD-P06-004` — Safe file service — PENDING.
@@ -84,6 +84,15 @@ The owner-last policy permits this exact sequential transition only because P05 
 - `FCCD-P06-006` — Editor tabs/save/reload/dirty state — PENDING.
 - `FCCD-P06-007` — Workspace content/file/regex search — PENDING.
 - `FCCD-P06-008` — Large file/tree safeguards — PENDING.
+
+## P06-001 integration provenance
+
+- Exact repaired implementation candidate: `2b51797dcf2b6ac674c116bfeb1cc33497f8b878`.
+- PR #142 exact-head Windows CI: run `33991050636` / run #250 — SUCCESS.
+- Normal merge commit: `dc08e0cb9eb98bd4eb8d8290b1d69fef1402697a`.
+- Exact post-merge canonical-main Windows CI: run `33991429277` / run #251 — SUCCESS.
+- Integrated evidence: `evidence/phases/P06/P06_001_INTEGRATED_RECONCILIATION_2026-09-05.md`.
+- Evidence class remains cloud/self-test for project catalog/persistence/UI mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.
 
 ## P05 cloud task inventory
 
@@ -193,6 +202,6 @@ The owner-last policy permits this exact sequential transition only because P05 
 - Open PRs before P06 activation: none.
 - P06 branch/claim found before activation: none.
 
-## Next legitimate action after this transition is integrated
+## Next legitimate action after this reconciliation is integrated
 
-Re-fetch live main, queue, open PRs/branches/issues, and exact-head CI. If no higher-priority regression/recovery/integration work exists, select the highest-value unclaimed P06 task from the live ledger; `FCCD-P06-001 — Add/open/recent project workflows` is the first pending P06 task at this transition. Do not start P07 until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
+Re-fetch live main, queue, open PRs/branches/issues, and exact-head CI. If no higher-priority regression/recovery/integration work exists, select `FCCD-P06-002 — Project technology/tool detection framework` as the earliest dependency-valid P06 task subject to the live claim map. Do not start P07 until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
