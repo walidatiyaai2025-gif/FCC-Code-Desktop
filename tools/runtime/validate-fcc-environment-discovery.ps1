@@ -44,6 +44,7 @@ function Assert-DiscoveryContract {
 
     foreach ($literal in @(
         'ProcessTimeout',
+        'TimeSpan.FromSeconds(15)',
         'HealthTimeout',
         'FccClaudeExecutablePath',
         'FccServerExecutablePath',
@@ -177,7 +178,7 @@ internal static class Program
                         PathValue = fakeBin,
                         PathExtensions = ".CMD;.EXE",
                         HealthUri = new Uri($"http://127.0.0.1:{port}/health"),
-                        ProcessTimeout = TimeSpan.FromSeconds(5),
+                        ProcessTimeout = TimeSpan.FromSeconds(30),
                         HealthTimeout = TimeSpan.FromSeconds(2)
                     });
 
