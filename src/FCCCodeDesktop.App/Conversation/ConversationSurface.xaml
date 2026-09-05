@@ -61,12 +61,12 @@
                         <StackPanel>
                             <DockPanel LastChildFill="False">
                                 <TextBlock Text="{Binding SenderLabel}"
-                                           Style="{StaticResource FccTextCompactStatus}"
+                                           Style="{StaticResource FccTextStatus}"
                                            Foreground="{DynamicResource FccBrushTextSecondary}" />
                                 <TextBlock x:Name="MessageStatus"
                                            Margin="8,0,0,0"
                                            Text="Complete"
-                                           Style="{StaticResource FccTextCompactStatus}"
+                                           Style="{StaticResource FccTextStatus}"
                                            Foreground="{DynamicResource FccBrushTextMuted}" />
                             </DockPanel>
                             <TextBlock x:Name="MessageText"
@@ -115,7 +115,7 @@
             </Border.Style>
             <StackPanel MaxWidth="420">
                 <TextBlock Text="Conversation ready"
-                           Style="{StaticResource FccTextSectionHeading}"
+                           Style="{StaticResource FccTextSection}"
                            TextAlignment="Center"
                            Foreground="{DynamicResource FccBrushTextPrimary}" />
                 <TextBlock Margin="0,8,0,0"
