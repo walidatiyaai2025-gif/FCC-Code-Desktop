@@ -76,7 +76,7 @@ function Assert-OwnerLastContract {
         'A deferred source task is not `CLOSED`',
         'docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md',
         'P22 release closure and `VERIFIED_FINAL_COMPLETE=true` are prohibited',
-        'Code defects, failed CI, missing implementation/tests, security defects, data-integrity defects, or repairable repository problems are never owner-only'
+        'No known code defect, failed CI, missing automated test, security defect, data-integrity defect, repairable repository problem, or missing implementation is being relabeled as owner-only.'
     )) {
         if (-not $PolicyText.Contains($literal, [StringComparison]::OrdinalIgnoreCase)) {
             throw "Owner-last policy is missing required invariant: $literal"
@@ -134,7 +134,7 @@ function Assert-OwnerLastContract {
         if (-not $commandText.StartsWith('.\tools\', [StringComparison]::OrdinalIgnoreCase) -or
             -not $commandText.EndsWith('.ps1', [StringComparison]::OrdinalIgnoreCase) -or
             $commandText.Contains(' ', [StringComparison]::Ordinal)) {
-            throw "Owner queue command for '$($item.id)' must be one tracked PowerShell script under .\\tools\\ with no inline shell arguments."
+            throw "Owner queue command for '$($item.id)' must be one tracked PowerShell script under .\tools\ with no inline shell arguments."
         }
 
         if ([string]$item.expectedEvidencePath -notmatch '^evidence/') {
@@ -188,7 +188,7 @@ function Assert-OwnerLastContract {
     }
 
     foreach ($literal in @(
-        'docs\\FINAL_OWNER_ACCEPTANCE_QUEUE.md',
+        'docs\FINAL_OWNER_ACCEPTANCE_QUEUE.md',
         'OWNER-P04-008-REAL-TARGET',
         'FCCD-P04-008',
         'REAL_TARGET'
