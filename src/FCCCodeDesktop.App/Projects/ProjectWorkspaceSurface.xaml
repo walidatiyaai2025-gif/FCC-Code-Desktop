@@ -249,10 +249,14 @@
             </Border>
         </Grid>
 
-        <TextBlock Grid.Row="3"
-                   Margin="0,12,0,0"
-                   Text="Technology detection is read-only and marker-based; it never launches project toolchains or modifies source files."
-                   Style="{StaticResource FccTextMetadata}"
-                   Foreground="{DynamicResource FccBrushTextMuted}" />
+        <StackPanel Grid.Row="3" Margin="0,12,0,0">
+            <TextBlock Text="Opening a project never copies, moves, or modifies the selected source folder."
+                       Style="{StaticResource FccTextMetadata}"
+                       Foreground="{DynamicResource FccBrushTextMuted}" />
+            <TextBlock Margin="0,3,0,0"
+                       Text="Technology detection is read-only and marker-based; it never launches project toolchains or modifies source files."
+                       Style="{StaticResource FccTextMetadata}"
+                       Foreground="{DynamicResource FccBrushTextMuted}" />
+        </StackPanel>
     </Grid>
 </UserControl>
