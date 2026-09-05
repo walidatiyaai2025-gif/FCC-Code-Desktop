@@ -35,9 +35,7 @@ public partial class MainWindow : Window
         await sessionState.ActivateProjectAsync(projectId, cancellationToken).ConfigureAwait(true);
     }
 
-    public async Task BindActiveRuntimeSessionAsync(
-        string runtimeSessionId,
-        CancellationToken cancellationToken = default)
+    public async Task BindActiveRuntimeSessionAsync(string runtimeSessionId, CancellationToken cancellationToken = default)
     {
         VerifyAccess();
         var sessionState = await EnsureSessionWorkspaceInitializedAsync(cancellationToken).ConfigureAwait(true);
@@ -64,9 +62,7 @@ public partial class MainWindow : Window
         {
             await EnsureSessionWorkspaceInitializedAsync(CancellationToken.None).ConfigureAwait(true);
         }
-        catch (Exception exception) when (exception is IOException
-                                           or UnauthorizedAccessException
-                                           or InvalidOperationException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
             MessageBox.Show(
                 this,
@@ -77,8 +73,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task<SessionWorkspaceState> EnsureSessionWorkspaceInitializedAsync(
-        CancellationToken cancellationToken)
+    private async Task<SessionWorkspaceState> EnsureSessionWorkspaceInitializedAsync(CancellationToken cancellationToken)
     {
         VerifyAccess();
         _sessionInitializationTask ??= InitializeSessionWorkspaceCoreAsync();
@@ -116,7 +111,8 @@ public partial class MainWindow : Window
         string? unavailableReason = null;
         if (discovery.IsFccClaudeAvailable)
         {
-            runtime = new AgentRuntimeSupervisor(new FccStructuredAgentRuntime(discovery.FccClaude));
+            runtime = new ConversationSequencedAgentRuntime(
+                new AgentRuntimeSupervisor(new FccStructuredAgentRuntime(discovery.FccClaude)));
         }
         else
         {
@@ -140,8 +136,7 @@ public partial class MainWindow : Window
             throw new InvalidOperationException("Session change sender is not the active session workspace state.");
         }
 
-        var conversationState = RequireResource<StreamingConversationState>("StreamingConversationState");
-        conversationState.LoadPersistedMessages(e.Messages);
+        RequireResource<StreamingConversationState>("StreamingConversationState").LoadPersistedMessages(e.Messages);
     }
 
     private async void OnComposerSubmissionRequested(object? sender, ComposerSubmissionRequestedEventArgs e)
@@ -163,10 +158,7 @@ public partial class MainWindow : Window
                 throw new InvalidOperationException("Create or resume a session before starting a task.");
             }
 
-            await sessionState.AppendMessageAsync(
-                "user",
-                e.Submission.Text,
-                CancellationToken.None).ConfigureAwait(true);
+            await sessionState.AppendMessageAsync("user", e.Submission.Text, CancellationToken.None).ConfigureAwait(true);
             conversationState.AddUserMessage(e.Submission.Text);
             await taskState.StartTaskAsync(e.Submission.Text, CancellationToken.None).ConfigureAwait(true);
             composerState.AcceptSubmission(e.Submission.SubmissionId);
@@ -183,79 +175,29 @@ public partial class MainWindow : Window
         var navigationState = RequireResource<WorkspaceNavigationState>("WorkspaceNavigationState");
         var layoutState = RequireResource<WorkspaceLayoutState>("WorkspaceLayoutState");
 
-        paletteState.RegisterCommand(
-            new ShellCommandDescriptor(
-                "workspace.projects",
-                "Show Projects",
-                "Workspace",
-                null,
-                navigationState.SelectSectionCommand,
-                WorkspaceSection.Projects));
-        paletteState.RegisterCommand(
-            new ShellCommandDescriptor(
-                "workspace.sessions",
-                "Show Sessions",
-                "Workspace",
-                null,
-                navigationState.SelectSectionCommand,
-                WorkspaceSection.Sessions));
-        paletteState.RegisterCommand(
-            new ShellCommandDescriptor(
-                "workspace.tasks",
-                "Show Tasks",
-                "Workspace",
-                null,
-                navigationState.SelectSectionCommand,
-                WorkspaceSection.Tasks));
-        paletteState.RegisterCommand(
-            new ShellCommandDescriptor(
-                "workspace.toggleBottomPanel",
-                "Toggle Bottom Panel",
-                "View",
-                "Ctrl+J",
-                layoutState.ToggleBottomPanelCommand));
+        paletteState.RegisterCommand(new ShellCommandDescriptor("workspace.projects", "Show Projects", "Workspace", null, navigationState.SelectSectionCommand, WorkspaceSection.Projects));
+        paletteState.RegisterCommand(new ShellCommandDescriptor("workspace.sessions", "Show Sessions", "Workspace", null, navigationState.SelectSectionCommand, WorkspaceSection.Sessions));
+        paletteState.RegisterCommand(new ShellCommandDescriptor("workspace.tasks", "Show Tasks", "Workspace", null, navigationState.SelectSectionCommand, WorkspaceSection.Tasks));
+        paletteState.RegisterCommand(new ShellCommandDescriptor("workspace.toggleBottomPanel", "Toggle Bottom Panel", "View", "Ctrl+J", layoutState.ToggleBottomPanelCommand));
 
-        InputBindings.Add(
-            new KeyBinding(
-                paletteState.OpenCommand,
-                new KeyGesture(Key.P, ModifierKeys.Control | ModifierKeys.Shift)));
-        InputBindings.Add(
-            new KeyBinding(
-                paletteState.OpenCommand,
-                new KeyGesture(Key.F1)));
-        InputBindings.Add(
-            new KeyBinding(
-                layoutState.ToggleBottomPanelCommand,
-                new KeyGesture(Key.J, ModifierKeys.Control)));
+        InputBindings.Add(new KeyBinding(paletteState.OpenCommand, new KeyGesture(Key.P, ModifierKeys.Control | ModifierKeys.Shift)));
+        InputBindings.Add(new KeyBinding(paletteState.OpenCommand, new KeyGesture(Key.F1)));
+        InputBindings.Add(new KeyBinding(layoutState.ToggleBottomPanelCommand, new KeyGesture(Key.J, ModifierKeys.Control)));
     }
 
     private void OnViewportLoaded(object sender, RoutedEventArgs e) => ApplyViewportPolicy();
-
     private void OnViewportSizeChanged(object sender, SizeChangedEventArgs e) => ApplyViewportPolicy();
-
     private void OnViewportDpiChanged(object sender, DpiChangedEventArgs e) => ApplyViewportPolicy();
 
     private void ApplyViewportPolicy()
     {
-        if (ActualWidth <= 0d || ActualHeight <= 0d)
-        {
-            return;
-        }
-
+        if (ActualWidth <= 0d || ActualHeight <= 0d) return;
         var dpi = VisualTreeHelper.GetDpi(this);
         var layoutState = RequireResource<WorkspaceLayoutState>("WorkspaceLayoutState");
-        _viewportCoordinator.Update(
-            layoutState,
-            ActualWidth,
-            ActualHeight,
-            dpi.DpiScaleX,
-            dpi.DpiScaleY);
+        _viewportCoordinator.Update(layoutState, ActualWidth, ActualHeight, dpi.DpiScaleX, dpi.DpiScaleY);
     }
 
-    private T RequireResource<T>(string key)
-        where T : class
-    {
-        return Resources[key] as T
-            ?? throw new InvalidOperationException($"Required shell resource '{key}' is missing or has the wrong type.");
-    }
+    private T RequireResource<T>(string key) where T : class =>
+        Resources[key] as T
+        ?? throw new InvalidOperationException($"Required shell resource '{key}' is missing or has the wrong type.");
 }
