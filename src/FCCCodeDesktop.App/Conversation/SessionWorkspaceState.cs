@@ -26,9 +26,10 @@ public sealed class SessionWorkspaceState : DispatcherObject, INotifyPropertyCha
 
     private readonly IConversationStateStore _store;
     private readonly TimeProvider _timeProvider;
-    private readonly SemaphoreSlim _messageWriteGate = new(1, 1);
+    private readonly object _messageWriteSync = new();
     private readonly ObservableCollection<PersistedSession> _sessions = [];
     private readonly ReadOnlyObservableCollection<PersistedSession> _readonlySessions;
+    private Task _messageWriteTail = Task.CompletedTask;
     private PersistedProject? _activeProject;
     private PersistedSession? _activeSession;
     private bool _isBusy;
@@ -258,7 +259,7 @@ public sealed class SessionWorkspaceState : DispatcherObject, INotifyPropertyCha
             cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<PersistedMessage> AppendMessageAsync(
+    public Task<PersistedMessage> AppendMessageAsync(
         string role,
         string content,
         CancellationToken cancellationToken = default)
@@ -269,9 +270,46 @@ public sealed class SessionWorkspaceState : DispatcherObject, INotifyPropertyCha
             throw new ArgumentException("Persisted conversation content must contain visible text.", nameof(content));
         }
 
-        await _messageWriteGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        Task predecessor;
+        var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        lock (_messageWriteSync)
+        {
+            predecessor = _messageWriteTail;
+            _messageWriteTail = completion.Task;
+        }
+
+        return AppendMessageSerializedAsync(predecessor, completion, normalizedRole, content, cancellationToken);
+    }
+
+    public void ClearActiveProject()
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.Invoke(ClearActiveProject);
+            return;
+        }
+
+        _activeProject = null;
+        _activeSession = null;
+        _sessions.Clear();
+        SetErrorMessage(null);
+        NotifyProjectStateChanged();
+        NotifySessionStateChanged();
+        OnPropertyChanged(nameof(HasSessions));
+        SessionChanged?.Invoke(this, new SessionChangedEventArgs(null, Array.Empty<PersistedMessage>()));
+    }
+
+    private async Task<PersistedMessage> AppendMessageSerializedAsync(
+        Task predecessor,
+        TaskCompletionSource<bool> completion,
+        string normalizedRole,
+        string content,
+        CancellationToken cancellationToken)
+    {
+        await predecessor.ConfigureAwait(false);
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var activeSession = ReadOnDispatcher(() => ActiveSession)
                 ?? throw new InvalidOperationException("A local session must be active before a message can be persisted.");
             var existingMessages = await _store.ListMessagesAsync(activeSession.Id, cancellationToken).ConfigureAwait(false);
@@ -307,31 +345,13 @@ public sealed class SessionWorkspaceState : DispatcherObject, INotifyPropertyCha
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            await SetErrorAsync(exception.Message, cancellationToken).ConfigureAwait(false);
+            await SetErrorAsync(exception.Message, CancellationToken.None).ConfigureAwait(false);
             throw;
         }
         finally
         {
-            _messageWriteGate.Release();
+            completion.TrySetResult(true);
         }
-    }
-
-    public void ClearActiveProject()
-    {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.Invoke(ClearActiveProject);
-            return;
-        }
-
-        _activeProject = null;
-        _activeSession = null;
-        _sessions.Clear();
-        SetErrorMessage(null);
-        NotifyProjectStateChanged();
-        NotifySessionStateChanged();
-        OnPropertyChanged(nameof(HasSessions));
-        SessionChanged?.Invoke(this, new SessionChangedEventArgs(null, Array.Empty<PersistedMessage>()));
     }
 
     private static string NormalizeTitle(string? title, DateTimeOffset now)
