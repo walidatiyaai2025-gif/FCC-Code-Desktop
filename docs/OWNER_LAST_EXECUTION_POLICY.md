@@ -62,6 +62,8 @@ AND NO LATER CLOUD WORK MATERIALLY DEPENDS ON THE MISSING OBSERVATION
 AND CURRENT_PHASE.md RECORDS OWNER_LAST_MODE=ACTIVE + THE DEFERRED ITEM IDS
 ```
 
+The canonical enforcement statement is: every earlier non-CLOSED task has exactly one valid `QUEUED` owner item.
+
 Then `CURRENT_PHASE` may advance to the next sequential cloud implementation phase while the earlier source task and gate remain truthfully unresolved.
 
 At all times:
