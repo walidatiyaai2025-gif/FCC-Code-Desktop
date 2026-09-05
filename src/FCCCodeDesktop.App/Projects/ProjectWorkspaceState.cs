@@ -110,6 +110,7 @@ public sealed class ProjectWorkspaceState : DispatcherObject, INotifyPropertyCha
                 openedProject = await _catalog.OpenProjectAsync(rootPath, cancellationToken).ConfigureAwait(true);
                 await _sessions.ActivateProjectAsync(openedProject.Id, cancellationToken).ConfigureAwait(true);
                 _activeProject = openedProject;
+                ResetTechnologyDetection();
                 NotifyActiveProjectChanged();
                 await RefreshTechnologyDetectionCoreAsync(openedProject.RootPath, cancellationToken).ConfigureAwait(true);
                 var projects = await _catalog
@@ -168,6 +169,17 @@ public sealed class ProjectWorkspaceState : DispatcherObject, INotifyPropertyCha
             _detectedTechnologies.Add(technology);
         }
 
+        OnPropertyChanged(nameof(DetectedTechnologies));
+        OnPropertyChanged(nameof(HasDetectedTechnologies));
+        OnPropertyChanged(nameof(TechnologySummary));
+        OnPropertyChanged(nameof(TechnologyScanDetail));
+    }
+
+    private void ResetTechnologyDetection()
+    {
+        VerifyAccess();
+        _technologyScan = null;
+        _detectedTechnologies.Clear();
         OnPropertyChanged(nameof(DetectedTechnologies));
         OnPropertyChanged(nameof(HasDetectedTechnologies));
         OnPropertyChanged(nameof(TechnologySummary));
