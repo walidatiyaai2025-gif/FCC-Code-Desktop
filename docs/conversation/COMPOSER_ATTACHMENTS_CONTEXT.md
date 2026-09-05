@@ -2,7 +2,7 @@
 
 ## Scope
 
-`FCCD-P05-003` establishes the production conversation composer and a typed submission boundary for message text, file attachments, and context references. It deliberately stops before session creation/resume, task-state execution, runtime dispatch, Markdown rendering, or long-history virtualization.
+`FCCD-P05-003` establishes the production conversation composer and a typed submission boundary for message text, file attachments, and context references. Its own component remains independent of session creation/resume, task-state execution, runtime dispatch, Markdown rendering, and long-history virtualization; later P05 work consumes its typed submission contract through the application composition boundary.
 
 ## Composer contract
 
@@ -41,11 +41,11 @@ P05-003 stores file references and metadata only. It does **not** read attachmen
 - character count and visible validation feedback;
 - semantic dark/light resources and keyboard focus states.
 
-The current production submission handler adds the submitted text as one local user conversation message and acknowledges that immutable submission. It does not claim that an agent run, FCC request, session, or task execution occurred.
+The P05-003 component contract still emits immutable submissions and requires exact acknowledgement. With P05-005 integrated into the production application boundary, `MainWindow` now preflights the active persisted session, runtime availability, and task-state eligibility before persisting/projecting the user message and starting the task. A failed downstream preflight rejects the same submission identity and preserves the draft/attachments/context for correction or retry; it does not fabricate a sent user message. This downstream orchestration does not add runtime coupling to `ComposerState` itself.
 
 ## Ownership boundaries
 
-P05-003 does not implement:
+P05-003 itself does not implement:
 
 - session create/history/resume — `FCCD-P05-004`;
 - explicit task-state/runtime-dispatch lifecycle — `FCCD-P05-005`;
@@ -54,7 +54,7 @@ P05-003 does not implement:
 - long-history virtualization/performance closure — `FCCD-P05-008`;
 - project/file content loading and safe file service — P06.
 
-Future runtime/task orchestration can consume `ComposerSubmission` without changing the composer UI contract or inventing provider-specific payload parsing in presentation code.
+The typed `ComposerSubmission` contract remains the seam used by later orchestration without provider-specific payload parsing in presentation code.
 
 ## Permanent verification
 
@@ -64,4 +64,4 @@ The canonical Windows CI baseline executes:
 .\tools\ui\validate-conversation-composer.ps1 -RunFixtures -RequireRuntime
 ```
 
-The validator covers static contract invariants, negative/recovery fixtures, executable WPF composition, missing-handler fail-closed behavior, missing/duplicate file rejection, typed context deduplication, immutable snapshot emission, exact submission acknowledgement, user-message projection, accepted-draft clearing, programmatic length rejection, and dark/light theme parity.
+The validator covers static contract invariants, negative/recovery fixtures, executable WPF composition, missing-handler fail-closed behavior, missing/duplicate file rejection, typed context deduplication, immutable snapshot emission, exact accept/reject acknowledgement, downstream task-preflight rejection without false message projection, rejected-draft preservation, accepted-draft clearing, programmatic length rejection, and dark/light theme parity.
