@@ -61,6 +61,7 @@ function Assert-TechnologyDetectionContract {
         'Task.Run(() => DetectCore(rootPath, cancellationToken), cancellationToken)',
         'cancellationToken.ThrowIfCancellationRequested()',
         'Directory.EnumerateFileSystemEntries(directoryPath)',
+        '.Take(remainingCapacity + 1)',
         'FileAttributes.ReparsePoint',
         'IgnoredDirectoryNames.Contains(directoryName)',
         '"node_modules"',
@@ -92,7 +93,8 @@ function Assert-TechnologyDetectionContract {
         'ReadOnlyObservableCollection<ProjectTechnologyDetection> DetectedTechnologies',
         'CanRescanTechnologies',
         'RefreshTechnologyDetectionAsync',
-        '_technologyDetection.DetectAsync(rootPath, cancellationToken)'
+        '_technologyDetection.DetectAsync(rootPath, cancellationToken)',
+        'ResetTechnologyDetection()'
     )) {
         Assert-ContainsLiteral $StateText $literal 'ProjectWorkspaceState.cs'
     }
@@ -189,6 +191,9 @@ if ($RunFixtures) {
         Assert-TechnologyDetectionContract $contractText ($detectorText.Replace('DefaultMaximumEntries = 4096', 'DefaultMaximumEntriesRemoved = 4096')) $stateText $surfaceXamlText $surfaceCodeText $mainWindowText $testText $testProjectText $lockText $docText
     } 'entry bound removed'
     Assert-ContractRejects {
+        Assert-TechnologyDetectionContract $contractText ($detectorText.Replace('.Take(remainingCapacity + 1)', '.Skip(0)')) $stateText $surfaceXamlText $surfaceCodeText $mainWindowText $testText $testProjectText $lockText $docText
+    } 'bounded directory materialization removed'
+    Assert-ContractRejects {
         Assert-TechnologyDetectionContract $contractText ($detectorText.Replace('FileAttributes.ReparsePoint', 'FileAttributes.Normal')) $stateText $surfaceXamlText $surfaceCodeText $mainWindowText $testText $testProjectText $lockText $docText
     } 'reparse-point guard removed'
     Assert-ContractRejects {
@@ -197,6 +202,9 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-TechnologyDetectionContract $contractText $detectorText ($stateText.Replace('_technologyDetection.DetectAsync(rootPath, cancellationToken)', 'RemovedTechnologyDetectionAsync(rootPath, cancellationToken)')) $surfaceXamlText $surfaceCodeText $mainWindowText $testText $testProjectText $lockText $docText
     } 'presentation-state detection wiring removed'
+    Assert-ContractRejects {
+        Assert-TechnologyDetectionContract $contractText $detectorText ($stateText.Replace('ResetTechnologyDetection()', 'ResetTechnologyDetectionRemoved()')) $surfaceXamlText $surfaceCodeText $mainWindowText $testText $testProjectText $lockText $docText
+    } 'stale technology reset removed'
     Assert-ContractRejects {
         Assert-TechnologyDetectionContract $contractText $detectorText $stateText ($surfaceXamlText.Replace('Content="Rescan markers"', 'Content="Rescan removed"')) $surfaceCodeText $mainWindowText $testText $testProjectText $lockText $docText
     } 'rescan UX removed'
