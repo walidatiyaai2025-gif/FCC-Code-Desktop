@@ -23,8 +23,10 @@
         <chrome:BottomToolPanelState x:Key="BottomToolPanelState" />
         <chrome:CommandPaletteState x:Key="CommandPaletteState" />
         <conversation:StreamingConversationState x:Key="StreamingConversationState" />
+        <conversation:ComposerState x:Key="ComposerState" />
         <conversation:ConversationSurface x:Key="ConversationSurface"
-                                         State="{StaticResource StreamingConversationState}" />
+                                         State="{StaticResource StreamingConversationState}"
+                                         Composer="{StaticResource ComposerState}" />
     </Window.Resources>
 
     <shell:WindowChrome.WindowChrome>

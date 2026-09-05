@@ -12,6 +12,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" MinHeight="180" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <ListBox x:Name="ConversationItems"
@@ -262,5 +263,9 @@
                 </ListBox>
             </Grid>
         </Border>
+
+        <conversation:ConversationComposer x:Name="ConversationComposerHost"
+                                           Grid.Row="2"
+                                           State="{Binding Composer, ElementName=Root}" />
     </Grid>
 </UserControl>
