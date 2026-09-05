@@ -88,14 +88,27 @@ public sealed class FileSystemProjectTechnologyDetectionService : IProjectTechno
         while (pendingDirectories.Count > 0 && !limitReached)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var remainingCapacity = _maximumEntries - entriesExamined;
+            if (remainingCapacity <= 0)
+            {
+                limitReached = true;
+                break;
+            }
+
             var (directoryPath, depth) = pendingDirectories.Dequeue();
             string[] entries;
+            var directoryWasTruncated = false;
             try
             {
-                entries = Directory
+                var boundedEntries = Directory
                     .EnumerateFileSystemEntries(directoryPath)
-                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+                    .Take(remainingCapacity + 1)
                     .ToArray();
+                directoryWasTruncated = boundedEntries.Length > remainingCapacity;
+                entries = directoryWasTruncated
+                    ? boundedEntries[..remainingCapacity]
+                    : boundedEntries;
+                Array.Sort(entries, StringComparer.OrdinalIgnoreCase);
             }
             catch (UnauthorizedAccessException)
             {
@@ -166,6 +179,11 @@ public sealed class FileSystemProjectTechnologyDetectionService : IProjectTechno
                 {
                     AddOrUpgradeDetection(detections, detection);
                 }
+            }
+
+            if (directoryWasTruncated)
+            {
+                limitReached = true;
             }
         }
 
