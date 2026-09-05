@@ -27,10 +27,10 @@ The owner supervises outcomes. AI workers research, choose, implement, verify an
 PROJECT_STATE: SPECIFICATION_AND_CONTROL_BASELINE
 RELEASE_STATE: NOT_RELEASED
 TARGET_VERSION: 1.0.0
-CURRENT_PHASE: P05
-CURRENT_PHASE_NAME: Conversation + session + task experience
+CURRENT_PHASE: P06
+CURRENT_PHASE_NAME: Projects + files + editor + search
 CURRENT_PHASE_STATE: IN_PROGRESS
-NEXT_PHASE: P06
+NEXT_PHASE: P07
 PHASE_EXIT_GATE: NOT_RUN
 KNOWN_RELEASE_BLOCKERS: 2
 VERIFIED_FINAL_COMPLETE: false
@@ -46,7 +46,9 @@ PUBLIC_RELEASE_ELIGIBLE: false
 
 P00, P01, P02, and P03 are canonically CLOSED with their phase closure evidence retained under `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, `evidence/phases/P02/CLOSURE.md`, and `evidence/phases/P03/CLOSURE.md`. P04 remains acceptance-unresolved solely because `FCCD-P04-008 — Runtime contract suite` still requires fresh genuine owner-Windows/provider `REAL_TARGET` evidence. `FCCD-P04-001` through `FCCD-P04-007` are CLOSED; `FCCD-P04-008` remains PENDING, its P04 exit gate remains `NOT_RUN`, and its owner-only obligation is queued one-to-one as `OWNER-P04-008-REAL-TARGET` in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` with `releaseBlocking=true`.
 
-P05 is the sole legal cloud implementation/convergence phase. `FCCD-P05-001` through `FCCD-P05-008` are integrated and CLOSED, and exact canonical-main Windows CI is green. The only remaining P05 exit-gate evidence requires genuine owner Windows/FCC/provider interaction: a real application task, structured execution, stop/retry, close/reopen, and durable session resume. That phase-gate obligation is queued as `OWNER-P05-EXIT-REAL-TARGET` with `releaseBlocking=true`; P05 itself remains `IN_PROGRESS` and its exit gate remains `NOT_RUN`. This is not a phase PASS and does not authorize P06 until a separate owner-last transition is truthfully integrated. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
+P05 cloud implementation is complete and integrated: `FCCD-P05-001` through `FCCD-P05-008` are CLOSED, PR #140 normally merged as `6e85cc2941612937365bbaedc9e4370e9e1510e6`, and exact post-merge Windows CI run `33988198377` completed SUCCESS. The only remaining P05 exit-gate evidence requires genuine owner Windows/FCC/provider interaction: a real application task, structured execution, stop/retry, close/reopen, and durable session resume. That phase-gate obligation is queued as `OWNER-P05-EXIT-REAL-TARGET` with `releaseBlocking=true`; P05's exit gate remains `NOT_RUN` and no P05 phase PASS is claimed.
+
+Under the owner-last scheduling amendment, P06 is now the sole legal **cloud implementation phase**. `FCCD-P06-001` through `FCCD-P06-008` remain pending and must be implemented/recovered only from live current-phase state. P07 and later implementation remain prohibited until P06 cloud work is complete and canonical governance advances sequentially. This transition preserves both queued owner blockers, `P04=NOT_RUN`, `P05=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
 
 ---
 
