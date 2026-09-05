@@ -114,7 +114,7 @@ function Assert-SessionContract {
         'public async Task ActivateProjectSessionsAsync(',
         'public async Task BindActiveRuntimeSessionAsync(',
         'conversationState.LoadPersistedMessages(e.Messages)',
-        '_sessionWorkspaceState.AppendMessageAsync(',
+        'await sessionState.AppendMessageAsync(',
         'conversationState.AddUserMessage(e.Submission.Text)',
         'composerState.AcceptSubmission(e.Submission.SubmissionId)',
         'composerState.RejectSubmission(e.Submission.SubmissionId, exception.Message)'
@@ -320,6 +320,7 @@ if ($RunFixtures) {
     Assert-Rejected { Assert-SessionContract $stateText $streamingText ($surfaceText.Replace('x:Name="SessionHistoryItems"', 'x:Name="RemovedHistoryItems"')) $surfaceCodeText $mainWindowText $mainWindowCodeText } 'session history removed'
     Assert-Rejected { Assert-SessionContract $stateText $streamingText ($surfaceText.Replace('{DynamicResource FccBrushSurfaceRaised}', '#010203')) $surfaceCodeText $mainWindowText $mainWindowCodeText } 'hard-coded session color'
     Assert-Rejected { Assert-SessionContract ($stateText.Replace('lock (_messageWriteSync)', '')) $streamingText $surfaceText $surfaceCodeText $mainWindowText $mainWindowCodeText } 'serialized message write guard removed'
+    Assert-Rejected { Assert-SessionContract $stateText $streamingText $surfaceText $surfaceCodeText $mainWindowText ($mainWindowCodeText.Replace('await sessionState.AppendMessageAsync(', 'await Task.CompletedTask; // removed durable user message write\n            await sessionState.AppendMessageAsync_REMOVED(')) } 'production durable user-message write removed'
     Write-Host 'Deterministic session-workspace negative/recovery fixtures: PASS.'
 }
 
