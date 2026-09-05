@@ -76,6 +76,7 @@ $solutionPath = Join-Path $root 'FCCCodeDesktop.sln'
 $appProject = Join-Path $root 'src\FCCCodeDesktop.App\FCCCodeDesktop.App.csproj'
 $appExecutable = Join-Path $root 'src\FCCCodeDesktop.App\bin\Release\net10.0-windows\FCCCodeDesktop.App.exe'
 $evidencePath = Join-Path $root 'evidence\phases\P05\owner\P05_PHASE_EXIT_REAL_TARGET.json'
+$evidenceRelativePath = 'evidence/phases/P05/owner/P05_PHASE_EXIT_REAL_TARGET.json'
 
 foreach ($path in @($solutionPath, $appProject)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
@@ -95,6 +96,21 @@ try {
     Assert-LastExitCode 'HEAD resolution'
     if ($head -notmatch '^[0-9a-f]{40}$') {
         throw "Invalid exact HEAD SHA '$head'."
+    }
+
+    $statusLines = @(& git status --porcelain --untracked-files=all)
+    Assert-LastExitCode 'Clean source/config worktree check'
+    $disallowed = @(
+        foreach ($line in $statusLines) {
+            if (-not $line) { continue }
+            $pathText = if ($line.Length -gt 3) { $line.Substring(3).Trim('"').Replace('\','/') } else { $line }
+            if ($pathText -ne $evidenceRelativePath -and -not $pathText.StartsWith('evidence/phases/P05/owner/', [StringComparison]::OrdinalIgnoreCase)) {
+                $line
+            }
+        }
+    )
+    if ($disallowed.Count -gt 0) {
+        throw "P05 owner validation requires exact HEAD source/config inputs. Disallowed worktree changes: $($disallowed -join '; ')"
     }
 
     $sdkVersion = (& dotnet --version 2>&1 | Out-String).Trim()
