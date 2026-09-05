@@ -133,7 +133,7 @@ function Assert-Contract {
         $phaseValue = Get-Field $PhaseText $field 'CURRENT_PHASE.md'
         $controlValue = Get-Field $ControlText $field 'PROJECT_CONTROL.md'
         if (-not $phaseValue.Equals($controlValue, [StringComparison]::OrdinalIgnoreCase)) {
-            throw "Canonical state drift for $field: CURRENT_PHASE='$phaseValue', PROJECT_CONTROL='$controlValue'."
+            throw "Canonical state drift for ${field}: CURRENT_PHASE='$phaseValue', PROJECT_CONTROL='$controlValue'."
         }
     }
 
