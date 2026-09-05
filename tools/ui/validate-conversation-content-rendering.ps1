@@ -253,7 +253,7 @@ internal static class Program
         var state = new StreamingConversationState();
         var persisted = new[]
         {
-            new PersistedMessage(1, 1, 1, "assistant", "# Persisted\n\n```text\nbody\n```", DateTimeOffset.UtcNow)
+            new PersistedMessage(Guid.NewGuid(), Guid.NewGuid(), 1, "assistant", "# Persisted\n\n```text\nbody\n```", DateTimeOffset.UtcNow)
         };
         state.LoadPersistedMessages(persisted);
         Assert(state.Messages.Count == 1, "persisted message loaded");
