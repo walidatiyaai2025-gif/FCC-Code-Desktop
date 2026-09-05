@@ -14,7 +14,7 @@ public sealed class FccEnvironmentDiscoveryOptions
 
     public Uri? HealthUri { get; init; }
 
-    public TimeSpan ProcessTimeout { get; init; } = TimeSpan.FromSeconds(5);
+    public TimeSpan ProcessTimeout { get; init; } = TimeSpan.FromSeconds(15);
 
     public TimeSpan HealthTimeout { get; init; } = TimeSpan.FromSeconds(3);
 }
