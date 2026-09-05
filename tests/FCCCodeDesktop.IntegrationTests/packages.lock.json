@@ -145,6 +145,13 @@
       "fcccodedesktop.core": {
         "type": "Project"
       },
+      "fcccodedesktop.files": {
+        "type": "Project",
+        "dependencies": {
+          "FCCCodeDesktop.Application": "[1.0.0, )",
+          "FCCCodeDesktop.Core": "[1.0.0, )"
+        }
+      },
       "fcccodedesktop.persistence": {
         "type": "Project",
         "dependencies": {

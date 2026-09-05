@@ -57,16 +57,62 @@
                                Text="{Binding StatusText}"
                                Style="{StaticResource FccTextMetadata}"
                                Foreground="{DynamicResource FccBrushTextSecondary}" />
+                    <TextBlock Margin="0,12,16,0"
+                               Text="{Binding TechnologySummary}"
+                               Style="{StaticResource FccTextBody}"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource FccBrushTextPrimary}" />
+                    <TextBlock Margin="0,3,16,0"
+                               Text="{Binding TechnologyScanDetail}"
+                               TextWrapping="Wrap"
+                               Style="{StaticResource FccTextMetadata}"
+                               Foreground="{DynamicResource FccBrushTextMuted}" />
+                    <ItemsControl Margin="0,8,16,0"
+                                  ItemsSource="{Binding DetectedTechnologies}"
+                                  AutomationProperties.Name="Detected project technologies">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,8,6"
+                                        Padding="8,4"
+                                        Background="{DynamicResource FccBrushSurfaceRaised}"
+                                        BorderBrush="{DynamicResource FccBrushDivider}"
+                                        BorderThickness="1"
+                                        CornerRadius="{StaticResource FccRadiusSmall}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   Style="{StaticResource FccTextMetadata}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource FccBrushTextPrimary}" />
+                                        <TextBlock Text="{Binding Toolchain, StringFormat=' · {0}'}"
+                                                   Style="{StaticResource FccTextMetadata}"
+                                                   Foreground="{DynamicResource FccBrushTextMuted}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
-                <Button x:Name="OpenProjectButton"
-                        Grid.Column="1"
-                        MinWidth="132"
-                        VerticalAlignment="Top"
-                        Content="Open project…"
-                        IsEnabled="{Binding CanOpenProject}"
-                        Style="{StaticResource PrimaryProjectActionButton}"
-                        Click="OnOpenProjectClick"
-                        AutomationProperties.Name="Open project folder" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Top">
+                    <Button x:Name="OpenProjectButton"
+                            MinWidth="132"
+                            Content="Open project…"
+                            IsEnabled="{Binding CanOpenProject}"
+                            Style="{StaticResource PrimaryProjectActionButton}"
+                            Click="OnOpenProjectClick"
+                            AutomationProperties.Name="Open project folder" />
+                    <Button Margin="0,8,0,0"
+                            MinWidth="132"
+                            Content="Rescan markers"
+                            IsEnabled="{Binding CanRescanTechnologies}"
+                            Style="{StaticResource ProjectActionButton}"
+                            Click="OnRescanTechnologiesClick"
+                            AutomationProperties.Name="Rescan project technology markers" />
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -203,10 +249,14 @@
             </Border>
         </Grid>
 
-        <TextBlock Grid.Row="3"
-                   Margin="0,12,0,0"
-                   Text="Opening a project never copies, moves, or modifies the selected source folder."
-                   Style="{StaticResource FccTextMetadata}"
-                   Foreground="{DynamicResource FccBrushTextMuted}" />
+        <StackPanel Grid.Row="3" Margin="0,12,0,0">
+            <TextBlock Text="Opening a project never copies, moves, or modifies the selected source folder."
+                       Style="{StaticResource FccTextMetadata}"
+                       Foreground="{DynamicResource FccBrushTextMuted}" />
+            <TextBlock Margin="0,3,0,0"
+                       Text="Technology detection is read-only and marker-based; it never launches project toolchains or modifies source files."
+                       Style="{StaticResource FccTextMetadata}"
+                       Foreground="{DynamicResource FccBrushTextMuted}" />
+        </StackPanel>
     </Grid>
 </UserControl>
