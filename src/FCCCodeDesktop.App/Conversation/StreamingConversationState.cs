@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Threading;
+using FCCCodeDesktop.Core.State;
 using FCCCodeDesktop.Runtime;
 
 namespace FCCCodeDesktop.App.Conversation;
@@ -264,6 +265,36 @@ public sealed class StreamingConversationState : DispatcherObject, INotifyProper
         }
 
         AddMessage(new ConversationMessageState(NextMessageId(), ConversationMessageRole.User, text, false));
+    }
+
+    public void LoadPersistedMessages(IReadOnlyList<PersistedMessage> messages)
+    {
+        ArgumentNullException.ThrowIfNull(messages);
+        VerifyAccess();
+        Reset();
+
+        long? previousSequence = null;
+        foreach (var message in messages)
+        {
+            if (previousSequence is long previous && message.Sequence <= previous)
+            {
+                throw new InvalidOperationException("Persisted conversation messages must have a strictly increasing sequence.");
+            }
+
+            var role = message.Role.Trim().ToLowerInvariant() switch
+            {
+                "user" => ConversationMessageRole.User,
+                "assistant" => ConversationMessageRole.Assistant,
+                _ => throw new InvalidOperationException($"Unsupported persisted conversation role: {message.Role}"),
+            };
+            if (string.IsNullOrWhiteSpace(message.Content))
+            {
+                throw new InvalidOperationException("Persisted conversation messages must contain visible text.");
+            }
+
+            AddMessage(new ConversationMessageState(NextMessageId(), role, message.Content, false));
+            previousSequence = message.Sequence;
+        }
     }
 
     public Task ApplyRuntimeEventAsync(AgentRuntimeEvent runtimeEvent, CancellationToken cancellationToken = default)
