@@ -27,20 +27,23 @@ The owner supervises outcomes. AI workers research, choose, implement, verify an
 PROJECT_STATE: SPECIFICATION_AND_CONTROL_BASELINE
 RELEASE_STATE: NOT_RELEASED
 TARGET_VERSION: 1.0.0
-CURRENT_PHASE: P04
-CURRENT_PHASE_NAME: FCC / fcc-claude runtime core
+CURRENT_PHASE: P05
+CURRENT_PHASE_NAME: Conversation + session + task experience
 CURRENT_PHASE_STATE: IN_PROGRESS
-NEXT_PHASE: P05
+NEXT_PHASE: P06
 PHASE_EXIT_GATE: NOT_RUN
-KNOWN_RELEASE_BLOCKERS: 0
+KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
+OWNER_LAST_MODE: ACTIVE
+DEFERRED_OWNER_ACCEPTANCE_COUNT: 1
+DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET
 VERIFIED_IMPLEMENTATION_COMPLETION: 0%
 PUBLIC_RELEASE_ELIGIBLE: false
 ```
 
-`CURRENT_PHASE.md` is the fast live resume checkpoint. `docs/EXECUTION_PLAN.md` is the canonical sequential execution contract.
+`CURRENT_PHASE.md` is the fast live resume checkpoint. `docs/EXECUTION_PLAN.md` is the canonical sequential execution contract. While `OWNER_LAST_MODE: ACTIVE`, `docs/OWNER_LAST_EXECUTION_POLICY.md` is the narrow owner-authorized scheduling amendment for genuinely environment-bound evidence only; it does not weaken task, phase, acceptance, or release criteria.
 
-P00, P01, P02, and P03 are canonically CLOSED with their phase closure evidence retained under `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, `evidence/phases/P02/CLOSURE.md`, and `evidence/phases/P03/CLOSURE.md`. P03 closure was integrated by PR #85 as canonical merge `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure canonical main Windows CI run `33822291095` completed SUCCESS on that merge SHA. P04 is the sole legal implementation phase. `FCCD-P04-001` is CLOSED from validated implementation PR #91, exact candidate Windows CI run `33825468339`, normal merge `c7453dc64304ee149ea1a98b4736043fe644441c`, exact post-merge Windows CI run `33826581291`, and current-main non-regression Windows CI run `33826972327`; task evidence is `evidence/phases/P04/P04_001_INTEGRATED_RECONCILIATION_2026-09-04.md`. `FCCD-P04-002` is CLOSED from implementation PR #94 exact candidate `7b28a0bdbc76a092ae0df372cb780eb235ef525a`, Windows CI run `33826612463` / run #124, normal merge `0bc04b69838a390386e3cda17bf094ff7817e2ae`, exact post-merge Windows CI run `33826972327` / run #125, and current-main non-regression Windows CI run `33828658981` / run #127 on `e5b6c3e3f9ed9714358a0b402be0b961a9393d5b`; task evidence is `evidence/phases/P04/P04_002_INTEGRATED_RECONCILIATION_2026-09-04.md`. `FCCD-P04-003` is CLOSED from implementation PR #97 exact candidate `3a017c0eec34bd9c80d3dc6ef6e16ec564939e4f`, Windows CI run `33831874827` / run #131 attempt 2, normal merge `8fd24dc124aaca134f19499dae4df3021b63a2fb`, and exact post-merge Windows CI run `33833049188` / run #132; candidate and exact-main Release builds passed with 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, and the permanent FCC structured-runtime static/negative/recovery/Windows executable fixture plus complete Windows baseline PASS. Task evidence is `evidence/phases/P04/P04_003_INTEGRATED_RECONCILIATION_2026-09-04.md`. `FCCD-P04-004` is CLOSED after implementation PR #106 exact repaired candidate `699749679fe9a4b970e94f3fa18992c12989fe8d` passed Windows CI run `33836177846` / run #137, was normally merged as `30df27e493cb0f4ef9c9d1de7afcb5158a7e7093`, and exact post-merge Windows CI run `33836542523` / run #138 completed SUCCESS on that merge SHA; candidate and exact-main Release builds passed with 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, and the permanent FCC CLI-fallback static/negative/recovery/Windows executable fixture plus complete Windows baseline PASS. Earlier run #136 failed only because the disposable fake fallback fixture referenced nonexistent .NET API `Console.ErrorEncoding`; the fixture-only compile defect was repaired without weakening production behavior or validation. Task evidence is `evidence/phases/P04/P04_004_INTEGRATED_RECONCILIATION_2026-09-04.md`. `FCCD-P04-005` is CLOSED after implementation PR #108 initial exact head `ec173f27bb8a8676d2e227d884f812f7a78a9dd9` exposed a task-local static-validator false positive in Windows CI run `33839726434` / run #144 after Release build 0 warnings/0 errors, unit tests 16/16, and integration tests 37/37 had already passed. The static guard was repaired without weakening production redaction or executable redaction assertions; repaired exact head `5e733d7424a73e02d3c03a86abf5c076b64b4552` passed Windows CI run `33841968757` / run #147, was normally merged as `bba771de1e10ac702d73a6bdc20bb2143eddc526`, and exact post-merge canonical-main Windows CI run `33842288621` / run #148 completed SUCCESS. The permanent normalization static/negative/recovery/Windows executable fixture and the complete Windows baseline passed. Task evidence is `evidence/phases/P04/P04_005_INTEGRATED_RECONCILIATION_2026-09-04.md`. `FCCD-P04-006` is CLOSED after stale/integration-pending PR #110 was recovered without rebase, squash, or force-push. Prior tested head `c6bb80954593282e8af9a21f1cc05a6ab6dc39aa` was preserved with current green base `15348bb824a06fde28414c095574084a6ba6050b` in recovered two-parent head `22c83e6f6565ab3cf17965d5c747a119dd8a7f2c`; shared CI-registry convergence retained both P04-005 normalization and P04-006 health/version validators. Exact recovered head Windows CI `33845074580` / run #151 passed with Release build 0 warnings/0 errors, unit tests 16/16, integration tests 37/37, P04-006 static/negative/recovery/Windows runtime fixtures PASS, and the complete permanent Windows baseline PASS. PR #110 was normally merged as `3b178d62ec1235c9e9b6d727251218f790c78fc4`, and exact post-merge canonical-main Windows CI `33845439369` / run #152 completed SUCCESS. Task evidence is `evidence/phases/P04/P04_006_INTEGRATED_RECONCILIATION_2026-09-04.md`. `FCCD-P04-007` is CLOSED after implementation PR #113 exact candidate `a1e0d023e8450692aea2bf6f634323e1898c7b96` passed Windows CI run `33849646661` / run #155 with Release build 0 warnings/0 errors, unit tests 24/24, integration tests 37/37, and the complete permanent Windows baseline PASS; PR #113 was normally merged as `9e0dc4e805913a5beceeb20224d3b726581d449c`, preserving the exact candidate as a parent, and exact post-merge canonical-main Windows CI run `33850126499` / run #156 completed SUCCESS. Task evidence is `evidence/phases/P04/P04_007_INTEGRATED_RECONCILIATION_2026-09-04.md`. `FCCD-P04-008` remains PENDING unless separately and canonically reconciled. ADR-017 and the authoritative P00 FCC/`fcc-claude` target contract evidence govern runtime architecture, while P04-008 and the P04 exact-head exit gate retain ownership of the fresh full real-runtime contract suite required before closure. `PHASE_EXIT_GATE=NOT_RUN` and `VERIFIED_FINAL_COMPLETE=false` remain unchanged.
+P00, P01, P02, and P03 are canonically CLOSED with their phase closure evidence retained under `evidence/phases/P00/CLOSURE.md`, `evidence/phases/P01/CLOSURE.md`, `evidence/phases/P02/CLOSURE.md`, and `evidence/phases/P03/CLOSURE.md`. P04 remains acceptance-unresolved solely because `FCCD-P04-008 — Runtime contract suite` still requires fresh genuine owner-Windows/provider `REAL_TARGET` evidence. `FCCD-P04-001` through `FCCD-P04-007` are CLOSED; `FCCD-P04-008` remains PENDING, its P04 exit gate remains `NOT_RUN`, and its owner-only obligation is queued one-to-one as `OWNER-P04-008-REAL-TARGET` in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` with `releaseBlocking=true`. Under the owner-last scheduling amendment, P05 is therefore the sole legal **cloud implementation phase**. This scheduling transition is not a P04 closure and does not convert any missing real-target evidence to PASS. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
 
 ---
 
@@ -268,7 +271,7 @@ Only one active coding-agent run executes at a time by default. External resourc
 ACTIVE_PROJECT_PHASE_COUNT = 1
 ```
 
-Only the phase recorded in `CURRENT_PHASE.md` is authorized for implementation.
+Only the phase recorded in `CURRENT_PHASE.md` is authorized for implementation. When owner-last mode is active, that means exactly one current **cloud implementation phase**; any earlier unresolved obligation must be one-to-one represented by a valid environment-bound `QUEUED`, `releaseBlocking=true` item under `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
 
 Multiple workers may execute non-overlapping tasks inside that phase, but the project may not have implementation teams working ahead in later phases.
 
@@ -326,6 +329,8 @@ P22  v1.0.0 release closure
 
 ### Phase advancement invariant
 
+Ordinary phase closure still requires:
+
 ```text
 ALL CURRENT-PHASE TASKS = CLOSED
 AND PHASE EXIT GATE = PASS
@@ -334,7 +339,7 @@ AND MAIN = GREEN
 AND KNOWN PHASE-LOCAL RELEASE BLOCKERS = 0
 ```
 
-Only then can `CURRENT_PHASE.md` advance.
+The only scheduling exception is `docs/OWNER_LAST_EXECUTION_POLICY.md`: after every cloud-actionable requirement in a source phase is integrated and green, genuinely environment-bound residual evidence may be deferred one-to-one into the canonical owner queue while the source task/gate remains truthfully unresolved. Cloud implementation then advances only to the next sequential phase; this never creates phase PASS or release PASS. P22 remains prohibited while any required owner queue item is `QUEUED`.
 
 There is no authorized cross-phase implementation parallelism.
 
