@@ -207,7 +207,8 @@
                                 <StackPanel>
                                     <DockPanel LastChildFill="False">
                                         <TextBlock Text="{Binding ToolName}"
-                                                   Style="{StaticResource FccTextBodyStrong}"
+                                                   Style="{StaticResource FccTextBody}"
+                                                   FontWeight="SemiBold"
                                                    Foreground="{DynamicResource FccBrushTextPrimary}" />
                                         <TextBlock x:Name="ToolStatus"
                                                    Margin="10,0,0,0"
@@ -222,7 +223,6 @@
                                     <TextBlock Margin="0,6,0,0"
                                                Text="{Binding ProgressText}"
                                                TextWrapping="Wrap"
-                                               Style="{StaticResource FccTextStatus}"
                                                Foreground="{DynamicResource FccBrushTextSecondary}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock" BasedOn="{StaticResource FccTextStatus}">
