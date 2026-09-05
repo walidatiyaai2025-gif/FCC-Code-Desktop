@@ -120,8 +120,8 @@ public sealed class ProjectCatalogServiceTests
         Assert.Equal(2, recent.Count);
         Assert.Equal("project-2", recent[0].DisplayName);
         Assert.Equal("project-1", recent[1].DisplayName);
-        Assert.Throws<ArgumentOutOfRangeException>(() => service.ListRecentProjectsAsync(0));
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.ListRecentProjectsAsync(0));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
             service.ListRecentProjectsAsync(ProjectCatalogService.MaximumRecentProjectCount + 1));
     }
 
