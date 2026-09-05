@@ -24,7 +24,7 @@ LAST_RECONCILED: 2026-09-05
 
 `CURRENT_PHASE` now means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
-P05 is the sole legal cloud implementation phase. `FCCD-P05-001 — Streaming chat rendering`, `FCCD-P05-002 — Structured tool activity timeline`, and `FCCD-P05-003 — Composer/attachments/context` have been normally integrated and exact-main verified; subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, the earliest unclaimed mandatory task is now `FCCD-P05-004 — Session create/history/resume`.
+P05 is the sole legal cloud implementation phase. `FCCD-P05-001 — Streaming chat rendering`, `FCCD-P05-002 — Structured tool activity timeline`, `FCCD-P05-003 — Composer/attachments/context`, and `FCCD-P05-004 — Session create/history/resume` have been normally integrated and exact-main verified; subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, the earliest dependency-valid unclaimed mandatory task is now `FCCD-P05-005 — Explicit task state machine`.
 
 This is **not** a P04 closure and does not weaken P04 acceptance. `FCCD-P04-008 — Runtime contract suite` remains unresolved in `docs/TASK_LEDGER.md`; the P04 exit gate remains `NOT_RUN`; no P04 `CLOSURE.md` PASS is claimed by this scheduling transition. Its fresh owner-Windows/provider `REAL_TARGET` obligation is durably queued as `OWNER-P04-008-REAL-TARGET`, remains `releaseBlocking=true`, and must later be genuinely executed, reviewed, integrated, and reconciled.
 
@@ -61,7 +61,7 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 - `FCCD-P05-001` — Streaming chat rendering — CLOSED.
 - `FCCD-P05-002` — Structured tool activity timeline — CLOSED.
 - `FCCD-P05-003` — Composer/attachments/context — CLOSED.
-- `FCCD-P05-004` — Session create/history/resume — PENDING.
+- `FCCD-P05-004` — Session create/history/resume — CLOSED.
 - `FCCD-P05-005` — Explicit task state machine — PENDING.
 - `FCCD-P05-006` — Stop/cancel/retry UX — PENDING.
 - `FCCD-P05-007` — Markdown/code/diff content rendering — PENDING.
@@ -94,6 +94,15 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 - Integrated evidence: `evidence/phases/P05/P05_003_INTEGRATED_RECONCILIATION_2026-09-05.md`.
 - Evidence class remains cloud/self-test for composer/attachment/context mechanics; no provider-backed P04 acceptance is implied.
 
+## P05-004 integration provenance
+
+- Exact implementation candidate: `12bb212bc5fc5455045efd4d08c01cb56a62bbb7`.
+- PR #126 exact-head Windows CI: run `33948793781` / run #202 — SUCCESS.
+- Normal merge commit: `2988eb449570cfcf9fc62d2198fe209c8c9b9371`.
+- Exact post-merge canonical-main Windows CI: run `33949094044` / run #203 — SUCCESS.
+- Integrated evidence: `evidence/phases/P05/P05_004_INTEGRATED_RECONCILIATION_2026-09-05.md`.
+- Evidence class remains cloud/self-test for session persistence/resume mechanics; no provider-backed P04 acceptance is implied.
+
 ## Activation provenance
 
 - Owner-last bootstrap base before PR #117: `2e76d7f6a44bf120e16efab21a01df9784cd8380`.
@@ -106,4 +115,4 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 
 ## Next legitimate action after this reconciliation is integrated
 
-Re-fetch live main, queue, open PRs/branches/issues, and CI. If no Priority 1–4 repair/recovery/integration work exists, select exactly one unclaimed P05 task beginning with the earliest dependency-valid row, `FCCD-P05-004 — Session create/history/resume`, and execute it normally. Do not execute queued owner acceptance until the final-owner lane is intentionally reached, do not treat that deferral as release PASS, and do not advance to P06 until P05's normal cloud implementation and gate requirements are genuinely satisfied.
+Re-fetch live main, queue, open PRs/branches/issues, and CI. If no Priority 1–4 repair/recovery/integration work exists, select exactly one unclaimed P05 task beginning with the earliest dependency-valid row, `FCCD-P05-005 — Explicit task state machine`, and execute it normally. Do not execute queued owner acceptance until the final-owner lane is intentionally reached, do not treat that deferral as release PASS, and do not advance to P06 until P05's normal cloud implementation and gate requirements are genuinely satisfied.
