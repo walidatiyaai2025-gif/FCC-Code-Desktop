@@ -130,7 +130,7 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 |---|---|---|
 | FCCD-P05-001 | Streaming chat rendering | CLOSED |
 | FCCD-P05-002 | Structured tool activity timeline | CLOSED |
-| FCCD-P05-003 | Composer/attachments/context | PENDING |
+| FCCD-P05-003 | Composer/attachments/context | CLOSED |
 | FCCD-P05-004 | Session create/history/resume | PENDING |
 | FCCD-P05-005 | Explicit task state machine | PENDING |
 | FCCD-P05-006 | Stop/cancel/retry UX | PENDING |
@@ -140,6 +140,8 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 `FCCD-P05-001` is CLOSED from production streaming-conversation implementation and permanent validation. Exact implementation candidate `b261a511222dfa79b77172b0fd390345b6af10c6` passed Windows CI run `33940749591` / run #175 with Release build 0 warnings/0 errors, unit tests 24/24, integration tests 37/37, streaming-conversation static/negative/recovery validation PASS, executable Windows/WPF streaming-conversation happy/negative/recovery fixture PASS, and the complete permanent Windows baseline PASS. PR #120 was normally merged as `994c2cb91fbd22bd622b27cfb1041774eaafafd0`; exact post-merge canonical-main Windows CI run `33941044692` / run #176 completed SUCCESS on that exact merge SHA with the same permanent baseline green. Task evidence: `evidence/phases/P05/P05_001_INTEGRATED_RECONCILIATION_2026-09-05.md`. This task-level evidence is cloud/self-test plus canonical integration provenance only and does not claim provider-backed P04 acceptance; `OWNER-P04-008-REAL-TARGET` remains queued and release-blocking.
 
 `FCCD-P05-002` is CLOSED from production structured tool-activity timeline implementation and permanent validation. Exact implementation candidate `d17643560b2ec8e36f24b052ab0ee322a6b0a4c5` passed Windows CI run `33942370655` / run #179 with Release build 0 warnings/0 errors, unit tests 24/24, integration tests 37/37, tool-activity timeline static/negative/recovery validation PASS, executable Windows/WPF tool-activity happy/negative/recovery fixture PASS, and the complete permanent Windows baseline PASS. PR #122 was normally merged as `94d639ba0d4f2afe4e28054152b15df04e33f76a`; exact post-merge canonical-main Windows CI run `33942655208` / run #180 completed SUCCESS on that exact merge SHA. Task evidence: `evidence/phases/P05/P05_002_INTEGRATED_RECONCILIATION_2026-09-05.md`. This evidence is cloud/self-test plus canonical integration provenance only and does not claim provider-backed P04 acceptance; `OWNER-P04-008-REAL-TARGET` remains queued and release-blocking.
+
+`FCCD-P05-003` is CLOSED from production composer/attachments/context implementation and permanent validation. Exact implementation candidate `3cbfc00a79ce7f7826bb442939c9c0d29ae8036e` passed Windows CI run `33944648152` / run #186 with Release build 0 warnings/0 errors, unit tests 24/24, integration tests 37/37, conversation-composer static/negative/recovery validation PASS, executable Windows/WPF conversation-composer happy/negative/recovery fixture PASS, and the complete permanent Windows baseline PASS. PR #124 was normally merged as `f00a579358405e8197a5b78ecbe64501743c2101`; exact post-merge canonical-main Windows CI run `33944933157` / run #187 completed SUCCESS on that exact merge SHA. Task evidence: `evidence/phases/P05/P05_003_INTEGRATED_RECONCILIATION_2026-09-05.md`. This evidence is cloud/self-test plus canonical integration provenance only and does not claim provider-backed P04 acceptance; `OWNER-P04-008-REAL-TARGET` remains queued and release-blocking.
 
 ## P06 — Projects/files/editor/search
 
@@ -372,10 +374,10 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 
 ## Current next action
 
-`CURRENT_PHASE = P05` and P05 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P05-001` and `FCCD-P05-002` are CLOSED after exact PR-head validation, normal merge integration, and exact post-merge canonical-main Windows CI. `FCCD-P05-003` through `FCCD-P05-008` remain PENDING.
+`CURRENT_PHASE = P05` and P05 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P05-001`, `FCCD-P05-002`, and `FCCD-P05-003` are CLOSED after exact PR-head validation, normal merge integration, and exact post-merge canonical-main Windows CI. `FCCD-P05-004` through `FCCD-P05-008` remain PENDING.
 
 P04 remains acceptance-unresolved solely through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. The P04 exit gate remains `NOT_RUN`; owner-last scheduling permits P05 cloud implementation but does not close P04, waive the real-target requirement, or permit release.
 
-After this P05-002 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any Priority 1–4 legitimate work first; if none exists, `FCCD-P05-003 — Composer/attachments/context` is the next dependency-valid P05 task. Do not begin P06 until P05 cloud work and its gate are genuinely satisfied, and do not execute or relabel the queued owner evidence as PASS outside the intentional final-owner lane.
+After this P05-003 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any Priority 1–4 legitimate work first; if none exists, `FCCD-P05-004 — Session create/history/resume` is the next dependency-valid P05 task. Do not begin P06 until P05 cloud work and its gate are genuinely satisfied, and do not execute or relabel the queued owner evidence as PASS outside the intentional final-owner lane.
 
 P03 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`. Exact closure evidence is `evidence/phases/P03/CLOSURE.md`; PR #85 integrated the closure as main SHA `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure Windows CI run `33822291095` completed SUCCESS.
