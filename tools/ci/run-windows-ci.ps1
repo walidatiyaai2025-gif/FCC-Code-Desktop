@@ -129,6 +129,10 @@ try {
     & pwsh -NoProfile -File .\tools\ui\validate-tool-activity-timeline.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Tool activity timeline validation'
 
+    Write-Host 'CI stage: conversation composer attachments and context'
+    & pwsh -NoProfile -File .\tools\ui\validate-conversation-composer.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'Conversation composer validation'
+
     Write-Host 'CI stage: bottom tool-panel framework'
     & pwsh -NoProfile -File .\tools\ui\validate-bottom-tool-panel.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'Bottom tool-panel validation'
