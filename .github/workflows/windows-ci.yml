@@ -56,3 +56,7 @@ jobs:
       - name: Validate P06-001 project workflows
         shell: pwsh
         run: .\tools\projects\validate-project-workflows.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-002 project technology detection
+        shell: pwsh
+        run: .\tools\projects\validate-project-technology-detection.ps1 -RunFixtures -RequireRuntime
