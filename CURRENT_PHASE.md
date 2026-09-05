@@ -24,7 +24,7 @@ LAST_RECONCILED: 2026-09-05
 
 `CURRENT_PHASE` now means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
-P05 is the sole legal cloud implementation phase. `FCCD-P05-001 — Streaming chat rendering`, `FCCD-P05-002 — Structured tool activity timeline`, `FCCD-P05-003 — Composer/attachments/context`, `FCCD-P05-004 — Session create/history/resume`, `FCCD-P05-005 — Explicit task state machine`, `FCCD-P05-006 — Stop/cancel/retry UX`, and `FCCD-P05-007 — Markdown/code/diff content rendering` have been normally integrated and exact-main verified; subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, the earliest dependency-valid unclaimed mandatory task is now `FCCD-P05-008 — Conversation virtualization/performance`.
+P05 remains the sole legal cloud implementation/convergence phase. `FCCD-P05-001` through `FCCD-P05-008` have now been normally integrated and exact-main verified. There is no remaining unclaimed P05 implementation task. The next legal cloud action is P05 phase-exit convergence: run or prepare the strongest honest phase-level gate allowed by the integrated owner-last policy, repair any cloud-actionable defect it reveals, and do not activate P06 unless canonical governance explicitly permits the transition while preserving every unresolved owner requirement and final acceptance criterion.
 
 This is **not** a P04 closure and does not weaken P04 acceptance. `FCCD-P04-008 — Runtime contract suite` remains unresolved in `docs/TASK_LEDGER.md`; the P04 exit gate remains `NOT_RUN`; no P04 `CLOSURE.md` PASS is claimed by this scheduling transition. Its fresh owner-Windows/provider `REAL_TARGET` obligation is durably queued as `OWNER-P04-008-REAL-TARGET`, remains `releaseBlocking=true`, and must later be genuinely executed, reviewed, integrated, and reconciled.
 
@@ -32,7 +32,7 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 
 ## Owner-last invariants
 
-- Exactly one cloud implementation phase remains active: P05.
+- Exactly one cloud implementation/convergence phase remains active: P05.
 - Earlier unresolved work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
 - Code defects, failed CI, missing tests/implementation, security/data-integrity defects, and repairable repository problems are never deferrable.
 - A queued source task is not `CLOSED`; its phase exit gate is not converted to `PASS`.
@@ -65,7 +65,7 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 - `FCCD-P05-005` — Explicit task state machine — CLOSED.
 - `FCCD-P05-006` — Stop/cancel/retry UX — CLOSED.
 - `FCCD-P05-007` — Markdown/code/diff content rendering — CLOSED.
-- `FCCD-P05-008` — Conversation virtualization/performance — PENDING.
+- `FCCD-P05-008` — Conversation virtualization/performance — CLOSED.
 
 ## P05-001 integration provenance
 
@@ -130,6 +130,15 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 - Integrated evidence: `evidence/phases/P05/P05_007_INTEGRATED_RECONCILIATION_2026-09-05.md`.
 - Evidence class remains cloud/self-test for native Markdown/code/diff rendering mechanics; no provider-backed P04 acceptance or P05 phase closure is implied.
 
+## P05-008 integration provenance
+
+- Exact repaired implementation candidate: `a81f1ec86e0c05498cfd86ed3cafd91d0fd5b124`.
+- PR #138 exact-head Windows CI: run `33985390212` / run #235 — SUCCESS.
+- Normal merge commit: `237dad3b69e8b4cc2314dc13351d30136a996e1f`.
+- Exact post-merge canonical-main Windows CI: run `33985710844` / run #236 — SUCCESS.
+- Integrated evidence: `evidence/phases/P05/P05_008_INTEGRATED_RECONCILIATION_2026-09-05.md`.
+- Evidence class remains cloud/self-test for conversation virtualization, progressive parsing, bounded rendering, and viewport/tail-follow behavior; no provider-backed P04 acceptance, P05 phase exit-gate PASS, or release eligibility is implied.
+
 ## Activation provenance
 
 - Owner-last bootstrap base before PR #117: `2e76d7f6a44bf120e16efab21a01df9784cd8380`.
@@ -142,4 +151,4 @@ The pre-owner-last P04 handoff correctly prohibited P05 under the earlier phase-
 
 ## Next legitimate action after this reconciliation is integrated
 
-Re-fetch live main, queue, open PRs/branches/issues, and CI. If no Priority 1–4 repair/recovery/integration work exists, select exactly one unclaimed P05 task beginning with the earliest dependency-valid row, `FCCD-P05-008 — Conversation virtualization/performance`, and execute it normally. Do not execute queued owner acceptance until the final-owner lane is intentionally reached, do not treat that deferral as release PASS, and do not advance to P06 until P05's normal cloud implementation and gate requirements are genuinely satisfied.
+Re-fetch live main, queue, open PRs/branches/issues, and CI. If no Priority 1–4 repair/recovery/integration work exists, execute **P05 phase-exit convergence** as the next legal cloud action. Run the strongest phase-level cloud gate available, repair any cloud-actionable defect, and prepare or queue only genuinely owner/environment-bound evidence in accordance with `docs/OWNER_LAST_EXECUTION_POLICY.md`. Do not execute queued owner acceptance until the final-owner lane is intentionally reached, do not treat deferral as release PASS, and do not advance to P06 until governance truthfully permits it. P07 remains future work behind P06.
