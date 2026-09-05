@@ -379,20 +379,31 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         };
         var persistenceState = terminalState.ToString();
 
+        try
+        {
+            await PersistTaskAsync(persistenceState, completedUtc, CancellationToken.None).ConfigureAwait(false);
+            await PersistAgentRunAsync(persistenceState, completedUtc, CancellationToken.None).ConfigureAwait(false);
+            await AppendJournalEventAsync(
+                ExecutionJournalCategory.Task,
+                $"Task{persistenceState}",
+                completedUtc,
+                CancellationToken.None).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            throw new InvalidOperationException(
+                CombineDiagnostics(
+                    result.Failure?.Message,
+                    $"Terminal task-state persistence failed: {SanitizeFailureMessage(exception.Message)}"),
+                exception);
+        }
+
         await InvokeOnDispatcherAsync(
             () =>
             {
                 SetFailureMessage(result.Failure?.Message);
                 TransitionTo(terminalState);
             }).ConfigureAwait(false);
-
-        await PersistAgentRunAsync(persistenceState, completedUtc, CancellationToken.None).ConfigureAwait(false);
-        await PersistTaskAsync(persistenceState, completedUtc, CancellationToken.None).ConfigureAwait(false);
-        await AppendJournalEventAsync(
-            ExecutionJournalCategory.Task,
-            $"Task{persistenceState}",
-            completedUtc,
-            CancellationToken.None).ConfigureAwait(false);
     }
 
     private async Task RecordStartFailureAsync(Exception exception, string? cleanupDiagnostic)
@@ -439,8 +450,8 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
     {
         try
         {
-            await PersistAgentRunAsync(state, occurredUtc, CancellationToken.None).ConfigureAwait(false);
             await PersistTaskAsync(state, occurredUtc, CancellationToken.None).ConfigureAwait(false);
+            await PersistAgentRunAsync(state, occurredUtc, CancellationToken.None).ConfigureAwait(false);
             await AppendJournalEventAsync(
                 ExecutionJournalCategory.Task,
                 eventType,
