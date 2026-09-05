@@ -37,7 +37,6 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
     private Guid? _taskSessionId;
     private DateTimeOffset _taskCreatedUtc;
     private DateTimeOffset _runStartedUtc;
-    private string? _prompt;
     private string? _summary;
     private string? _failureMessage;
     private int _attempt;
@@ -91,7 +90,9 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
 
     public bool HasTask => ActiveTaskId is not null;
 
-    public bool IsActive => State is TaskLifecycleState.Starting or TaskLifecycleState.Running or TaskLifecycleState.StopRequested;
+    public bool IsActive => State is TaskLifecycleState.Starting
+        or TaskLifecycleState.Running
+        or TaskLifecycleState.StopRequested;
 
     public string StateLabel => State switch
     {
@@ -113,9 +114,9 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
             throw new InvalidOperationException(_runtimeUnavailableReason ?? "FCC runtime is unavailable.");
         }
 
-        if (IsActive)
+        if (IsActive || _activePumpTask is not null || _activeExecution is not null)
         {
-            throw new InvalidOperationException("Another task is already active in this workspace.");
+            throw new InvalidOperationException("Another task is already active or still settling in this workspace.");
         }
 
         if (_sessionWorkspace.ActiveSessionId is null || _sessionWorkspace.ActiveProject is null)
@@ -147,15 +148,15 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         _taskSessionId = activeSession.Id;
         _taskCreatedUtc = now;
         _runStartedUtc = now;
-        _prompt = prompt;
         _summary = NormalizeSummary(prompt);
-        _failureMessage = null;
+        SetFailureMessage(null);
         _attempt = 1;
         _automaticRetryCount = 0;
         Interlocked.Exchange(ref _nextJournalSequence, 0);
         NotifyIdentityChanged();
         TransitionTo(TaskLifecycleState.Starting);
 
+        IAgentRuntimeExecution? startedExecution = null;
         try
         {
             await PersistTaskAsync("Starting", now, cancellationToken).ConfigureAwait(true);
@@ -172,9 +173,9 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
                 prompt,
                 activeProject.RootPath,
                 _sessionWorkspace.ActiveRuntimeSessionId);
-            var execution = await _runtime!.StartAsync(request, cancellationToken).ConfigureAwait(true);
-            EnsureExecutionIdentity(execution, request);
-            _activeExecution = execution;
+            startedExecution = await _runtime!.StartAsync(request, cancellationToken).ConfigureAwait(true);
+            EnsureExecutionIdentity(startedExecution, request);
+            _activeExecution = startedExecution;
 
             var runningUtc = _timeProvider.GetUtcNow();
             TransitionTo(TaskLifecycleState.Running);
@@ -186,11 +187,25 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
                 runningUtc,
                 cancellationToken).ConfigureAwait(true);
 
-            _activePumpTask = PumpExecutionAsync(execution, _activeTaskId.Value, _activeRunId.Value, _taskSessionId.Value);
+            var pumpTask = PumpExecutionAsync(
+                startedExecution,
+                _activeTaskId.Value,
+                _activeRunId.Value,
+                _taskSessionId.Value);
+            _activePumpTask = pumpTask;
+            _ = TrackPumpCompletionAsync(pumpTask);
+            startedExecution = null;
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (OperationCanceledException)
         {
-            await RecordStartFailureAsync(exception).ConfigureAwait(true);
+            var cleanupDiagnostic = await CleanupUnownedExecutionAsync(startedExecution).ConfigureAwait(true);
+            await RecordStartCancellationAsync(cleanupDiagnostic).ConfigureAwait(true);
+            throw;
+        }
+        catch (Exception exception)
+        {
+            var cleanupDiagnostic = await CleanupUnownedExecutionAsync(startedExecution).ConfigureAwait(true);
+            await RecordStartFailureAsync(exception, cleanupDiagnostic).ConfigureAwait(true);
         }
     }
 
@@ -201,6 +216,7 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         Guid sessionId)
     {
         var assistantText = new StringBuilder();
+        var disposed = false;
         try
         {
             await foreach (var runtimeEvent in execution.Events.ConfigureAwait(false))
@@ -213,12 +229,14 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
                 }
 
                 await _conversation.ApplyRuntimeEventAsync(runtimeEvent, CancellationToken.None).ConfigureAwait(false);
-                if (runtimeEvent.Kind == AgentRuntimeEventKind.AssistantTextDelta && !string.IsNullOrEmpty(runtimeEvent.Text))
+                if (runtimeEvent.Kind == AgentRuntimeEventKind.AssistantTextDelta
+                    && !string.IsNullOrEmpty(runtimeEvent.Text))
                 {
                     assistantText.Append(runtimeEvent.Text);
                 }
 
-                if (runtimeEvent.Kind == AgentRuntimeEventKind.SessionIdentified && !string.IsNullOrWhiteSpace(runtimeEvent.SessionId))
+                if (runtimeEvent.Kind == AgentRuntimeEventKind.SessionIdentified
+                    && !string.IsNullOrWhiteSpace(runtimeEvent.SessionId))
                 {
                     await _sessionWorkspace
                         .BindRuntimeSessionAsync(runtimeEvent.SessionId, CancellationToken.None)
@@ -254,15 +272,31 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
                     .ConfigureAwait(false);
             }
 
+            await execution.DisposeAsync().ConfigureAwait(false);
+            disposed = true;
             await CompleteFromRuntimeResultAsync(result).ConfigureAwait(false);
         }
         catch (Exception exception)
         {
-            await RecordPumpFailureAsync(exception).ConfigureAwait(false);
+            var effectiveException = exception;
+            if (!disposed)
+            {
+                try
+                {
+                    await execution.DisposeAsync().ConfigureAwait(false);
+                    disposed = true;
+                }
+                catch (Exception cleanupException)
+                {
+                    effectiveException = new InvalidOperationException(
+                        $"{SanitizeFailureMessage(exception.Message)} Runtime cleanup also failed: {SanitizeFailureMessage(cleanupException.Message)}");
+                }
+            }
+
+            await RecordPumpFailureAsync(effectiveException).ConfigureAwait(false);
         }
         finally
         {
-            await execution.DisposeAsync().ConfigureAwait(false);
             await InvokeOnDispatcherAsync(
                 () =>
                 {
@@ -270,10 +304,67 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
                     {
                         _activeExecution = null;
                     }
-
-                    _activePumpTask = null;
                 }).ConfigureAwait(false);
         }
+    }
+
+    private async Task TrackPumpCompletionAsync(Task pumpTask)
+    {
+        try
+        {
+            await pumpTask.ConfigureAwait(false);
+        }
+        finally
+        {
+            await InvokeOnDispatcherAsync(
+                () =>
+                {
+                    if (ReferenceEquals(_activePumpTask, pumpTask))
+                    {
+                        _activePumpTask = null;
+                    }
+                }).ConfigureAwait(false);
+        }
+    }
+
+    private async Task<string?> CleanupUnownedExecutionAsync(IAgentRuntimeExecution? execution)
+    {
+        if (execution is null)
+        {
+            return null;
+        }
+
+        string? cleanupDiagnostic = null;
+        try
+        {
+            if (!execution.Completion.IsCompleted)
+            {
+                await execution.CancelAsync(CancellationToken.None).ConfigureAwait(true);
+            }
+        }
+        catch (Exception exception)
+        {
+            cleanupDiagnostic = $"Runtime cancellation cleanup failed: {SanitizeFailureMessage(exception.Message)}";
+        }
+
+        try
+        {
+            await execution.DisposeAsync().ConfigureAwait(true);
+        }
+        catch (Exception exception)
+        {
+            var disposeDiagnostic = $"Runtime dispose cleanup failed: {SanitizeFailureMessage(exception.Message)}";
+            cleanupDiagnostic = cleanupDiagnostic is null
+                ? disposeDiagnostic
+                : $"{cleanupDiagnostic} {disposeDiagnostic}";
+        }
+
+        if (ReferenceEquals(_activeExecution, execution))
+        {
+            _activeExecution = null;
+        }
+
+        return cleanupDiagnostic;
     }
 
     private async Task CompleteFromRuntimeResultAsync(AgentRuntimeResult result)
@@ -291,9 +382,7 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         await InvokeOnDispatcherAsync(
             () =>
             {
-                _failureMessage = result.Failure?.Message;
-                OnPropertyChanged(nameof(FailureMessage));
-                OnPropertyChanged(nameof(HasFailure));
+                SetFailureMessage(result.Failure?.Message);
                 TransitionTo(terminalState);
             }).ConfigureAwait(false);
 
@@ -306,15 +395,24 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
             CancellationToken.None).ConfigureAwait(false);
     }
 
-    private async Task RecordStartFailureAsync(Exception exception)
+    private async Task RecordStartFailureAsync(Exception exception, string? cleanupDiagnostic)
     {
         var failedUtc = _timeProvider.GetUtcNow();
-        _failureMessage = SanitizeFailureMessage(exception.Message);
-        OnPropertyChanged(nameof(FailureMessage));
-        OnPropertyChanged(nameof(HasFailure));
+        SetFailureMessage(CombineDiagnostics(exception.Message, cleanupDiagnostic));
         TransitionTo(TaskLifecycleState.Failed);
+        await TryPersistTerminalStateAsync("Failed", "TaskFailed", failedUtc).ConfigureAwait(true);
+    }
 
-        await TryPersistFailureAsync("Failed", failedUtc).ConfigureAwait(true);
+    private async Task RecordStartCancellationAsync(string? cleanupDiagnostic)
+    {
+        var cancelledUtc = _timeProvider.GetUtcNow();
+        SetFailureMessage(cleanupDiagnostic);
+        if (State is TaskLifecycleState.Starting or TaskLifecycleState.Running or TaskLifecycleState.StopRequested)
+        {
+            TransitionTo(TaskLifecycleState.Cancelled);
+        }
+
+        await TryPersistTerminalStateAsync("Cancelled", "TaskCancelled", cancelledUtc).ConfigureAwait(true);
     }
 
     private async Task RecordPumpFailureAsync(Exception exception)
@@ -323,18 +421,21 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         await InvokeOnDispatcherAsync(
             () =>
             {
-                _failureMessage = SanitizeFailureMessage(exception.Message);
-                OnPropertyChanged(nameof(FailureMessage));
-                OnPropertyChanged(nameof(HasFailure));
-                if (State is TaskLifecycleState.Starting or TaskLifecycleState.Running or TaskLifecycleState.StopRequested)
+                SetFailureMessage(exception.Message);
+                if (State is TaskLifecycleState.Starting
+                    or TaskLifecycleState.Running
+                    or TaskLifecycleState.StopRequested)
                 {
                     TransitionTo(TaskLifecycleState.Failed);
                 }
             }).ConfigureAwait(false);
-        await TryPersistFailureAsync("Failed", failedUtc).ConfigureAwait(false);
+        await TryPersistTerminalStateAsync("Failed", "TaskFailed", failedUtc).ConfigureAwait(false);
     }
 
-    private async Task TryPersistFailureAsync(string state, DateTimeOffset occurredUtc)
+    private async Task TryPersistTerminalStateAsync(
+        string state,
+        string eventType,
+        DateTimeOffset occurredUtc)
     {
         try
         {
@@ -342,19 +443,18 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
             await PersistTaskAsync(state, occurredUtc, CancellationToken.None).ConfigureAwait(false);
             await AppendJournalEventAsync(
                 ExecutionJournalCategory.Task,
-                "TaskFailed",
+                eventType,
                 occurredUtc,
                 CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception persistenceException) when (persistenceException is not OperationCanceledException)
         {
             await InvokeOnDispatcherAsync(
-                () =>
-                {
-                    _failureMessage = $"{_failureMessage} Task journal update also failed: {SanitizeFailureMessage(persistenceException.Message)}";
-                    OnPropertyChanged(nameof(FailureMessage));
-                    OnPropertyChanged(nameof(HasFailure));
-                }).ConfigureAwait(false);
+                () => SetFailureMessage(
+                    CombineDiagnostics(
+                        _failureMessage,
+                        $"Task journal update also failed: {SanitizeFailureMessage(persistenceException.Message)}")))
+                .ConfigureAwait(false);
         }
     }
 
@@ -483,6 +583,7 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
 
     private static void EnsureExecutionIdentity(IAgentRuntimeExecution execution, AgentRuntimeRequest request)
     {
+        ArgumentNullException.ThrowIfNull(execution);
         if (execution.TaskId != request.TaskId || execution.RunId != request.RunId)
         {
             throw new InvalidOperationException("Runtime execution identity does not match the prepared task/run identity.");
@@ -491,6 +592,7 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
 
     private static void EnsureResultIdentity(AgentRuntimeResult result, Guid taskId, Guid runId)
     {
+        ArgumentNullException.ThrowIfNull(result);
         if (result.TaskId != taskId || result.RunId != runId)
         {
             throw new InvalidOperationException("Runtime terminal result identity does not match the active task/run identity.");
@@ -503,6 +605,26 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         return normalized.Length <= MaxTaskSummaryLength
             ? normalized
             : normalized[..MaxTaskSummaryLength];
+    }
+
+    private void SetFailureMessage(string? message)
+    {
+        _failureMessage = string.IsNullOrWhiteSpace(message) ? null : SanitizeFailureMessage(message);
+        OnPropertyChanged(nameof(FailureMessage));
+        OnPropertyChanged(nameof(HasFailure));
+    }
+
+    private static string CombineDiagnostics(string? first, string? second)
+    {
+        var left = string.IsNullOrWhiteSpace(first) ? null : first.Trim();
+        var right = string.IsNullOrWhiteSpace(second) ? null : second.Trim();
+        return (left, right) switch
+        {
+            (null, null) => "Task execution failed without a diagnostic message.",
+            ({ } value, null) => value,
+            (null, { } value) => value,
+            ({ } leftValue, { } rightValue) => $"{leftValue} {rightValue}",
+        };
     }
 
     private static string SanitizeFailureMessage(string message)
