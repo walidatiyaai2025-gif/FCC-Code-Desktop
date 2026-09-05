@@ -158,7 +158,7 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 | ID | Task | State |
 |---|---|---|
 | FCCD-P06-001 | Add/open/recent project workflows | CLOSED |
-| FCCD-P06-002 | Project technology/tool detection framework | PENDING |
+| FCCD-P06-002 | Project technology/tool detection framework | CLOSED |
 | FCCD-P06-003 | Lazy file explorer | PENDING |
 | FCCD-P06-004 | Safe file service | PENDING |
 | FCCD-P06-005 | Locally bundled code editor | PENDING |
@@ -167,6 +167,8 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 | FCCD-P06-008 | Large file/tree safeguards | PENDING |
 
 `FCCD-P06-001` is CLOSED from the production add/open/recent project workflow and permanent validation. The implementation introduced application-owned project catalog orchestration, persistent recent-project lookup over the existing SQLite Projects schema, durable identity reuse on reopen, Git/non-Git folder support without source mutation, a real Projects workspace surface, and activation of the existing session workspace. Cloud-repairable CI issues were fixed without weakening locked restore, analyzers, P05 validators, or common-state behavior. Final exact candidate `2b51797dcf2b6ac674c116bfeb1cc33497f8b878` passed Windows CI run `33991050636` / run #250 with the complete Windows Release baseline, inherited P05 regression gates, and dedicated P06-001 project-workflow gate PASS. PR #142 was normally merged as `dc08e0cb9eb98bd4eb8d8290b1d69fef1402697a`; exact post-merge canonical-main Windows CI run `33991429277` / run #251 completed SUCCESS on that exact merge SHA with the same gates green. Task evidence: `evidence/phases/P06/P06_001_INTEGRATED_RECONCILIATION_2026-09-05.md`. This evidence is cloud/self-test plus canonical integration provenance only; it adds no owner-only obligation and does not claim P05 exit-gate PASS, P06 phase closure, release eligibility, or `VERIFIED_FINAL_COMPLETE`.
+
+`FCCD-P06-002` is CLOSED from the production project technology/tool detection framework and permanent validation. The implementation adds an Application-owned detection contract, a read-only bounded/cancellable Files adapter, deterministic marker inference for representative .NET, Node.js, Python, Unity, Blender, JVM, Rust, Go, PHP, and C/C++ projects, generated/reparse-path safeguards, Projects-surface detection summaries/badges and explicit rescan UX, source non-mutation guarantees, committed locked-restore reconciliation, integration coverage, and a permanent dedicated Windows CI gate. Cloud-repairable issues discovered by self-review and CI were fixed rather than deferred: bounded directory materialization, stale technology-state reset, formatting/newline compliance, analyzer `CA1859`, and a formatting-sensitive static-validator invariant. Final exact candidate `53d2f71a23496fa270f1480689724dc3a5f5b252` passed Windows CI run `33994073275` / run #257 with the complete Windows Release baseline, inherited P05 regression gates, P06-001, and the dedicated P06-002 gate PASS. PR #144 was normally merged as `4d8894a6593c03a5e0a92a9206aa1969ead4f6d3`; exact post-merge canonical-main Windows CI run `33994407164` / run #258 completed SUCCESS on that exact merge SHA with the same gates green. Task evidence: `evidence/phases/P06/P06_002_INTEGRATED_RECONCILIATION_2026-09-06.md`. This evidence is cloud/self-test plus canonical integration provenance only; it adds no owner-only obligation and does not claim P05 exit-gate PASS, P06 phase closure, release eligibility, or `VERIFIED_FINAL_COMPLETE`.
 
 ## P07 — Changes and Git
 
@@ -386,10 +388,10 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 
 ## Current next action
 
-`CURRENT_PHASE = P06` and P06 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P06-001` is CLOSED after exact PR-head validation, normal merge integration, and exact post-merge canonical-main Windows CI. `FCCD-P06-002` through `FCCD-P06-008` remain PENDING.
+`CURRENT_PHASE = P06` and P06 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P06-001` and `FCCD-P06-002` are CLOSED after exact PR-head validation, normal merge integration, exact post-merge canonical-main Windows CI, and durable reconciliation evidence. `FCCD-P06-003` through `FCCD-P06-008` remain PENDING.
 
 P04 remains acceptance-unresolved through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. P05 cloud implementation remains integrated, but its standalone exit observation remains queued as `OWNER-P05-EXIT-REAL-TARGET`. Their phase gates remain `P04=NOT_RUN;P05=NOT_RUN`; owner-last scheduling permits P06 cloud implementation but does not close either deferred acceptance requirement or permit release.
 
-After this P06-001 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any higher-priority legitimate work first; if none exists, `FCCD-P06-002 — Project technology/tool detection framework` is the next dependency-valid P06 task. Do not begin P07 until P06 cloud work is complete and governance truthfully advances the current cloud phase.
+After this P06-002 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any higher-priority legitimate work first; if none exists, `FCCD-P06-003 — Lazy file explorer` is the next dependency-valid P06 task. Do not begin P07 until P06 cloud work is complete and governance truthfully advances the current cloud phase.
 
 P03 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`. Exact closure evidence is `evidence/phases/P03/CLOSURE.md`; PR #85 integrated the closure as main SHA `62d3162d31cad6ff8c1d52897cf81a93e57bceed`, and exact post-closure Windows CI run `33822291095` completed SUCCESS.
