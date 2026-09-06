@@ -105,7 +105,9 @@ function Assert-LargeWorkspaceContract {
         'ReadPreviewAsync',
         'ArrayPool<byte>.Shared.Rent',
         'FileShare.ReadWrite | FileShare.Delete',
-        'ValidatePaths(projectRootPath, filePath, requireExistingFile: true)'
+        'ValidatePaths(projectRootPath, filePath, requireExistingFile: true)',
+        'fileInfo.Length > int.MaxValue',
+        'stream.Length > _maximumFileBytes || stream.Length > int.MaxValue'
     )) { Assert-ContainsLiteral $FileServiceText $literal 'FileSystemProjectFileService.cs' }
 
     foreach ($literal in @(
@@ -195,7 +197,6 @@ function Assert-LargeWorkspaceContract {
     foreach ($serviceText in @($ExplorerServiceText, $FileServiceText, $SearchServiceText)) {
         foreach ($forbidden in @(
             'SearchOption.AllDirectories',
-            'int.MaxValue',
             'File.WriteAllText',
             'File.WriteAllBytes',
             'Directory.Delete',
@@ -280,6 +281,13 @@ if ($RunFixtures) {
             $text.FileContract $text.FileService $text.SearchContract $text.SearchService `
             $text.PolicyTests $text.ExplorerTests $text.FileTests $text.SearchTests $text.Docs
     } 'explorer generated-directory exclusion removed'
+
+    Assert-ContractRejects {
+        Assert-LargeWorkspaceContract `
+            $text.Policy $text.ExplorerContract $text.ExplorerService $text.FileContract `
+            ($text.FileService.Replace('fileInfo.Length > int.MaxValue', 'false')) `
+            $text.SearchContract $text.SearchService $text.PolicyTests $text.ExplorerTests $text.FileTests $text.SearchTests $text.Docs
+    } 'file materialization overflow guard removed'
 
     Assert-ContractRejects {
         Assert-LargeWorkspaceContract `
