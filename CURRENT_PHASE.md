@@ -24,7 +24,7 @@ LAST_RECONCILED: 2026-09-06
 
 `CURRENT_PHASE` means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
-P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows`, `FCCD-P06-002 — Project technology/tool detection framework`, `FCCD-P06-003 — Lazy file explorer`, and `FCCD-P06-004 — Safe file service` have been normally integrated and exact-main verified. Live ownership currently shows `FCCD-P06-005 — Locally bundled code editor` on fresh branch `worker/fccd-p06-005-local-code-editor`; workers must not duplicate or steal that work. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, select only a dependency-valid unclaimed P06 task whose file/semantic surface does not collide with fresh owned work. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
+P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows`, `FCCD-P06-002 — Project technology/tool detection framework`, `FCCD-P06-003 — Lazy file explorer`, `FCCD-P06-004 — Safe file service`, and `FCCD-P06-007 — Workspace content/file/regex search` have been normally integrated and exact-main verified. Live ownership currently shows `FCCD-P06-005 — Locally bundled code editor` on fresh branch `worker/fccd-p06-005-local-code-editor`; workers must not duplicate or steal that work. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, select only a dependency-valid unclaimed P06 task whose file/semantic surface does not collide with fresh owned work. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
 
 P05 cloud implementation is complete: `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified. Its mandatory exit observation still requires genuine owner Windows/FCC/provider interaction: a real task in the application conversation surface, structured execution, stop/retry, close/reopen, and durable session resume. That standalone phase-gate requirement is queued as `OWNER-P05-EXIT-REAL-TARGET`, remains `releaseBlocking=true`, and P05 remains deferred as `P05=NOT_RUN`; no P05 `CLOSURE.md` PASS is claimed.
 
@@ -82,7 +82,7 @@ The owner-last policy permits this exact sequential transition only because P05 
 - `FCCD-P06-004` — Safe file service — CLOSED.
 - `FCCD-P06-005` — Locally bundled code editor — PENDING (fresh active worker claim observed; do not duplicate).
 - `FCCD-P06-006` — Editor tabs/save/reload/dirty state — PENDING.
-- `FCCD-P06-007` — Workspace content/file/regex search — PENDING.
+- `FCCD-P06-007` — Workspace content/file/regex search — CLOSED.
 - `FCCD-P06-008` — Large file/tree safeguards — PENDING.
 
 ## P06-001 integration provenance
@@ -120,6 +120,17 @@ The owner-last policy permits this exact sequential transition only because P05 
 - Exact post-merge canonical-main Windows CI: run `34015519686` / run #271 — SUCCESS.
 - Integrated evidence: `evidence/phases/P06/P06_004_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded conflict-aware project text-file I/O and atomic/version-aware save mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.
+
+## P06-007 integration provenance
+
+- Exact repaired implementation candidate: `fcf6ff496fc50837a401c15c8d1e0823439a0a41`.
+- PR #151 exact-head canonical Windows CI: run `34017478027` / run #277 — SUCCESS.
+- PR #151 exact-head P06-007 workspace-search CI: run `34017478002` / run #6 — SUCCESS.
+- Normal merge commit: `cc367f627a41850cae4535a0849897cded243a7e`.
+- Exact post-merge canonical-main Windows CI: run `34017817458` / run #278 — SUCCESS.
+- Exact post-merge P06-007 workspace-search CI: run `34017817476` / run #7 — SUCCESS.
+- Integrated evidence: `evidence/phases/P06/P06_007_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded cancellable filename/content/regex workspace search and Projects-surface mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.
 
 ## P05 cloud task inventory
 
