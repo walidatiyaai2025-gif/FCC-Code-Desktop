@@ -24,7 +24,7 @@ LAST_RECONCILED: 2026-09-06
 
 `CURRENT_PHASE` means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
-P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows` and `FCCD-P06-002 — Project technology/tool detection framework` have been normally integrated and exact-main verified. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, the earliest dependency-valid unclaimed mandatory task is now `FCCD-P06-003 — Lazy file explorer`. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
+P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows`, `FCCD-P06-002 — Project technology/tool detection framework`, and `FCCD-P06-003 — Lazy file explorer` have been normally integrated and exact-main verified. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, the earliest dependency-valid unclaimed mandatory task is now `FCCD-P06-004 — Safe file service`. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
 
 P05 cloud implementation is complete: `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified. Its mandatory exit observation still requires genuine owner Windows/FCC/provider interaction: a real task in the application conversation surface, structured execution, stop/retry, close/reopen, and durable session resume. That standalone phase-gate requirement is queued as `OWNER-P05-EXIT-REAL-TARGET`, remains `releaseBlocking=true`, and P05 remains deferred as `P05=NOT_RUN`; no P05 `CLOSURE.md` PASS is claimed.
 
@@ -78,7 +78,7 @@ The owner-last policy permits this exact sequential transition only because P05 
 
 - `FCCD-P06-001` — Add/open/recent project workflows — CLOSED.
 - `FCCD-P06-002` — Project technology/tool detection framework — CLOSED.
-- `FCCD-P06-003` — Lazy file explorer — PENDING.
+- `FCCD-P06-003` — Lazy file explorer — CLOSED.
 - `FCCD-P06-004` — Safe file service — PENDING.
 - `FCCD-P06-005` — Locally bundled code editor — PENDING.
 - `FCCD-P06-006` — Editor tabs/save/reload/dirty state — PENDING.
@@ -102,6 +102,15 @@ The owner-last policy permits this exact sequential transition only because P05 
 - Exact post-merge canonical-main Windows CI: run `33994407164` / run #258 — SUCCESS.
 - Integrated evidence: `evidence/phases/P06/P06_002_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded read-only marker detection and Projects-surface mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.
+
+## P06-003 integration provenance
+
+- Exact repaired implementation candidate: `8af341c0300052e3471eb1563f3acf7901be0ebd`.
+- PR #146 exact-head Windows CI: run `34013664778` / run #264 — SUCCESS.
+- Normal merge commit: `0bf2b9426dbd92174622f971cfe9107db514b210`.
+- Exact post-merge canonical-main Windows CI: run `34014000399` / run #265 — SUCCESS.
+- Integrated evidence: `evidence/phases/P06/P06_003_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded lazy file-tree enumeration and Projects-surface mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.
 
 ## P05 cloud task inventory
 
@@ -213,4 +222,4 @@ The owner-last policy permits this exact sequential transition only because P05 
 
 ## Next legitimate action after this reconciliation is integrated
 
-Re-fetch live main, queue, open PRs/branches/issues, and exact-head CI. If no higher-priority regression/recovery/integration work exists, select `FCCD-P06-003 — Lazy file explorer` as the earliest dependency-valid P06 task subject to the live claim map. Do not start P07 until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
+Re-fetch live main, queue, open PRs/branches/issues, and exact-head CI. If no higher-priority regression/recovery/integration work exists, select `FCCD-P06-004 — Safe file service` as the earliest dependency-valid P06 task subject to the live claim map. Do not start P07 until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
