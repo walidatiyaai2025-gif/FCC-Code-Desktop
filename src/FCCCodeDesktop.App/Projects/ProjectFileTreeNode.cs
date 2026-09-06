@@ -18,7 +18,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
         string relativePath,
         bool isDirectory,
         bool isReparsePoint,
-        bool isPlaceholder,
+        bool isStatusNode,
         bool isError)
     {
         DisplayName = displayName;
@@ -26,13 +26,13 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
         RelativePath = relativePath;
         IsDirectory = isDirectory;
         IsReparsePoint = isReparsePoint;
-        IsPlaceholder = isPlaceholder;
+        IsStatusNode = isStatusNode;
         IsError = isError;
         _readonlyChildren = new ReadOnlyObservableCollection<ProjectFileTreeNode>(_children);
 
         if (CanExpand)
         {
-            _children.Add(CreatePlaceholder("Expand to load…"));
+            _children.Add(CreateStatus("Expand to load…"));
         }
     }
 
@@ -48,11 +48,11 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
 
     public bool IsReparsePoint { get; }
 
-    public bool IsPlaceholder { get; }
+    public bool IsStatusNode { get; }
 
     public bool IsError { get; }
 
-    public bool CanExpand => IsDirectory && !IsReparsePoint && !IsPlaceholder;
+    public bool CanExpand => IsDirectory && !IsReparsePoint && !IsStatusNode;
 
     public bool ChildrenLoaded => _childrenLoaded;
 
@@ -70,7 +70,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
             ".",
             isDirectory: true,
             isReparsePoint: false,
-            isPlaceholder: false,
+            isStatusNode: false,
             isError: false);
     }
 
@@ -83,7 +83,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
             entry.RelativePath,
             entry.IsDirectory,
             entry.IsReparsePoint,
-            isPlaceholder: false,
+            isStatusNode: false,
             isError: false);
     }
 
@@ -96,7 +96,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
 
         _isLoading = true;
         _children.Clear();
-        _children.Add(CreatePlaceholder("Loading directory…"));
+        _children.Add(CreateStatus("Loading directory…"));
         OnPropertyChanged(nameof(IsLoading));
     }
 
@@ -112,12 +112,12 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
         if (listing.LimitReached)
         {
             _children.Add(
-                CreatePlaceholder(
+                CreateStatus(
                     $"Showing the first {listing.MaximumEntries:N0} entries in this directory."));
         }
         else if (listing.Entries.Count == 0)
         {
-            _children.Add(CreatePlaceholder("This directory is empty."));
+            _children.Add(CreateStatus("This directory is empty."));
         }
 
         _childrenLoaded = true;
@@ -137,14 +137,14 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
         OnPropertyChanged(nameof(IsLoading));
     }
 
-    private static ProjectFileTreeNode CreatePlaceholder(string message) =>
+    private static ProjectFileTreeNode CreateStatus(string message) =>
         new(
             message,
             string.Empty,
             string.Empty,
             isDirectory: false,
             isReparsePoint: false,
-            isPlaceholder: true,
+            isStatusNode: true,
             isError: false);
 
     private static ProjectFileTreeNode CreateError(string message) =>
@@ -154,7 +154,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
             string.Empty,
             isDirectory: false,
             isReparsePoint: false,
-            isPlaceholder: true,
+            isStatusNode: true,
             isError: true);
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
