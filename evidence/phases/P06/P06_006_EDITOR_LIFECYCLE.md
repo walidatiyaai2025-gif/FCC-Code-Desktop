@@ -11,17 +11,20 @@
 - Tabs are unique by original project-root/file pair and remain pinned to that original root across later project switches.
 - Dirty state is derived from the current editor buffer versus the last loaded/successfully saved buffer.
 - Save carries the exact observed `ProjectFileVersion` and original encoding through P06-004 `WriteTextAsync`; no direct filesystem write path was added.
-- CRLF/LF/CR policy is normalized back to the established source style before save; mixed-newline buffers are not silently normalized by the lifecycle layer.
+- Stable CRLF/LF/CR source newline policy is normalized into the WPF editor representation without false dirty state and restored to the established source style before save; mixed-newline buffers are not silently rewritten by the lifecycle layer.
 - External-change conflict keeps the dirty buffer and surfaces `ProjectFileConflictException`; it does not overwrite stale owner work.
 - Reload and close reject dirty-buffer destruction unless the caller explicitly requests discard; WPF UI requires Yes/No confirmation.
 - Successful reload refreshes text, encoding, newline metadata and version and clears conflict/dirty state.
 - `ProjectEditorSurface` composes the native P06-005 `CodeEditorControl` beside the project explorer/search surface with Save/Reload/Close controls and status/error presentation.
+- P06-007's canonical `AttachSearchSurface()` composition seam is preserved; P06-006 adds its editor surface separately instead of weakening the existing workspace-search contract.
 
 ## Automated validation
 
-Permanent validation is `tools/ui/validate-editor-lifecycle.ps1`. It verifies the lifecycle/source/UI boundary, safe-file-service usage, dirty/conflict guards, large/binary inspection, no direct write/process/network bypass, negative safety fixtures, and executable `ProjectEditorWorkspaceTests` under the exact Windows/.NET 10.0.400 baseline.
+Permanent validation is `tools/ui/validate-editor-lifecycle.ps1`. It verifies the lifecycle/source/UI boundary, safe-file-service usage, dirty/conflict guards, large/binary inspection, no direct write/process/network bypass, and destructive negative fixtures under the exact Windows/.NET 10.0.400 baseline.
 
-The canonical `.github/workflows/windows-ci.yml` registers `Validate P06-006 editor lifecycle`, and `tools/ci/validate-windows-ci.ps1` fails closed if that permanent gate is removed.
+The gate executes both focused unit coverage in `ProjectEditorWorkspaceTests` and real composition coverage in `ProjectEditorWorkspaceIntegrationTests`. The real integration fixture uses `FileSystemProjectFileService` against an actual Unicode/space-containing project path and proves UTF-16BE preservation, LF round-trip integrity, optimistic external-change conflict refusal, dirty-buffer retention, and explicit reload recovery.
+
+The canonical `.github/workflows/windows-ci.yml` registers `Validate P06-006 editor lifecycle`, and `tools/ci/validate-windows-ci.ps1` fails closed if that permanent gate is removed. Inherited P06-007 and P06-008 dedicated workflows remain mandatory non-regression gates for the shared Projects workspace.
 
 Exact PR-head and post-merge run IDs are intentionally not preclaimed here; they must be recorded only after GitHub reports terminal SUCCESS on the exact candidate/main SHA.
 
