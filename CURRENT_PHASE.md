@@ -79,7 +79,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 ## P07 cloud task inventory
 
 - `FCCD-P07-001` — `IGitService` and repository detection — CLOSED.
-- `FCCD-P07-002` — Status/changed-files surface — PENDING.
+- `FCCD-P07-002` — Status/changed-files surface — CLOSED.
 - `FCCD-P07-003` — Diff viewer — PENDING.
 - `FCCD-P07-004` — Stage/unstage — PENDING.
 - `FCCD-P07-005` — Branch create/checkout — PENDING.
@@ -103,6 +103,18 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Integrated evidence: `evidence/phases/P07/P07_001_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded read-only Git repository detection plus canonical integration provenance; no new owner-only evidence, P07 phase closure, P08 authorization, release eligibility, or `VERIFIED_FINAL_COMPLETE` is implied.
 
+## P07-002 integration provenance
+
+- Exact implementation candidate: `1341412ee80a8141ed3a7ea462c6e280e7017ea0` from PR #167 (`worker/fccd-p07-002-status-changed-files`).
+- PR #167 exact-head Windows CI: run `34039544202` / run #378 — SUCCESS.
+- PR #167 exact-head P06-007 Workspace Search: run `34039544201` / run #107 — SUCCESS.
+- PR #167 exact-head P06-008 Large Workspace Safeguards: run `34039544196` / run #91 — SUCCESS.
+- Normal merge commit: `9712e84c4596e18d0d80b0cfbd93b37ad65fb73d`.
+- Exact post-merge canonical-main Windows CI: run `34040051645` / run #379 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34040051726` / run #108 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34040051678` / run #92 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_002_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded read-only Git status/changed-file enumeration plus canonical integration provenance; no stage/unstage, diff, branch/fetch/pull, commit/push, P07 phase closure, P08 authorization, owner-only evidence, release eligibility, or `VERIFIED_FINAL_COMPLETE` is implied.
 ## P07 cloud activation provenance
 
 - Source closed-phase canonical main: `38f01c2c07104b1e169a8fd4606f374e499cafc7`.
