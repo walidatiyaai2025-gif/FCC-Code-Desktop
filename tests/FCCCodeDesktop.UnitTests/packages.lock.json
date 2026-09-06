@@ -99,6 +99,14 @@
           "xunit.extensibility.core": "[2.9.3]"
         }
       },
+      "fcccodedesktop.application": {
+        "type": "Project",
+        "dependencies": {
+          "FCCCodeDesktop.Core": "[1.0.0, )",
+          "FCCCodeDesktop.Runtime": "[1.0.0, )",
+          "FCCCodeDesktop.Tools": "[1.0.0, )"
+        }
+      },
       "fcccodedesktop.core": {
         "type": "Project"
       },
@@ -110,6 +118,12 @@
       },
       "fcccodedesktop.testing": {
         "type": "Project"
+      },
+      "fcccodedesktop.tools": {
+        "type": "Project",
+        "dependencies": {
+          "FCCCodeDesktop.Core": "[1.0.0, )"
+        }
       }
     }
   }
