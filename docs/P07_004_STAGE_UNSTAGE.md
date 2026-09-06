@@ -1,0 +1,32 @@
+# P07-004 — Stage / unstage contract
+
+`FCCD-P07-004` owns explicit Git index mutation only. It does not own branch changes, fetch/pull, commit/push, history, destructive reset/clean operations, or phase closure.
+
+## Contract
+
+- Application contract: `IGitIndexService`.
+- Production adapter: `GitCliIndexService`.
+- Operations: `StageAsync` and `UnstageAsync` over explicit repository-relative path collections.
+- Result states are typed: success, non-repository, bare repository, Git unavailable, or query/mutation failure.
+- Requested paths and effective paths are returned separately so rename-pair expansion is visible to callers.
+
+## Safety invariants
+
+- No broad `git add -A`, `git add .`, wildcard pathspec, shell command string, or work-tree reset/checkout is used.
+- Every mutation path is normalized, repository-relative, literal, and rejects empty/current/parent segments plus `.git` metadata targeting.
+- A request is bounded to 64 explicit paths and 12 KiB of requested path text; rename expansion is separately bounded.
+- Stage uses `git add -- :(literal)<path>` only for the explicit effective set.
+- Unstage with an existing `HEAD` uses `git restore --staged -- :(literal)<path>` and therefore changes the index only.
+- Unstage in an unborn repository uses `git rm --cached --force --ignore-unmatch -- ...`; `--cached` intentionally preserves work-tree files.
+- Rename status entries expand to both current and original paths so a selected rename is staged/unstaged atomically instead of leaving a half-staged delete/add pair.
+- After an unstage, Git may represent that rename as a deleted tracked path plus an untracked destination and therefore no longer expose rename correlation. Callers that immediately restage the same logical rename should reuse the returned `EffectivePaths`; this preserves the explicit pair without heuristic filesystem matching.
+- Git execution is non-interactive, UTF-8 decoded, timeout-bounded, cancellation-aware, and kills the owned process tree on cancellation/timeout.
+- Failure stderr returned to the UI contract is trimmed and bounded.
+
+## Cloud verification
+
+Real disposable Git tests cover selective staging, unrelated owner-change preservation, modified-file unstage, deletion stage/unstage without recreation, rename-pair handling, unborn-repository unstage, Arabic/Unicode/space-containing paths, typed repository failure states, pathset safety limits, cancellation, and constructor timeout bounds.
+
+The first two Release-build attempts surfaced only analyzer `CA1859` findings on private helpers/parameters that were already backed exclusively by `List<string>` values. The repair narrows those private-only signatures to their concrete `List<string>` type without changing the public contract or mutation behavior. A later real-Git fixture failure confirmed the documented rename lifecycle above; the fixture now reuses `EffectivePaths` after unstage instead of assuming Git can rediscover an unstaged rename pair. Permanent CI must pass on this final user-authored exact head.
+
+This task adds no P07-005+ behavior and creates no owner-only acceptance requirement.
