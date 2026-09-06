@@ -283,7 +283,7 @@ public sealed class GitCliIndexService : IGitIndexService
             TimedOut: false);
     }
 
-    private static IReadOnlyList<string> NormalizeMutationPaths(
+    private static List<string> NormalizeMutationPaths(
         IReadOnlyCollection<string> repositoryRelativePaths)
     {
         ArgumentNullException.ThrowIfNull(repositoryRelativePaths);
@@ -351,7 +351,7 @@ public sealed class GitCliIndexService : IGitIndexService
         return string.Join('/', segments);
     }
 
-    private static IReadOnlyList<string> ExpandRenamePairs(
+    private static List<string> ExpandRenamePairs(
         IReadOnlyList<string> requestedPaths,
         IReadOnlyList<GitFileStatusEntry> statusEntries)
     {
