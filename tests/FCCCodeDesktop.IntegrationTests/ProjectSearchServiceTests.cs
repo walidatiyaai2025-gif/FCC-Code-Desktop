@@ -146,6 +146,90 @@ public sealed class ProjectSearchServiceTests
     }
 
     [Fact]
+    public async Task SearchUsesCentralPolicyForDepthPerFilePreviewAndTypedMetadata()
+    {
+        using var workspace = new TemporaryDirectory("fccd-p06-search-scale-policy");
+        var root = workspace.GetPath("project with scale policy");
+        var visibleDirectory = Path.Combine(root, "source");
+        var blockedDirectory = Path.Combine(visibleDirectory, "deeper");
+        var generatedDirectory = Path.Combine(root, "vendor");
+        Directory.CreateDirectory(blockedDirectory);
+        Directory.CreateDirectory(generatedDirectory);
+        await File.WriteAllTextAsync(Path.Combine(root, "many.txt"), "needle needle needle needle", CancellationToken.None);
+        await File.WriteAllTextAsync(Path.Combine(visibleDirectory, "visible.txt"), "needle", CancellationToken.None);
+        await File.WriteAllTextAsync(Path.Combine(blockedDirectory, "blocked.txt"), "needle", CancellationToken.None);
+        await File.WriteAllTextAsync(Path.Combine(generatedDirectory, "generated.txt"), "needle", CancellationToken.None);
+
+        var policy = new WorkspaceScalePolicy(
+            maximumTraversalDepth: 1,
+            maximumFilesPerOperation: 10,
+            maximumSearchResults: 10,
+            maximumSearchMatchesPerFile: 2,
+            maximumSearchFileBytes: 1_024,
+            maximumPreviewCharacters: 32,
+            binaryProbeBytes: 64,
+            excludedDirectoryNames: ["vendor"]);
+        var result = await new FileSystemProjectSearchService(policy).SearchAsync(
+            new ProjectSearchRequest(
+                root,
+                "needle",
+                ProjectSearchMode.Content,
+                MaximumResults: 10,
+                MaximumFiles: 10,
+                MaximumFileBytes: 1_024),
+            CancellationToken.None);
+
+        Assert.Equal(3, result.Matches.Count);
+        Assert.Equal(2, result.Matches.Count(match => match.RelativePath == "many.txt"));
+        Assert.Single(result.Matches, match => match.RelativePath == "source/visible.txt");
+        Assert.DoesNotContain(result.Matches, match => match.RelativePath.Contains("blocked.txt", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.Matches, match => match.RelativePath.Contains("generated.txt", StringComparison.Ordinal));
+        Assert.True(result.LimitReached);
+        Assert.True(result.DirectoriesSkipped >= 2);
+        Assert.Equal(1, result.MaximumTraversalDepth);
+        Assert.Equal(2, result.MaximumMatchesPerFile);
+        Assert.Equal(32, result.MaximumPreviewCharacters);
+        Assert.Equal(64, result.BinaryProbeBytes);
+        Assert.All(result.Matches, match => Assert.True(match.Preview.Length <= 32));
+    }
+
+    [Fact]
+    public async Task SearchRejectsRequestLimitsAboveInjectedPolicy()
+    {
+        using var workspace = new TemporaryDirectory("fccd-p06-search-policy-ceiling");
+        var root = workspace.GetPath("project");
+        Directory.CreateDirectory(root);
+        var policy = new WorkspaceScalePolicy(
+            maximumTraversalDepth: 2,
+            maximumFilesPerOperation: 3,
+            maximumSearchResults: 2,
+            maximumSearchMatchesPerFile: 1,
+            maximumSearchFileBytes: 128,
+            maximumPreviewCharacters: 32,
+            binaryProbeBytes: 64);
+        var service = new FileSystemProjectSearchService(policy);
+
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.SearchAsync(
+            new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content, MaximumResults: 3, MaximumFiles: 3, MaximumFileBytes: 128),
+            CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.SearchAsync(
+            new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content, MaximumResults: 2, MaximumFiles: 4, MaximumFileBytes: 128),
+            CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.SearchAsync(
+            new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content, MaximumResults: 2, MaximumFiles: 3, MaximumFileBytes: 129),
+            CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.SearchAsync(
+            new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content, MaximumResults: 2, MaximumFiles: 3, MaximumFileBytes: 128, MaximumTraversalDepth: 3),
+            CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.SearchAsync(
+            new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content, MaximumResults: 2, MaximumFiles: 3, MaximumFileBytes: 128, MaximumMatchesPerFile: 2),
+            CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.SearchAsync(
+            new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content, MaximumResults: 2, MaximumFiles: 3, MaximumFileBytes: 128, MaximumPreviewCharacters: 33),
+            CancellationToken.None));
+    }
+
+    [Fact]
     public async Task CancellationMissingRootAndInvalidBoundsFailExplicitly()
     {
         using var workspace = new TemporaryDirectory("fccd-p06-search-errors");
