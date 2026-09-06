@@ -21,8 +21,10 @@ jobs:
           ref: reconcile/fccd-p07-001-integrated-closure
 
       - name: Reconcile canonical P07-001 state
-        shell: python
+        shell: bash
         run: |
+          set -euo pipefail
+          python3 <<'PY'
           from pathlib import Path
 
           implementation_head = "64324363aed3936e8e882096f65a8449c3eb8bc2"
@@ -151,6 +153,7 @@ P07-001 introduces no genuinely owner-only acceptance requirement. No manual/tar
 
 After this reconciliation is normally integrated and its exact merge SHA remains green, re-fetch live claims. Recover any newly surfaced higher-priority regression/integration work first; otherwise select the highest-value dependency-valid unclaimed P07 task, nominally `FCCD-P07-002 — Status/changed-files surface` if still unclaimed. Do not start P10 while P07/P08/P09 remain incomplete.
 """, encoding="utf-8", newline="\n")
+          PY
 
       - name: Remove temporary workflow and commit reconciliation
         shell: bash
