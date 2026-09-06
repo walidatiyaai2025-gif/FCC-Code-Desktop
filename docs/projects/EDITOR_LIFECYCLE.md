@@ -12,7 +12,7 @@ Changing the active project does not silently retarget existing tabs. A tab alwa
 
 ## Safe open behavior
 
-Before normal text materialization, `ProjectEditorWorkspace` calls `IProjectFileService.InspectAsync`. Binary and oversized files are refused before `ReadTextAsync`; reparse/root-containment and encoding policy remain owned by the file service. Opening a tab is read-only and does not mutate source content.
+Before normal text materialization, `ProjectEditorWorkspace` calls `IProjectFileService.InspectAsync`. The lifecycle refuses binary and oversized files before `ReadTextAsync`; reparse/root-containment and encoding policy remain owned by the file service. Opening a tab is read-only and does not mutate source content.
 
 ## Dirty state
 
