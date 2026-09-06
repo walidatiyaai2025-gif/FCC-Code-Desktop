@@ -17,7 +17,7 @@ OWNER_LAST_MODE: ACTIVE
 DEFERRED_OWNER_ACCEPTANCE_COUNT: 2
 DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET;OWNER-P05-EXIT-REAL-TARGET
 DEFERRED_PHASE_GATES: P04=NOT_RUN;P05=NOT_RUN
-LAST_RECONCILED: 2026-09-06
+LAST_RECONCILED: 2026-09-07
 ```
 
 ## Active scheduling rule
@@ -86,7 +86,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P07-006` — Fetch/pull — CLOSED.
 - `FCCD-P07-007` — Commit/push — CLOSED.
 - `FCCD-P07-008` — History — CLOSED.
-- `FCCD-P07-009` — Dirty/pre-existing-change provenance — PENDING.
+- `FCCD-P07-009` — Dirty/pre-existing-change provenance — CLOSED.
 - `FCCD-P07-010` — Destructive-operation safeguards — PENDING.
 - `FCCD-P07-011` — Git integration tests/conflict scenarios — PENDING.
 
@@ -194,6 +194,19 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact post-merge P06-008 Large Workspace Safeguards: run `34058963979` / run #129 — SUCCESS.
 - Integrated evidence: `evidence/phases/P07/P07_008_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded read-only Git history plus canonical integration provenance; no dirty/pre-existing-change provenance, destructive-operation safeguard closure, conflict-scenario closure, P07 phase closure, P08/P11 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is implied.
+
+## P07-009 integration provenance
+
+- Exact implementation candidate: `2db2276dc920d769c235c8581bd272d6b7b05519` from PR #181 (`worker/fccd-p07-009-dirty-provenance`).
+- PR #181 exact-head Windows CI: run `34061234142` / run #419 — SUCCESS.
+- PR #181 exact-head P06-007 Workspace Search: run `34061234123` / run #148 — SUCCESS.
+- PR #181 exact-head P06-008 Large Workspace Safeguards: run `34061234214` / run #132 — SUCCESS.
+- Normal merge commit: `b534fd7d1d23b1727cc68a7a588d8ab4e5ce5fcb`.
+- Exact post-merge canonical-main Windows CI: run `34061750164` / run #420 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34061750167` / run #149 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34061750177` / run #133 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_009_INTEGRATED_RECONCILIATION_2026-09-07.md`.
+- Evidence class remains cloud/self-test for conservative read-only dirty/pre-existing-change provenance plus canonical integration provenance; no destructive-operation safeguard closure, conflict-scenario closure, P07 phase closure, P08/P11/P12 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is implied.
 
 ## P07 cloud activation provenance
 

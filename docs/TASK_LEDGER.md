@@ -192,7 +192,7 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 | FCCD-P07-006 | Fetch/pull | CLOSED |
 | FCCD-P07-007 | Commit/push | CLOSED |
 | FCCD-P07-008 | History | CLOSED |
-| FCCD-P07-009 | Dirty/pre-existing-change provenance | PENDING |
+| FCCD-P07-009 | Dirty/pre-existing-change provenance | CLOSED |
 | FCCD-P07-010 | Destructive-operation safeguards | PENDING |
 | FCCD-P07-011 | Git integration tests/conflict scenarios | PENDING |
 
@@ -212,6 +212,9 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 
 
 `FCCD-P07-008` is CLOSED from the bounded read-only Git history implementation integrated in PR #179. Exact implementation candidate `78a3e789b89b6fe07b0d6ba92194a5cb9a5edec8` passed Windows CI `34058492299` / #415, P06-007 Workspace Search `34058492308` / #144, and P06-008 Large Workspace Safeguards `34058492360` / #128. PR #179 was normally merged as `37bcd9ea636d278e852962a0fe05f112bc6adc6a`; that exact canonical main passed Windows CI `34058964029` / #416, P06-007 Workspace Search `34058964036` / #145, and P06-008 Large Workspace Safeguards `34058963979` / #129. Coverage includes Application-owned read-only `IGitHistoryService`, structured bounded commit metadata and parent linkage, newest-first pagination with an exclusive continuation cursor, literal repository-relative path filtering, bare and empty repositories, explicit UTF-8 handling, bounded output/count/timeout/cancellation, unsafe-path and cursor validation, owned-process cleanup, and preservation of dirty work-tree/index bytes. Task evidence: `evidence/phases/P07/P07_008_INTEGRATED_RECONCILIATION_2026-09-06.md`. No dirty/pre-existing-change provenance, destructive-operation safeguards, conflict integration closure, P07 phase closure, P08/P11 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE` is claimed; P07 remains `IN_PROGRESS`, P07-009 through P07-011 remain PENDING, and the two existing owner-last release blockers remain unchanged.
+
+`FCCD-P07-009` is CLOSED from the conservative read-only dirty/pre-existing-change provenance implementation integrated in PR #181. Exact implementation candidate `2db2276dc920d769c235c8581bd272d6b7b05519` passed Windows CI `34061234142` / #419, P06-007 Workspace Search `34061234123` / #148, and P06-008 Large Workspace Safeguards `34061234214` / #132. PR #181 was normally merged as `b534fd7d1d23b1727cc68a7a588d8ab4e5ce5fcb`; that exact canonical main passed Windows CI `34061750164` / #420, P06-007 Workspace Search `34061750167` / #149, and P06-008 Large Workspace Safeguards `34061750177` / #133. Coverage includes Application-owned read-only `IGitChangeProvenanceService`, dirty-baseline capture/comparison, conservative `PreExistingDirty` versus `CreatedSinceBaseline` classification, resolved pre-existing changes, rename-alias continuity, cross-repository fail-closed comparison, bounded dirty-path materialization, Unicode/Arabic real-Git fixtures, cancellation, and owner-byte preservation. Task evidence: `evidence/phases/P07/P07_009_INTEGRATED_RECONCILIATION_2026-09-07.md`. No destructive-operation safeguard closure, conflict integration closure, P07 phase closure, P08/P11/P12 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE` is claimed; P07 remains `IN_PROGRESS`, P07-010 and P07-011 remain PENDING, and the two existing owner-last release blockers remain unchanged.
+
 
 ## P08 — Terminal/process supervision
 
@@ -415,10 +418,10 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 
 ## Current next action
 
-`CURRENT_PHASE = P07` and P07 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P07-001` through `FCCD-P07-007` are CLOSED after exact PR-head validation, normal merge integration, exact post-merge canonical-main validation, and durable reconciliation evidence. `FCCD-P07-008` through `FCCD-P07-011` remain PENDING.
+`CURRENT_PHASE = P07` and P07 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P07-001` through `FCCD-P07-009` are CLOSED after exact PR-head validation, normal merge integration, exact post-merge canonical-main validation, and durable reconciliation evidence. `FCCD-P07-010` and `FCCD-P07-011` remain PENDING.
 
 P04 remains acceptance-unresolved through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. P05 cloud implementation remains integrated, but its standalone exit observation remains queued as `OWNER-P05-EXIT-REAL-TARGET`. Their phase gates remain `P04=NOT_RUN;P05=NOT_RUN`; owner-last scheduling permits P07 cloud implementation but does not close either deferred acceptance requirement or permit release.
 
-After this P07-007 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any newly surfaced higher-priority legitimate defect first. Otherwise select the highest-value dependency-valid unclaimed P07 task, nominally `FCCD-P07-008 — History` if still unclaimed and dependency-valid. Do not advance to P08 until every mandatory P07 task is CLOSED and the P07 phase exit gate is truthfully resolved under canonical governance. Only a genuinely owner-environment-bound residual may be queued under owner-last; do not fabricate target/manual evidence.
+After this P07-009 reconciliation is integrated and exact resulting `main` remains green, re-run the Worker Protocol claim map. Recover/integrate any newly surfaced higher-priority legitimate defect first. Otherwise select the highest-value dependency-valid unclaimed P07 task, nominally `FCCD-P07-010 — Destructive-operation safeguards` if still unclaimed and dependency-valid. Do not advance to P08 until every mandatory P07 task is CLOSED and the P07 phase exit gate is truthfully resolved under canonical governance. Only a genuinely owner-environment-bound residual may be queued under owner-last; do not fabricate target/manual evidence.
 
 P06 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`; closure evidence remains `evidence/phases/P06/CLOSURE.md`.
