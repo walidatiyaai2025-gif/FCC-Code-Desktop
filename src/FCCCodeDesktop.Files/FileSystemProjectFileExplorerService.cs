@@ -73,8 +73,7 @@ public sealed class FileSystemProjectFileExplorerService : IProjectFileExplorerS
         string[] boundedEntries;
         try
         {
-            boundedEntries = Directory
-                .EnumerateFileSystemEntries(normalizedDirectoryPath)
+            boundedEntries = Directory.EnumerateFileSystemEntries(normalizedDirectoryPath)
                 .Take(_maximumEntriesPerDirectory + 1)
                 .ToArray();
         }
