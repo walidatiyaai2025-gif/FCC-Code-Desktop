@@ -42,6 +42,10 @@ Cloud validation consists of:
 
 No owner-only target is needed for this task because the safeguard is deterministic and fully exercised with the repository's real-Git Windows fixtures.
 
+## Wiring provenance
+
+The runtime guard is wired at the shared process-start boundary of all four existing Git mutation adapters (`GitCliIndexService`, `GitCliBranchService`, `GitCliRemoteService`, and `GitCliCommitPushService`). Temporary wiring automation is not part of the durable tree; the final candidate contains only the production policy, tests, documentation, and those four guarded adapters.
+
 ## Non-claims
 
 This task does not implement new destructive Git operations, does not weaken dirty-worktree/provenance protection, does not close P07 by itself, does not authorize P08/P12, does not alter either deferred owner acceptance item, and does not imply release readiness or `VERIFIED_FINAL_COMPLETE=true`.
