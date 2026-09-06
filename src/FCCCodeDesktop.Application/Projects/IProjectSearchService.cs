@@ -22,8 +22,20 @@ public sealed record ProjectSearchRequest(
     int MaximumResults = WorkspaceScalePolicy.DefaultMaximumSearchResults,
     int MaximumFiles = WorkspaceScalePolicy.DefaultMaximumFilesPerOperation,
     long MaximumFileBytes = WorkspaceScalePolicy.DefaultMaximumSearchFileBytes,
+    int MaximumTraversalDepth = WorkspaceScalePolicy.DefaultMaximumTraversalDepth,
     int MaximumMatchesPerFile = WorkspaceScalePolicy.DefaultMaximumSearchMatchesPerFile,
-    int MaximumTraversalDepth = WorkspaceScalePolicy.DefaultMaximumTraversalDepth);
+    int MaximumPreviewCharacters = WorkspaceScalePolicy.DefaultMaximumPreviewCharacters);
+
+[Flags]
+public enum ProjectSearchLimitReason
+{
+    None = 0,
+    Results = 1,
+    Files = 2,
+    MatchesPerFile = 4,
+    TraversalDepth = 8,
+    DirectoryEntries = 16,
+}
 
 public sealed record ProjectSearchMatch(
     string FullPath,
@@ -49,10 +61,11 @@ public sealed record ProjectSearchResultSet(
     int MaximumFiles,
     long MaximumFileBytes,
     bool LimitReached,
-    int MaximumMatchesPerFile = WorkspaceScalePolicy.DefaultMaximumSearchMatchesPerFile,
     int MaximumTraversalDepth = WorkspaceScalePolicy.DefaultMaximumTraversalDepth,
+    int MaximumMatchesPerFile = WorkspaceScalePolicy.DefaultMaximumSearchMatchesPerFile,
     int MaximumPreviewCharacters = WorkspaceScalePolicy.DefaultMaximumPreviewCharacters,
-    int BinaryProbeBytes = WorkspaceScalePolicy.DefaultBinaryProbeBytes)
+    int BinaryProbeBytes = WorkspaceScalePolicy.DefaultBinaryProbeBytes,
+    ProjectSearchLimitReason LimitReasons = ProjectSearchLimitReason.None)
 {
     public bool HasMatches => Matches.Count > 0;
 }

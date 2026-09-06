@@ -146,6 +146,81 @@ public sealed class ProjectSearchServiceTests
     }
 
     [Fact]
+    public async Task TraversalDepthAndPerFileCapsProduceTypedPartialResults()
+    {
+        using var workspace = new TemporaryDirectory("fccd-p06-search-policy-limits");
+        var root = workspace.GetPath("project");
+        var levelOne = Path.Combine(root, "level-one");
+        var levelTwo = Path.Combine(levelOne, "level-two");
+        Directory.CreateDirectory(levelTwo);
+        await File.WriteAllTextAsync(
+            Path.Combine(root, "many.txt"),
+            "needle needle needle needle",
+            CancellationToken.None);
+        await File.WriteAllTextAsync(
+            Path.Combine(levelTwo, "deep.txt"),
+            "needle",
+            CancellationToken.None);
+        var policy = new WorkspaceScalePolicy(
+            maximumTraversalDepth: 1,
+            maximumSearchResults: 10,
+            maximumSearchMatchesPerFile: 2);
+        var service = new FileSystemProjectSearchService(policy);
+
+        var result = await service.SearchAsync(
+            new ProjectSearchRequest(
+                root,
+                "needle",
+                ProjectSearchMode.Content,
+                MaximumResults: 10,
+                MaximumTraversalDepth: 1,
+                MaximumMatchesPerFile: 2),
+            CancellationToken.None);
+
+        Assert.Equal(2, result.Matches.Count);
+        Assert.True(result.LimitReached);
+        Assert.True(result.LimitReasons.HasFlag(ProjectSearchLimitReason.MatchesPerFile));
+        Assert.True(result.LimitReasons.HasFlag(ProjectSearchLimitReason.TraversalDepth));
+        Assert.Equal(2, result.MaximumMatchesPerFile);
+        Assert.Equal(1, result.MaximumTraversalDepth);
+        Assert.DoesNotContain(result.Matches, match => match.RelativePath.Contains("deep.txt", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task WideDirectoryMaterializationIsBoundedOrderedAndStable()
+    {
+        using var workspace = new TemporaryDirectory("fccd-p06-search-wide");
+        var root = workspace.GetPath("project");
+        Directory.CreateDirectory(root);
+        for (var index = 7; index >= 0; index--)
+        {
+            await File.WriteAllTextAsync(
+                Path.Combine(root, $"match-{index:D2}.txt"),
+                "fixture",
+                CancellationToken.None);
+        }
+        var policy = new WorkspaceScalePolicy(maximumDirectoryEntries: 3);
+        var service = new FileSystemProjectSearchService(policy);
+        var request = new ProjectSearchRequest(root, "match", ProjectSearchMode.FileName);
+
+        var first = await service.SearchAsync(request, CancellationToken.None);
+        var second = await service.SearchAsync(request, CancellationToken.None);
+
+        Assert.Equal(3, first.FilesExamined);
+        Assert.Equal(3, first.Matches.Count);
+        Assert.True(first.LimitReached);
+        Assert.True(first.LimitReasons.HasFlag(ProjectSearchLimitReason.DirectoryEntries));
+        Assert.Equal(
+            first.Matches.Select(match => match.RelativePath),
+            second.Matches.Select(match => match.RelativePath));
+        Assert.Equal(
+            first.Matches.OrderBy(match => match.RelativePath, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(match => match.RelativePath, StringComparer.Ordinal)
+                .Select(match => match.RelativePath),
+            first.Matches.Select(match => match.RelativePath));
+    }
+
+    [Fact]
     public async Task SharedPolicyBoundsTraversalPerFileMatchesAndReportsMetadataWithoutMutation()
     {
         using var workspace = new TemporaryDirectory("fccd-p06-search-scale-policy");
@@ -176,13 +251,16 @@ public sealed class ProjectSearchServiceTests
                 MaximumFiles: 10,
                 MaximumFileBytes: 1_024,
                 MaximumMatchesPerFile: 2,
-                MaximumTraversalDepth: 1),
+                MaximumTraversalDepth: 1,
+                MaximumPreviewCharacters: 64),
             CancellationToken.None);
 
         Assert.Equal(2, result.Matches.Count);
         Assert.All(result.Matches, match => Assert.Equal("hot.txt", match.RelativePath));
         Assert.True(result.DirectoriesSkipped >= 1);
         Assert.True(result.LimitReached);
+        Assert.True(result.LimitReasons.HasFlag(ProjectSearchLimitReason.MatchesPerFile));
+        Assert.True(result.LimitReasons.HasFlag(ProjectSearchLimitReason.TraversalDepth));
         Assert.Equal(2, result.MaximumMatchesPerFile);
         Assert.Equal(1, result.MaximumTraversalDepth);
         Assert.Equal(64, result.MaximumPreviewCharacters);
@@ -201,7 +279,8 @@ public sealed class ProjectSearchServiceTests
             maximumFilesPerOperation: 4,
             maximumSearchResults: 3,
             maximumSearchMatchesPerFile: 2,
-            maximumSearchFileBytes: 128);
+            maximumSearchFileBytes: 128,
+            maximumPreviewCharacters: 32);
         var service = new FileSystemProjectSearchService(policy);
         var request = new ProjectSearchRequest(
             root,
@@ -211,7 +290,8 @@ public sealed class ProjectSearchServiceTests
             MaximumFiles: 4,
             MaximumFileBytes: 128,
             MaximumMatchesPerFile: 2,
-            MaximumTraversalDepth: 2);
+            MaximumTraversalDepth: 2,
+            MaximumPreviewCharacters: 32);
 
         _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
             service.SearchAsync(request with { MaximumResults = 4 }, CancellationToken.None));
@@ -223,6 +303,8 @@ public sealed class ProjectSearchServiceTests
             service.SearchAsync(request with { MaximumMatchesPerFile = 3 }, CancellationToken.None));
         _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
             service.SearchAsync(request with { MaximumTraversalDepth = 3 }, CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            service.SearchAsync(request with { MaximumPreviewCharacters = 33 }, CancellationToken.None));
     }
 
     [Fact]
@@ -245,5 +327,11 @@ public sealed class ProjectSearchServiceTests
             service.SearchAsync(
                 new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content, MaximumResults: 0),
                 CancellationToken.None));
+
+        await File.WriteAllTextAsync(Path.Combine(root, "recovered.txt"), "needle", CancellationToken.None);
+        var recovered = await service.SearchAsync(
+            new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content),
+            CancellationToken.None);
+        Assert.Single(recovered.Matches);
     }
 }

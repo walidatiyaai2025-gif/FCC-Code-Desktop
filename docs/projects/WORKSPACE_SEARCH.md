@@ -22,6 +22,8 @@ Default per-search bounds are:
 
 P06-008 centralizes these defaults in `WorkspaceScalePolicy`. The search request may lower an operational bound, but `FileSystemProjectSearchService` rejects a request above the active injected policy instead of silently widening the scan. Result metadata records total-result, file-count, file-size, per-file-match, traversal-depth, preview, and binary-probe bounds. Reaching a traversal or match budget is reported as a truthful partial result.
 
+P06-008 centralizes these defaults and adds a `64`-level traversal-depth cap, a `100`-match per-file cap, a bounded per-directory materialization cap, and typed limit reasons. A depth-limited, unusually wide, or match-heavy workspace therefore returns an explicit partial result instead of silently consuming unbounded time or allowing one pathological file to monopolize the result payload. Directory entries and resulting matches are ordered deterministically within every bounded listing.
+
 The broader P06-008 policy also supplies the case-insensitive generated/vendor directory exclusions, binary probe size, and preview size used by search, keeping tree/file/search scale decisions consistent while preserving P06-007 search semantics.
 
 ## Filesystem safety
