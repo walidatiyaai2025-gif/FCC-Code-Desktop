@@ -1,0 +1,202 @@
+name: Prepare P07 Cloud Activation
+
+on:
+  push:
+    branches:
+      - governance/p07-cloud-activation
+
+permissions:
+  contents: write
+
+concurrency:
+  group: p07-cloud-activation-prep
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      EXPECTED_BASE_SHA: 38f01c2c07104b1e169a8fd4606f374e499cafc7
+    steps:
+      - name: Checkout transition branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Reconcile canonical P07 activation
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+
+          function Replace-Exact([string]$text, [string]$old, [string]$new, [string]$label) {
+            if (-not $text.Contains($old, [StringComparison]::Ordinal)) { throw "Expected source text missing: $label" }
+            return $text.Replace($old, $new, [StringComparison]::Ordinal)
+          }
+
+          $base = (git merge-base HEAD $env:EXPECTED_BASE_SHA).Trim()
+          if ($base -ne $env:EXPECTED_BASE_SHA) { throw "Unexpected merge-base: $base" }
+          $utf8 = [Text.UTF8Encoding]::new($false)
+
+          $phasePath = Join-Path $PWD 'CURRENT_PHASE.md'
+          $phase = [IO.File]::ReadAllText($phasePath)
+          $oldState = @'
+          CURRENT_PHASE: P06
+          CURRENT_PHASE_NAME: Projects + files + editor + search
+          CURRENT_PHASE_STATE: CLOSED
+          NEXT_PHASE: P07
+          PHASE_EXIT_GATE: PASS
+          '@.Trim()
+          $newState = @'
+          CURRENT_PHASE: P07
+          CURRENT_PHASE_NAME: Change review + Git
+          CURRENT_PHASE_STATE: IN_PROGRESS
+          NEXT_PHASE: P08
+          PHASE_EXIT_GATE: NOT_RUN
+          '@.Trim()
+          $phase = Replace-Exact $phase $oldState $newState 'CURRENT_PHASE state block'
+
+          $oldScheduling = @'
+          P06 is canonically CLOSED in this closure state. `FCCD-P06-001` through `FCCD-P06-008` are normally integrated and exact-main verified, and dedicated exact-candidate phase-exit run `34030997937` passed on immutable product candidate `b307b99bd2c3924b7d47ead1b30740c026a32363`. Canonical closure evidence is `evidence/phases/P06/CLOSURE.md`.
+
+          `CURRENT_PHASE` deliberately remains `P06` after closure. P07 is not active yet. A separate governance transition may activate `CURRENT_PHASE=P07` only after this closure state is integrated by a normal merge and the resulting exact canonical `main` remains green. No P07 implementation is authorized inside this closure state.
+          '@.Trim()
+          $newScheduling = @'
+          P06 is canonically CLOSED. `FCCD-P06-001` through `FCCD-P06-008` are normally integrated, dedicated exact-candidate phase-exit run `34030997937` passed, closure PR #160 was normally merged as `38f01c2c07104b1e169a8fd4606f374e499cafc7`, and exact post-merge Windows CI `34031863567`, Workspace Search `34031863569`, and Large Workspace Safeguards `34031863551` all completed SUCCESS. Canonical closure evidence is `evidence/phases/P06/CLOSURE.md`.
+
+          P07 is now the sole legal cloud implementation/convergence phase. Only dependency-valid, unclaimed P07 work may begin. P08 and later implementation remain prohibited until P07 is truthfully closed with its exit gate resolved under canonical governance.
+          '@.Trim()
+          $phase = Replace-Exact $phase $oldScheduling $newScheduling 'active scheduling paragraphs'
+          $phase = Replace-Exact $phase '- P06 is CLOSED and retained as the current closure checkpoint until a separate, validated transition activates P07; no later-phase implementation is authorized yet.' '- Exactly one cloud implementation/convergence phase is active: P07.' 'active-phase invariant'
+
+          $p07Inventory = @'
+          ## P07 cloud task inventory
+
+          - `FCCD-P07-001` — `IGitService` and repository detection — PENDING.
+          - `FCCD-P07-002` — Status/changed-files surface — PENDING.
+          - `FCCD-P07-003` — Diff viewer — PENDING.
+          - `FCCD-P07-004` — Stage/unstage — PENDING.
+          - `FCCD-P07-005` — Branch create/checkout — PENDING.
+          - `FCCD-P07-006` — Fetch/pull — PENDING.
+          - `FCCD-P07-007` — Commit/push — PENDING.
+          - `FCCD-P07-008` — History — PENDING.
+          - `FCCD-P07-009` — Dirty/pre-existing-change provenance — PENDING.
+          - `FCCD-P07-010` — Destructive-operation safeguards — PENDING.
+          - `FCCD-P07-011` — Git integration tests/conflict scenarios — PENDING.
+
+          ## P07 cloud activation provenance
+
+          - Source closed-phase canonical main: `38f01c2c07104b1e169a8fd4606f374e499cafc7`.
+          - P06 closure integration: PR #160, normal merge.
+          - Exact post-closure main Windows CI: run `34031863567` — SUCCESS.
+          - Exact post-closure main P06-007 Workspace Search: run `34031863569` — SUCCESS.
+          - Exact post-closure main P06-008 Large Workspace Safeguards: run `34031863551` — SUCCESS.
+          - Pre-activation live claim scan: no open PR and no P07 branch/claim was present.
+          - Canonical owner queue remains exactly `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET`, both unresolved and release-blocking.
+          - `VERIFIED_FINAL_COMPLETE` remains `false`; P22 remains prohibited while any required owner queue item is unresolved.
+          - This is scheduling/governance activation only; no P07 product implementation is included.
+
+          '@
+          if ($phase.Contains('## P07 cloud task inventory', [StringComparison]::Ordinal)) { throw 'P07 inventory already exists unexpectedly.' }
+          $phase = Replace-Exact $phase '## P06 cloud task inventory' ($p07Inventory + '## P06 cloud task inventory') 'P07 inventory insertion'
+          [IO.File]::WriteAllText($phasePath, $phase, $utf8)
+
+          $controlPath = Join-Path $PWD 'PROJECT_CONTROL.md'
+          $control = [IO.File]::ReadAllText($controlPath)
+          $control = Replace-Exact $control $oldState $newState 'PROJECT_CONTROL state block'
+          $oldP06 = @'
+          P06 is canonically CLOSED in this closure state: `FCCD-P06-001` through `FCCD-P06-008` are CLOSED, exact immutable candidate `b307b99bd2c3924b7d47ead1b30740c026a32363` was green on pre-closure Windows Release run `34030625854`, Workspace Search Validation run `34030625801`, and Large Workspace Safeguard Validation run `34030625812`, and dedicated exact-candidate P06 phase-exit run `34030997937` completed SUCCESS. Closure evidence is `evidence/phases/P06/CLOSURE.md`. `CURRENT_PHASE` deliberately remains P06 until this closure change is normally integrated and the resulting exact canonical `main` remains green; only then may a separate governance transition activate P07. The two earlier owner-last queue obligations remain unresolved/release-blocking, `P04=NOT_RUN`, `P05=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
+          '@.Trim()
+          $newP06P07 = @'
+          P06 is canonically CLOSED: `FCCD-P06-001` through `FCCD-P06-008` are CLOSED, dedicated exact-candidate P06 phase-exit run `34030997937` completed SUCCESS, closure PR #160 was normally merged as `38f01c2c07104b1e169a8fd4606f374e499cafc7`, and exact post-merge Windows CI run `34031863567`, Workspace Search run `34031863569`, and Large Workspace Safeguards run `34031863551` all completed SUCCESS. Closure evidence is `evidence/phases/P06/CLOSURE.md`.
+
+          P07 — Change review + Git — is now the single active cloud implementation/convergence phase. Its eleven mandatory ledger tasks remain PENDING at activation; workers must select dependency-valid unclaimed P07 work and preserve user changes, conflict safety, and destructive-operation safeguards. P08 and later implementation remain prohibited until P07 is truthfully closed. The two earlier owner-last queue obligations remain unresolved/release-blocking, `P04=NOT_RUN`, `P05=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
+          '@.Trim()
+          $control = Replace-Exact $control $oldP06 $newP06P07 'P06/P07 narrative'
+          [IO.File]::WriteAllText($controlPath, $control, $utf8)
+
+          $evidencePath = Join-Path $PWD 'evidence/governance/OWNER_LAST_P07_CLOUD_ACTIVATION_2026-09-06.md'
+          $evidence = @'
+          # Owner-Last P07 Cloud Activation — 2026-09-06
+
+          ```text
+          SOURCE_MAIN_SHA: 38f01c2c07104b1e169a8fd4606f374e499cafc7
+          SOURCE_PHASE: P06
+          SOURCE_PHASE_STATE: CLOSED
+          SOURCE_PHASE_EXIT_GATE: PASS
+          ACTIVATED_PHASE: P07
+          ACTIVATED_PHASE_NAME: Change review + Git
+          ACTIVATED_PHASE_STATE: IN_PROGRESS
+          NEXT_PHASE: P08
+          ACTIVATED_PHASE_EXIT_GATE: NOT_RUN
+          KNOWN_PHASE_BLOCKERS: 0
+          KNOWN_RELEASE_BLOCKERS: 2
+          OWNER_LAST_MODE: ACTIVE
+          VERIFIED_FINAL_COMPLETE: false
+          ```
+
+          ## Eligibility
+
+          P06 is canonically closed and integrated. PR #160 was normally merged as `38f01c2c07104b1e169a8fd4606f374e499cafc7` after dedicated exact-candidate P06 phase-exit gate `34030997937` passed.
+
+          Exact resulting canonical main gates:
+
+          - Windows CI `34031863567` / #351 — SUCCESS.
+          - P06-007 Workspace Search `34031863569` / #80 — SUCCESS.
+          - P06-008 Large Workspace Safeguards `34031863551` / #60 — SUCCESS.
+
+          No P06 cloud-actionable defect or P06 owner-only residual remained.
+
+          ## Owner-last preservation
+
+          The canonical final-owner queue remains unchanged:
+
+          - `OWNER-P04-008-REAL-TARGET`
+          - `OWNER-P05-EXIT-REAL-TARGET`
+
+          Both remain unresolved and `releaseBlocking=true`; their source task/gate states are not converted to PASS. `VERIFIED_FINAL_COMPLETE=false`, and P22 remains unavailable while required owner evidence is queued.
+
+          ## Concurrency / claim check
+
+          Immediately before the first transition write, canonical main was exactly `38f01c2c07104b1e169a8fd4606f374e499cafc7`, no pull request was open, and no P07 branch/claim existed. This transition therefore did not steal or duplicate active P07 work.
+
+          ## Activated boundary
+
+          P07 — Change review + Git — is the sole active cloud implementation/convergence phase. `FCCD-P07-001` through `FCCD-P07-011` remain PENDING. P08 and later work remain prohibited until P07 closes truthfully.
+
+          This is a scheduling/governance transition only; no P07 product implementation is included.
+
+          ## Next legal action
+
+          After normal merge and exact-main CI, re-fetch claims. If no higher-priority recovery item exists, select `FCCD-P07-001 — IGitService and repository detection`.
+          '@
+          if (Test-Path -LiteralPath $evidencePath) { throw 'Activation evidence already exists unexpectedly.' }
+          [IO.File]::WriteAllText($evidencePath, $evidence.TrimStart(), $utf8)
+
+          git rm -- .github/workflows/p07-activation-prep.yml
+
+          $phaseCheck = [IO.File]::ReadAllText($phasePath)
+          $controlCheck = [IO.File]::ReadAllText($controlPath)
+          foreach ($required in @('CURRENT_PHASE: P07','CURRENT_PHASE_NAME: Change review + Git','CURRENT_PHASE_STATE: IN_PROGRESS','NEXT_PHASE: P08','PHASE_EXIT_GATE: NOT_RUN','KNOWN_RELEASE_BLOCKERS: 2','OWNER_LAST_MODE: ACTIVE','DEFERRED_OWNER_ACCEPTANCE_COUNT: 2','VERIFIED_FINAL_COMPLETE: false')) {
+            if (-not $phaseCheck.Contains($required, [StringComparison]::Ordinal)) { throw "CURRENT_PHASE missing: $required" }
+            if (-not $controlCheck.Contains($required, [StringComparison]::Ordinal)) { throw "PROJECT_CONTROL missing: $required" }
+          }
+          if ($phaseCheck.Contains('`CURRENT_PHASE` deliberately remains `P06`', [StringComparison]::Ordinal)) { throw 'Stale CURRENT_PHASE scheduling remains.' }
+          if ($controlCheck.Contains('`CURRENT_PHASE` deliberately remains P06', [StringComparison]::Ordinal)) { throw 'Stale PROJECT_CONTROL scheduling remains.' }
+
+          git diff --check
+          $changed = @(git status --porcelain)
+          if ($changed.Count -ne 4) { throw "Expected four working-tree entries; got $($changed.Count): $($changed -join '; ')" }
+
+          git config user.name 'fcc-cloud-worker'
+          git config user.email 'fcc-cloud-worker@users.noreply.github.com'
+          git add -- CURRENT_PHASE.md PROJECT_CONTROL.md evidence/governance/OWNER_LAST_P07_CLOUD_ACTIVATION_2026-09-06.md
+          git diff --cached --check
+          $staged = @(git diff --cached --name-only)
+          foreach ($expected in @('CURRENT_PHASE.md','PROJECT_CONTROL.md','evidence/governance/OWNER_LAST_P07_CLOUD_ACTIVATION_2026-09-06.md','.github/workflows/p07-activation-prep.yml')) {
+            if ($staged -notcontains $expected) { throw "Missing staged change: $expected" }
+          }
+          if ($staged.Count -ne 4) { throw "Unexpected staged files: $($staged -join ', ')" }
+          git commit -m 'governance: activate P07 cloud phase'
+          git push origin HEAD:governance/p07-cloud-activation
