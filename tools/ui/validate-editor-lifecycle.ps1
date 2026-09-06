@@ -37,7 +37,7 @@ function Assert-EditorLifecycleContract {
     Assert-ValidXaml $SurfaceXamlText 'ProjectEditorSurface.xaml'
 
     foreach ($literal in @(
-        'public sealed class ProjectEditorWorkspace : INotifyPropertyChanged',
+        'public sealed class ProjectEditorWorkspace : INotifyPropertyChanged, IDisposable',
         'SemaphoreSlim _operationGate = new(1, 1)',
         'ReadOnlyObservableCollection<ProjectEditorDocument> Documents',
         'public async Task<ProjectEditorDocument> OpenAsync(',
@@ -52,6 +52,9 @@ function Assert-EditorLifecycleContract {
         'if (document.IsDirty && !discardUnsavedChanges)',
         'public void Close(ProjectEditorDocument document, bool discardUnsavedChanges)',
         'if (!_operationGate.Wait(0))',
+        'public void Dispose()',
+        '_operationGate.Dispose();',
+        'GC.SuppressFinalize(this);',
         'ProjectEditorTextPolicy.NormalizeForSave(document.Text, document.NewLineStyle)',
         'Existing tabs save only to their original project roots.'
     )) { Assert-ContainsLiteral $WorkspaceText $literal 'ProjectEditorWorkspace.cs' }
@@ -88,10 +91,13 @@ function Assert-EditorLifecycleContract {
 
     foreach ($literal in @(
         'Closing += OnWindowClosing;',
+        'Closed += OnWindowClosed;',
         'private void OnWindowClosing(object? sender, CancelEventArgs e)',
+        'private void OnWindowClosed(object? sender, EventArgs e)',
         'editorWorkspace is { IsBusy: true }',
         '"Editor operation in progress"',
         'editorWorkspace?.Documents.Count(document => document.IsDirty)',
+        '_projectWorkspaceSurface?.EditorWorkspace.Dispose();',
         '"Unsaved editor changes"',
         'MessageBoxButton.YesNo',
         'MessageBoxResult.No',
@@ -203,6 +209,9 @@ if ($RunFixtures) {
     $withoutOperationSerialization = $workspaceText.Replace('await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(true);', 'await Task.CompletedTask.ConfigureAwait(true);', [StringComparison]::Ordinal)
     Assert-Rejects { Assert-EditorLifecycleContract $withoutOperationSerialization $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $concurrencyTestsText $integrationTestsText $docText } 'editor operation serialization removed'
 
+    $withoutDisposal = $workspaceText.Replace('_operationGate.Dispose();', 'RemovedOperationGateDisposal();', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutDisposal $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $concurrencyTestsText $integrationTestsText $docText } 'operation gate disposal removed'
+
     $withoutRealServiceIntegration = $integrationTestsText.Replace('new FileSystemProjectFileService()', 'new FakeProjectFileService()', [StringComparison]::Ordinal)
     Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $concurrencyTestsText $withoutRealServiceIntegration $docText } 'real safe-file-service integration removed'
 
@@ -211,6 +220,9 @@ if ($RunFixtures) {
 
     $withoutBusyShutdownGuard = $mainWindowText.Replace('editorWorkspace is { IsBusy: true }', 'false', [StringComparison]::Ordinal)
     Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $withoutBusyShutdownGuard $testsText $concurrencyTestsText $integrationTestsText $docText } 'application shutdown in-flight editor guard removed'
+
+    $withoutWindowDisposal = $mainWindowText.Replace('_projectWorkspaceSurface?.EditorWorkspace.Dispose();', 'RemovedEditorWorkspaceDisposal();', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $withoutWindowDisposal $testsText $concurrencyTestsText $integrationTestsText $docText } 'window teardown editor disposal removed'
 
     $withoutConcurrencyRegression = $concurrencyTestsText.Replace('ConcurrentOpenSameFileIsSerializedAndReusesSingleTab', 'RemovedConcurrentOpenRegression', [StringComparison]::Ordinal)
     Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $withoutConcurrencyRegression $integrationTestsText $docText } 'concurrent open regression coverage removed'
