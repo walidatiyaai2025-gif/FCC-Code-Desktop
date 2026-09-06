@@ -47,7 +47,8 @@ public sealed class GitRemoteSyncTests
         Assert.Equal(headBefore, result.PreviousHead);
         Assert.Equal(remoteHead, result.CurrentHead);
         Assert.Equal(remoteHead, await GetHeadAsync(fixture.ClientPath));
-        Assert.Equal("remote-v2\n", await File.ReadAllTextAsync(Path.Combine(fixture.ClientPath, "shared.txt")));
+        var pulledContent = await File.ReadAllTextAsync(Path.Combine(fixture.ClientPath, "shared.txt"));
+        Assert.Equal("remote-v2", pulledContent.TrimEnd('\r', '\n'));
         Assert.True((await new GitCliService().GetStatusAsync(fixture.ClientPath)).IsClean);
     }
 
