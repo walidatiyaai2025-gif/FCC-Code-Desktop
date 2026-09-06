@@ -22,12 +22,29 @@ public enum GitFileChangeKind
     Untracked = 8,
 }
 
-public sealed record GitFileStatusEntry(
-    string Path,
-    GitFileChangeKind IndexChange,
-    GitFileChangeKind WorkTreeChange,
-    string? OriginalPath = null)
+public sealed record GitFileStatusEntry
 {
+    public GitFileStatusEntry(
+        string path,
+        GitFileChangeKind indexChange,
+        GitFileChangeKind workTreeChange,
+        string? originalPath = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        Path = NormalizeRepositoryRelativePath(path);
+        IndexChange = indexChange;
+        WorkTreeChange = workTreeChange;
+        OriginalPath = originalPath is null ? null : NormalizeRepositoryRelativePath(originalPath);
+    }
+
+    public string Path { get; }
+
+    public GitFileChangeKind IndexChange { get; }
+
+    public GitFileChangeKind WorkTreeChange { get; }
+
+    public string? OriginalPath { get; init; }
+
     public bool IsStaged => IndexChange != GitFileChangeKind.None;
 
     public bool HasWorkTreeChange => WorkTreeChange != GitFileChangeKind.None;
@@ -36,6 +53,9 @@ public sealed record GitFileStatusEntry(
 
     public bool IsConflicted =>
         IndexChange == GitFileChangeKind.Unmerged || WorkTreeChange == GitFileChangeKind.Unmerged;
+
+    private static string NormalizeRepositoryRelativePath(string path) =>
+        path.Replace('\\', '/');
 }
 
 public sealed record GitStatusResult(
