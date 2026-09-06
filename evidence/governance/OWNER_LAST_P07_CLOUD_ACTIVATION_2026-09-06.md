@@ -37,6 +37,12 @@ The canonical final-owner queue remains unchanged:
 
 Both remain unresolved and `releaseBlocking=true`; their source task/gate states are not converted to PASS. `VERIFIED_FINAL_COMPLETE=false`, and P22 remains unavailable while required owner evidence is queued.
 
+## Cloud repair during activation
+
+PR #161 exact-head Windows CI run `34032630976` / #352 exposed one cloud-repairable test defect after the Release build and all 115 unit/integration tests had passed: the owner-last negative fixture named `P22 with queue unresolved` still hard-coded `CURRENT_PHASE: P06`. After this transition changes the proposed current phase to P07, that replacement became a no-op and the negative fixture no longer exercised the P22 hard stop.
+
+The validator was repaired narrowly so the fixture derives the current phase generically and mutates both `CURRENT_PHASE.md` and `PROJECT_CONTROL.md` to `CURRENT_PHASE: P22` before asserting rejection. The production owner-last policy itself was not weakened or bypassed; the existing invariant that P22 cannot be current while owner items remain queued remains unchanged. Windows repair execution demonstrated both `Static owner-last execution governance validation: PASS` and `Owner-last negative fixtures: PASS` before an unrelated temporary harness exit-status check failed. The temporary repair workflow was removed from the final branch tree; permanent PR-head CI is the authoritative merge gate.
+
 ## Concurrency / claim check
 
 Immediately before the first transition write, canonical main was exactly `38f01c2c07104b1e169a8fd4606f374e499cafc7`, no pull request was open, and no P07 branch/claim existed. This transition therefore did not steal or duplicate active P07 work.
