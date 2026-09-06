@@ -6,7 +6,7 @@ namespace FCCCodeDesktop.UnitTests;
 public sealed class ProjectEditorWorkspaceTests
 {
     [Fact]
-    public async Task OpenAsync_ReusesExistingTabForSameProjectFile()
+    public async Task OpenAsyncReusesExistingTabForSameProjectFile()
     {
         var fixture = EditorFixture.Create("alpha.txt", "hello\nworld\n", ProjectNewLineStyle.Lf);
         var workspace = new ProjectEditorWorkspace(fixture.Service);
@@ -21,7 +21,7 @@ public sealed class ProjectEditorWorkspaceTests
     }
 
     [Fact]
-    public async Task OpenAsync_NormalizesStableLineEndingsForEditorWithoutDirtying()
+    public async Task OpenAsyncNormalizesStableLineEndingsForEditorWithoutDirtying()
     {
         var fixture = EditorFixture.Create("alpha.txt", "one\ntwo\n", ProjectNewLineStyle.Lf);
         var workspace = new ProjectEditorWorkspace(fixture.Service);
@@ -35,7 +35,7 @@ public sealed class ProjectEditorWorkspaceTests
     }
 
     [Fact]
-    public async Task SaveAsync_UsesObservedVersionEncodingAndOriginalNewLineStyle()
+    public async Task SaveAsyncUsesObservedVersionEncodingAndOriginalNewLineStyle()
     {
         var fixture = EditorFixture.Create("alpha.txt", "one\ntwo\n", ProjectNewLineStyle.Lf);
         var workspace = new ProjectEditorWorkspace(fixture.Service);
@@ -55,7 +55,7 @@ public sealed class ProjectEditorWorkspaceTests
     }
 
     [Fact]
-    public async Task SaveAsync_ExternalConflictRetainsDirtyBuffer()
+    public async Task SaveAsyncExternalConflictRetainsDirtyBuffer()
     {
         var fixture = EditorFixture.Create("alpha.txt", "before", ProjectNewLineStyle.None);
         fixture.Service.ConflictOnWrite = true;
@@ -72,7 +72,7 @@ public sealed class ProjectEditorWorkspaceTests
     }
 
     [Fact]
-    public async Task ReloadAsync_DirtyBufferRequiresExplicitDiscard()
+    public async Task ReloadAsyncDirtyBufferRequiresExplicitDiscard()
     {
         var fixture = EditorFixture.Create("alpha.txt", "before", ProjectNewLineStyle.None);
         var workspace = new ProjectEditorWorkspace(fixture.Service);
@@ -92,7 +92,7 @@ public sealed class ProjectEditorWorkspaceTests
     }
 
     [Fact]
-    public async Task Close_DirtyBufferRequiresExplicitDiscard()
+    public async Task CloseDirtyBufferRequiresExplicitDiscard()
     {
         var fixture = EditorFixture.Create("alpha.txt", "before", ProjectNewLineStyle.None);
         var workspace = new ProjectEditorWorkspace(fixture.Service);
@@ -108,7 +108,7 @@ public sealed class ProjectEditorWorkspaceTests
     }
 
     [Fact]
-    public async Task OpenAsync_BinaryAndOversizedFilesFailBeforeRead()
+    public async Task OpenAsyncBinaryAndOversizedFilesFailBeforeRead()
     {
         var binary = EditorFixture.Create("binary.dat", "ignored", ProjectNewLineStyle.None);
         binary.Service.ContentKind = ProjectFileContentKind.Binary;
@@ -126,7 +126,7 @@ public sealed class ProjectEditorWorkspaceTests
     }
 
     [Fact]
-    public async Task SetActiveProject_DoesNotRetargetExistingTabs()
+    public async Task SetActiveProjectDoesNotRetargetExistingTabs()
     {
         var first = EditorFixture.Create("one.txt", "one", ProjectNewLineStyle.None);
         var workspace = new ProjectEditorWorkspace(first.Service);
@@ -147,7 +147,7 @@ public sealed class ProjectEditorWorkspaceTests
     [InlineData(ProjectNewLineStyle.CrLf, "a\r\nb\r\n")]
     [InlineData(ProjectNewLineStyle.Lf, "a\nb\n")]
     [InlineData(ProjectNewLineStyle.Cr, "a\rb\r")]
-    public void NormalizeForSave_PreservesEstablishedSingleNewLinePolicy(
+    public void NormalizeForSavePreservesEstablishedSingleNewLinePolicy(
         ProjectNewLineStyle style,
         string expected)
     {
@@ -156,7 +156,7 @@ public sealed class ProjectEditorWorkspaceTests
     }
 
     [Fact]
-    public void NormalizeForEditor_MixedLineEndingsRemainExact()
+    public void NormalizeForEditorMixedLineEndingsRemainExact()
     {
         const string source = "a\r\nb\nc\rd";
         Assert.Equal(source, ProjectEditorTextPolicy.NormalizeForEditor(source, ProjectNewLineStyle.Mixed));
