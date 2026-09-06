@@ -1,0 +1,112 @@
+name: P06 Exit Gate Exact Validation
+
+on:
+  push:
+    branches:
+      - worker-b/p06-exit-gate
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p06-exit-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: P06 Exit Gate
+    runs-on: windows-2025
+    timeout-minutes: 45
+    env:
+      PRODUCT_CANDIDATE_SHA: b307b99bd2c3924b7d47ead1b30740c026a32363
+    steps:
+      - name: Checkout exact product candidate
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ env.PRODUCT_CANDIDATE_SHA }}
+          fetch-depth: 0
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Guard canonical P06 pre-closure state
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:PRODUCT_CANDIDATE_SHA) { throw "Expected candidate $env:PRODUCT_CANDIDATE_SHA but checked out $actual" }
+
+          $phase = Get-Content -LiteralPath .\CURRENT_PHASE.md -Raw
+          foreach ($required in @(
+            'CURRENT_PHASE: P06',
+            'CURRENT_PHASE_STATE: IN_PROGRESS',
+            'PHASE_EXIT_GATE: NOT_RUN',
+            'OWNER_LAST_MODE: ACTIVE',
+            'VERIFIED_FINAL_COMPLETE: false'
+          )) {
+            if (-not $phase.Contains($required, [StringComparison]::Ordinal)) { throw "Missing canonical pre-closure state: $required" }
+          }
+
+          if (Test-Path -LiteralPath .\evidence\phases\P06\CLOSURE.md) { throw 'P06 closure already exists on the candidate.' }
+
+          $ledger = Get-Content -LiteralPath .\docs\TASK_LEDGER.md -Raw
+          1..8 | ForEach-Object {
+            $id = 'FCCD-P06-{0:d3}' -f $_
+            $pattern = [regex]::Escape("| $id |") + '.*\| CLOSED \|'
+            if ($ledger -notmatch $pattern) { throw "$id is not canonically CLOSED." }
+          }
+
+          if ((git status --porcelain).Count -ne 0) { throw 'Candidate worktree is not clean before validation.' }
+          Write-Host "Canonical P06 pre-closure guard: PASS ($actual)."
+
+      - name: Run complete permanent Windows baseline
+        shell: pwsh
+        run: .\tools\ci\run-windows-ci.ps1
+
+      - name: Validate P06-001 project workflows
+        shell: pwsh
+        run: .\tools\projects\validate-project-workflows.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-002 technology detection
+        shell: pwsh
+        run: .\tools\projects\validate-project-technology-detection.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-003 lazy file explorer
+        shell: pwsh
+        run: .\tools\projects\validate-lazy-file-explorer.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-004 safe file service
+        shell: pwsh
+        run: .\tools\projects\validate-safe-file-service.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-005 local code editor
+        shell: pwsh
+        run: .\tools\ui\validate-local-code-editor.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-006 editor lifecycle
+        shell: pwsh
+        run: .\tools\ui\validate-editor-lifecycle.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-007 workspace search
+        shell: pwsh
+        run: .\tools\projects\validate-workspace-search.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-008 large workspace safeguards
+        shell: pwsh
+        run: .\tools\projects\validate-large-workspace-safeguards.ps1 -RunFixtures -RequireRuntime
+
+      - name: Final repository integrity checks
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+          git diff --cached --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --cached --check failed.' }
+          if ((git status --porcelain).Count -ne 0) { throw 'Validation mutated the exact candidate worktree.' }
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:PRODUCT_CANDIDATE_SHA) { throw "Candidate moved during validation: $actual" }
+          Write-Host 'P06 exact-candidate phase-exit validation: PASS.'
