@@ -26,12 +26,15 @@ function Assert-SafeFileServiceContract {
 
     foreach ($literal in @(
         'public interface IProjectFileService',
+        'Task<ProjectFileInspection> InspectAsync',
         'Task<ProjectTextFileSnapshot> ReadTextAsync',
         'Task<ProjectFileWriteResult> WriteTextAsync',
         'public enum ProjectTextEncoding',
         'public enum ProjectNewLineStyle',
         'public sealed record ProjectFileVersion',
         'public sealed record ProjectTextFileSnapshot',
+        'public enum ProjectFileContentKind',
+        'public sealed record ProjectFileInspection',
         'public sealed record ProjectTextFileWriteRequest',
         'public sealed class ProjectFileConflictException'
     )) {
@@ -40,8 +43,8 @@ function Assert-SafeFileServiceContract {
 
     foreach ($literal in @(
         'public sealed class FileSystemProjectFileService',
-        'DefaultMaximumFileBytes = 8 * 1024 * 1024',
-        'MaximumSupportedFileBytes = 128 * 1024 * 1024',
+        'DefaultMaximumFileBytes = (int)WorkspaceScalePolicy.DefaultMaximumTextFileBytes',
+        'MaximumSupportedFileBytes = (int)WorkspaceScalePolicy.MaximumSupportedTextFileBytes',
         'ValidatePaths(projectRootPath, filePath, requireExistingFile: true)',
         'ValidatePaths(request.ProjectRootPath, request.FilePath, requireExistingFile: false)',
         'EnsurePathInsideProject(normalizedRootPath, normalizedFilePath)',
@@ -85,6 +88,8 @@ function Assert-SafeFileServiceContract {
         'RejectsStaleVersionWithoutOverwritingExternalWork',
         'RejectsOutsideRootDirectoryTargetsInvalidEncodingAndOversizedFiles',
         'RelativePathsCancellationAndConfigurationFailExplicitly',
+        'InspectionClassifiesEmptyBinaryBoundaryAndLargeFilesWithoutMutation',
+        'InspectionSupportsBomUnicodeArabicAndRecoversAfterCancellationAndFailure',
         'مشروع safe files',
         'external-owner-work',
         'ProjectFileConflictException'
@@ -172,7 +177,7 @@ if ($RunFixtures) {
         Assert-SafeFileServiceContract $contractText ($serviceText.Replace('DecoderFallbackException', 'Exception')) $testText $docText
     } 'strict decoder failure contract removed'
     Assert-ContractRejects {
-        Assert-SafeFileServiceContract $contractText ($serviceText.Replace('DefaultMaximumFileBytes = 8 * 1024 * 1024', 'DefaultMaximumFileBytes = int.MaxValue')) $testText $docText
+        Assert-SafeFileServiceContract $contractText ($serviceText.Replace('DefaultMaximumFileBytes = (int)WorkspaceScalePolicy.DefaultMaximumTextFileBytes', 'DefaultMaximumFileBytes = int.MaxValue')) $testText $docText
     } 'default file materialization bound removed'
     Write-Host 'P06-004 negative fixtures: PASS.'
 }

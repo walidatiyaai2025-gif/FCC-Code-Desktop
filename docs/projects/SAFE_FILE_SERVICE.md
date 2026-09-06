@@ -22,6 +22,8 @@ Text decoding is fail-closed:
 
 Invalid UTF-8 or non-BOM legacy encodings are rejected instead of guessed. This avoids silently converting bytes with an assumed system code page. A read returns the exact decoded text plus encoding metadata, detected newline style (`CRLF`, `LF`, `CR`, mixed, or none), whether the text ends in a newline, normalized/relative paths, and an optimistic version token.
 
+P06-008 adds a bounded read-only inspection path before normal text materialization. It classifies files as normal text, binary/non-text, or too large under the centralized workspace scale policy. Text inspection returns at most the configured preview character count, including for oversized text; invalid encoding or a binary probe returns no fabricated text. This gives later editor/open UX a truthful decision seam without loading or altering the full file.
+
 ## Version-aware safe writes
 
 A file version contains byte length, last-write UTC ticks, and SHA-256 of the bytes observed by the service. Existing files are never overwritten without the caller supplying that observed version. If the file changed, disappeared, or no longer matches the supplied version, `ProjectFileConflictException` is raised rather than overwriting external work.
