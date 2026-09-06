@@ -14,13 +14,14 @@
 - Stable CRLF/LF/CR source newline policy is normalized into the WPF editor representation without false dirty state and restored to the established source style before save; mixed-newline buffers are not silently rewritten by the lifecycle layer.
 - External-change conflict keeps the dirty buffer and surfaces `ProjectFileConflictException`; it does not overwrite stale owner work.
 - Reload and close reject dirty-buffer destruction unless the caller explicitly requests discard; WPF UI requires Yes/No confirmation.
+- Application shutdown is also fail-safe: when dirty editor tabs exist, `MainWindow` defaults to cancelling close unless the user explicitly confirms discarding those unsaved buffers.
 - Successful reload refreshes text, encoding, newline metadata and version and clears conflict/dirty state.
 - `ProjectEditorSurface` composes the native P06-005 `CodeEditorControl` beside the project explorer/search surface with Save/Reload/Close controls and status/error presentation.
 - P06-007's canonical `AttachSearchSurface()` composition seam is preserved; P06-006 adds its editor surface separately instead of weakening the existing workspace-search contract.
 
 ## Automated validation
 
-Permanent validation is `tools/ui/validate-editor-lifecycle.ps1`. It verifies the lifecycle/source/UI boundary, safe-file-service usage, dirty/conflict guards, large/binary inspection, no direct write/process/network bypass, and destructive negative fixtures under the exact Windows/.NET 10.0.400 baseline.
+Permanent validation is `tools/ui/validate-editor-lifecycle.ps1`. It verifies the lifecycle/source/UI boundary, safe-file-service usage, dirty/conflict guards, large/binary inspection, the application-shutdown dirty-buffer guard, no direct write/process/network bypass, and destructive negative fixtures under the exact Windows/.NET 10.0.400 baseline.
 
 The gate executes both focused unit coverage in `ProjectEditorWorkspaceTests` and real composition coverage in `ProjectEditorWorkspaceIntegrationTests`. The real integration fixture uses `FileSystemProjectFileService` against an actual Unicode/space-containing project path and proves UTF-16BE preservation, LF round-trip integrity, optimistic external-change conflict refusal, dirty-buffer retention, and explicit reload recovery.
 
