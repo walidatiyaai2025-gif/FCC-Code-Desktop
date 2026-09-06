@@ -22,13 +22,21 @@ Exact post-merge canonical-main gates on that merge SHA all completed SUCCESS:
 - P06-007 Workspace Search run `34028996981` / run #73 — SUCCESS.
 - P06-008 Large Workspace Safeguards run `34028997023` / run #53 — SUCCESS.
 
-No exact-head or exact-main CI failure remained to repair.
+No implementation defect or exact-main regression remained after PR #157 integration.
+
+## Reconciliation CI repair
+
+The first reconciliation head `e0e40c88f0f7f8eab4301cc75cd3183996a9f902` correctly closed the P06-006 ledger row, but that durable state change exposed a stale owner-last **negative fixture** rather than a product defect. Windows CI run `34029883735` / run #345 and the shared workspace-search validation failed because `owner-last-policy-validator.ps1` still tested the illegal-phase-skip guard by changing only `CURRENT_PHASE` from P06 to P07 while assuming P06 contained unfinished work. Once P06-006 was truthfully CLOSED, all P06 rows were closed, so that fixture no longer represented the scenario named by the test and was not rejected.
+
+Repair commit `04fd376eea4e34434258af5ce5b8a7d8d9fbdcae` changes only that negative fixture: it first mutates the P06-006 ledger row from CLOSED back to PENDING inside the synthetic test input, then attempts the P06→P07 phase skip. The production owner-last contract is unchanged and not weakened. The compare from `e0e40c88...` to `04fd376e...` is one file with one line replaced.
+
+The repaired reconciliation head must pass the same exact-head Windows CI, P06-007 Workspace Search, and P06-008 Large Workspace Safeguards gates before PR #159 may merge. Final terminal run IDs/results are recorded only after GitHub reports them.
 
 ## Cloud evidence boundary
 
 The implementation and automated evidence prove the cloud-actionable P06-006 contract: lifecycle state, concurrency serialization, safe-file-service integration, version-aware saves, encoding/newline retention, dirty/discard behavior, external-conflict refusal, binary/oversized refusal, application shutdown guards, and non-regression of shared workspace search/large-tree safeguards.
 
-The task-specific implementation evidence remains `evidence/phases/P06/P06_006_EDITOR_LIFECYCLE.md`; this document adds canonical integration and exact-main provenance only.
+The task-specific implementation evidence remains `evidence/phases/P06/P06_006_EDITOR_LIFECYCLE.md`; this document adds canonical integration, exact-main provenance, and reconciliation-CI repair provenance only.
 
 ## Owner-last classification
 
