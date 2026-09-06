@@ -37,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE_SHA='f22eb711bef214e222fc22cc670e08b90fd58a1b'
-          mapfile -t changed < <(git diff --name-only "$BASE_SHA")
+          mapfile -t changed < <({ git diff --name-only "$BASE_SHA"; git ls-files --others --exclude-standard; } | sort -u)
           printf '%s\n' "${changed[@]}"
           test "${#changed[@]}" -eq 4
           expected=$'CURRENT_PHASE.md\nPROJECT_CONTROL.md\ndocs/TASK_LEDGER.md\nevidence/phases/P07/P07_007_INTEGRATED_RECONCILIATION_2026-09-06.md'
