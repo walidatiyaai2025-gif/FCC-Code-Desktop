@@ -14,7 +14,7 @@ Before normal text materialization, `ProjectEditorWorkspace` calls `IProjectFile
 
 ## Dirty state
 
-A document becomes dirty when its editor buffer differs from the last loaded or successfully saved buffer. The tab label displays `*` while dirty. Dirty tabs are never silently discarded:
+A document becomes dirty when its editor buffer differs from the last loaded or successfully saved buffer. The tab label displays `*` while dirty. The invariant is explicit: dirty tabs are never silently discarded:
 
 - reload requires explicit discard confirmation;
 - close requires explicit discard confirmation;
