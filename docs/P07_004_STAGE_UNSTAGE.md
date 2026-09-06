@@ -26,6 +26,6 @@
 
 Real disposable Git tests cover selective staging, unrelated owner-change preservation, modified-file unstage, deletion stage/unstage without recreation, rename-pair handling, unborn-repository unstage, Arabic/Unicode/space-containing paths, typed repository failure states, pathset safety limits, cancellation, and constructor timeout bounds.
 
-The initial exact-head Release build surfaced only analyzer `CA1859` on two private helpers returning an interface while constructing `List<string>` values. The repair narrows those private return types to `List<string>` without changing mutation behavior; permanent CI must still pass on the resulting user-authored exact head.
+The first two Release-build attempts surfaced only analyzer `CA1859` findings on private helpers/parameters that were already backed exclusively by `List<string>` values. The repair narrows those private-only signatures to their concrete `List<string>` type without changing the public contract or mutation behavior. Permanent CI must pass on the final user-authored exact head after these analyzer repairs.
 
 This task adds no P07-005+ behavior and creates no owner-only acceptance requirement.
