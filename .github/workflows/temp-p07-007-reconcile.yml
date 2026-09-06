@@ -1,0 +1,51 @@
+name: Temporary P07-007 Reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p07-007-integrated-closure
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Guard exact integration base
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_SHA='f22eb711bef214e222fc22cc670e08b90fd58a1b'
+          git merge-base --is-ancestor "$BASE_SHA" HEAD
+          test "$(git rev-parse "$BASE_SHA")" = "$BASE_SHA"
+
+      - name: Apply guarded canonical reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python .github/temp/p07-007-reconcile.py
+
+      - name: Verify durable scope and commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_SHA='f22eb711bef214e222fc22cc670e08b90fd58a1b'
+          mapfile -t changed < <(git diff --name-only "$BASE_SHA")
+          printf '%s\n' "${changed[@]}"
+          test "${#changed[@]}" -eq 4
+          expected=$'CURRENT_PHASE.md\nPROJECT_CONTROL.md\ndocs/TASK_LEDGER.md\nevidence/phases/P07/P07_007_INTEGRATED_RECONCILIATION_2026-09-06.md'
+          actual="$(printf '%s\n' "${changed[@]}" | sort)"
+          expected_sorted="$(printf '%s\n' "$expected" | sort)"
+          test "$actual" = "$expected_sorted"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Reconcile P07-007 integrated closure'
+          git push origin HEAD:reconcile/fccd-p07-007-integrated-closure
