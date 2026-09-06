@@ -156,7 +156,7 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\runtime\validate-fcc-runtime-contract-suite.ps1 -RunFixtures -RequireRuntime', '')) } 'missing P04 aggregate runtime contract-suite validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-design-system.ps1 -RunFixtures', '')) } 'missing design-system validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-semantic-themes.ps1 -RunFixtures -RequireRuntime', '')) } 'missing semantic-theme validation'
-Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing app-chrome validation'
+Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-app-chrome.ps1 -RunFixtures -RequireRuntime', '')) } 'missing app-chrome validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-workspace-layout.ps1 -RunFixtures -RequireRuntime', '')) } 'missing workspace-layout validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-navigation-surfaces.ps1 -RunFixtures -RequireRuntime', '')) } 'missing navigation-surface validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-streaming-conversation.ps1 -RunFixtures -RequireRuntime', '')) } 'missing streaming-conversation validation'
