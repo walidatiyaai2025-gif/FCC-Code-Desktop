@@ -34,4 +34,8 @@ public interface IGitService
     Task<GitRepositoryDetectionResult> DetectRepositoryAsync(
         string path,
         CancellationToken cancellationToken = default);
+
+    Task<GitStatusResult> GetStatusAsync(
+        string path,
+        CancellationToken cancellationToken = default);
 }
