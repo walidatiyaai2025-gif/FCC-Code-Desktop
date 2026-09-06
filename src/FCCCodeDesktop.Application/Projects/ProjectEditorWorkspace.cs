@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace FCCCodeDesktop.Application.Projects;
 
-public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
+public sealed class ProjectEditorWorkspace : INotifyPropertyChanged, IDisposable
 {
     private readonly IProjectFileService _fileService;
     private readonly SemaphoreSlim _operationGate = new(1, 1);
@@ -15,6 +15,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
     private string _statusText = "Select a text file from the project tree to open it.";
     private string? _errorMessage;
     private bool _isBusy;
+    private bool _isDisposed;
 
     public ProjectEditorWorkspace(IProjectFileService fileService)
     {
@@ -31,6 +32,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         get => _selectedDocument;
         set
         {
+            ThrowIfDisposed();
             if (ReferenceEquals(_selectedDocument, value))
             {
                 return;
@@ -54,6 +56,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
 
     public void SetActiveProject(string? projectRootPath)
     {
+        ThrowIfDisposed();
         var normalized = string.IsNullOrWhiteSpace(projectRootPath)
             ? null
             : Path.GetFullPath(projectRootPath);
@@ -75,6 +78,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         string filePath,
         CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         ArgumentException.ThrowIfNullOrWhiteSpace(projectRootPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
@@ -83,6 +87,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(true);
         try
         {
+            ThrowIfDisposed();
             var existing = _documents.FirstOrDefault(document =>
                 string.Equals(document.ProjectRootPath, normalizedRoot, StringComparison.OrdinalIgnoreCase)
                 && string.Equals(document.FullPath, normalizedPath, StringComparison.OrdinalIgnoreCase));
@@ -150,10 +155,12 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         ProjectEditorDocument document,
         CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(document);
         await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(true);
         try
         {
+            ThrowIfDisposed();
             EnsureOwnedDocument(document);
             if (!document.IsDirty)
             {
@@ -220,10 +227,12 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         bool discardUnsavedChanges,
         CancellationToken cancellationToken = default)
     {
+        ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(document);
         await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(true);
         try
         {
+            ThrowIfDisposed();
             EnsureOwnedDocument(document);
             if (document.IsDirty && !discardUnsavedChanges)
             {
@@ -278,6 +287,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
 
     public void Close(ProjectEditorDocument document, bool discardUnsavedChanges)
     {
+        ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(document);
         if (!_operationGate.Wait(0))
         {
@@ -286,6 +296,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
 
         try
         {
+            ThrowIfDisposed();
             EnsureOwnedDocument(document);
             if (document.IsDirty && !discardUnsavedChanges)
             {
@@ -313,6 +324,23 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         }
     }
 
+    public void Dispose()
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        _isDisposed = true;
+        foreach (var document in _documents)
+        {
+            document.PropertyChanged -= OnDocumentPropertyChanged;
+        }
+
+        _operationGate.Dispose();
+        GC.SuppressFinalize(this);
+    }
+
     private void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (ReferenceEquals(sender, SelectedDocument)
@@ -331,6 +359,8 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
             throw new InvalidOperationException("The editor document does not belong to this workspace.");
         }
     }
+
+    private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(_isDisposed, this);
 
     private void SetBusy(bool value)
     {
