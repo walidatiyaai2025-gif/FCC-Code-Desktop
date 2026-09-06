@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\FCCCodeDesktop.Application\FCCCodeDesktop.Application.csproj" />
     <ProjectReference Include="..\..\src\FCCCodeDesktop.Core\FCCCodeDesktop.Core.csproj" />
+    <ProjectReference Include="..\..\src\FCCCodeDesktop.Git\FCCCodeDesktop.Git.csproj" />
     <ProjectReference Include="..\..\src\FCCCodeDesktop.Runtime\FCCCodeDesktop.Runtime.csproj" />
     <ProjectReference Include="..\FCCCodeDesktop.Testing\FCCCodeDesktop.Testing.csproj" />
   </ItemGroup>
