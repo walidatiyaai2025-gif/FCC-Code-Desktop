@@ -29,6 +29,7 @@ function Assert-EditorLifecycleContract {
         [string]$ProjectSurfaceCodeText,
         [string]$MainWindowText,
         [string]$TestsText,
+        [string]$ConcurrencyTestsText,
         [string]$IntegrationTestsText,
         [string]$DocText
     )
@@ -37,8 +38,10 @@ function Assert-EditorLifecycleContract {
 
     foreach ($literal in @(
         'public sealed class ProjectEditorWorkspace : INotifyPropertyChanged',
+        'SemaphoreSlim _operationGate = new(1, 1)',
         'ReadOnlyObservableCollection<ProjectEditorDocument> Documents',
         'public async Task<ProjectEditorDocument> OpenAsync(',
+        'await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(true);',
         '.InspectAsync(normalizedRoot, normalizedPath, cancellationToken)',
         'if (!inspection.CanOpenAsNormalText)',
         'public async Task SaveAsync(',
@@ -48,6 +51,7 @@ function Assert-EditorLifecycleContract {
         'public async Task ReloadAsync(',
         'if (document.IsDirty && !discardUnsavedChanges)',
         'public void Close(ProjectEditorDocument document, bool discardUnsavedChanges)',
+        'if (!_operationGate.Wait(0))',
         'ProjectEditorTextPolicy.NormalizeForSave(document.Text, document.NewLineStyle)',
         'Existing tabs save only to their original project roots.'
     )) { Assert-ContainsLiteral $WorkspaceText $literal 'ProjectEditorWorkspace.cs' }
@@ -85,7 +89,9 @@ function Assert-EditorLifecycleContract {
     foreach ($literal in @(
         'Closing += OnWindowClosing;',
         'private void OnWindowClosing(object? sender, CancelEventArgs e)',
-        '_projectWorkspaceSurface?.EditorWorkspace.Documents.Count(document => document.IsDirty)',
+        'editorWorkspace is { IsBusy: true }',
+        '"Editor operation in progress"',
+        'editorWorkspace?.Documents.Count(document => document.IsDirty)',
         '"Unsaved editor changes"',
         'MessageBoxButton.YesNo',
         'MessageBoxResult.No',
@@ -101,6 +107,14 @@ function Assert-EditorLifecycleContract {
         'OpenAsyncBinaryAndOversizedFilesFailBeforeRead',
         'SetActiveProjectDoesNotRetargetExistingTabs'
     )) { Assert-ContainsLiteral $TestsText $literal 'ProjectEditorWorkspaceTests.cs' }
+
+    foreach ($literal in @(
+        'ConcurrentOpenSameFileIsSerializedAndReusesSingleTab',
+        'Assert.Single(workspace.Documents)',
+        'Assert.Equal(1, service.InspectCount)',
+        'Assert.Equal(1, service.ReadCount)',
+        'Assert.False(workspace.IsBusy)'
+    )) { Assert-ContainsLiteral $ConcurrencyTestsText $literal 'ProjectEditorWorkspaceConcurrencyTests.cs' }
 
     foreach ($literal in @(
         'RealFileServicePreservesUnicodePathEncodingNewLinesConflictAndReload',
@@ -120,7 +134,7 @@ function Assert-EditorLifecycleContract {
         'FINAL_OWNER_ACCEPTANCE_QUEUE'
     )) { Assert-ContainsLiteral $DocText $literal 'EDITOR_LIFECYCLE.md' }
 
-    foreach ($text in @($WorkspaceText, $SurfaceXamlText, $SurfaceCodeText, $ProjectSurfaceCodeText, $TestsText, $IntegrationTestsText, $DocText)) {
+    foreach ($text in @($WorkspaceText, $SurfaceXamlText, $SurfaceCodeText, $ProjectSurfaceCodeText, $MainWindowText, $TestsText, $ConcurrencyTestsText, $IntegrationTestsText, $DocText)) {
         foreach ($marker in @('TODO', 'FIXME', 'Coming soon', 'Placeholder')) {
             if ($text.IndexOf($marker, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
                 throw "P06-006 contains forbidden unfinished-work marker '$marker'."
@@ -154,6 +168,7 @@ $paths = @{
     ProjectSurfaceCode = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Projects\ProjectWorkspaceSurface.xaml.cs'
     MainWindow = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\MainWindow.xaml.cs'
     Tests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.UnitTests\ProjectEditorWorkspaceTests.cs'
+    ConcurrencyTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.UnitTests\ProjectEditorWorkspaceConcurrencyTests.cs'
     IntegrationTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.IntegrationTests\ProjectEditorWorkspaceIntegrationTests.cs'
     Doc = Join-Path $RepositoryRoot 'docs\projects\EDITOR_LIFECYCLE.md'
 }
@@ -168,27 +183,37 @@ $surfaceCodeText = Get-Content -LiteralPath $paths.SurfaceCode -Raw
 $projectSurfaceCodeText = Get-Content -LiteralPath $paths.ProjectSurfaceCode -Raw
 $mainWindowText = Get-Content -LiteralPath $paths.MainWindow -Raw
 $testsText = Get-Content -LiteralPath $paths.Tests -Raw
+$concurrencyTestsText = Get-Content -LiteralPath $paths.ConcurrencyTests -Raw
 $integrationTestsText = Get-Content -LiteralPath $paths.IntegrationTests -Raw
 $docText = Get-Content -LiteralPath $paths.Doc -Raw
 
-Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $integrationTestsText $docText
+Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $concurrencyTestsText $integrationTestsText $docText
 Write-Host 'Static P06-006 editor lifecycle contract: PASS.'
 
 if ($RunFixtures) {
     $withoutVersion = $workspaceText.Replace('document.Version)', 'expectedVersion: null)', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $withoutVersion $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $integrationTestsText $docText } 'save without optimistic version token'
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutVersion $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $concurrencyTestsText $integrationTestsText $docText } 'save without optimistic version token'
 
     $withoutDirtyGuard = $workspaceText.Replace('if (document.IsDirty && !discardUnsavedChanges)', 'if (false)', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $withoutDirtyGuard $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $integrationTestsText $docText } 'dirty reload/close guard removed'
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutDirtyGuard $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $concurrencyTestsText $integrationTestsText $docText } 'dirty reload/close guard removed'
 
     $withoutInspection = $workspaceText.Replace('.InspectAsync(normalizedRoot, normalizedPath, cancellationToken)', '.ReadTextAsync(normalizedRoot, normalizedPath, cancellationToken)', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $withoutInspection $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $integrationTestsText $docText } 'large/binary preflight removed'
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutInspection $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $concurrencyTestsText $integrationTestsText $docText } 'large/binary preflight removed'
+
+    $withoutOperationSerialization = $workspaceText.Replace('await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(true);', 'await Task.CompletedTask.ConfigureAwait(true);', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutOperationSerialization $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $concurrencyTestsText $integrationTestsText $docText } 'editor operation serialization removed'
 
     $withoutRealServiceIntegration = $integrationTestsText.Replace('new FileSystemProjectFileService()', 'new FakeProjectFileService()', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $withoutRealServiceIntegration $docText } 'real safe-file-service integration removed'
+    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $concurrencyTestsText $withoutRealServiceIntegration $docText } 'real safe-file-service integration removed'
 
     $withoutShutdownGuard = $mainWindowText.Replace('Closing += OnWindowClosing;', 'Closing += RemovedWindowClosingGuard;', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $withoutShutdownGuard $testsText $integrationTestsText $docText } 'application shutdown dirty-buffer guard removed'
+    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $withoutShutdownGuard $testsText $concurrencyTestsText $integrationTestsText $docText } 'application shutdown dirty-buffer guard removed'
+
+    $withoutBusyShutdownGuard = $mainWindowText.Replace('editorWorkspace is { IsBusy: true }', 'false', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $withoutBusyShutdownGuard $testsText $concurrencyTestsText $integrationTestsText $docText } 'application shutdown in-flight editor guard removed'
+
+    $withoutConcurrencyRegression = $concurrencyTestsText.Replace('ConcurrentOpenSameFileIsSerializedAndReusesSingleTab', 'RemovedConcurrentOpenRegression', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $withoutConcurrencyRegression $integrationTestsText $docText } 'concurrent open regression coverage removed'
 
     Write-Host 'Negative P06-006 editor lifecycle fixtures: PASS.'
 }
