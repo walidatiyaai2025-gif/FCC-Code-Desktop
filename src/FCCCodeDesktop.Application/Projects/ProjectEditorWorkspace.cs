@@ -279,31 +279,38 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
     public void Close(ProjectEditorDocument document, bool discardUnsavedChanges)
     {
         ArgumentNullException.ThrowIfNull(document);
-        if (IsBusy)
+        if (!_operationGate.Wait(0))
         {
             throw new InvalidOperationException("Wait for the current editor operation to finish before closing a tab.");
         }
 
-        EnsureOwnedDocument(document);
-        if (document.IsDirty && !discardUnsavedChanges)
+        try
         {
-            throw new ProjectEditorDirtyException(
-                $"{document.RelativePath} has unsaved changes. Save or explicitly discard them before closing the tab.");
-        }
+            EnsureOwnedDocument(document);
+            if (document.IsDirty && !discardUnsavedChanges)
+            {
+                throw new ProjectEditorDirtyException(
+                    $"{document.RelativePath} has unsaved changes. Save or explicitly discard them before closing the tab.");
+            }
 
-        var index = _documents.IndexOf(document);
-        document.PropertyChanged -= OnDocumentPropertyChanged;
-        _documents.RemoveAt(index);
-        if (ReferenceEquals(SelectedDocument, document))
+            var index = _documents.IndexOf(document);
+            document.PropertyChanged -= OnDocumentPropertyChanged;
+            _documents.RemoveAt(index);
+            if (ReferenceEquals(SelectedDocument, document))
+            {
+                SelectedDocument = _documents.Count == 0
+                    ? null
+                    : _documents[Math.Min(index, _documents.Count - 1)];
+            }
+
+            OnPropertyChanged(nameof(HasDocuments));
+            SetError(null);
+            SetStatus($"Closed {document.RelativePath}.");
+        }
+        finally
         {
-            SelectedDocument = _documents.Count == 0
-                ? null
-                : _documents[Math.Min(index, _documents.Count - 1)];
+            _operationGate.Release();
         }
-
-        OnPropertyChanged(nameof(HasDocuments));
-        SetError(null);
-        SetStatus($"Closed {document.RelativePath}.");
     }
 
     private void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
