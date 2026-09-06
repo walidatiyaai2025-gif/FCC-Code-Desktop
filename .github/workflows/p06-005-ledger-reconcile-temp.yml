@@ -1,0 +1,50 @@
+name: P06-005 Ledger Reconcile Temp
+
+on:
+  push:
+    branches:
+      - worker-b/fccd-p06-005-reconcile
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-2025
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Reconcile ledger
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          $path = 'docs/TASK_LEDGER.md'
+          $text = [IO.File]::ReadAllText($path)
+          $oldRow = '| FCCD-P06-005 | Locally bundled code editor | PENDING |'
+          $newRow = '| FCCD-P06-005 | Locally bundled code editor | CLOSED |'
+          if (([regex]::Matches($text, [regex]::Escape($oldRow))).Count -ne 1) { throw 'Expected exactly one P06-005 PENDING row.' }
+          $text = $text.Replace($oldRow, $newRow)
+          $anchor = '`FCCD-P06-007` is CLOSED from the production bounded workspace search and permanent validation.'
+          if (([regex]::Matches($text, [regex]::Escape($anchor))).Count -ne 1) { throw 'Expected exactly one P06-007 provenance anchor.' }
+          $paragraph = '`FCCD-P06-005` is CLOSED from the production native locally bundled code-editor implementation and permanent validation. The implementation provides a WPF-only `CodeEditorControl` with multiline Unicode editing, deterministic CRLF/LF/lone-CR line metrics, no-wrap monospaced presentation, horizontal/vertical scrolling, Tab input, native undo, read-only propagation, line-number gutter, one-based caret status, semantic theme resources, and production `MainWindow` composition without taking P06-006 file-lifecycle ownership. Recovered exact candidate `b09dfcfa90fd737f11d564fb7155f4c48705a663` passed Windows CI run `34019277443` / run #285 including the dedicated P06-005 gate. PR #149 was normally merged as `5d5a09627dc2a11d1a7ee0692e706d7e89be0a23`; exact post-merge canonical-main Windows CI run `34019689317` / run #286 completed SUCCESS on that exact merge SHA. Task evidence: `evidence/phases/P06/P06_005_INTEGRATED_RECONCILIATION_2026-09-06.md`. This evidence is cloud/self-test plus canonical integration provenance only; it adds no owner-only obligation and does not claim P05 exit-gate PASS, P06 phase closure, release eligibility, or `VERIFIED_FINAL_COMPLETE`.'
+          $text = $text.Replace($anchor, $paragraph + [Environment]::NewLine + [Environment]::NewLine + $anchor)
+          [IO.File]::WriteAllText($path, $text, [Text.UTF8Encoding]::new($false))
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+          $status = @(git status --porcelain)
+          if ($status.Count -ne 1 -or -not ($status[0] -match 'docs/TASK_LEDGER.md')) { throw "Unexpected reconciliation diff: $($status -join '; ')" }
+
+      - name: Commit ledger reconciliation
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/TASK_LEDGER.md
+          git commit -m "docs: reconcile P06-005 in task ledger"
+          git push origin HEAD:worker-b/fccd-p06-005-reconcile
