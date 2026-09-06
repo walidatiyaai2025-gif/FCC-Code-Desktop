@@ -19,9 +19,11 @@ public sealed record ProjectSearchRequest(
     string Query,
     ProjectSearchMode Mode,
     bool MatchCase = false,
-    int MaximumResults = 500,
-    int MaximumFiles = 20_000,
-    long MaximumFileBytes = 4 * 1024 * 1024);
+    int MaximumResults = WorkspaceScalePolicy.DefaultMaximumSearchResults,
+    int MaximumFiles = WorkspaceScalePolicy.DefaultMaximumFilesPerOperation,
+    long MaximumFileBytes = WorkspaceScalePolicy.DefaultMaximumSearchFileBytes,
+    int MaximumMatchesPerFile = WorkspaceScalePolicy.DefaultMaximumSearchMatchesPerFile,
+    int MaximumTraversalDepth = WorkspaceScalePolicy.DefaultMaximumTraversalDepth);
 
 public sealed record ProjectSearchMatch(
     string FullPath,
@@ -46,7 +48,11 @@ public sealed record ProjectSearchResultSet(
     int MaximumResults,
     int MaximumFiles,
     long MaximumFileBytes,
-    bool LimitReached)
+    bool LimitReached,
+    int MaximumMatchesPerFile = WorkspaceScalePolicy.DefaultMaximumSearchMatchesPerFile,
+    int MaximumTraversalDepth = WorkspaceScalePolicy.DefaultMaximumTraversalDepth,
+    int MaximumPreviewCharacters = WorkspaceScalePolicy.DefaultMaximumPreviewCharacters,
+    int BinaryProbeBytes = WorkspaceScalePolicy.DefaultBinaryProbeBytes)
 {
     public bool HasMatches => Matches.Count > 0;
 }
