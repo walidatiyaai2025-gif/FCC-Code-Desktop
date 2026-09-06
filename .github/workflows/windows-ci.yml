@@ -60,3 +60,7 @@ jobs:
       - name: Validate P06-002 project technology detection
         shell: pwsh
         run: .\tools\projects\validate-project-technology-detection.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-003 lazy file explorer
+        shell: pwsh
+        run: .\tools\projects\validate-lazy-file-explorer.ps1 -RunFixtures -RequireRuntime
