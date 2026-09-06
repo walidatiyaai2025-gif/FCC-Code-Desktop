@@ -80,7 +80,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 
 - `FCCD-P07-001` — `IGitService` and repository detection — CLOSED.
 - `FCCD-P07-002` — Status/changed-files surface — CLOSED.
-- `FCCD-P07-003` — Diff viewer — PENDING.
+- `FCCD-P07-003` — Diff viewer — CLOSED.
 - `FCCD-P07-004` — Stage/unstage — PENDING.
 - `FCCD-P07-005` — Branch create/checkout — PENDING.
 - `FCCD-P07-006` — Fetch/pull — PENDING.
@@ -115,6 +115,20 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact post-merge P06-008 Large Workspace Safeguards: run `34040051678` / run #92 — SUCCESS.
 - Integrated evidence: `evidence/phases/P07/P07_002_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded read-only Git status/changed-file enumeration plus canonical integration provenance; no stage/unstage, diff, branch/fetch/pull, commit/push, P07 phase closure, P08 authorization, owner-only evidence, release eligibility, or `VERIFIED_FINAL_COMPLETE` is implied.
+
+## P07-003 integration provenance
+
+- Exact implementation candidate: `4f046aa1f39a3107d9e74ff1d889d66b0f881e42` from PR #169 (`worker-b/fccd-p07-003-diff-viewer`).
+- PR #169 exact-head Windows CI: run `34042982547` / run #384 — SUCCESS.
+- PR #169 exact-head P06-007 Workspace Search: run `34042982551` / run #113 — SUCCESS.
+- PR #169 exact-head P06-008 Large Workspace Safeguards: run `34042982600` / run #97 — SUCCESS.
+- Normal merge commit: `c4a743352d0858fce7ecaafbb8bcf2ffe4756d9b`.
+- Exact post-merge canonical-main Windows CI: run `34043423766` / run #385 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34043423776` / run #114 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34043423769` / run #98 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_003_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded read-only Git diff review plus canonical integration provenance; no stage/unstage, branch/fetch/pull, commit/push, P07 phase closure, P08 authorization, owner-only evidence, release eligibility, P11 implementation, or `VERIFIED_FINAL_COMPLETE` is implied.
+
 ## P07 cloud activation provenance
 
 - Source closed-phase canonical main: `38f01c2c07104b1e169a8fd4606f374e499cafc7`.
@@ -237,7 +251,6 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P05-006` — Stop/cancel/retry UX — CLOSED.
 - `FCCD-P05-007` — Markdown/code/diff content rendering — CLOSED.
 - `FCCD-P05-008` — Conversation virtualization/performance — CLOSED.
-
 ## P05-001 integration provenance
 
 - Exact implementation candidate: `b261a511222dfa79b77172b0fd390345b6af10c6`.
