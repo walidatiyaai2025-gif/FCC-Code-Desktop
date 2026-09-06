@@ -32,6 +32,7 @@ public partial class MainWindow : Window
         SizeChanged += OnViewportSizeChanged;
         DpiChanged += OnViewportDpiChanged;
         Closing += OnWindowClosing;
+        Closed += OnWindowClosed;
     }
 
     public async Task ActivateProjectSessionsAsync(Guid projectId, CancellationToken cancellationToken = default)
@@ -97,6 +98,11 @@ public partial class MainWindow : Window
         {
             e.Cancel = true;
         }
+    }
+
+    private void OnWindowClosed(object? sender, EventArgs e)
+    {
+        _projectWorkspaceSurface?.EditorWorkspace.Dispose();
     }
 
     private async void OnSessionPersistenceLoaded(object sender, RoutedEventArgs e)
