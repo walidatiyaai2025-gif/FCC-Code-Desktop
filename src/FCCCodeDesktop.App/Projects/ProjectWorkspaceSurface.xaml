@@ -36,7 +36,7 @@
                             <DataTrigger Binding="{Binding IsDirectory}" Value="True">
                                 <Setter Property="FontWeight" Value="SemiBold" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding IsPlaceholder}" Value="True">
+                            <DataTrigger Binding="{Binding IsStatusNode}" Value="True">
                                 <Setter Property="Foreground" Value="{DynamicResource FccBrushTextMuted}" />
                                 <Setter Property="FontStyle" Value="Italic" />
                             </DataTrigger>
@@ -279,6 +279,10 @@
                                                    TextTrimming="CharacterEllipsis"
                                                    Style="{StaticResource FccTextMetadata}"
                                                    Foreground="{DynamicResource FccBrushTextMuted}" />
+                                        <TextBlock Margin="0,3,16,0"
+                                                   Text="{Binding UpdatedUtc, StringFormat='Last opened {0:g}'}"
+                                                   Style="{StaticResource FccTextMetadata}"
+                                                   Foreground="{DynamicResource FccBrushTextSecondary}" />
                                     </StackPanel>
                                     <Button Grid.Column="1"
                                             MinWidth="72"
@@ -294,6 +298,38 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
+
+                <Border Grid.Row="1"
+                        Margin="0,8,0,0"
+                        Padding="{StaticResource FccInset20}"
+                        Background="{DynamicResource FccBrushSurface}"
+                        BorderBrush="{DynamicResource FccBrushDivider}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource FccRadiusMedium}">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasRecentProjects}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center"
+                                   Text="No recent projects"
+                                   Style="{StaticResource FccTextSection}"
+                                   Foreground="{DynamicResource FccBrushTextPrimary}" />
+                        <TextBlock Margin="0,4,0,0"
+                                   HorizontalAlignment="Center"
+                                   Text="Open an existing Git or non-Git folder. Only workspace metadata is stored; source files stay in place."
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Style="{StaticResource FccTextMetadata}"
+                                   Foreground="{DynamicResource FccBrushTextMuted}" />
+                    </StackPanel>
+                </Border>
             </Grid>
         </Grid>
 
