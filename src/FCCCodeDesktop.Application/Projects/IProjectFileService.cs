@@ -2,6 +2,11 @@ namespace FCCCodeDesktop.Application.Projects;
 
 public interface IProjectFileService
 {
+    Task<ProjectFileInspection> InspectAsync(
+        string projectRootPath,
+        string filePath,
+        CancellationToken cancellationToken = default);
+
     Task<ProjectTextFileSnapshot> ReadTextAsync(
         string projectRootPath,
         string filePath,
@@ -10,6 +15,27 @@ public interface IProjectFileService
     Task<ProjectFileWriteResult> WriteTextAsync(
         ProjectTextFileWriteRequest request,
         CancellationToken cancellationToken = default);
+}
+
+public enum ProjectFileContentKind
+{
+    Text,
+    Binary,
+    TooLarge,
+}
+
+public sealed record ProjectFileInspection(
+    string ProjectRootPath,
+    string FullPath,
+    string RelativePath,
+    long Length,
+    ProjectFileContentKind ContentKind,
+    string? Preview,
+    bool PreviewTruncated,
+    int MaximumPreviewCharacters,
+    ProjectTextEncoding? Encoding)
+{
+    public bool CanOpenAsNormalText => ContentKind == ProjectFileContentKind.Text;
 }
 
 public enum ProjectTextEncoding

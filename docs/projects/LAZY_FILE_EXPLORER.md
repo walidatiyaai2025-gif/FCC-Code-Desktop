@@ -28,6 +28,8 @@ Every requested directory is normalized and must remain lexically inside the act
 
 Non-ASCII names and paths containing spaces are supported through normal .NET path APIs; no shell command concatenation is used.
 
+P06-008 centralizes the entry and traversal-depth limits. Generated/vendor directories and directories at the configured maximum depth remain visible with typed restriction metadata, but cannot be expanded. This preserves orientation while preventing an accidental deep or generated-tree walk.
+
 ## Reparse-point policy
 
 Reparse-point entries may be displayed so the owner can see that they exist, but directories marked with `FileAttributes.ReparsePoint` are not expandable and are never traversed by the explorer service. This prevents a project tree from silently escaping its root through junctions or symbolic links.

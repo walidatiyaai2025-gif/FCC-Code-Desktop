@@ -187,6 +187,81 @@ public sealed class ProjectFileServiceTests
             new FileSystemProjectFileService(FileSystemProjectFileService.MaximumSupportedFileBytes + 1));
     }
 
+    [Fact]
+    public async Task InspectionClassifiesEmptyBinaryBoundaryAndLargeFilesWithoutMutation()
+    {
+        using var workspace = new TemporaryDirectory("fccd-p06-file-inspection");
+        var root = workspace.GetPath("project");
+        Directory.CreateDirectory(root);
+        var emptyPath = Path.Combine(root, "empty.txt");
+        var boundaryPath = Path.Combine(root, "boundary.txt");
+        var largePath = Path.Combine(root, "large.txt");
+        var binaryPath = Path.Combine(root, "binary.dat");
+        await File.WriteAllBytesAsync(emptyPath, [], CancellationToken.None);
+        await File.WriteAllTextAsync(boundaryPath, "12345678", new UTF8Encoding(false), CancellationToken.None);
+        await File.WriteAllTextAsync(
+            largePath,
+            "123456789 and this preview remains bounded beyond the configured file limit",
+            new UTF8Encoding(false),
+            CancellationToken.None);
+        var binaryBytes = new byte[] { 0x41, 0x00, 0x42, 0x43 };
+        await File.WriteAllBytesAsync(binaryPath, binaryBytes, CancellationToken.None);
+        var largeBytes = await File.ReadAllBytesAsync(largePath, CancellationToken.None);
+        var policy = new WorkspaceScalePolicy(
+            maximumTextFileBytes: 8,
+            maximumPreviewCharacters: 32,
+            binaryProbeBytes: 64);
+        var service = new FileSystemProjectFileService(policy);
+
+        var empty = await service.InspectAsync(root, emptyPath, CancellationToken.None);
+        var boundary = await service.InspectAsync(root, boundaryPath, CancellationToken.None);
+        var large = await service.InspectAsync(root, largePath, CancellationToken.None);
+        var binary = await service.InspectAsync(root, binaryPath, CancellationToken.None);
+
+        Assert.Equal(ProjectFileContentKind.Text, empty.ContentKind);
+        Assert.Equal(string.Empty, empty.Preview);
+        Assert.False(empty.PreviewTruncated);
+        Assert.True(empty.CanOpenAsNormalText);
+        Assert.Equal(ProjectFileContentKind.Text, boundary.ContentKind);
+        Assert.Equal("12345678", boundary.Preview);
+        Assert.False(boundary.PreviewTruncated);
+        Assert.Equal(ProjectFileContentKind.TooLarge, large.ContentKind);
+        Assert.Equal(32, large.Preview?.Length);
+        Assert.True(large.PreviewTruncated);
+        Assert.False(large.CanOpenAsNormalText);
+        Assert.Equal(ProjectFileContentKind.Binary, binary.ContentKind);
+        Assert.Null(binary.Preview);
+        Assert.Equal(binaryBytes, await File.ReadAllBytesAsync(binaryPath, CancellationToken.None));
+        Assert.Equal(largeBytes, await File.ReadAllBytesAsync(largePath, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task InspectionSupportsBomUnicodeArabicAndRecoversAfterCancellationAndFailure()
+    {
+        using var workspace = new TemporaryDirectory("fccd-p06-file-inspection-recovery");
+        var root = workspace.GetPath("مشروع files with spaces");
+        Directory.CreateDirectory(root);
+        var unicodePath = Path.Combine(root, "ملف كبير.txt");
+        const string content = "مرحبا بالعالم — Unicode preview";
+        await File.WriteAllTextAsync(unicodePath, content, Encoding.Unicode, CancellationToken.None);
+        var service = new FileSystemProjectFileService();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            service.InspectAsync(root, unicodePath, cancellation.Token));
+        _ = await Assert.ThrowsAsync<FileNotFoundException>(() =>
+            service.InspectAsync(root, Path.Combine(root, "missing.txt"), CancellationToken.None));
+
+        var recovered = await service.InspectAsync(root, unicodePath, CancellationToken.None);
+        Assert.Equal(ProjectFileContentKind.Text, recovered.ContentKind);
+        Assert.Equal(ProjectTextEncoding.Utf16LittleEndian, recovered.Encoding);
+        Assert.Equal(content, recovered.Preview);
+        Assert.Equal("ملف كبير.txt", recovered.RelativePath);
+        Assert.False(recovered.PreviewTruncated);
+        Assert.Equal(content, await File.ReadAllTextAsync(unicodePath, Encoding.Unicode, CancellationToken.None));
+    }
+
     private static byte[] Combine(byte[] prefix, byte[] payload)
     {
         var result = new byte[prefix.Length + payload.Length];

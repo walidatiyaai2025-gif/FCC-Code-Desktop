@@ -28,7 +28,7 @@
                                   ItemsSource="{Binding Children}">
             <TextBlock Text="{Binding DisplayName}"
                        TextTrimming="CharacterEllipsis"
-                       ToolTip="{Binding RelativePath}">
+                       ToolTip="{Binding ToolTipText}">
                 <TextBlock.Style>
                     <Style TargetType="TextBlock" BasedOn="{StaticResource FccTextBody}">
                         <Setter Property="Foreground" Value="{DynamicResource FccBrushTextPrimary}" />
@@ -42,6 +42,9 @@
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsError}" Value="True">
                                 <Setter Property="Foreground" Value="{DynamicResource FccBrushError}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsTraversalRestricted}" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource FccBrushTextMuted}" />
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
