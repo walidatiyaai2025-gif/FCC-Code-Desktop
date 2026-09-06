@@ -89,8 +89,8 @@ function Assert-LocalEditorContract {
         'public static class CodeEditorTextMetrics',
         'public static int CountLogicalLines(string? text)',
         'public static CodeEditorCaretPosition GetCaretPosition(string? text, int caretIndex)',
-        "text[index] == '\\r'",
-        "text[index] == '\\n'",
+        "text[index] == '\r'",
+        "text[index] == '\n'",
         'Math.Clamp(caretIndex, 0, text.Length)',
         'return new CodeEditorCaretPosition(line, column);'
     )) {
@@ -229,7 +229,10 @@ internal static class Program
 
     private static void AssertProductionControl()
     {
-        var app = new App();
+        var app = new App
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown,
+        };
         app.InitializeComponent();
         var mainWindow = new MainWindow();
         var editor = mainWindow.Resources["LocalCodeEditor"] as CodeEditorControl
@@ -265,8 +268,12 @@ internal static class Program
         Assert(textBox.Text.Contains("مرحبا", StringComparison.Ordinal), "Unicode editor content retained");
         Assert(textBox.Text.Contains('\t'), "Tab content retained");
         Assert(textBox.TextWrapping == TextWrapping.NoWrap, "code content does not wrap");
-        Assert(textBox.HorizontalScrollBarVisibility == ScrollBarVisibility.Auto, "horizontal scrolling enabled");
-        Assert(textBox.VerticalScrollBarVisibility == ScrollBarVisibility.Auto, "vertical scrolling enabled");
+        Assert(
+            ScrollViewer.GetHorizontalScrollBarVisibility(textBox) == ScrollBarVisibility.Auto,
+            "horizontal scrolling enabled");
+        Assert(
+            ScrollViewer.GetVerticalScrollBarVisibility(textBox) == ScrollBarVisibility.Auto,
+            "vertical scrolling enabled");
         Assert(gutter.Text.Split('\n').Length == 3, "three logical line numbers rendered");
 
         textBox.CaretIndex = textBox.Text.IndexOf("world", StringComparison.Ordinal) + 2;
@@ -284,6 +291,7 @@ internal static class Program
 
         host.Close();
         mainWindow.Close();
+        app.Shutdown();
     }
 
     private static void Assert(bool condition, string label)
