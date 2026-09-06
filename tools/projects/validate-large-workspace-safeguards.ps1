@@ -77,7 +77,8 @@ function Assert-LargeWorkspaceContract {
 
     foreach ($literal in @(
         'FileSystemProjectFileExplorerService(WorkspaceScalePolicy policy)',
-        '_policy.MaximumDirectoryEntries',
+        '_maximumEntriesPerDirectory = policy.MaximumDirectoryEntries',
+        '.Take(_maximumEntriesPerDirectory + 1)',
         '_policy.MaximumTraversalDepth',
         '_policy.ShouldExcludeDirectory(name)',
         'EnsureNoReparseTraversal(normalizedRootPath, normalizedDirectoryPath)',
@@ -264,6 +265,14 @@ if ($RunFixtures) {
             $text.ExplorerContract $text.ExplorerService $text.FileContract $text.FileService $text.SearchContract $text.SearchService `
             $text.PolicyTests $text.ExplorerTests $text.FileTests $text.SearchTests $text.Docs
     } 'finite traversal depth default removed'
+
+    Assert-ContractRejects {
+        Assert-LargeWorkspaceContract `
+            $text.Policy $text.ExplorerContract `
+            ($text.ExplorerService.Replace('.Take(_maximumEntriesPerDirectory + 1)', '.Skip(0)')) `
+            $text.FileContract $text.FileService $text.SearchContract $text.SearchService `
+            $text.PolicyTests $text.ExplorerTests $text.FileTests $text.SearchTests $text.Docs
+    } 'explorer materialization entry bound removed'
 
     Assert-ContractRejects {
         Assert-LargeWorkspaceContract `
