@@ -9,6 +9,14 @@ public sealed class FileSystemProjectFileService : IProjectFileService
     public const int DefaultMaximumFileBytes = 8 * 1024 * 1024;
     public const int MaximumSupportedFileBytes = 128 * 1024 * 1024;
 
+    private static readonly byte[] Utf8Bom = [0xEF, 0xBB, 0xBF];
+    private static readonly byte[] Utf16LittleEndianBom = [0xFF, 0xFE];
+    private static readonly byte[] Utf16BigEndianBom = [0xFE, 0xFF];
+    private static readonly char[] DirectorySeparators =
+    [
+        Path.DirectorySeparatorChar,
+        Path.AltDirectorySeparatorChar,
+    ];
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private static readonly UnicodeEncoding StrictUtf16LittleEndian = new(false, false, true);
     private static readonly UnicodeEncoding StrictUtf16BigEndian = new(true, false, true);
@@ -295,9 +303,7 @@ public sealed class FileSystemProjectFileService : IProjectFileService
         }
 
         var relativeDirectory = Path.GetRelativePath(rootPath, directoryPath);
-        var segments = relativeDirectory.Split(
-            [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
-            StringSplitOptions.RemoveEmptyEntries);
+        var segments = relativeDirectory.Split(DirectorySeparators, StringSplitOptions.RemoveEmptyEntries);
         var currentPath = rootPath;
 
         foreach (var segment in segments)
@@ -348,24 +354,30 @@ public sealed class FileSystemProjectFileService : IProjectFileService
     {
         try
         {
-            if (bytes.AsSpan().StartsWith([0xEF, 0xBB, 0xBF]))
+            if (bytes.AsSpan().StartsWith(Utf8Bom))
             {
                 return new DecodedText(
-                    StrictUtf8.GetString(bytes, 3, bytes.Length - 3),
+                    StrictUtf8.GetString(bytes, Utf8Bom.Length, bytes.Length - Utf8Bom.Length),
                     ProjectTextEncoding.Utf8WithBom);
             }
 
-            if (bytes.AsSpan().StartsWith([0xFF, 0xFE]))
+            if (bytes.AsSpan().StartsWith(Utf16LittleEndianBom))
             {
                 return new DecodedText(
-                    StrictUtf16LittleEndian.GetString(bytes, 2, bytes.Length - 2),
+                    StrictUtf16LittleEndian.GetString(
+                        bytes,
+                        Utf16LittleEndianBom.Length,
+                        bytes.Length - Utf16LittleEndianBom.Length),
                     ProjectTextEncoding.Utf16LittleEndian);
             }
 
-            if (bytes.AsSpan().StartsWith([0xFE, 0xFF]))
+            if (bytes.AsSpan().StartsWith(Utf16BigEndianBom))
             {
                 return new DecodedText(
-                    StrictUtf16BigEndian.GetString(bytes, 2, bytes.Length - 2),
+                    StrictUtf16BigEndian.GetString(
+                        bytes,
+                        Utf16BigEndianBom.Length,
+                        bytes.Length - Utf16BigEndianBom.Length),
                     ProjectTextEncoding.Utf16BigEndian);
             }
 
@@ -383,9 +395,11 @@ public sealed class FileSystemProjectFileService : IProjectFileService
         encoding switch
         {
             ProjectTextEncoding.Utf8 => StrictUtf8.GetBytes(text),
-            ProjectTextEncoding.Utf8WithBom => CombinePreamble([0xEF, 0xBB, 0xBF], StrictUtf8.GetBytes(text)),
-            ProjectTextEncoding.Utf16LittleEndian => CombinePreamble([0xFF, 0xFE], StrictUtf16LittleEndian.GetBytes(text)),
-            ProjectTextEncoding.Utf16BigEndian => CombinePreamble([0xFE, 0xFF], StrictUtf16BigEndian.GetBytes(text)),
+            ProjectTextEncoding.Utf8WithBom => CombinePreamble(Utf8Bom, StrictUtf8.GetBytes(text)),
+            ProjectTextEncoding.Utf16LittleEndian =>
+                CombinePreamble(Utf16LittleEndianBom, StrictUtf16LittleEndian.GetBytes(text)),
+            ProjectTextEncoding.Utf16BigEndian =>
+                CombinePreamble(Utf16BigEndianBom, StrictUtf16BigEndian.GetBytes(text)),
             _ => throw new ArgumentOutOfRangeException(nameof(encoding), encoding, "Unsupported project text encoding."),
         };
 
