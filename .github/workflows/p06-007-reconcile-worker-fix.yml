@@ -1,0 +1,49 @@
+name: P06-007 Reconciliation Worker Fix
+
+on:
+  push:
+    branches:
+      - worker/fccd-p06-007-reconcile
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: windows-2025
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Repair assertion and self-remove
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          $path = '.github/workflows/p06-007-reconcile-worker.yml'
+          $text = [IO.File]::ReadAllText($path)
+          $old = @(
+            "          foreach (`$required in @('CURRENT_PHASE.md', 'docs/TASK_LEDGER.md', 'evidence/phases/P06/P06_007_INTEGRATED_RECONCILIATION_2026-09-06.md')) {",
+            '            if (@(git diff --name-only) -notcontains $required) { throw "Expected reconciliation change missing: $required" }',
+            '          }'
+          ) -join "`n"
+          $new = @(
+            "          foreach (`$required in @('CURRENT_PHASE.md', 'docs/TASK_LEDGER.md')) {",
+            '            if (@(git diff --name-only) -notcontains $required) { throw "Expected reconciliation change missing: $required" }',
+            '          }',
+            "          if (-not (Test-Path -LiteralPath 'evidence/phases/P06/P06_007_INTEGRATED_RECONCILIATION_2026-09-06.md')) { throw 'Expected reconciliation evidence file is missing.' }"
+          ) -join "`n"
+          if (-not $text.Contains($old, [StringComparison]::Ordinal)) { throw 'Target assertion block was not found exactly once.' }
+          $text = $text.Replace($old, $new)
+          [IO.File]::WriteAllText($path, $text, [Text.UTF8Encoding]::new($false))
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/p06-007-reconcile-worker-fix.yml
+          git add .github/workflows/p06-007-reconcile-worker.yml
+          git commit -m "Repair P06-007 reconciliation validator"
+          git push origin HEAD:worker/fccd-p06-007-reconcile
