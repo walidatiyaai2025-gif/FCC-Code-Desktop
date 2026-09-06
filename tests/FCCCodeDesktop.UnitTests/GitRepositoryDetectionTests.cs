@@ -1,6 +1,7 @@
 using FCCCodeDesktop.Application.Git;
 using FCCCodeDesktop.Git;
 using FCCCodeDesktop.Testing;
+using Xunit;
 
 namespace FCCCodeDesktop.UnitTests;
 
