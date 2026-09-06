@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:chrome="clr-namespace:FCCCodeDesktop.App.Shell"
         xmlns:conversation="clr-namespace:FCCCodeDesktop.App.Conversation"
+        xmlns:editor="clr-namespace:FCCCodeDesktop.App.Editor"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="FCC Code Desktop"
         Width="1200"
@@ -30,6 +31,7 @@
         <conversation:SessionWorkspaceSurface x:Key="SessionWorkspaceSurface"
                                               ConversationContent="{StaticResource ConversationSurface}" />
         <conversation:TaskExecutionSurface x:Key="TaskExecutionSurface" />
+        <editor:CodeEditorControl x:Key="LocalCodeEditor" />
     </Window.Resources>
 
     <shell:WindowChrome.WindowChrome>
