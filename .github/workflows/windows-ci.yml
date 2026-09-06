@@ -65,6 +65,10 @@ jobs:
         shell: pwsh
         run: .\tools\projects\validate-lazy-file-explorer.ps1 -RunFixtures -RequireRuntime
 
+      - name: Validate P06-004 safe file service
+        shell: pwsh
+        run: .\tools\projects\validate-safe-file-service.ps1 -RunFixtures -RequireRuntime
+
       - name: Validate P06-005 local code editor
         shell: pwsh
         run: .\tools\ui\validate-local-code-editor.ps1 -RunFixtures -RequireRuntime
