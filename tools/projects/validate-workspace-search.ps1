@@ -42,22 +42,31 @@ function Assert-WorkspaceSearchContract {
         'Content,',
         'FileName,',
         'RegularExpression,',
-        'MaximumResults = 500',
-        'MaximumFiles = 20_000',
-        'MaximumFileBytes = 4 * 1024 * 1024',
+        'MaximumResults = WorkspaceScalePolicy.DefaultMaximumSearchResults',
+        'MaximumFiles = WorkspaceScalePolicy.DefaultMaximumFilesPerOperation',
+        'MaximumFileBytes = WorkspaceScalePolicy.DefaultMaximumSearchFileBytes',
+        'MaximumMatchesPerFile = WorkspaceScalePolicy.DefaultMaximumSearchMatchesPerFile',
+        'MaximumTraversalDepth = WorkspaceScalePolicy.DefaultMaximumTraversalDepth',
         'ProjectSearchQueryException'
     )) { Assert-ContainsLiteral $ContractText $literal 'IProjectSearchService.cs' }
 
     foreach ($literal in @(
         'public sealed class FileSystemProjectSearchService',
-        'MaximumSupportedResults = 5_000',
-        'MaximumSupportedFiles = 100_000',
-        'MaximumSupportedFileBytes = 64L * 1024 * 1024',
+        'MaximumSupportedResults = WorkspaceScalePolicy.MaximumSupportedSearchResults',
+        'MaximumSupportedFiles = WorkspaceScalePolicy.MaximumSupportedFilesPerOperation',
+        'MaximumSupportedFileBytes = WorkspaceScalePolicy.MaximumSupportedSearchFileBytes',
+        'MaximumSupportedMatchesPerFile = WorkspaceScalePolicy.MaximumSupportedSearchMatchesPerFile',
+        'MaximumSupportedTraversalDepth = WorkspaceScalePolicy.MaximumSupportedTraversalDepth',
         'RegularExpressionTimeout = TimeSpan.FromMilliseconds(250)',
+        'public FileSystemProjectSearchService(WorkspaceScalePolicy policy)',
         'Task.Run(() => SearchCore(request, cancellationToken), cancellationToken)',
-        'Directory.EnumerateFileSystemEntries(directoryPath)',
+        'Directory.EnumerateFileSystemEntries(currentDirectory.Path)',
         'FileAttributes.ReparsePoint',
-        'IgnoredDirectoryNames.Contains(directoryName)',
+        '_policy.ShouldExcludeDirectory(directoryName)',
+        'currentDirectory.Depth >= request.MaximumTraversalDepth',
+        'request.MaximumMatchesPerFile',
+        '_policy.BinaryProbeBytes',
+        '_policy.MaximumPreviewCharacters',
         'cancellationToken.ThrowIfCancellationRequested()',
         'RegexMatchTimeoutException',
         'throwOnInvalidBytes: true',
@@ -131,6 +140,8 @@ function Assert-WorkspaceSearchContract {
         'SearchSkipsGeneratedDirectoriesBinaryAndOversizedFiles',
         'SearchSupportsBomEncodedTextAndNeverTraversesIgnoredGitMetadata',
         'ResultAndFileCapsAreBoundedAndReported',
+        'SharedPolicyBoundsTraversalPerFileMatchesAndReportsMetadataWithoutMutation',
+        'SearchRejectsRequestsAboveInjectedWorkspacePolicy',
         'CancellationMissingRootAndInvalidBoundsFailExplicitly',
         'مشروع search with spaces'
     )) { Assert-ContainsLiteral $TestText $literal 'ProjectSearchServiceTests.cs' }
@@ -204,8 +215,14 @@ if ($RunFixtures) {
         Assert-WorkspaceSearchContract $contractText ($serviceText.Replace('cancellationToken.ThrowIfCancellationRequested()', 'RemovedCancellationCheck()')) $stateText $searchXamlText $searchCodeText $workspaceCodeText $testText $docText
     } 'cancellation checks removed'
     Assert-ContractRejects {
-        Assert-WorkspaceSearchContract ($contractText.Replace('MaximumResults = 500', 'MaximumResults = int.MaxValue')) $serviceText $stateText $searchXamlText $searchCodeText $workspaceCodeText $testText $docText
+        Assert-WorkspaceSearchContract ($contractText.Replace('MaximumResults = WorkspaceScalePolicy.DefaultMaximumSearchResults', 'MaximumResults = int.MaxValue')) $serviceText $stateText $searchXamlText $searchCodeText $workspaceCodeText $testText $docText
     } 'default result bound removed'
+    Assert-ContractRejects {
+        Assert-WorkspaceSearchContract $contractText ($serviceText.Replace('currentDirectory.Depth >= request.MaximumTraversalDepth', 'false')) $stateText $searchXamlText $searchCodeText $workspaceCodeText $testText $docText
+    } 'traversal depth bound removed'
+    Assert-ContractRejects {
+        Assert-WorkspaceSearchContract $contractText ($serviceText.Replace('request.MaximumMatchesPerFile', 'int.MaxValue')) $stateText $searchXamlText $searchCodeText $workspaceCodeText $testText $docText
+    } 'per-file match bound removed'
     Assert-ContractRejects {
         Assert-WorkspaceSearchContract $contractText $serviceText $stateText ($searchXamlText.Replace('VirtualizingPanel.IsVirtualizing="True"', 'VirtualizingPanel.IsVirtualizing="False"')) $searchCodeText $workspaceCodeText $testText $docText
     } 'result virtualization removed'
