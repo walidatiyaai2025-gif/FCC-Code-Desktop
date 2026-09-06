@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -30,6 +31,8 @@ public partial class MainWindow : Window
         Loaded += OnViewportLoaded;
         SizeChanged += OnViewportSizeChanged;
         DpiChanged += OnViewportDpiChanged;
+        Closing += OnWindowClosing;
+        Closed += OnWindowClosed;
     }
 
     public async Task ActivateProjectSessionsAsync(Guid projectId, CancellationToken cancellationToken = default)
@@ -60,6 +63,46 @@ public partial class MainWindow : Window
         composerState.SubmissionRequested += OnComposerSubmissionRequested;
         navigationState.SessionsContent = sessionWorkspaceSurface;
         navigationState.TasksContent = taskExecutionSurface;
+    }
+
+    private void OnWindowClosing(object? sender, CancelEventArgs e)
+    {
+        var editorWorkspace = _projectWorkspaceSurface?.EditorWorkspace;
+        if (editorWorkspace is { IsBusy: true })
+        {
+            e.Cancel = true;
+            MessageBox.Show(
+                this,
+                "An editor save, reload, or open operation is still in progress. Wait for it to finish before exiting FCC Code Desktop.",
+                "Editor operation in progress",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+
+        var dirtyDocumentCount = editorWorkspace?.Documents.Count(document => document.IsDirty) ?? 0;
+        if (dirtyDocumentCount == 0)
+        {
+            return;
+        }
+
+        var noun = dirtyDocumentCount == 1 ? "tab has" : "tabs have";
+        var result = MessageBox.Show(
+            this,
+            $"{dirtyDocumentCount} editor {noun} unsaved changes. Discard those changes and exit FCC Code Desktop?",
+            "Unsaved editor changes",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning,
+            MessageBoxResult.No);
+        if (result != MessageBoxResult.Yes)
+        {
+            e.Cancel = true;
+        }
+    }
+
+    private void OnWindowClosed(object? sender, EventArgs e)
+    {
+        _projectWorkspaceSurface?.EditorWorkspace.Dispose();
     }
 
     private async void OnSessionPersistenceLoaded(object sender, RoutedEventArgs e)

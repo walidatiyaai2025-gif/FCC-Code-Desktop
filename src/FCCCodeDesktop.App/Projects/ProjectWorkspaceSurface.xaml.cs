@@ -2,6 +2,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using FCCCodeDesktop.App.Editor;
+using FCCCodeDesktop.Application.Projects;
 using FCCCodeDesktop.Core.State;
 using FCCCodeDesktop.Files;
 using Microsoft.Win32;
@@ -20,8 +22,13 @@ public partial class ProjectWorkspaceSurface : UserControl
     {
         FileExplorerState = new ProjectFileExplorerState(new FileSystemProjectFileExplorerService());
         SearchState = new ProjectSearchState(new FileSystemProjectSearchService());
+        EditorWorkspace = new ProjectEditorWorkspace(new FileSystemProjectFileService());
         InitializeComponent();
         AttachSearchSurface();
+        AttachEditorSurface();
+        AddHandler(
+            TreeView.SelectedItemChangedEvent,
+            new RoutedPropertyChangedEventHandler<object>(OnFileExplorerSelectionChanged));
     }
 
     public ProjectWorkspaceState? State
@@ -32,6 +39,7 @@ public partial class ProjectWorkspaceSurface : UserControl
 
     public ProjectFileExplorerState FileExplorerState { get; }
     public ProjectSearchState SearchState { get; }
+    public ProjectEditorWorkspace EditorWorkspace { get; }
 
     private static void OnStateChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
     {
@@ -46,11 +54,13 @@ public partial class ProjectWorkspaceSurface : UserControl
             newState.PropertyChanged += surface.OnProjectStatePropertyChanged;
             surface.FileExplorerState.SetProject(newState.ActiveProject);
             surface.SearchState.SetProject(newState.ActiveProject);
+            surface.EditorWorkspace.SetActiveProject(newState.ActiveProject?.RootPath);
         }
         else
         {
             surface.FileExplorerState.SetProject(null);
             surface.SearchState.SetProject(null);
+            surface.EditorWorkspace.SetActiveProject(null);
         }
     }
 
@@ -60,28 +70,21 @@ public partial class ProjectWorkspaceSurface : UserControl
         {
             FileExplorerState.SetProject(State?.ActiveProject);
             SearchState.SetProject(State?.ActiveProject);
+            EditorWorkspace.SetActiveProject(State?.ActiveProject?.RootPath);
         }
     }
 
     private void AttachSearchSurface()
     {
-        if (Content is not Grid workspaceGrid)
-        {
-            throw new InvalidOperationException("Project workspace root must remain a Grid so search can compose with the file surface.");
-        }
-
-        var contentGrid = workspaceGrid.Children
-            .OfType<Grid>()
-            .SingleOrDefault(child => Grid.GetRow(child) == 2)
-            ?? throw new InvalidOperationException("Project workspace content grid was not found for search composition.");
-
+        var contentGrid = GetWorkspaceContentGrid();
         if (contentGrid.ColumnDefinitions.Count != 0)
         {
-            throw new InvalidOperationException("Project workspace content grid already defines columns; search composition must be reconciled explicitly.");
+            throw new InvalidOperationException("Project workspace content grid already defines columns; search/editor composition must be reconciled explicitly.");
         }
 
         contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1.35, GridUnitType.Star) });
 
         var searchSurface = new ProjectSearchSurface
         {
@@ -92,6 +95,38 @@ public partial class ProjectWorkspaceSurface : UserControl
         Grid.SetRowSpan(searchSurface, 2);
         Grid.SetColumn(searchSurface, 1);
         contentGrid.Children.Add(searchSurface);
+    }
+
+    private void AttachEditorSurface()
+    {
+        var contentGrid = GetWorkspaceContentGrid();
+        if (contentGrid.ColumnDefinitions.Count != 3)
+        {
+            throw new InvalidOperationException("Project editor requires the canonical file/search workspace columns to be composed first.");
+        }
+
+        var editorSurface = new ProjectEditorSurface
+        {
+            Workspace = EditorWorkspace,
+            Margin = new Thickness(12, 0, 0, 0),
+        };
+        Grid.SetRow(editorSurface, 0);
+        Grid.SetRowSpan(editorSurface, 2);
+        Grid.SetColumn(editorSurface, 2);
+        contentGrid.Children.Add(editorSurface);
+    }
+
+    private Grid GetWorkspaceContentGrid()
+    {
+        if (Content is not Grid workspaceGrid)
+        {
+            throw new InvalidOperationException("Project workspace root must remain a Grid so editor/search tools can compose with the file surface.");
+        }
+
+        return workspaceGrid.Children
+            .OfType<Grid>()
+            .SingleOrDefault(child => Grid.GetRow(child) == 2)
+            ?? throw new InvalidOperationException("Project workspace content grid was not found for editor/search composition.");
     }
 
     private async void OnOpenProjectClick(object sender, RoutedEventArgs e)
@@ -178,6 +213,35 @@ public partial class ProjectWorkspaceSurface : UserControl
                                            or InvalidOperationException)
         {
             // ProjectFileExplorerState records the actionable message inline on the affected node.
+        }
+    }
+
+    private async void OnFileExplorerSelectionChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        if (e.NewValue is not ProjectFileTreeNode
+            {
+                IsDirectory: false,
+                IsStatusNode: false,
+                IsReparsePoint: false,
+            } node
+            || State?.ActiveProject is not { } project)
+        {
+            return;
+        }
+
+        try
+        {
+            _ = await EditorWorkspace
+                .OpenAsync(project.RootPath, node.FullPath, CancellationToken.None)
+                .ConfigureAwait(true);
+        }
+        catch (Exception exception) when (exception is ProjectEditorOpenException
+                                           or IOException
+                                           or UnauthorizedAccessException
+                                           or ArgumentException
+                                           or InvalidOperationException)
+        {
+            // ProjectEditorWorkspace exposes the refusal/failure and never mutates the source file on open.
         }
     }
 

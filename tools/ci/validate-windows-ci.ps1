@@ -46,6 +46,7 @@ function Assert-CiPolicy {
         '.\tools\projects\validate-lazy-file-explorer.ps1 -RunFixtures -RequireRuntime',
         '.\tools\projects\validate-safe-file-service.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-local-code-editor.ps1 -RunFixtures -RequireRuntime',
+        '.\tools\ui\validate-editor-lifecycle.ps1 -RunFixtures -RequireRuntime',
         '.\tools\projects\validate-large-workspace-safeguards.ps1 -RunFixtures -RequireRuntime'
     )) {
         Assert-ContainsLiteral $WorkflowText $requiredWorkflowText 'Windows CI workflow'
@@ -145,6 +146,7 @@ Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\projects\
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\projects\validate-lazy-file-explorer.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P06-003 lazy-explorer validation'
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\projects\validate-safe-file-service.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P06-004 safe-file validation'
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\validate-local-code-editor.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P06-005 local-editor validation'
+Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\validate-editor-lifecycle.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P06-006 editor-lifecycle validation'
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\projects\validate-large-workspace-safeguards.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P06-008 large-workspace validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('--locked-mode', '')) } 'unlocked restore'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-c Release', '-c Debug')) } 'non-Release build'
@@ -173,7 +175,7 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-dpi-layout.ps1 -RunFixtures -RequireRuntime', '')) } 'missing DPI/resolution layout validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, P05-005 task-state gate, P05-006 task-controls gate, P05-007 content-rendering gate, P05-008 conversation virtualization gate, P06-001 project-workflow gate, P06-002 project-technology gate, P06-003 lazy-explorer gate, P06-004 safe-file gate, P06-005 local-editor gate, P06-008 large-workspace gate, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, conversation-composer, session-workspace, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, P05-005 task-state gate, P05-006 task-controls gate, P05-007 content-rendering gate, P05-008 conversation virtualization gate, P06-001 project-workflow gate, P06-002 project-technology gate, P06-003 lazy-explorer gate, P06-004 safe-file gate, P06-005 local-editor gate, P06-006 editor-lifecycle gate, P06-008 large-workspace gate, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, conversation-composer, session-workspace, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {
