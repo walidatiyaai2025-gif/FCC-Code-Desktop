@@ -1,4 +1,5 @@
 using FCCCodeDesktop.Application.Projects;
+using Xunit;
 
 namespace FCCCodeDesktop.UnitTests;
 
