@@ -1,0 +1,60 @@
+name: Temporary P07-011 Reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p07-011-integrated-closure
+    paths:
+      - .github/workflows/tmp-p07-011-reconcile.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Guard exact canonical base
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="f889b901ebc9fda362813c18827585551775e877"
+          git fetch origin main --depth=1
+          actual="$(git rev-parse origin/main)"
+          test "$actual" = "$expected" || { echo "main moved: $actual"; exit 1; }
+
+      - name: Apply guarded reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python .github/tmp-p07-011-reconcile.py
+
+      - name: Commit only durable reconciliation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/tmp-p07-011-reconcile.py
+          rm .github/workflows/tmp-p07-011-reconcile.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: reconcile P07-011 integrated closure"
+          expected="f889b901ebc9fda362813c18827585551775e877"
+          git fetch origin "$expected" --depth=1
+          mapfile -t changed < <(git diff --name-only "$expected" HEAD | sort)
+          expected_files=(
+            "CURRENT_PHASE.md"
+            "PROJECT_CONTROL.md"
+            "docs/TASK_LEDGER.md"
+            "evidence/phases/P07/P07_011_INTEGRATED_RECONCILIATION_2026-09-07.md"
+          )
+          mapfile -t wanted < <(printf '%s\n' "${expected_files[@]}" | sort)
+          test "${#changed[@]}" -eq "${#wanted[@]}"
+          for i in "${!wanted[@]}"; do
+            test "${changed[$i]}" = "${wanted[$i]}"
+          done
+          git push origin HEAD:reconcile/fccd-p07-011-integrated-closure
