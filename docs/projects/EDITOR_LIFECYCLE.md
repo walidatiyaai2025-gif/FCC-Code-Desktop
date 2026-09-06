@@ -6,6 +6,8 @@
 
 Selecting a normal text file in the project explorer opens one editor tab for that project-root/file pair. Selecting the same file again activates the existing tab rather than duplicating buffers. Each tab retains its original project root, normalized full path, relative path, encoding, newline policy, observed optimistic version token, and language label.
 
+Editor open/save/reload lifecycle operations are serialized through one workspace operation gate. Concurrent opens for the same project/file pair are therefore rechecked after the earlier operation completes and reuse the already-created tab instead of racing into duplicate buffers. Synchronous close also fails closed while another lifecycle operation owns the gate.
+
 Changing the active project does not silently retarget existing tabs. A tab always saves back through the project root it was opened from, so a later project switch cannot redirect an unsaved buffer into another workspace.
 
 ## Safe open behavior
@@ -19,6 +21,7 @@ A document becomes dirty when its editor buffer differs from the last loaded or 
 - reload requires explicit discard confirmation;
 - close requires explicit discard confirmation;
 - application shutdown is cancelled by default while dirty editor tabs exist unless the user explicitly confirms discarding them;
+- application shutdown is always cancelled while an editor open/save/reload operation is still in flight, so the process cannot exit through the normal UI in the middle of a lifecycle operation;
 - changing the active project leaves existing tabs attached to their original roots;
 - failed save/reload operations retain the current buffer.
 
@@ -38,7 +41,7 @@ Reload re-runs the P06-008 inspection boundary before materialization. A file th
 
 ## Validation
 
-Focused unit tests cover tab reuse, version-aware save, conflict retention, reload/close dirty guards, large/binary refusal, project-root pinning, editor newline normalization, and source newline preservation. A real integration fixture composes `ProjectEditorWorkspace` with `FileSystemProjectFileService` against a Unicode/space-containing path and proves UTF-16BE preservation, LF round-trip integrity, external-change refusal, and explicit reload recovery. The permanent P06-006 validator also rejects removal of the application-shutdown dirty-buffer guard.
+Focused unit tests cover tab reuse, version-aware save, conflict retention, reload/close dirty guards, large/binary refusal, project-root pinning, editor newline normalization, source newline preservation, and concurrent same-file open deduplication. A real integration fixture composes `ProjectEditorWorkspace` with `FileSystemProjectFileService` against a Unicode/space-containing path and proves UTF-16BE preservation, LF round-trip integrity, external-change refusal, and explicit reload recovery. The permanent P06-006 validator also rejects removal of operation serialization, concurrent-open regression coverage, the application-shutdown dirty-buffer guard, or the application-shutdown in-flight-operation guard.
 
 ## Ownership and acceptance boundary
 
