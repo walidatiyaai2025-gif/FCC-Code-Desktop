@@ -435,6 +435,8 @@ public sealed class GitCliCommitPushService : IGitCommitPushService
         CancellationToken cancellationToken,
         params string[] arguments)
     {
+        GitCommandSafetyPolicy.EnsureAllowed(arguments);
+
         var startInfo = new ProcessStartInfo(_gitExecutable)
         {
             WorkingDirectory = workingDirectory,

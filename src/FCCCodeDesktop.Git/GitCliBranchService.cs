@@ -299,6 +299,8 @@ public sealed class GitCliBranchService : IGitBranchService
         IReadOnlyList<string> arguments,
         CancellationToken cancellationToken)
     {
+        GitCommandSafetyPolicy.EnsureAllowed(arguments);
+
         var startInfo = new ProcessStartInfo(_gitExecutable)
         {
             WorkingDirectory = workingDirectory,
