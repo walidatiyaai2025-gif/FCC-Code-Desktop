@@ -1,6 +1,7 @@
 <UserControl x:Class="FCCCodeDesktop.App.Projects.ProjectWorkspaceSurface"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:projects="clr-namespace:FCCCodeDesktop.App.Projects"
              x:Name="Root"
              Background="{DynamicResource FccBrushCanvas}"
              Foreground="{DynamicResource FccBrushTextPrimary}"
@@ -23,6 +24,30 @@
             <Setter Property="Foreground" Value="{DynamicResource FccBrushAccentForeground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource FccBrushAccent}" />
         </Style>
+        <HierarchicalDataTemplate DataType="{x:Type projects:ProjectFileTreeNode}"
+                                  ItemsSource="{Binding Children}">
+            <TextBlock Text="{Binding DisplayName}"
+                       TextTrimming="CharacterEllipsis"
+                       ToolTip="{Binding RelativePath}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource FccTextBody}">
+                        <Setter Property="Foreground" Value="{DynamicResource FccBrushTextPrimary}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirectory}" Value="True">
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsStatusNode}" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource FccBrushTextMuted}" />
+                                <Setter Property="FontStyle" Value="Italic" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsError}" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource FccBrushError}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </HierarchicalDataTemplate>
     </UserControl.Resources>
 
     <Grid DataContext="{Binding State, ElementName=Root}">
@@ -141,112 +166,171 @@
 
         <Grid Grid.Row="2" Margin="0,16,0,0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="3*" />
+                <RowDefinition Height="2*" />
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0"
-                           VerticalAlignment="Center"
-                           Text="Recent projects"
-                           Style="{StaticResource FccTextSection}"
-                           Foreground="{DynamicResource FccBrushTextPrimary}" />
-                <Button Grid.Column="1"
-                        Content="Refresh"
-                        IsEnabled="{Binding CanOpenProject}"
-                        Style="{StaticResource ProjectActionButton}"
-                        Click="OnRefreshClick"
-                        AutomationProperties.Name="Refresh recent projects" />
-            </Grid>
 
-            <ListBox x:Name="RecentProjectsList"
-                     Grid.Row="1"
-                     Margin="0,8,0,0"
-                     ItemsSource="{Binding RecentProjects}"
-                     Background="Transparent"
-                     BorderThickness="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     VirtualizingPanel.IsVirtualizing="True"
-                     VirtualizingPanel.VirtualizationMode="Recycling"
-                     AutomationProperties.Name="Recent projects">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Border Margin="0,0,0,8"
-                                Padding="{StaticResource FccInset12}"
-                                Background="{DynamicResource FccBrushSurface}"
-                                BorderBrush="{DynamicResource FccBrushDivider}"
-                                BorderThickness="1"
-                                CornerRadius="{StaticResource FccRadiusSmall}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0">
-                                    <TextBlock Text="{Binding DisplayName}"
-                                               Style="{StaticResource FccTextBody}"
-                                               FontWeight="SemiBold"
-                                               Foreground="{DynamicResource FccBrushTextPrimary}" />
-                                    <TextBlock Margin="0,3,16,0"
-                                               Text="{Binding RootPath}"
-                                               TextTrimming="CharacterEllipsis"
-                                               Style="{StaticResource FccTextMetadata}"
-                                               Foreground="{DynamicResource FccBrushTextMuted}" />
-                                    <TextBlock Margin="0,3,16,0"
-                                               Text="{Binding UpdatedUtc, StringFormat='Last opened {0:g}'}"
-                                               Style="{StaticResource FccTextMetadata}"
-                                               Foreground="{DynamicResource FccBrushTextSecondary}" />
-                                </StackPanel>
-                                <Button Grid.Column="1"
-                                        MinWidth="72"
-                                        VerticalAlignment="Center"
-                                        Content="Open"
-                                        Tag="{Binding}"
-                                        IsEnabled="{Binding DataContext.CanOpenProject, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                        Style="{StaticResource ProjectActionButton}"
-                                        Click="OnOpenRecentProjectClick"
-                                        AutomationProperties.Name="Open recent project" />
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-
-            <Border Grid.Row="1"
-                    Margin="0,8,0,0"
-                    Padding="{StaticResource FccInset20}"
+            <Border Grid.Row="0"
+                    Padding="{StaticResource FccInset12}"
                     Background="{DynamicResource FccBrushSurface}"
-                    BorderBrush="{DynamicResource FccBrushDivider}"
+                    BorderBrush="{DynamicResource FccBrushBorder}"
                     BorderThickness="1"
                     CornerRadius="{StaticResource FccRadiusMedium}">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasRecentProjects}" Value="False">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBlock HorizontalAlignment="Center"
-                               Text="No recent projects"
-                               Style="{StaticResource FccTextSection}"
-                               Foreground="{DynamicResource FccBrushTextPrimary}" />
-                    <TextBlock Margin="0,4,0,0"
-                               HorizontalAlignment="Center"
-                               Text="Open an existing Git or non-Git folder. Only workspace metadata is stored; source files stay in place."
-                               TextAlignment="Center"
-                               TextWrapping="Wrap"
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Text="Files"
+                                   Style="{StaticResource FccTextSection}"
+                                   Foreground="{DynamicResource FccBrushTextPrimary}" />
+                        <Button Grid.Column="1"
+                                Content="Refresh tree"
+                                IsEnabled="{Binding FileExplorerState.HasProject, ElementName=Root}"
+                                Style="{StaticResource ProjectActionButton}"
+                                Click="OnRefreshFileExplorerClick"
+                                AutomationProperties.Name="Refresh project file explorer" />
+                    </Grid>
+                    <TextBlock Grid.Row="1"
+                               Margin="0,4,0,8"
+                               Text="{Binding FileExplorerState.StatusText, ElementName=Root}"
                                Style="{StaticResource FccTextMetadata}"
                                Foreground="{DynamicResource FccBrushTextMuted}" />
-                </StackPanel>
+                    <TreeView Grid.Row="2"
+                              ItemsSource="{Binding FileExplorerState.Roots, ElementName=Root}"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling"
+                              AutomationProperties.Name="Lazy project file explorer">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}">
+                                <Setter Property="Padding" Value="2" />
+                                <EventSetter Event="Expanded" Handler="OnFileExplorerNodeExpanded" />
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                    </TreeView>
+                </Grid>
             </Border>
+
+            <Grid Grid.Row="1" Margin="0,12,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               VerticalAlignment="Center"
+                               Text="Recent projects"
+                               Style="{StaticResource FccTextSection}"
+                               Foreground="{DynamicResource FccBrushTextPrimary}" />
+                    <Button Grid.Column="1"
+                            Content="Refresh"
+                            IsEnabled="{Binding CanOpenProject}"
+                            Style="{StaticResource ProjectActionButton}"
+                            Click="OnRefreshClick"
+                            AutomationProperties.Name="Refresh recent projects" />
+                </Grid>
+
+                <ListBox x:Name="RecentProjectsList"
+                         Grid.Row="1"
+                         Margin="0,8,0,0"
+                         ItemsSource="{Binding RecentProjects}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         VirtualizingPanel.VirtualizationMode="Recycling"
+                         AutomationProperties.Name="Recent projects">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,8"
+                                    Padding="{StaticResource FccInset12}"
+                                    Background="{DynamicResource FccBrushSurface}"
+                                    BorderBrush="{DynamicResource FccBrushDivider}"
+                                    BorderThickness="1"
+                                    CornerRadius="{StaticResource FccRadiusSmall}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   Style="{StaticResource FccTextBody}"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource FccBrushTextPrimary}" />
+                                        <TextBlock Margin="0,3,16,0"
+                                                   Text="{Binding RootPath}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Style="{StaticResource FccTextMetadata}"
+                                                   Foreground="{DynamicResource FccBrushTextMuted}" />
+                                        <TextBlock Margin="0,3,16,0"
+                                                   Text="{Binding UpdatedUtc, StringFormat='Last opened {0:g}'}"
+                                                   Style="{StaticResource FccTextMetadata}"
+                                                   Foreground="{DynamicResource FccBrushTextSecondary}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1"
+                                            MinWidth="72"
+                                            VerticalAlignment="Center"
+                                            Content="Open"
+                                            Tag="{Binding}"
+                                            IsEnabled="{Binding DataContext.CanOpenProject, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                            Style="{StaticResource ProjectActionButton}"
+                                            Click="OnOpenRecentProjectClick"
+                                            AutomationProperties.Name="Open recent project" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Border Grid.Row="1"
+                        Margin="0,8,0,0"
+                        Padding="{StaticResource FccInset20}"
+                        Background="{DynamicResource FccBrushSurface}"
+                        BorderBrush="{DynamicResource FccBrushDivider}"
+                        BorderThickness="1"
+                        CornerRadius="{StaticResource FccRadiusMedium}">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasRecentProjects}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock HorizontalAlignment="Center"
+                                   Text="No recent projects"
+                                   Style="{StaticResource FccTextSection}"
+                                   Foreground="{DynamicResource FccBrushTextPrimary}" />
+                        <TextBlock Margin="0,4,0,0"
+                                   HorizontalAlignment="Center"
+                                   Text="Open an existing Git or non-Git folder. Only workspace metadata is stored; source files stay in place."
+                                   TextAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   Style="{StaticResource FccTextMetadata}"
+                                   Foreground="{DynamicResource FccBrushTextMuted}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
 
         <StackPanel Grid.Row="3" Margin="0,12,0,0">
@@ -255,6 +339,10 @@
                        Foreground="{DynamicResource FccBrushTextMuted}" />
             <TextBlock Margin="0,3,0,0"
                        Text="Technology detection is read-only and marker-based; it never launches project toolchains or modifies source files."
+                       Style="{StaticResource FccTextMetadata}"
+                       Foreground="{DynamicResource FccBrushTextMuted}" />
+            <TextBlock Margin="0,3,0,0"
+                       Text="The file explorer is read-only in this phase; expanding a folder enumerates only that directory and never follows reparse-point directories."
                        Style="{StaticResource FccTextMetadata}"
                        Foreground="{DynamicResource FccBrushTextMuted}" />
         </StackPanel>
