@@ -24,7 +24,8 @@ public partial class ProjectWorkspaceSurface : UserControl
         SearchState = new ProjectSearchState(new FileSystemProjectSearchService());
         EditorWorkspace = new ProjectEditorWorkspace(new FileSystemProjectFileService());
         InitializeComponent();
-        AttachWorkspaceTools();
+        AttachSearchSurface();
+        AttachEditorSurface();
         AddHandler(
             TreeView.SelectedItemChangedEvent,
             new RoutedPropertyChangedEventHandler<object>(OnFileExplorerSelectionChanged));
@@ -73,21 +74,12 @@ public partial class ProjectWorkspaceSurface : UserControl
         }
     }
 
-    private void AttachWorkspaceTools()
+    private void AttachSearchSurface()
     {
-        if (Content is not Grid workspaceGrid)
-        {
-            throw new InvalidOperationException("Project workspace root must remain a Grid so editor/search tools can compose with the file surface.");
-        }
-
-        var contentGrid = workspaceGrid.Children
-            .OfType<Grid>()
-            .SingleOrDefault(child => Grid.GetRow(child) == 2)
-            ?? throw new InvalidOperationException("Project workspace content grid was not found for editor/search composition.");
-
+        var contentGrid = GetWorkspaceContentGrid();
         if (contentGrid.ColumnDefinitions.Count != 0)
         {
-            throw new InvalidOperationException("Project workspace content grid already defines columns; tool composition must be reconciled explicitly.");
+            throw new InvalidOperationException("Project workspace content grid already defines columns; search/editor composition must be reconciled explicitly.");
         }
 
         contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -103,6 +95,15 @@ public partial class ProjectWorkspaceSurface : UserControl
         Grid.SetRowSpan(searchSurface, 2);
         Grid.SetColumn(searchSurface, 1);
         contentGrid.Children.Add(searchSurface);
+    }
+
+    private void AttachEditorSurface()
+    {
+        var contentGrid = GetWorkspaceContentGrid();
+        if (contentGrid.ColumnDefinitions.Count != 3)
+        {
+            throw new InvalidOperationException("Project editor requires the canonical file/search workspace columns to be composed first.");
+        }
 
         var editorSurface = new ProjectEditorSurface
         {
@@ -113,6 +114,19 @@ public partial class ProjectWorkspaceSurface : UserControl
         Grid.SetRowSpan(editorSurface, 2);
         Grid.SetColumn(editorSurface, 2);
         contentGrid.Children.Add(editorSurface);
+    }
+
+    private Grid GetWorkspaceContentGrid()
+    {
+        if (Content is not Grid workspaceGrid)
+        {
+            throw new InvalidOperationException("Project workspace root must remain a Grid so editor/search tools can compose with the file surface.");
+        }
+
+        return workspaceGrid.Children
+            .OfType<Grid>()
+            .SingleOrDefault(child => Grid.GetRow(child) == 2)
+            ?? throw new InvalidOperationException("Project workspace content grid was not found for editor/search composition.");
     }
 
     private async void OnOpenProjectClick(object sender, RoutedEventArgs e)
