@@ -78,7 +78,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 
 ## P07 cloud task inventory
 
-- `FCCD-P07-001` — `IGitService` and repository detection — PENDING.
+- `FCCD-P07-001` — `IGitService` and repository detection — CLOSED.
 - `FCCD-P07-002` — Status/changed-files surface — PENDING.
 - `FCCD-P07-003` — Diff viewer — PENDING.
 - `FCCD-P07-004` — Stage/unstage — PENDING.
@@ -89,6 +89,19 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P07-009` — Dirty/pre-existing-change provenance — PENDING.
 - `FCCD-P07-010` — Destructive-operation safeguards — PENDING.
 - `FCCD-P07-011` — Git integration tests/conflict scenarios — PENDING.
+
+## P07-001 integration provenance
+
+- Exact converged implementation candidate: `64324363aed3936e8e882096f65a8449c3eb8bc2`.
+- PR #163 exact-head Windows Release: run `34036133218` / job `101494425282` — SUCCESS.
+- PR #163 exact-head Workspace Search Validation: run `34036133192` / job `101494425178` — SUCCESS.
+- PR #163 exact-head Large Workspace Safeguard Validation: run `34036133226` / job `101494425443` — SUCCESS.
+- Normal implementation merge commit: `9c3b0437f92a547453e8fdcdce22ab96d0084ade`.
+- Exact post-merge canonical-main Windows Release: run `34036509721` / job `101495451647` — SUCCESS.
+- Exact post-merge Workspace Search Validation: run `34036509713` / job `101495451539` — SUCCESS.
+- Exact post-merge Large Workspace Safeguard Validation: run `34036509714` / job `101495451517` — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_001_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class is cloud/self-test plus canonical integration provenance only; no new owner-only obligation, P07 phase closure, P08 authorization, release eligibility, or `VERIFIED_FINAL_COMPLETE` is implied.
 
 ## P07 cloud activation provenance
 
@@ -323,4 +336,4 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 
 ## Next legitimate action after this reconciliation is integrated
 
-Normally merge this P06 closure state/evidence and require the resulting exact canonical `main` to remain green. Only then may a separate governance transition activate P07 as the next sequential cloud implementation phase. Do not implement P07 inside the P06 closure change. Preserve `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET` as unresolved release blockers and keep `VERIFIED_FINAL_COMPLETE=false`.
+Normally merge the P07-001 reconciliation state/evidence and require the resulting exact canonical `main` to remain green. Then rebuild the live claim map and select the highest-value dependency-valid unclaimed P07 task; `FCCD-P07-002 — Status/changed-files surface` is the expected next legal task if it remains unclaimed. Do not implement P08 or later work. Preserve `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET` as unresolved release blockers and keep `VERIFIED_FINAL_COMPLETE=false`.
