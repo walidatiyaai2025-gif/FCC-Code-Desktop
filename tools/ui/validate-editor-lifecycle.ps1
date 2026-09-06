@@ -27,6 +27,7 @@ function Assert-EditorLifecycleContract {
         [string]$SurfaceXamlText,
         [string]$SurfaceCodeText,
         [string]$ProjectSurfaceCodeText,
+        [string]$MainWindowText,
         [string]$TestsText,
         [string]$IntegrationTestsText,
         [string]$DocText
@@ -80,6 +81,17 @@ function Assert-EditorLifecycleContract {
         'Workspace = EditorWorkspace',
         'Grid.SetColumn(editorSurface, 2)'
     )) { Assert-ContainsLiteral $ProjectSurfaceCodeText $literal 'ProjectWorkspaceSurface.xaml.cs' }
+
+    foreach ($literal in @(
+        'Closing += OnWindowClosing;',
+        'private void OnWindowClosing(object? sender, CancelEventArgs e)',
+        '_projectWorkspaceSurface?.EditorWorkspace.Documents.Count(document => document.IsDirty)',
+        '"Unsaved editor changes"',
+        'MessageBoxButton.YesNo',
+        'MessageBoxResult.No',
+        'if (result != MessageBoxResult.Yes)',
+        'e.Cancel = true;'
+    )) { Assert-ContainsLiteral $MainWindowText $literal 'MainWindow.xaml.cs' }
 
     foreach ($literal in @(
         'SaveAsyncUsesObservedVersionEncodingAndOriginalNewLineStyle',
@@ -140,6 +152,7 @@ $paths = @{
     SurfaceXaml = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Editor\ProjectEditorSurface.xaml'
     SurfaceCode = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Editor\ProjectEditorSurface.xaml.cs'
     ProjectSurfaceCode = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Projects\ProjectWorkspaceSurface.xaml.cs'
+    MainWindow = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\MainWindow.xaml.cs'
     Tests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.UnitTests\ProjectEditorWorkspaceTests.cs'
     IntegrationTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.IntegrationTests\ProjectEditorWorkspaceIntegrationTests.cs'
     Doc = Join-Path $RepositoryRoot 'docs\projects\EDITOR_LIFECYCLE.md'
@@ -153,25 +166,29 @@ $workspaceText = Get-Content -LiteralPath $paths.Workspace -Raw
 $surfaceXamlText = Get-Content -LiteralPath $paths.SurfaceXaml -Raw
 $surfaceCodeText = Get-Content -LiteralPath $paths.SurfaceCode -Raw
 $projectSurfaceCodeText = Get-Content -LiteralPath $paths.ProjectSurfaceCode -Raw
+$mainWindowText = Get-Content -LiteralPath $paths.MainWindow -Raw
 $testsText = Get-Content -LiteralPath $paths.Tests -Raw
 $integrationTestsText = Get-Content -LiteralPath $paths.IntegrationTests -Raw
 $docText = Get-Content -LiteralPath $paths.Doc -Raw
 
-Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $integrationTestsText $docText
+Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $integrationTestsText $docText
 Write-Host 'Static P06-006 editor lifecycle contract: PASS.'
 
 if ($RunFixtures) {
     $withoutVersion = $workspaceText.Replace('document.Version)', 'expectedVersion: null)', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $withoutVersion $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $integrationTestsText $docText } 'save without optimistic version token'
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutVersion $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $integrationTestsText $docText } 'save without optimistic version token'
 
     $withoutDirtyGuard = $workspaceText.Replace('if (document.IsDirty && !discardUnsavedChanges)', 'if (false)', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $withoutDirtyGuard $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $integrationTestsText $docText } 'dirty reload/close guard removed'
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutDirtyGuard $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $integrationTestsText $docText } 'dirty reload/close guard removed'
 
     $withoutInspection = $workspaceText.Replace('.InspectAsync(normalizedRoot, normalizedPath, cancellationToken)', '.ReadTextAsync(normalizedRoot, normalizedPath, cancellationToken)', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $withoutInspection $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $integrationTestsText $docText } 'large/binary preflight removed'
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutInspection $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $integrationTestsText $docText } 'large/binary preflight removed'
 
     $withoutRealServiceIntegration = $integrationTestsText.Replace('new FileSystemProjectFileService()', 'new FakeProjectFileService()', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $withoutRealServiceIntegration $docText } 'real safe-file-service integration removed'
+    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $mainWindowText $testsText $withoutRealServiceIntegration $docText } 'real safe-file-service integration removed'
+
+    $withoutShutdownGuard = $mainWindowText.Replace('Closing += OnWindowClosing;', 'Closing += RemovedWindowClosingGuard;', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $withoutShutdownGuard $testsText $integrationTestsText $docText } 'application shutdown dirty-buffer guard removed'
 
     Write-Host 'Negative P06-006 editor lifecycle fixtures: PASS.'
 }
