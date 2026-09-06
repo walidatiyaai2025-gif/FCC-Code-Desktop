@@ -29,9 +29,9 @@ RELEASE_STATE: NOT_RELEASED
 TARGET_VERSION: 1.0.0
 CURRENT_PHASE: P06
 CURRENT_PHASE_NAME: Projects + files + editor + search
-CURRENT_PHASE_STATE: IN_PROGRESS
+CURRENT_PHASE_STATE: CLOSED
 NEXT_PHASE: P07
-PHASE_EXIT_GATE: NOT_RUN
+PHASE_EXIT_GATE: PASS
 KNOWN_RELEASE_BLOCKERS: 2
 VERIFIED_FINAL_COMPLETE: false
 OWNER_LAST_MODE: ACTIVE
@@ -48,7 +48,7 @@ P00, P01, P02, and P03 are canonically CLOSED with their phase closure evidence 
 
 P05 cloud implementation is complete and integrated: `FCCD-P05-001` through `FCCD-P05-008` are CLOSED, PR #140 normally merged as `6e85cc2941612937365bbaedc9e4370e9e1510e6`, and exact post-merge Windows CI run `33988198377` completed SUCCESS. The only remaining P05 exit-gate evidence requires genuine owner Windows/FCC/provider interaction: a real application task, structured execution, stop/retry, close/reopen, and durable session resume. That phase-gate obligation is queued as `OWNER-P05-EXIT-REAL-TARGET` with `releaseBlocking=true`; P05's exit gate remains `NOT_RUN` and no P05 phase PASS is claimed.
 
-Under the owner-last scheduling amendment, P06 remains the sole legal **cloud implementation/convergence phase**. `FCCD-P06-001` through `FCCD-P06-008` are CLOSED after canonical integration and exact-main validation; P06 therefore has no remaining task-level implementation row, but P06 itself remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. The next legal cloud action is the canonical P06 phase-exit verification and reconciliation; P07 and later implementation remain prohibited until that gate genuinely passes and governance advances sequentially. This preserves both queued owner blockers, `P04=NOT_RUN`, `P05=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
+P06 is canonically CLOSED in this closure state: `FCCD-P06-001` through `FCCD-P06-008` are CLOSED, exact immutable candidate `b307b99bd2c3924b7d47ead1b30740c026a32363` was green on pre-closure Windows Release run `34030625854`, Workspace Search Validation run `34030625801`, and Large Workspace Safeguard Validation run `34030625812`, and dedicated exact-candidate P06 phase-exit run `34030997937` completed SUCCESS. Closure evidence is `evidence/phases/P06/CLOSURE.md`. `CURRENT_PHASE` deliberately remains P06 until this closure change is normally integrated and the resulting exact canonical `main` remains green; only then may a separate governance transition activate P07. The two earlier owner-last queue obligations remain unresolved/release-blocking, `P04=NOT_RUN`, `P05=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`.
 
 ---
 
