@@ -184,8 +184,8 @@ public sealed class GitCliService : IGitService
             return GitCommandResult.NotStarted;
         }
 
-        var standardOutputTask = process.StandardOutput.ReadToEndAsync();
-        var standardErrorTask = process.StandardError.ReadToEndAsync();
+        var standardOutputTask = process.StandardOutput.ReadToEndAsync(CancellationToken.None);
+        var standardErrorTask = process.StandardError.ReadToEndAsync(CancellationToken.None);
         using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutSource.CancelAfter(_probeTimeout);
 
