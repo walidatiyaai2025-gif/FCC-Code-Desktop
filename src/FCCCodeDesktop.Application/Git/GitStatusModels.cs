@@ -24,6 +24,8 @@ public enum GitFileChangeKind
 
 public sealed record GitFileStatusEntry
 {
+    private string? _originalPath;
+
     public GitFileStatusEntry(
         string path,
         GitFileChangeKind indexChange,
@@ -34,7 +36,7 @@ public sealed record GitFileStatusEntry
         Path = NormalizeRepositoryRelativePath(path);
         IndexChange = indexChange;
         WorkTreeChange = workTreeChange;
-        OriginalPath = originalPath is null ? null : NormalizeRepositoryRelativePath(originalPath);
+        OriginalPath = originalPath;
     }
 
     public string Path { get; }
@@ -43,7 +45,11 @@ public sealed record GitFileStatusEntry
 
     public GitFileChangeKind WorkTreeChange { get; }
 
-    public string? OriginalPath { get; init; }
+    public string? OriginalPath
+    {
+        get => _originalPath;
+        init => _originalPath = value is null ? null : NormalizeRepositoryRelativePath(value);
+    }
 
     public bool IsStaged => IndexChange != GitFileChangeKind.None;
 
