@@ -24,7 +24,7 @@ LAST_RECONCILED: 2026-09-06
 
 `CURRENT_PHASE` means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
-P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows`, `FCCD-P06-002 — Project technology/tool detection framework`, `FCCD-P06-003 — Lazy file explorer`, `FCCD-P06-004 — Safe file service`, `FCCD-P06-005 — Locally bundled code editor`, and `FCCD-P06-007 — Workspace content/file/regex search` have been normally integrated and exact-main verified. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, select only a dependency-valid unclaimed P06 task whose file/semantic surface does not collide with fresh owned work. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
+P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows`, `FCCD-P06-002 — Project technology/tool detection framework`, `FCCD-P06-003 — Lazy file explorer`, `FCCD-P06-004 — Safe file service`, `FCCD-P06-005 — Locally bundled code editor`, `FCCD-P06-007 — Workspace content/file/regex search`, and `FCCD-P06-008 — Large file/tree safeguards` have been normally integrated and exact-main verified. `FCCD-P06-006 — Editor tabs/save/reload/dirty state` is the sole remaining P06 task. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, select P06-006 only if it remains unclaimed and no higher-priority recovery work exists. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.
 
 P05 cloud implementation is complete: `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified. Its mandatory exit observation still requires genuine owner Windows/FCC/provider interaction: a real task in the application conversation surface, structured execution, stop/retry, close/reopen, and durable session resume. That standalone phase-gate requirement is queued as `OWNER-P05-EXIT-REAL-TARGET`, remains `releaseBlocking=true`, and P05 remains deferred as `P05=NOT_RUN`; no P05 `CLOSURE.md` PASS is claimed.
 
@@ -83,7 +83,7 @@ The owner-last policy permits this exact sequential transition only because P05 
 - `FCCD-P06-005` — Locally bundled code editor — CLOSED.
 - `FCCD-P06-006` — Editor tabs/save/reload/dirty state — PENDING.
 - `FCCD-P06-007` — Workspace content/file/regex search — CLOSED.
-- `FCCD-P06-008` — Large file/tree safeguards — PENDING.
+- `FCCD-P06-008` — Large file/tree safeguards — CLOSED.
 
 ## P06-001 integration provenance
 
@@ -141,6 +141,27 @@ The owner-last policy permits this exact sequential transition only because P05 
 - Integrated evidence: `evidence/phases/P06/P06_007_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded cancellable filename/content/regex workspace search and Projects-surface mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.
 
+## P06-008 integration provenance
+
+- Exact production implementation candidate: `b5e999440c9a5431e8181efffc885ff9570e705d`.
+- PR #152 exact-head Windows CI: run `34022991731` / run #309 — SUCCESS.
+- PR #152 exact-head P06-007 workspace-search CI: run `34022991732` / run #38 — SUCCESS.
+- PR #152 exact-head P06-008 large-workspace CI: run `34022991748` / run #18 — SUCCESS.
+- Production normal merge commit: `c77473fcebb3317168ab1effdf67cc7ecd95bd99`.
+- Exact post-production-merge Windows CI: run `34023363325` / run #310 — SUCCESS.
+- Exact post-production-merge P06-007 workspace-search CI: run `34023363291` / run #39 — SUCCESS.
+- Exact post-production-merge P06-008 large-workspace CI: run `34023363358` / run #19 — SUCCESS.
+- Superseded recovery PR #155 was closed without merging stale production code; its legitimate permanent-Windows-baseline idea was recovered separately.
+- Exact permanent-baseline repair candidate: `faba60a8dacc34104b7fce70d12ad430a120bad9`.
+- PR #156 exact-head Windows CI: run `34023727676` / run #311 — SUCCESS.
+- PR #156 exact-head P06-007 workspace-search CI: run `34023727648` / run #40 — SUCCESS.
+- PR #156 exact-head P06-008 large-workspace CI: run `34023727646` / run #20 — SUCCESS.
+- Permanent-baseline repair normal merge commit: `dc0a92683f292ac75706601b18bba36e6959656c`.
+- Exact final post-merge canonical-main Windows CI: run `34024101741` / run #312 — SUCCESS.
+- Exact final post-merge P06-007 workspace-search CI: run `34024101733` / run #41 — SUCCESS.
+- Exact final post-merge P06-008 large-workspace CI: run `34024101754` / run #21 — SUCCESS.
+- Integrated evidence: `evidence/phases/P06/P06_008_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded large-workspace file/tree/search behavior plus permanent CI enforcement; no new owner-only evidence, P06 phase closure, P07 authorization, or release eligibility is implied.
 ## P05 cloud task inventory
 
 - `FCCD-P05-001` — Streaming chat rendering — CLOSED.
