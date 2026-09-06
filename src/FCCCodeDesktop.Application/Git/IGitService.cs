@@ -38,4 +38,9 @@ public interface IGitService
     Task<GitStatusResult> GetStatusAsync(
         string path,
         CancellationToken cancellationToken = default);
+
+    Task<GitFileDiffResult> GetDiffAsync(
+        string path,
+        string repositoryRelativePath,
+        CancellationToken cancellationToken = default);
 }
