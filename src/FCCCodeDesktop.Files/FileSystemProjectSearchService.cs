@@ -6,27 +6,29 @@ namespace FCCCodeDesktop.Files;
 
 public sealed class FileSystemProjectSearchService : IProjectSearchService
 {
-    public const int MaximumSupportedResults = 5_000;
-    public const int MaximumSupportedFiles = 100_000;
-    public const long MaximumSupportedFileBytes = 64L * 1024 * 1024;
+    public const int MaximumSupportedResults = WorkspaceScalePolicy.MaximumSupportedSearchResults;
+    public const int MaximumSupportedFiles = WorkspaceScalePolicy.MaximumSupportedFilesPerOperation;
+    public const long MaximumSupportedFileBytes = WorkspaceScalePolicy.MaximumSupportedSearchFileBytes;
     public static readonly TimeSpan RegularExpressionTimeout = TimeSpan.FromMilliseconds(250);
 
-    private const int BinaryProbeBytes = 4096;
-    private const int MaximumPreviewCharacters = 240;
+    private readonly WorkspaceScalePolicy _scalePolicy;
 
-    private static readonly HashSet<string> IgnoredDirectoryNames = new(StringComparer.OrdinalIgnoreCase)
+    public FileSystemProjectSearchService(WorkspaceScalePolicy? scalePolicy = null)
     {
-        ".git", ".hg", ".svn", ".vs", "bin", "obj", "node_modules", "packages", "dist", "build", "Library", "Temp", "Logs",
-    };
+        _scalePolicy = scalePolicy ?? WorkspaceScalePolicy.Default;
+    }
 
     public Task<ProjectSearchResultSet> SearchAsync(ProjectSearchRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        ValidateRequest(request);
-        return Task.Run(() => SearchCore(request, cancellationToken), cancellationToken);
+        var limits = ResolveLimits(request);
+        return Task.Run(() => SearchCore(request, limits, cancellationToken), cancellationToken);
     }
 
-    private static ProjectSearchResultSet SearchCore(ProjectSearchRequest request, CancellationToken cancellationToken)
+    private ProjectSearchResultSet SearchCore(
+        ProjectSearchRequest request,
+        SearchLimits limits,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var normalizedRootPath = Path.GetFullPath(request.ProjectRootPath);
@@ -51,18 +53,19 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
             }
         }
 
-        var matches = new List<ProjectSearchMatch>(Math.Min(request.MaximumResults, 256));
-        var pendingDirectories = new Stack<string>();
-        pendingDirectories.Push(normalizedRootPath);
+        var matches = new List<ProjectSearchMatch>(Math.Min(limits.MaximumResults, 256));
+        var pendingDirectories = new Stack<(string Path, int Depth)>();
+        pendingDirectories.Push((normalizedRootPath, 0));
         var filesExamined = 0;
         var filesSkipped = 0;
         var directoriesSkipped = 0;
         var limitReached = false;
+        var stopTraversal = false;
 
-        while (pendingDirectories.Count > 0 && !limitReached)
+        while (pendingDirectories.Count > 0 && !stopTraversal)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var directoryPath = pendingDirectories.Pop();
+            var (directoryPath, directoryDepth) = pendingDirectories.Pop();
             IEnumerable<string> entries;
             try
             {
@@ -119,12 +122,18 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
                     if (isDirectory)
                     {
                         var directoryName = Path.GetFileName(fullPath);
-                        if (isReparsePoint || IgnoredDirectoryNames.Contains(directoryName))
+                        if (isReparsePoint || _scalePolicy.ShouldExcludeDirectory(directoryName))
                         {
                             directoriesSkipped++;
                             continue;
                         }
-                        pendingDirectories.Push(fullPath);
+                        if (directoryDepth >= limits.MaximumTraversalDepth)
+                        {
+                            directoriesSkipped++;
+                            limitReached = true;
+                            continue;
+                        }
+                        pendingDirectories.Push((fullPath, directoryDepth + 1));
                         continue;
                     }
 
@@ -134,9 +143,10 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
                         continue;
                     }
 
-                    if (filesExamined >= request.MaximumFiles)
+                    if (filesExamined >= limits.MaximumFiles)
                     {
                         limitReached = true;
+                        stopTraversal = true;
                         break;
                     }
 
@@ -147,16 +157,17 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
                         if (Contains(relativePath, request.Query, request.MatchCase))
                         {
                             matches.Add(new ProjectSearchMatch(fullPath, relativePath, null, null, relativePath));
-                            if (matches.Count >= request.MaximumResults)
+                            if (matches.Count >= limits.MaximumResults)
                             {
                                 limitReached = true;
+                                stopTraversal = true;
                                 break;
                             }
                         }
                         continue;
                     }
 
-                    if (!TryGetSearchableFileLength(fullPath, request.MaximumFileBytes, out var searchable))
+                    if (!TryGetSearchableFileLength(fullPath, limits.MaximumFileBytes, out var searchable))
                     {
                         filesSkipped++;
                         continue;
@@ -169,7 +180,10 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
 
                     try
                     {
-                        SearchTextFile(fullPath, relativePath, request, expression, matches, cancellationToken);
+                        if (SearchTextFile(fullPath, relativePath, request, expression, limits, matches, cancellationToken))
+                        {
+                            limitReached = true;
+                        }
                     }
                     catch (DecoderFallbackException)
                     {
@@ -184,9 +198,10 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
                         filesSkipped++;
                     }
 
-                    if (matches.Count >= request.MaximumResults)
+                    if (matches.Count >= limits.MaximumResults)
                     {
                         limitReached = true;
+                        stopTraversal = true;
                         break;
                     }
                 }
@@ -202,15 +217,29 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
         }
 
         return new ProjectSearchResultSet(
-            normalizedRootPath, request.Query, request.Mode, matches, filesExamined, filesSkipped, directoriesSkipped,
-            request.MaximumResults, request.MaximumFiles, request.MaximumFileBytes, limitReached);
+            normalizedRootPath,
+            request.Query,
+            request.Mode,
+            matches,
+            filesExamined,
+            filesSkipped,
+            directoriesSkipped,
+            limits.MaximumResults,
+            limits.MaximumFiles,
+            limits.MaximumFileBytes,
+            limits.MaximumTraversalDepth,
+            limits.MaximumMatchesPerFile,
+            limits.MaximumPreviewCharacters,
+            _scalePolicy.BinaryProbeBytes,
+            limitReached);
     }
 
-    private static void SearchTextFile(
+    private static bool SearchTextFile(
         string fullPath,
         string relativePath,
         ProjectSearchRequest request,
         Regex? expression,
+        SearchLimits limits,
         List<ProjectSearchMatch> matches,
         CancellationToken cancellationToken)
     {
@@ -224,39 +253,45 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
             leaveOpen: false);
 
         var lineNumber = 0;
+        var fileMatches = 0;
         while (reader.ReadLine() is { } line)
         {
             cancellationToken.ThrowIfCancellationRequested();
             lineNumber++;
-            if (request.Mode == ProjectSearchMode.Content)
-            {
-                AddLiteralMatches(line, fullPath, relativePath, lineNumber, request, matches);
-            }
-            else
-            {
-                AddRegularExpressionMatches(
+            var fileLimitReached = request.Mode == ProjectSearchMode.Content
+                ? AddLiteralMatches(line, fullPath, relativePath, lineNumber, request, limits, matches, ref fileMatches)
+                : AddRegularExpressionMatches(
                     line,
                     fullPath,
                     relativePath,
                     lineNumber,
                     expression ?? throw new InvalidOperationException("Regular expression search was not initialized."),
-                    request.MaximumResults,
-                    matches);
-            }
-            if (matches.Count >= request.MaximumResults)
+                    limits,
+                    matches,
+                    ref fileMatches);
+
+            if (fileLimitReached)
             {
-                return;
+                return true;
+            }
+            if (matches.Count >= limits.MaximumResults)
+            {
+                return false;
             }
         }
+
+        return false;
     }
 
-    private static void AddLiteralMatches(
+    private static bool AddLiteralMatches(
         string line,
         string fullPath,
         string relativePath,
         int lineNumber,
         ProjectSearchRequest request,
-        List<ProjectSearchMatch> matches)
+        SearchLimits limits,
+        List<ProjectSearchMatch> matches,
+        ref int fileMatches)
     {
         var comparison = request.MatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
         var startIndex = 0;
@@ -265,26 +300,39 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
             var matchIndex = line.IndexOf(request.Query, startIndex, comparison);
             if (matchIndex < 0)
             {
-                return;
+                return false;
             }
+
             matches.Add(new ProjectSearchMatch(
-                fullPath, relativePath, lineNumber, matchIndex + 1, BuildPreview(line, matchIndex, request.Query.Length)));
-            if (matches.Count >= request.MaximumResults)
+                fullPath,
+                relativePath,
+                lineNumber,
+                matchIndex + 1,
+                BuildPreview(line, matchIndex, request.Query.Length, limits.MaximumPreviewCharacters)));
+            fileMatches++;
+            if (fileMatches >= limits.MaximumMatchesPerFile)
             {
-                return;
+                return true;
+            }
+            if (matches.Count >= limits.MaximumResults)
+            {
+                return false;
             }
             startIndex = matchIndex + Math.Max(request.Query.Length, 1);
         }
+
+        return false;
     }
 
-    private static void AddRegularExpressionMatches(
+    private static bool AddRegularExpressionMatches(
         string line,
         string fullPath,
         string relativePath,
         int lineNumber,
         Regex expression,
-        int maximumResults,
-        List<ProjectSearchMatch> matches)
+        SearchLimits limits,
+        List<ProjectSearchMatch> matches,
+        ref int fileMatches)
     {
         try
         {
@@ -294,11 +342,21 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
                 {
                     continue;
                 }
+
                 matches.Add(new ProjectSearchMatch(
-                    fullPath, relativePath, lineNumber, match.Index + 1, BuildPreview(line, match.Index, Math.Max(match.Length, 1))));
-                if (matches.Count >= maximumResults)
+                    fullPath,
+                    relativePath,
+                    lineNumber,
+                    match.Index + 1,
+                    BuildPreview(line, match.Index, Math.Max(match.Length, 1), limits.MaximumPreviewCharacters)));
+                fileMatches++;
+                if (fileMatches >= limits.MaximumMatchesPerFile)
                 {
-                    return;
+                    return true;
+                }
+                if (matches.Count >= limits.MaximumResults)
+                {
+                    return false;
                 }
             }
         }
@@ -307,22 +365,24 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
             throw new ProjectSearchQueryException(
                 "The regular expression exceeded the bounded evaluation time. Simplify the pattern and try again.", exception);
         }
+
+        return false;
     }
 
-    private static string BuildPreview(string line, int matchIndex, int matchLength)
+    private static string BuildPreview(string line, int matchIndex, int matchLength, int maximumPreviewCharacters)
     {
-        if (line.Length <= MaximumPreviewCharacters)
+        if (line.Length <= maximumPreviewCharacters)
         {
             return line;
         }
-        var desiredStart = Math.Max(0, matchIndex - 80);
-        var maximumStart = Math.Max(0, line.Length - MaximumPreviewCharacters);
+        var desiredStart = Math.Max(0, matchIndex - Math.Min(80, maximumPreviewCharacters / 3));
+        var maximumStart = Math.Max(0, line.Length - maximumPreviewCharacters);
         var start = Math.Min(desiredStart, maximumStart);
-        if (matchIndex + matchLength > start + MaximumPreviewCharacters)
+        if (matchIndex + matchLength > start + maximumPreviewCharacters)
         {
-            start = Math.Min(maximumStart, matchIndex + matchLength - MaximumPreviewCharacters);
+            start = Math.Min(maximumStart, matchIndex + matchLength - maximumPreviewCharacters);
         }
-        var length = Math.Min(MaximumPreviewCharacters, line.Length - start);
+        var length = Math.Min(maximumPreviewCharacters, line.Length - start);
         var preview = line.Substring(start, length);
         if (start > 0)
         {
@@ -354,13 +414,18 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
         }
     }
 
-    private static bool LooksBinary(string path)
+    private bool LooksBinary(string path)
     {
         using var stream = new FileStream(
-            path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, BinaryProbeBytes, FileOptions.SequentialScan);
-        Span<byte> buffer = stackalloc byte[BinaryProbeBytes];
+            path,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete,
+            _scalePolicy.BinaryProbeBytes,
+            FileOptions.SequentialScan);
+        var buffer = new byte[_scalePolicy.BinaryProbeBytes];
         var bytesRead = stream.Read(buffer);
-        var bytes = buffer[..bytesRead];
+        var bytes = buffer.AsSpan(0, bytesRead);
         if (HasUnicodeBom(bytes))
         {
             return false;
@@ -386,7 +451,7 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
                && !relativePath.StartsWith($"..{Path.AltDirectorySeparatorChar}", StringComparison.Ordinal);
     }
 
-    private static void ValidateRequest(ProjectSearchRequest request)
+    private SearchLimits ResolveLimits(ProjectSearchRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.ProjectRootPath))
         {
@@ -400,20 +465,55 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
         {
             throw new ArgumentOutOfRangeException(nameof(request), request.Mode, "Search mode is not supported.");
         }
-        if (request.MaximumResults < 1 || request.MaximumResults > MaximumSupportedResults)
+
+        ValidateBound(request.MaximumResults, _scalePolicy.MaximumSearchResults, nameof(request.MaximumResults), "Maximum results");
+        ValidateBound(request.MaximumFiles, _scalePolicy.MaximumFilesPerOperation, nameof(request.MaximumFiles), "Maximum files");
+        ValidateBound(request.MaximumFileBytes, _scalePolicy.MaximumSearchFileBytes, nameof(request.MaximumFileBytes), "Maximum searchable file size");
+
+        var maximumTraversalDepth = request.MaximumTraversalDepth ?? _scalePolicy.MaximumTraversalDepth;
+        ValidateBound(maximumTraversalDepth, _scalePolicy.MaximumTraversalDepth, nameof(request.MaximumTraversalDepth), "Maximum traversal depth");
+        var maximumMatchesPerFile = request.MaximumMatchesPerFile ?? _scalePolicy.MaximumSearchMatchesPerFile;
+        ValidateBound(maximumMatchesPerFile, _scalePolicy.MaximumSearchMatchesPerFile, nameof(request.MaximumMatchesPerFile), "Maximum matches per file");
+        var maximumPreviewCharacters = request.MaximumPreviewCharacters ?? _scalePolicy.MaximumPreviewCharacters;
+        if (maximumPreviewCharacters < WorkspaceScalePolicy.MinimumPreviewCharacters
+            || maximumPreviewCharacters > _scalePolicy.MaximumPreviewCharacters)
         {
-            throw new ArgumentOutOfRangeException(nameof(request), request.MaximumResults,
-                $"Maximum results must be between 1 and {MaximumSupportedResults}.");
+            throw new ArgumentOutOfRangeException(
+                nameof(request.MaximumPreviewCharacters),
+                maximumPreviewCharacters,
+                $"Maximum preview characters must be between {WorkspaceScalePolicy.MinimumPreviewCharacters} and {_scalePolicy.MaximumPreviewCharacters}.");
         }
-        if (request.MaximumFiles < 1 || request.MaximumFiles > MaximumSupportedFiles)
+
+        return new SearchLimits(
+            request.MaximumResults,
+            request.MaximumFiles,
+            request.MaximumFileBytes,
+            maximumTraversalDepth,
+            maximumMatchesPerFile,
+            maximumPreviewCharacters);
+    }
+
+    private static void ValidateBound(int value, int maximum, string parameterName, string description)
+    {
+        if (value < 1 || value > maximum)
         {
-            throw new ArgumentOutOfRangeException(nameof(request), request.MaximumFiles,
-                $"Maximum files must be between 1 and {MaximumSupportedFiles}.");
-        }
-        if (request.MaximumFileBytes < 1 || request.MaximumFileBytes > MaximumSupportedFileBytes)
-        {
-            throw new ArgumentOutOfRangeException(nameof(request), request.MaximumFileBytes,
-                $"Maximum searchable file size must be between 1 and {MaximumSupportedFileBytes} bytes.");
+            throw new ArgumentOutOfRangeException(parameterName, value, $"{description} must be between 1 and {maximum}.");
         }
     }
+
+    private static void ValidateBound(long value, long maximum, string parameterName, string description)
+    {
+        if (value < 1 || value > maximum)
+        {
+            throw new ArgumentOutOfRangeException(parameterName, value, $"{description} must be between 1 and {maximum}.");
+        }
+    }
+
+    private readonly record struct SearchLimits(
+        int MaximumResults,
+        int MaximumFiles,
+        long MaximumFileBytes,
+        int MaximumTraversalDepth,
+        int MaximumMatchesPerFile,
+        int MaximumPreviewCharacters);
 }
