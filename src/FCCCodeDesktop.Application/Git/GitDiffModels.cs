@@ -20,9 +20,10 @@ public sealed record GitDiffSection(
     GitDiffSectionKind Kind,
     string Patch,
     bool IsBinary,
-    bool WasTruncated)
+    bool WasTruncated,
+    bool IsNewFile = false)
 {
-    public bool HasChanges => Patch.Length > 0 || IsBinary || WasTruncated;
+    public bool HasChanges => Patch.Length > 0 || IsBinary || WasTruncated || IsNewFile;
 }
 
 public sealed record GitFileDiffResult(
