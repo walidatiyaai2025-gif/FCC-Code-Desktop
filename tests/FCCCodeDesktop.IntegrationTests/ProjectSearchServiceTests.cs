@@ -161,7 +161,7 @@ public sealed class ProjectSearchServiceTests
             service.SearchAsync(
                 new ProjectSearchRequest(Path.Combine(root, "missing"), "needle", ProjectSearchMode.Content),
                 CancellationToken.None));
-        _ = Assert.Throws<ArgumentOutOfRangeException>(() =>
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
             service.SearchAsync(
                 new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content, MaximumResults: 0),
                 CancellationToken.None));
