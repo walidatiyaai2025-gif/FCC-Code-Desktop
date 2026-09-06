@@ -20,6 +20,20 @@ public sealed class ProjectEditorWorkspaceTests
     }
 
     [Fact]
+    public async Task OpenAsync_NormalizesStableLineEndingsForEditorWithoutDirtying()
+    {
+        var fixture = EditorFixture.Create("alpha.txt", "one\ntwo\n", ProjectNewLineStyle.Lf);
+        var workspace = new ProjectEditorWorkspace(fixture.Service);
+
+        var document = await workspace.OpenAsync(fixture.Root, fixture.Path);
+
+        Assert.Equal("one\r\ntwo\r\n", document.Text);
+        Assert.Equal(ProjectNewLineStyle.Lf, document.NewLineStyle);
+        Assert.False(document.IsDirty);
+        Assert.True(document.EndsWithNewLine);
+    }
+
+    [Fact]
     public async Task SaveAsync_UsesObservedVersionEncodingAndOriginalNewLineStyle()
     {
         var fixture = EditorFixture.Create("alpha.txt", "one\ntwo\n", ProjectNewLineStyle.Lf);
@@ -36,6 +50,7 @@ public sealed class ProjectEditorWorkspaceTests
         Assert.False(document.IsDirty);
         Assert.False(document.HasConflict);
         Assert.NotEqual(fixture.OriginalVersion, document.Version);
+        Assert.True(document.EndsWithNewLine);
     }
 
     [Fact]
@@ -135,8 +150,15 @@ public sealed class ProjectEditorWorkspaceTests
         ProjectNewLineStyle style,
         string expected)
     {
-        var actual = ProjectEditorTextPolicy.NormalizeForSave("a\r\nb\nb\r".Replace("b\nb", "b", StringComparison.Ordinal), style);
+        var actual = ProjectEditorTextPolicy.NormalizeForSave("a\r\nb\r\n", style);
         Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void NormalizeForEditor_MixedLineEndingsRemainExact()
+    {
+        const string source = "a\r\nb\nc\rd";
+        Assert.Equal(source, ProjectEditorTextPolicy.NormalizeForEditor(source, ProjectNewLineStyle.Mixed));
     }
 
     private sealed class EditorFixture
