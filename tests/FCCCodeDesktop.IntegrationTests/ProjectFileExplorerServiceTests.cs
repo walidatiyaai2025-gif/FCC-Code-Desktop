@@ -6,6 +6,14 @@ namespace FCCCodeDesktop.IntegrationTests;
 
 public sealed class ProjectFileExplorerServiceTests
 {
+    private static readonly string[] ExpectedImmediateChildren =
+    [
+        "Alpha folder",
+        "Zulu",
+        "alpha.txt",
+        "beta.txt",
+    ];
+
     [Fact]
     public async Task ListsOnlyImmediateChildrenAndSortsDirectoriesBeforeFiles()
     {
@@ -25,9 +33,7 @@ public sealed class ProjectFileExplorerServiceTests
         Assert.False(result.LimitReached);
         Assert.Equal(Path.GetFullPath(root), result.ProjectRootPath);
         Assert.Equal(Path.GetFullPath(root), result.DirectoryPath);
-        Assert.Equal(
-            new[] { "Alpha folder", "Zulu", "alpha.txt", "beta.txt" },
-            result.Entries.Select(entry => entry.Name).ToArray());
+        Assert.Equal(ExpectedImmediateChildren, result.Entries.Select(entry => entry.Name).ToArray());
         Assert.All(result.Entries.Take(2), entry => Assert.True(entry.IsDirectory));
         Assert.All(result.Entries.Skip(2), entry => Assert.False(entry.IsDirectory));
         Assert.DoesNotContain(result.Entries, entry => entry.Name == "nested.txt");
