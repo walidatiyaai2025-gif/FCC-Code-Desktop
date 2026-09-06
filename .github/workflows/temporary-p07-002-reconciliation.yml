@@ -1,0 +1,22 @@
+name: Temporary P07-002 reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p07-002-integrated-closure
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: reconcile/fccd-p07-002-integrated-closure
+          fetch-depth: 0
+      - name: Reconcile P07-002 canonical state
+        shell: pwsh
+        run: ./tools/governance/reconcile-p07-002.ps1
