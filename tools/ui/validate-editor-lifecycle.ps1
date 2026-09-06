@@ -149,23 +149,14 @@ Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText 
 Write-Host 'Static P06-006 editor lifecycle contract: PASS.'
 
 if ($RunFixtures) {
-    Assert-Rejects {
-        Assert-EditorLifecycleContract \
-            ($workspaceText.Replace('document.Version)', 'expectedVersion: null)')) \
-            $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText
-    } 'save without optimistic version token'
+    $withoutVersion = $workspaceText.Replace('document.Version)', 'expectedVersion: null)', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutVersion $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText } 'save without optimistic version token'
 
-    Assert-Rejects {
-        Assert-EditorLifecycleContract \
-            ($workspaceText.Replace('if (document.IsDirty && !discardUnsavedChanges)', 'if (false)', [StringComparison]::Ordinal)) \
-            $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText
-    } 'dirty reload/close guard removed'
+    $withoutDirtyGuard = $workspaceText.Replace('if (document.IsDirty && !discardUnsavedChanges)', 'if (false)', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutDirtyGuard $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText } 'dirty reload/close guard removed'
 
-    Assert-Rejects {
-        Assert-EditorLifecycleContract \
-            ($workspaceText.Replace('.InspectAsync(normalizedRoot, normalizedPath, cancellationToken)', '.ReadTextAsync(normalizedRoot, normalizedPath, cancellationToken)', [StringComparison]::Ordinal)) \
-            $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText
-    } 'large/binary preflight removed'
+    $withoutInspection = $workspaceText.Replace('.InspectAsync(normalizedRoot, normalizedPath, cancellationToken)', '.ReadTextAsync(normalizedRoot, normalizedPath, cancellationToken)', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutInspection $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText } 'large/binary preflight removed'
 
     Write-Host 'Negative P06-006 editor lifecycle fixtures: PASS.'
 }
