@@ -26,7 +26,7 @@ public sealed class ProjectFileExplorerServiceTests
         Assert.Equal(Path.GetFullPath(root), result.ProjectRootPath);
         Assert.Equal(Path.GetFullPath(root), result.DirectoryPath);
         Assert.Equal(
-            ["Alpha folder", "Zulu", "alpha.txt", "beta.txt"],
+            new[] { "Alpha folder", "Zulu", "alpha.txt", "beta.txt" },
             result.Entries.Select(entry => entry.Name).ToArray());
         Assert.All(result.Entries.Take(2), entry => Assert.True(entry.IsDirectory));
         Assert.All(result.Entries.Skip(2), entry => Assert.False(entry.IsDirectory));
