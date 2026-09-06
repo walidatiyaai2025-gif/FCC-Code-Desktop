@@ -19,7 +19,9 @@ public partial class ProjectWorkspaceSurface : UserControl
     public ProjectWorkspaceSurface()
     {
         FileExplorerState = new ProjectFileExplorerState(new FileSystemProjectFileExplorerService());
+        SearchState = new ProjectSearchState(new FileSystemProjectSearchService());
         InitializeComponent();
+        AttachSearchSurface();
     }
 
     public ProjectWorkspaceState? State
@@ -29,6 +31,7 @@ public partial class ProjectWorkspaceSurface : UserControl
     }
 
     public ProjectFileExplorerState FileExplorerState { get; }
+    public ProjectSearchState SearchState { get; }
 
     private static void OnStateChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
     {
@@ -42,10 +45,12 @@ public partial class ProjectWorkspaceSurface : UserControl
         {
             newState.PropertyChanged += surface.OnProjectStatePropertyChanged;
             surface.FileExplorerState.SetProject(newState.ActiveProject);
+            surface.SearchState.SetProject(newState.ActiveProject);
         }
         else
         {
             surface.FileExplorerState.SetProject(null);
+            surface.SearchState.SetProject(null);
         }
     }
 
@@ -54,7 +59,39 @@ public partial class ProjectWorkspaceSurface : UserControl
         if (e.PropertyName is nameof(ProjectWorkspaceState.ActiveProject) or null)
         {
             FileExplorerState.SetProject(State?.ActiveProject);
+            SearchState.SetProject(State?.ActiveProject);
         }
+    }
+
+    private void AttachSearchSurface()
+    {
+        if (Content is not Grid workspaceGrid)
+        {
+            throw new InvalidOperationException("Project workspace root must remain a Grid so search can compose with the file surface.");
+        }
+
+        var contentGrid = workspaceGrid.Children
+            .OfType<Grid>()
+            .SingleOrDefault(child => Grid.GetRow(child) == 2)
+            ?? throw new InvalidOperationException("Project workspace content grid was not found for search composition.");
+
+        if (contentGrid.ColumnDefinitions.Count != 0)
+        {
+            throw new InvalidOperationException("Project workspace content grid already defines columns; search composition must be reconciled explicitly.");
+        }
+
+        contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        contentGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+        var searchSurface = new ProjectSearchSurface
+        {
+            State = SearchState,
+            Margin = new Thickness(12, 0, 0, 0),
+        };
+        Grid.SetRow(searchSurface, 0);
+        Grid.SetRowSpan(searchSurface, 2);
+        Grid.SetColumn(searchSurface, 1);
+        contentGrid.Children.Add(searchSurface);
     }
 
     private async void OnOpenProjectClick(object sender, RoutedEventArgs e)
