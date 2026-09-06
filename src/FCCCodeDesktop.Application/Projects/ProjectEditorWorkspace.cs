@@ -97,7 +97,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         {
             var inspection = await _fileService
                 .InspectAsync(normalizedRoot, normalizedPath, cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
             if (!inspection.CanOpenAsNormalText)
             {
                 throw new ProjectEditorOpenException(
@@ -108,7 +108,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
 
             var snapshot = await _fileService
                 .ReadTextAsync(normalizedRoot, normalizedPath, cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
             var document = new ProjectEditorDocument(snapshot);
             document.PropertyChanged += OnDocumentPropertyChanged;
             _documents.Add(document);
@@ -117,11 +117,8 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
             SetStatus($"Opened {document.RelativePath}.");
             return document;
         }
-        catch (Exception exception) when (exception is ProjectEditorOpenException
-                                           or FileNotFoundException
-                                           or DirectoryNotFoundException
+        catch (Exception exception) when (exception is IOException
                                            or UnauthorizedAccessException
-                                           or IOException
                                            or ArgumentException
                                            or InvalidOperationException)
         {
@@ -167,7 +164,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
                         document.Encoding,
                         document.Version),
                     cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
             document.ApplySaved(result);
             SetStatus($"Saved {document.RelativePath}.");
         }
@@ -178,10 +175,8 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
             SetStatus("Save blocked because the file changed on disk. Reload or reconcile the external change first.");
             throw;
         }
-        catch (Exception exception) when (exception is FileNotFoundException
-                                           or DirectoryNotFoundException
+        catch (Exception exception) when (exception is IOException
                                            or UnauthorizedAccessException
-                                           or IOException
                                            or ArgumentException
                                            or InvalidOperationException)
         {
@@ -223,7 +218,7 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         {
             var inspection = await _fileService
                 .InspectAsync(document.ProjectRootPath, document.FullPath, cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
             if (!inspection.CanOpenAsNormalText)
             {
                 throw new ProjectEditorOpenException(
@@ -232,15 +227,12 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
 
             var snapshot = await _fileService
                 .ReadTextAsync(document.ProjectRootPath, document.FullPath, cancellationToken)
-                .ConfigureAwait(false);
+                .ConfigureAwait(true);
             document.ApplyReload(snapshot);
             SetStatus($"Reloaded {document.RelativePath} from disk.");
         }
-        catch (Exception exception) when (exception is ProjectEditorOpenException
-                                           or FileNotFoundException
-                                           or DirectoryNotFoundException
+        catch (Exception exception) when (exception is IOException
                                            or UnauthorizedAccessException
-                                           or IOException
                                            or ArgumentException
                                            or InvalidOperationException)
         {
@@ -287,9 +279,9 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
     private void OnDocumentPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (ReferenceEquals(sender, SelectedDocument)
-            && e.PropertyName is nameof(ProjectEditorDocument.IsDirty)
+            && (e.PropertyName is nameof(ProjectEditorDocument.IsDirty)
                 or nameof(ProjectEditorDocument.HasConflict)
-                or null)
+                or null))
         {
             RaiseCommandStateChanged();
         }
@@ -351,9 +343,9 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
 
 public sealed class ProjectEditorDocument : INotifyPropertyChanged
 {
-    private string _text;
-    private string _savedEditorText;
-    private ProjectFileVersion _version;
+    private string _text = string.Empty;
+    private string _savedEditorText = string.Empty;
+    private ProjectFileVersion _version = new(0, 0, string.Empty);
     private bool _isDirty;
     private bool _hasConflict;
     private string? _conflictMessage;
@@ -361,9 +353,6 @@ public sealed class ProjectEditorDocument : INotifyPropertyChanged
     internal ProjectEditorDocument(ProjectTextFileSnapshot snapshot)
     {
         ApplySnapshot(snapshot, initialize: true);
-        _text = snapshot.Text;
-        _savedEditorText = snapshot.Text;
-        _version = snapshot.Version;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -403,10 +392,12 @@ public sealed class ProjectEditorDocument : INotifyPropertyChanged
     {
         _version = result.Version;
         _savedEditorText = Text;
+        EndsWithNewLine = Text.EndsWith('\n') || Text.EndsWith('\r');
         _hasConflict = false;
         _conflictMessage = null;
         SetDirty(false);
         OnPropertyChanged(nameof(Version));
+        OnPropertyChanged(nameof(EndsWithNewLine));
         OnPropertyChanged(nameof(HasConflict));
         OnPropertyChanged(nameof(ConflictMessage));
     }
@@ -423,6 +414,7 @@ public sealed class ProjectEditorDocument : INotifyPropertyChanged
 
     private void ApplySnapshot(ProjectTextFileSnapshot snapshot, bool initialize)
     {
+        var editorText = ProjectEditorTextPolicy.NormalizeForEditor(snapshot.Text, snapshot.NewLineStyle);
         ProjectRootPath = snapshot.ProjectRootPath;
         FullPath = snapshot.FullPath;
         RelativePath = snapshot.RelativePath;
@@ -430,8 +422,8 @@ public sealed class ProjectEditorDocument : INotifyPropertyChanged
         NewLineStyle = snapshot.NewLineStyle;
         EndsWithNewLine = snapshot.EndsWithNewLine;
         _version = snapshot.Version;
-        _text = snapshot.Text;
-        _savedEditorText = snapshot.Text;
+        _text = editorText;
+        _savedEditorText = editorText;
         _isDirty = false;
         _hasConflict = false;
         _conflictMessage = null;
@@ -480,6 +472,19 @@ public sealed class ProjectEditorDocument : INotifyPropertyChanged
 
 public static class ProjectEditorTextPolicy
 {
+    public static string NormalizeForEditor(string text, ProjectNewLineStyle originalStyle)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        if (originalStyle == ProjectNewLineStyle.Mixed)
+        {
+            return text;
+        }
+
+        var canonical = text.Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n');
+        return canonical.Replace("\n", "\r\n", StringComparison.Ordinal);
+    }
+
     public static string NormalizeForSave(string text, ProjectNewLineStyle originalStyle)
     {
         ArgumentNullException.ThrowIfNull(text);
