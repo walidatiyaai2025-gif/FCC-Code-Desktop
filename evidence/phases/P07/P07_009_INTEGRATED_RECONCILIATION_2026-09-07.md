@@ -41,3 +41,5 @@ The integrated implementation provides an Application-owned read-only `IGitChang
 - `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET` remain the unchanged release-blocking owner queue obligations.
 - `KNOWN_RELEASE_BLOCKERS=2` and `VERIFIED_FINAL_COMPLETE=false` remain unchanged.
 - No owner/manual/target evidence is fabricated or implied.
+
+Permanent reconciliation validation is triggered by this user-authored exact-head evidence commit after the guarded temporary orchestration completed successfully and self-deleted.
