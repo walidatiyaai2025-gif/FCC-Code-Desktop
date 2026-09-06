@@ -78,7 +78,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 
 ## P07 cloud task inventory
 
-- `FCCD-P07-001` — `IGitService` and repository detection — PENDING.
+- `FCCD-P07-001` — `IGitService` and repository detection — CLOSED.
 - `FCCD-P07-002` — Status/changed-files surface — PENDING.
 - `FCCD-P07-003` — Diff viewer — PENDING.
 - `FCCD-P07-004` — Stage/unstage — PENDING.
@@ -89,6 +89,19 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P07-009` — Dirty/pre-existing-change provenance — PENDING.
 - `FCCD-P07-010` — Destructive-operation safeguards — PENDING.
 - `FCCD-P07-011` — Git integration tests/conflict scenarios — PENDING.
+
+## P07-001 integration provenance
+
+- Exact implementation candidate: `64324363aed3936e8e882096f65a8449c3eb8bc2` from PR #163 (`worker-b/fccd-p07-001-git-repository-detection`).
+- PR #163 exact-head Windows CI: run `34036133218` / run #369 — SUCCESS.
+- PR #163 exact-head P06-007 Workspace Search: run `34036133192` / run #98 — SUCCESS.
+- PR #163 exact-head P06-008 Large Workspace Safeguards: run `34036133226` / run #82 — SUCCESS.
+- Normal merge commit: `9c3b0437f92a547453e8fdcdce22ab96d0084ade`.
+- Exact post-merge canonical-main Windows CI: run `34036509721` / run #370 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34036509713` / run #99 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34036509714` / run #83 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_001_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded read-only Git repository detection plus canonical integration provenance; no new owner-only evidence, P07 phase closure, P08 authorization, release eligibility, or `VERIFIED_FINAL_COMPLETE` is implied.
 
 ## P07 cloud activation provenance
 
