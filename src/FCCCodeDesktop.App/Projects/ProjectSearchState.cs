@@ -11,7 +11,7 @@ public sealed record ProjectSearchModeOption(ProjectSearchMode Value, string Lab
 
 public sealed class ProjectSearchState : DispatcherObject, INotifyPropertyChanged
 {
-    private static readonly ProjectSearchModeOption[] ModeOptions =
+    private readonly ProjectSearchModeOption[] _modeOptions =
     [
         new(ProjectSearchMode.Content, "Content"),
         new(ProjectSearchMode.FileName, "File name"),
@@ -39,7 +39,7 @@ public sealed class ProjectSearchState : DispatcherObject, INotifyPropertyChange
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public IReadOnlyList<ProjectSearchModeOption> SearchModes => ModeOptions;
+    public IReadOnlyList<ProjectSearchModeOption> SearchModes => _modeOptions;
     public ReadOnlyObservableCollection<ProjectSearchMatch> Matches => _readonlyMatches;
 
     public string Query
