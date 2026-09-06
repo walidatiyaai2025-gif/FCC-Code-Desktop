@@ -10,6 +10,7 @@ ALLOWED = {
 }
 SELF = Path(".github/temp/p07-008-reconcile.py")
 WORKFLOW = Path(".github/workflows/temp-p07-008-reconcile.yml")
+TEMP = {str(SELF), str(WORKFLOW)}
 
 def replace_once(path: str, old: str, new: str) -> None:
     p = Path(path)
@@ -118,8 +119,12 @@ WORKFLOW.unlink(missing_ok=True)
 
 subprocess.run(["git", "add", "-A"], check=True)
 changed = subprocess.check_output(["git", "diff", "--cached", "--name-only"], text=True).splitlines()
-if set(changed) != ALLOWED or len(changed) != len(ALLOWED):
-    raise SystemExit(f"durable scope guard failed: {changed!r}")
+expected_staged = ALLOWED | TEMP
+if set(changed) != expected_staged or len(changed) != len(expected_staged):
+    raise SystemExit(f"staged scope guard failed: {changed!r}")
+deleted = subprocess.check_output(["git", "diff", "--cached", "--diff-filter=D", "--name-only"], text=True).splitlines()
+if set(deleted) != TEMP or len(deleted) != len(TEMP):
+    raise SystemExit(f"temporary deletion guard failed: {deleted!r}")
 
 subprocess.run(["git", "config", "user.name", "github-actions[bot]"], check=True)
 subprocess.run(["git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"], check=True)
