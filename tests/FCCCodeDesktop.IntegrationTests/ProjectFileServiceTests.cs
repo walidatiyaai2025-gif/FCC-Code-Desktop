@@ -145,6 +145,17 @@ public sealed class ProjectFileServiceTests
         _ = await Assert.ThrowsAsync<IOException>(() =>
             service.ReadTextAsync(root, largePath, CancellationToken.None));
 
+        var oversizedWritePath = Path.Combine(root, "oversized-write.txt");
+        _ = await Assert.ThrowsAsync<IOException>(() =>
+            service.WriteTextAsync(
+                new ProjectTextFileWriteRequest(
+                    root,
+                    oversizedWritePath,
+                    "123456789",
+                    ProjectTextEncoding.Utf8),
+                CancellationToken.None));
+        Assert.False(File.Exists(oversizedWritePath));
+
         Assert.Equal("owner-data", await File.ReadAllTextAsync(outsidePath, CancellationToken.None));
     }
 
