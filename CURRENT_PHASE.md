@@ -85,7 +85,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P07-005` — Branch create/checkout — CLOSED.
 - `FCCD-P07-006` — Fetch/pull — CLOSED.
 - `FCCD-P07-007` — Commit/push — CLOSED.
-- `FCCD-P07-008` — History — PENDING.
+- `FCCD-P07-008` — History — CLOSED.
 - `FCCD-P07-009` — Dirty/pre-existing-change provenance — PENDING.
 - `FCCD-P07-010` — Destructive-operation safeguards — PENDING.
 - `FCCD-P07-011` — Git integration tests/conflict scenarios — PENDING.
@@ -181,6 +181,19 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact post-merge P06-008 Large Workspace Safeguards: run `34056109409` / run #125 — SUCCESS.
 - Integrated evidence: `evidence/phases/P07/P07_007_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded staged-index commit and non-force current-branch push plus canonical integration provenance; no history, dirty-provenance, destructive-operation safeguard closure, P07 phase closure, P08/P11 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is implied.
+
+## P07-008 integration provenance
+
+- Exact implementation candidate: `78a3e789b89b6fe07b0d6ba92194a5cb9a5edec8` from PR #179 (`worker-b/fccd-p07-008-history`).
+- PR #179 exact-head Windows CI: run `34058492299` / run #415 — SUCCESS.
+- PR #179 exact-head P06-007 Workspace Search: run `34058492308` / run #144 — SUCCESS.
+- PR #179 exact-head P06-008 Large Workspace Safeguards: run `34058492360` / run #128 — SUCCESS.
+- Normal merge commit: `37bcd9ea636d278e852962a0fe05f112bc6adc6a`.
+- Exact post-merge canonical-main Windows CI: run `34058964029` / run #416 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34058964036` / run #145 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34058963979` / run #129 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_008_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded read-only Git history plus canonical integration provenance; no dirty/pre-existing-change provenance, destructive-operation safeguard closure, conflict-scenario closure, P07 phase closure, P08/P11 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is implied.
 
 ## P07 cloud activation provenance
 

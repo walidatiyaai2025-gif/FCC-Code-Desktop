@@ -191,7 +191,7 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 | FCCD-P07-005 | Branch create/checkout | CLOSED |
 | FCCD-P07-006 | Fetch/pull | CLOSED |
 | FCCD-P07-007 | Commit/push | CLOSED |
-| FCCD-P07-008 | History | PENDING |
+| FCCD-P07-008 | History | CLOSED |
 | FCCD-P07-009 | Dirty/pre-existing-change provenance | PENDING |
 | FCCD-P07-010 | Destructive-operation safeguards | PENDING |
 | FCCD-P07-011 | Git integration tests/conflict scenarios | PENDING |
@@ -209,6 +209,9 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 
 
 `FCCD-P07-007` is CLOSED from the bounded staged-index commit and non-force current-branch push implementation integrated in PR #177. Exact implementation candidate `e7e6365ae0f2113a23f7b48327a537ab7af6298d` passed Windows CI `34055661399` / #411, P06-007 Workspace Search `34055661425` / #140, and P06-008 Large Workspace Safeguards `34055661393` / #124. PR #177 was normally merged as `f22eb711bef214e222fc22cc670e08b90fd58a1b`; that exact canonical main passed Windows CI `34056109391` / #412, P06-007 Workspace Search `34056109410` / #141, and P06-008 Large Workspace Safeguards `34056109409` / #125. Coverage includes a dedicated Application-owned `IGitCommitPushService`, staged-index-only commit semantics that preserve unstaged owner work, typed empty/invalid/no-staged-change outcomes, bounded non-interactive commit execution with editor/signing/repository hooks disabled, verification that commit advances HEAD, current-attached-branch push through an explicit same-branch refspec, no force/delete/rewrite options, typed non-fast-forward and other push rejection, local bare-remote real-Git fixtures, timeout/cancellation, and owned-process-tree cleanup. Task evidence: `evidence/phases/P07/P07_007_INTEGRATED_RECONCILIATION_2026-09-06.md`. No history, dirty/pre-existing-change provenance, destructive-operation safeguard closure, P07 phase closure, P08/P11 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE` is claimed; P07 remains `IN_PROGRESS`, P07-008 through P07-011 remain PENDING, and the two existing owner-last release blockers remain unchanged.
+
+
+`FCCD-P07-008` is CLOSED from the bounded read-only Git history implementation integrated in PR #179. Exact implementation candidate `78a3e789b89b6fe07b0d6ba92194a5cb9a5edec8` passed Windows CI `34058492299` / #415, P06-007 Workspace Search `34058492308` / #144, and P06-008 Large Workspace Safeguards `34058492360` / #128. PR #179 was normally merged as `37bcd9ea636d278e852962a0fe05f112bc6adc6a`; that exact canonical main passed Windows CI `34058964029` / #416, P06-007 Workspace Search `34058964036` / #145, and P06-008 Large Workspace Safeguards `34058963979` / #129. Coverage includes Application-owned read-only `IGitHistoryService`, structured bounded commit metadata and parent linkage, newest-first pagination with an exclusive continuation cursor, literal repository-relative path filtering, bare and empty repositories, explicit UTF-8 handling, bounded output/count/timeout/cancellation, unsafe-path and cursor validation, owned-process cleanup, and preservation of dirty work-tree/index bytes. Task evidence: `evidence/phases/P07/P07_008_INTEGRATED_RECONCILIATION_2026-09-06.md`. No dirty/pre-existing-change provenance, destructive-operation safeguards, conflict integration closure, P07 phase closure, P08/P11 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE` is claimed; P07 remains `IN_PROGRESS`, P07-009 through P07-011 remain PENDING, and the two existing owner-last release blockers remain unchanged.
 
 ## P08 — Terminal/process supervision
 
