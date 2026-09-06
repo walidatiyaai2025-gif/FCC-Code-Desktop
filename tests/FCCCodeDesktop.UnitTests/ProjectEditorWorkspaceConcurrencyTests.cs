@@ -3,7 +3,7 @@ using Xunit;
 
 namespace FCCCodeDesktop.UnitTests;
 
-public sealed class ProjectEditorWorkspaceConcurrencyTests
+public sealed class ProjectEditorWorkspaceTestsConcurrency
 {
     [Fact]
     public async Task ConcurrentOpenSameFileIsSerializedAndReusesSingleTab()
