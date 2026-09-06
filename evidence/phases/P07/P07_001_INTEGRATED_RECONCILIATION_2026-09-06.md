@@ -48,6 +48,10 @@ P07-001 introduces no genuinely owner-only acceptance requirement. No manual/tar
 - `FCCD-P07-002` through `FCCD-P07-011` remain PENDING.
 - P08 and later implementation remain prohibited until P07 is truthfully closed under canonical governance.
 
+## Reconciliation candidate hygiene
+
+The temporary branch-only reconciliation workflow and helper script were removed before permanent validation and are not present in the reconciliation candidate tree. The durable diff is limited to canonical task/checkpoint reconciliation plus this evidence artifact.
+
 ## Next legal cloud action
 
 After this reconciliation is normally integrated and its exact merge SHA remains green, re-fetch live claims. Recover any newly surfaced higher-priority regression/integration work first; otherwise select the highest-value dependency-valid unclaimed P07 task, nominally `FCCD-P07-002 — Status/changed-files surface` if still unclaimed. Do not start P10 while P07/P08/P09 remain incomplete.
