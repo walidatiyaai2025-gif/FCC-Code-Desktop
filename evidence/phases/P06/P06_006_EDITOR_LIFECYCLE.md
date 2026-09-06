@@ -29,7 +29,7 @@ The gate executes focused unit coverage whose names match `ProjectEditorWorkspac
 
 The canonical `.github/workflows/windows-ci.yml` registers `Validate P06-006 editor lifecycle`, and `tools/ci/validate-windows-ci.ps1` fails closed if that permanent gate is removed. Inherited P06-007 and P06-008 dedicated workflows remain mandatory non-regression gates for the shared Projects workspace.
 
-Exact PR-head and post-merge run IDs are intentionally not preclaimed here; they must be recorded only after GitHub reports terminal SUCCESS on the exact candidate/main SHA.
+Exact accepted PR-head candidate `60aca82b36b046c7d5373cb8b4c807e0550e85e4` passed Windows CI run `34028644029` / run #343, P06-007 Workspace Search run `34028644082` / run #72, and P06-008 Large Workspace Safeguards run `34028644031` / run #52. PR #157 was normally merged as `8d204b9618be9d398d29668bc2b7f1ddec9f0ceb`; that exact canonical-main SHA passed Windows CI run `34028997094` / run #344, P06-007 Workspace Search run `34028996981` / run #73, and P06-008 Large Workspace Safeguards run `34028997023` / run #53. Canonical integration provenance is recorded in `evidence/phases/P06/P06_006_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 
 ## Owner-last boundary
 

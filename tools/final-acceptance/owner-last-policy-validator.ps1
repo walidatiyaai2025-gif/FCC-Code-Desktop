@@ -332,7 +332,7 @@ if ($RunNegativeFixtures) {
     Assert-Rejected { Assert-Contract $root $policyText $queueText $ledgerText ($phaseText.Replace('OWNER_LAST_MODE: ACTIVE','OWNER_LAST_MODE: DISABLED')) $controlText $targetText $finalText $false } 'owner-last disabled'
     Assert-Rejected { Assert-Contract $root $policyText $queueText $ledgerText ($phaseText.Replace('VERIFIED_FINAL_COMPLETE: false','VERIFIED_FINAL_COMPLETE: true')) $controlText $targetText $finalText $false } 'false final completion'
     Assert-Rejected { Assert-Contract $root $policyText $queueText $ledgerText ($phaseText.Replace('CURRENT_PHASE: P06','CURRENT_PHASE: P22')) $controlText $targetText $finalText $false } 'P22 with queue unresolved'
-    Assert-Rejected { Assert-Contract $root $policyText $queueText $ledgerText ($phaseText.Replace('CURRENT_PHASE: P06','CURRENT_PHASE: P07')) ($controlText.Replace('CURRENT_PHASE: P06','CURRENT_PHASE: P07')) $targetText $finalText $false } 'skip P06 with unqueued current-phase work'
+    Assert-Rejected { Assert-Contract $root $policyText $queueText ($ledgerText.Replace('| FCCD-P06-006 | Editor tabs/save/reload/dirty state | CLOSED |','| FCCD-P06-006 | Editor tabs/save/reload/dirty state | PENDING |')) ($phaseText.Replace('CURRENT_PHASE: P06','CURRENT_PHASE: P07')) ($controlText.Replace('CURRENT_PHASE: P06','CURRENT_PHASE: P07')) $targetText $finalText $false } 'skip P06 with unqueued current-phase work'
     Assert-Rejected { Assert-Contract $root $policyText $queueText $ledgerText $phaseText $controlText ($targetText.Replace('OWNER-P04-008-REAL-TARGET','OWNER-P04-008-REMOVED')) $finalText $false } 'P04 authorization removed'
     Write-Host 'Owner-last negative fixtures: PASS.'
 }
