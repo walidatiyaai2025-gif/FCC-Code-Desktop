@@ -64,3 +64,7 @@ jobs:
       - name: Validate P06-003 lazy file explorer
         shell: pwsh
         run: .\tools\projects\validate-lazy-file-explorer.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P06-004 safe file service
+        shell: pwsh
+        run: .\tools\projects\validate-safe-file-service.ps1 -RunFixtures -RequireRuntime
