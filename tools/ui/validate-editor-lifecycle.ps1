@@ -81,12 +81,12 @@ function Assert-EditorLifecycleContract {
     )) { Assert-ContainsLiteral $ProjectSurfaceCodeText $literal 'ProjectWorkspaceSurface.xaml.cs' }
 
     foreach ($literal in @(
-        'SaveAsync_UsesObservedVersionEncodingAndOriginalNewLineStyle',
-        'SaveAsync_ExternalConflictRetainsDirtyBuffer',
-        'ReloadAsync_DirtyBufferRequiresExplicitDiscard',
-        'Close_DirtyBufferRequiresExplicitDiscard',
-        'OpenAsync_BinaryAndOversizedFilesFailBeforeRead',
-        'SetActiveProject_DoesNotRetargetExistingTabs'
+        'SaveAsyncUsesObservedVersionEncodingAndOriginalNewLineStyle',
+        'SaveAsyncExternalConflictRetainsDirtyBuffer',
+        'ReloadAsyncDirtyBufferRequiresExplicitDiscard',
+        'CloseDirtyBufferRequiresExplicitDiscard',
+        'OpenAsyncBinaryAndOversizedFilesFailBeforeRead',
+        'SetActiveProjectDoesNotRetargetExistingTabs'
     )) { Assert-ContainsLiteral $TestsText $literal 'ProjectEditorWorkspaceTests.cs' }
 
     foreach ($literal in @(
