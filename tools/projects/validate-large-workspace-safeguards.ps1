@@ -236,6 +236,7 @@ $paths = @{
     ExplorerTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.IntegrationTests\ProjectFileExplorerServiceTests.cs'
     FileTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.IntegrationTests\ProjectFileServiceTests.cs'
     SearchTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.IntegrationTests\ProjectSearchServiceTests.cs'
+    StressTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.IntegrationTests\LargeWorkspaceSafeguardsTests.cs'
     Docs = Join-Path $RepositoryRoot 'docs\projects\LARGE_WORKSPACE_SAFEGUARDS.md'
 }
 
@@ -263,6 +264,18 @@ Assert-LargeWorkspaceContract `
     $text.FileTests `
     $text.SearchTests `
     $text.Docs
+
+foreach ($literal in @(
+    'public sealed class LargeWorkspaceSafeguardsTests',
+    'SyntheticLargeTreeIsBoundedResponsiveAndStableAfterCancellation',
+    'LockedFileIsSkippedAndOperationRecoversWithoutMutation',
+    'ReparsePointDoesNotEscapeProjectRootWhenSupported',
+    'cancellation.CancelAfter(TimeSpan.FromMilliseconds(1))',
+    'FileShare.None',
+    'Directory.CreateSymbolicLink',
+    'ProjectSearchLimitReason.Files',
+    'Assert.Equal(sentinelWriteTime, File.GetLastWriteTimeUtc(sentinelPath))'
+)) { Assert-ContainsLiteral $text.StressTests $literal 'LargeWorkspaceSafeguardsTests.cs' }
 Write-Host 'Static P06-008 large workspace safeguard validation: PASS.'
 
 if ($RunFixtures) {
@@ -339,7 +352,7 @@ if ($RequireRuntime) {
     if ($LASTEXITCODE -ne 0) { throw 'P06-008 workspace policy unit tests failed.' }
 
     $integrationProject = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.IntegrationTests\FCCCodeDesktop.IntegrationTests.csproj'
-    $integrationFilter = 'FullyQualifiedName~ProjectFileExplorerServiceTests|FullyQualifiedName~ProjectFileServiceTests|FullyQualifiedName~ProjectSearchServiceTests'
+    $integrationFilter = 'FullyQualifiedName~ProjectFileExplorerServiceTests|FullyQualifiedName~ProjectFileServiceTests|FullyQualifiedName~ProjectSearchServiceTests|FullyQualifiedName~LargeWorkspaceSafeguardsTests'
     & dotnet test $integrationProject -c Release --no-restore --no-build --nologo --filter $integrationFilter
     if ($LASTEXITCODE -ne 0) { throw 'P06-008 project file/explorer/search integration tests failed.' }
 

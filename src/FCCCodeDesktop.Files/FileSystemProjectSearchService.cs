@@ -163,7 +163,7 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
                     filesSkipped++;
                     continue;
                 }
-                if (!searchable || LooksBinary(fullPath))
+                if (!searchable)
                 {
                     filesSkipped++;
                     continue;
@@ -171,6 +171,12 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
 
                 try
                 {
+                    if (LooksBinary(fullPath))
+                    {
+                        filesSkipped++;
+                        continue;
+                    }
+
                     var perFileLimitReached = SearchTextFile(
                         fullPath,
                         relativePath,
