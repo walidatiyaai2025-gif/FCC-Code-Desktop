@@ -47,6 +47,7 @@ function Assert-LazyExplorerContract {
         'ProjectFileSystemEntry',
         'ProjectDirectoryListing',
         'bool IsReparsePoint',
+        'ProjectFileTraversalRestriction TraversalRestriction',
         'bool LimitReached'
     )) {
         Assert-ContainsLiteral $ContractText $literal 'IProjectFileExplorerService.cs'
@@ -54,8 +55,8 @@ function Assert-LazyExplorerContract {
 
     foreach ($literal in @(
         'public sealed class FileSystemProjectFileExplorerService',
-        'DefaultMaximumEntriesPerDirectory = 2048',
-        'MaximumSupportedEntriesPerDirectory = 20_000',
+        'DefaultMaximumEntriesPerDirectory = WorkspaceScalePolicy.DefaultMaximumDirectoryEntries',
+        'MaximumSupportedEntriesPerDirectory = WorkspaceScalePolicy.MaximumSupportedDirectoryEntries',
         'Task.Run(',
         'ListChildrenCore(projectRootPath, directoryPath, cancellationToken)',
         'Directory.EnumerateFileSystemEntries(normalizedDirectoryPath)',
@@ -88,7 +89,7 @@ function Assert-LazyExplorerContract {
     foreach ($literal in @(
         'public sealed class ProjectFileTreeNode',
         'ReadOnlyObservableCollection<ProjectFileTreeNode> Children',
-        'public bool CanExpand => IsDirectory && !IsReparsePoint && !IsStatusNode;',
+        '&& !IsTraversalRestricted;',
         'Expand to load…',
         'Loading directory…',
         'This directory is empty.',

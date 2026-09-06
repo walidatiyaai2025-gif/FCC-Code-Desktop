@@ -1,3 +1,4 @@
+using FCCCodeDesktop.Application.Projects;
 using FCCCodeDesktop.Files;
 using FCCCodeDesktop.Testing;
 using Xunit;
@@ -103,6 +104,55 @@ public sealed class ProjectFileExplorerServiceTests
         Assert.True(result.LimitReached);
         Assert.Equal(5, result.MaximumEntries);
         Assert.Equal(5, result.Entries.Count);
+
+        var repeated = await service.ListChildrenAsync(root, root, CancellationToken.None);
+        Assert.Equal(
+            result.Entries.Select(entry => entry.RelativePath),
+            repeated.Entries.Select(entry => entry.RelativePath));
+        Assert.Equal(
+            result.Entries.OrderBy(entry => entry.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(entry => entry.Name, StringComparer.Ordinal)
+                .Select(entry => entry.Name),
+            result.Entries.Select(entry => entry.Name));
+    }
+
+    [Fact]
+    public async Task GeneratedAndDepthLimitedDirectoriesAreVisibleButCannotBeTraversed()
+    {
+        using var workspace = new TemporaryDirectory("fccd-p06-explorer-policy");
+        var root = workspace.GetPath("مشروع tree with spaces");
+        var source = Path.Combine(root, "source");
+        var deeper = Path.Combine(source, "deeper");
+        var generated = Path.Combine(root, "vendor");
+        Directory.CreateDirectory(deeper);
+        Directory.CreateDirectory(generated);
+        await File.WriteAllTextAsync(Path.Combine(deeper, "owner.txt"), "unchanged", CancellationToken.None);
+        await File.WriteAllTextAsync(Path.Combine(generated, "generated.txt"), "ignored", CancellationToken.None);
+        var policy = new WorkspaceScalePolicy(
+            maximumTraversalDepth: 1,
+            excludedDirectoryNames: ["vendor"]);
+        var service = new FileSystemProjectFileExplorerService(policy);
+
+        var rootListing = await service.ListChildrenAsync(root, root, CancellationToken.None);
+        var sourceListing = await service.ListChildrenAsync(root, source, CancellationToken.None);
+
+        Assert.Equal(0, rootListing.DirectoryDepth);
+        var sourceEntry = Assert.Single(rootListing.Entries, entry => entry.Name == "source");
+        Assert.True(sourceEntry.CanExpand);
+        var generatedEntry = Assert.Single(rootListing.Entries, entry => entry.Name == "vendor");
+        Assert.False(generatedEntry.CanExpand);
+        Assert.Equal(ProjectFileTraversalRestriction.ExcludedDirectory, generatedEntry.TraversalRestriction);
+        Assert.Equal(1, rootListing.ExcludedDirectories);
+        Assert.Equal(1, sourceListing.DirectoryDepth);
+        var deeperEntry = Assert.Single(sourceListing.Entries, entry => entry.Name == "deeper");
+        Assert.False(deeperEntry.CanExpand);
+        Assert.Equal(ProjectFileTraversalRestriction.MaximumDepth, deeperEntry.TraversalRestriction);
+        Assert.Equal(1, sourceListing.DepthLimitedDirectories);
+
+        var depthFailure = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            service.ListChildrenAsync(root, deeper, CancellationToken.None));
+        Assert.Contains("depth", depthFailure.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("unchanged", await File.ReadAllTextAsync(Path.Combine(deeper, "owner.txt"), CancellationToken.None));
     }
 
     [Fact]

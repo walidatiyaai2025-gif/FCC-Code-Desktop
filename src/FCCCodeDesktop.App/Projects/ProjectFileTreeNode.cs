@@ -18,6 +18,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
         string relativePath,
         bool isDirectory,
         bool isReparsePoint,
+        ProjectFileTraversalRestriction traversalRestriction,
         bool isStatusNode,
         bool isError)
     {
@@ -26,6 +27,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
         RelativePath = relativePath;
         IsDirectory = isDirectory;
         IsReparsePoint = isReparsePoint;
+        TraversalRestriction = traversalRestriction;
         IsStatusNode = isStatusNode;
         IsError = isError;
         _readonlyChildren = new ReadOnlyObservableCollection<ProjectFileTreeNode>(_children);
@@ -48,11 +50,26 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
 
     public bool IsReparsePoint { get; }
 
+    public ProjectFileTraversalRestriction TraversalRestriction { get; }
+
+    public bool IsTraversalRestricted => TraversalRestriction != ProjectFileTraversalRestriction.None;
+
+    public string ToolTipText => TraversalRestriction switch
+    {
+        ProjectFileTraversalRestriction.ReparsePoint => $"{RelativePath} — Reparse-point paths are not traversed.",
+        ProjectFileTraversalRestriction.ExcludedDirectory => $"{RelativePath} — Generated or vendor directory is excluded.",
+        ProjectFileTraversalRestriction.MaximumDepth => $"{RelativePath} — Maximum workspace traversal depth reached.",
+        _ => RelativePath,
+    };
+
     public bool IsStatusNode { get; }
 
     public bool IsError { get; }
 
-    public bool CanExpand => IsDirectory && !IsReparsePoint && !IsStatusNode;
+    public bool CanExpand => IsDirectory
+        && !IsReparsePoint
+        && !IsStatusNode
+        && !IsTraversalRestricted;
 
     public bool ChildrenLoaded => _childrenLoaded;
 
@@ -70,6 +87,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
             ".",
             isDirectory: true,
             isReparsePoint: false,
+            traversalRestriction: ProjectFileTraversalRestriction.None,
             isStatusNode: false,
             isError: false);
     }
@@ -83,6 +101,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
             entry.RelativePath,
             entry.IsDirectory,
             entry.IsReparsePoint,
+            entry.TraversalRestriction,
             isStatusNode: false,
             isError: false);
     }
@@ -144,6 +163,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
             string.Empty,
             isDirectory: false,
             isReparsePoint: false,
+            traversalRestriction: ProjectFileTraversalRestriction.None,
             isStatusNode: true,
             isError: false);
 
@@ -154,6 +174,7 @@ public sealed class ProjectFileTreeNode : INotifyPropertyChanged
             string.Empty,
             isDirectory: false,
             isReparsePoint: false,
+            traversalRestriction: ProjectFileTraversalRestriction.None,
             isStatusNode: true,
             isError: true);
 
