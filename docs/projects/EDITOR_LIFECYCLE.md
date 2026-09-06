@@ -18,6 +18,7 @@ A document becomes dirty when its editor buffer differs from the last loaded or 
 
 - reload requires explicit discard confirmation;
 - close requires explicit discard confirmation;
+- application shutdown is cancelled by default while dirty editor tabs exist unless the user explicitly confirms discarding them;
 - changing the active project leaves existing tabs attached to their original roots;
 - failed save/reload operations retain the current buffer.
 
@@ -25,7 +26,7 @@ A document becomes dirty when its editor buffer differs from the last loaded or 
 
 Save uses only `IProjectFileService.WriteTextAsync`. The request carries the tab's original encoding and the exact optimistic version token observed on load or the last successful save. If another process changes, deletes, or replaces the file, the safe file service fails closed with `ProjectFileConflictException`; the editor keeps the dirty buffer, marks the tab conflicted, and instructs the user to reload or reconcile the external change.
 
-For files with a stable CRLF, LF, or CR newline style, editor text is normalized back to that established style before the safe write. Mixed-newline content is not silently rewritten by the lifecycle layer. The file service remains responsible for strict encoding, root containment, size ceilings, version verification, atomic replacement, and non-following of unsafe reparse paths.
+For files with a stable CRLF, LF, or CR newline style, source text is normalized into the WPF editor representation without creating false dirty state and is normalized back to that established source style before the safe write. Mixed-newline content is not silently rewritten by the lifecycle layer. The file service remains responsible for strict encoding, root containment, size ceilings, version verification, atomic replacement, and non-following of unsafe reparse paths.
 
 ## Reload and recovery
 
@@ -33,7 +34,11 @@ Reload re-runs the P06-008 inspection boundary before materialization. A file th
 
 ## UI composition
 
-`ProjectWorkspaceSurface` composes a `ProjectEditorSurface` next to the lazy file explorer and workspace search. The editor surface uses the native `CodeEditorControl`, exposes Save/Reload/Close actions, displays multiple tabs, and presents inline lifecycle status/error information. Destructive dirty-buffer actions require an explicit Yes/No confirmation.
+`ProjectWorkspaceSurface` preserves the canonical P06-007 search composition seam and adds a `ProjectEditorSurface` next to the lazy file explorer and workspace search. The editor surface uses the native `CodeEditorControl`, exposes Save/Reload/Close actions, displays multiple tabs, and presents inline lifecycle status/error information. Destructive dirty-buffer actions require an explicit Yes/No confirmation, and `MainWindow` applies the same fail-safe boundary when the application is closing.
+
+## Validation
+
+Focused unit tests cover tab reuse, version-aware save, conflict retention, reload/close dirty guards, large/binary refusal, project-root pinning, editor newline normalization, and source newline preservation. A real integration fixture composes `ProjectEditorWorkspace` with `FileSystemProjectFileService` against a Unicode/space-containing path and proves UTF-16BE preservation, LF round-trip integrity, external-change refusal, and explicit reload recovery. The permanent P06-006 validator also rejects removal of the application-shutdown dirty-buffer guard.
 
 ## Ownership and acceptance boundary
 
