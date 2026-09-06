@@ -155,8 +155,13 @@ public sealed class WorkspaceScalePolicy
 
     private static HashSet<string> BuildExcludedDirectoryNames(IEnumerable<string>? directoryNames)
     {
-        var exclusions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var rawName in directoryNames ?? BuiltInExcludedDirectoryNames)
+        var exclusions = new HashSet<string>(BuiltInExcludedDirectoryNames, StringComparer.OrdinalIgnoreCase);
+        if (directoryNames is null)
+        {
+            return exclusions;
+        }
+
+        foreach (var rawName in directoryNames)
         {
             if (string.IsNullOrWhiteSpace(rawName))
             {
@@ -184,13 +189,6 @@ public sealed class WorkspaceScalePolicy
                     $"At most {MaximumExcludedDirectoryNames} excluded directory names are supported.",
                     nameof(directoryNames));
             }
-        }
-
-        if (exclusions.Count == 0)
-        {
-            throw new ArgumentException(
-                "At least one excluded generated or vendor directory name is required.",
-                nameof(directoryNames));
         }
 
         return exclusions;

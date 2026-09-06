@@ -51,9 +51,22 @@ public sealed class WorkspaceScalePolicyTests
         Assert.Equal(512, policy.MaximumSearchFileBytes);
         Assert.Equal(64, policy.MaximumPreviewCharacters);
         Assert.Equal(128, policy.BinaryProbeBytes);
-        Assert.Equal(2, policy.ExcludedDirectoryNames.Count);
+        Assert.Contains("vendor", policy.ExcludedDirectoryNames, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("generated", policy.ExcludedDirectoryNames, StringComparer.OrdinalIgnoreCase);
+        Assert.True(policy.ShouldExcludeDirectory(".git"));
+        Assert.True(policy.ShouldExcludeDirectory("node_modules"));
         Assert.True(policy.ShouldExcludeDirectory("generated"));
         Assert.False(policy.ShouldExcludeDirectory("later"));
+    }
+
+    [Fact]
+    public void EmptyCustomExclusionsStillPreserveCanonicalSafetyExclusions()
+    {
+        var policy = new WorkspaceScalePolicy(excludedDirectoryNames: []);
+
+        Assert.True(policy.ShouldExcludeDirectory(".git"));
+        Assert.True(policy.ShouldExcludeDirectory("node_modules"));
+        Assert.True(policy.ShouldExcludeDirectory("bin"));
     }
 
     [Theory]
@@ -86,8 +99,6 @@ public sealed class WorkspaceScalePolicyTests
             new WorkspaceScalePolicy(maximumPreviewCharacters: WorkspaceScalePolicy.MinimumPreviewCharacters - 1));
         _ = Assert.Throws<ArgumentOutOfRangeException>(() =>
             new WorkspaceScalePolicy(binaryProbeBytes: WorkspaceScalePolicy.MinimumBinaryProbeBytes - 1));
-        _ = Assert.Throws<ArgumentException>(() =>
-            new WorkspaceScalePolicy(excludedDirectoryNames: []));
         _ = Assert.Throws<ArgumentException>(() =>
             new WorkspaceScalePolicy(excludedDirectoryNames: [".."]));
         _ = Assert.Throws<ArgumentException>(() =>

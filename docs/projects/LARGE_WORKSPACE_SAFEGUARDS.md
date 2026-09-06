@@ -4,7 +4,7 @@
 
 ## Policy contract
 
-`WorkspaceScalePolicy` is the typed source of production defaults and supported ceilings. Construction fails closed when a limit or excluded directory name is invalid. Callers may lower limits for a specific operation, but cannot raise them above the policy ceiling.
+`WorkspaceScalePolicy` is the typed source of production defaults and supported ceilings. Construction fails closed when a limit or excluded directory name is invalid. Callers may lower limits for a specific operation, but cannot raise them above the active policy ceiling.
 
 The production defaults are:
 
@@ -34,7 +34,7 @@ This seam is intended for editor/open UX without implementing P06-005 editor ren
 
 ## Search behavior
 
-Workspace search consumes the same traversal exclusions and supported ceilings. It adds a maximum traversal depth and maximum matches per file so one pathological file cannot consume the entire result payload. File, total-result, per-file-match, content-size, preview, and binary-probe bounds are reported in typed result metadata. Reaching any configured bound produces a truthful partial/truncated result rather than a false complete state.
+Workspace search consumes the same traversal exclusions and active policy ceilings. It enforces both maximum traversal depth and maximum matches per file so a deep tree or one pathological file cannot consume the whole operation. File, total-result, per-file-match, content-size, traversal-depth, preview, and binary-probe bounds are reported in typed result metadata. A request that exceeds the injected workspace policy is rejected explicitly rather than silently widening the operation. Reaching a traversal or match budget produces a truthful partial/truncated result rather than a false complete state.
 
 Regular-expression evaluation remains time-bounded and all traversal/read work remains cancellable and off the UI thread.
 
@@ -54,4 +54,4 @@ This task does not implement or replace the locally bundled editor, editor tabs,
 
 ## Verification
 
-Permanent validation is provided by `tools/projects/validate-large-workspace-safeguards.ps1` and the Windows CI P06-008 gate. Automated coverage includes invalid policy construction, wide/deep trees, generated directories, total traversal and per-file result budgets, large/binary/empty files, bounded previews, Unicode/Arabic/space-containing paths, inaccessible and missing paths, cancellation/recovery, deterministic ordering/truncation, containment/reparse safety, non-mutation, and synthetic larger-workspace sanity.
+Permanent validation is provided by `tools/projects/validate-large-workspace-safeguards.ps1` and `.github/workflows/p06-008-large-workspace-safeguards.yml`. Automated coverage includes invalid policy construction, wide/depth-limited trees, generated directories, total traversal and per-file result budgets, large/binary/empty files, bounded previews, Unicode/Arabic/space-containing paths, cancellation/recovery, deterministic ordering/truncation, containment/reparse safety, policy-overrun rejection, and non-mutation.

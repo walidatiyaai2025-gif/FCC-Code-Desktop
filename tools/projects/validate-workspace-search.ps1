@@ -61,6 +61,9 @@ function Assert-WorkspaceSearchContract {
         'Directory.EnumerateFileSystemEntries(directoryPath)',
         'FileAttributes.ReparsePoint',
         '_policy.ShouldExcludeDirectory(directoryName)',
+        'pendingDirectory.Depth >= request.MaximumTraversalDepth',
+        'entries.Count > _policy.MaximumDirectoryEntries',
+        'request.MaximumMatchesPerFile',
         'ProjectSearchLimitReason.MatchesPerFile',
         'ProjectSearchLimitReason.TraversalDepth',
         'ProjectSearchLimitReason.DirectoryEntries',
@@ -140,6 +143,8 @@ function Assert-WorkspaceSearchContract {
         'CancellationMissingRootAndInvalidBoundsFailExplicitly',
         'TraversalDepthAndPerFileCapsProduceTypedPartialResults',
         'WideDirectoryMaterializationIsBoundedOrderedAndStable',
+        'SharedPolicyBoundsTraversalPerFileMatchesAndReportsMetadataWithoutMutation',
+        'SearchRejectsRequestsAboveInjectedWorkspacePolicy',
         'مشروع search with spaces'
     )) { Assert-ContainsLiteral $TestText $literal 'ProjectSearchServiceTests.cs' }
 
@@ -214,6 +219,15 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-WorkspaceSearchContract ($contractText.Replace('MaximumResults = WorkspaceScalePolicy.DefaultMaximumSearchResults', 'MaximumResults = int.MaxValue')) $serviceText $stateText $searchXamlText $searchCodeText $workspaceCodeText $testText $docText
     } 'default result bound removed'
+    Assert-ContractRejects {
+        Assert-WorkspaceSearchContract $contractText ($serviceText.Replace('pendingDirectory.Depth >= request.MaximumTraversalDepth', 'false')) $stateText $searchXamlText $searchCodeText $workspaceCodeText $testText $docText
+    } 'traversal depth bound removed'
+    Assert-ContractRejects {
+        Assert-WorkspaceSearchContract $contractText ($serviceText.Replace('request.MaximumMatchesPerFile', 'int.MaxValue')) $stateText $searchXamlText $searchCodeText $workspaceCodeText $testText $docText
+    } 'per-file match bound removed'
+    Assert-ContractRejects {
+        Assert-WorkspaceSearchContract $contractText ($serviceText.Replace('entries.Count > _policy.MaximumDirectoryEntries', 'false')) $stateText $searchXamlText $searchCodeText $workspaceCodeText $testText $docText
+    } 'directory materialization bound removed'
     Assert-ContractRejects {
         Assert-WorkspaceSearchContract $contractText $serviceText $stateText ($searchXamlText.Replace('VirtualizingPanel.IsVirtualizing="True"', 'VirtualizingPanel.IsVirtualizing="False"')) $searchCodeText $workspaceCodeText $testText $docText
     } 'result virtualization removed'

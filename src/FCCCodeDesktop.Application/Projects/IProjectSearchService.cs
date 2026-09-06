@@ -64,6 +64,7 @@ public sealed record ProjectSearchResultSet(
     int MaximumTraversalDepth = WorkspaceScalePolicy.DefaultMaximumTraversalDepth,
     int MaximumMatchesPerFile = WorkspaceScalePolicy.DefaultMaximumSearchMatchesPerFile,
     int MaximumPreviewCharacters = WorkspaceScalePolicy.DefaultMaximumPreviewCharacters,
+    int BinaryProbeBytes = WorkspaceScalePolicy.DefaultBinaryProbeBytes,
     ProjectSearchLimitReason LimitReasons = ProjectSearchLimitReason.None)
 {
     public bool HasMatches => Matches.Count > 0;

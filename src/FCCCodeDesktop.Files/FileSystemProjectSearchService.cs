@@ -226,6 +226,7 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
             request.MaximumTraversalDepth,
             request.MaximumMatchesPerFile,
             request.MaximumPreviewCharacters,
+            _policy.BinaryProbeBytes,
             limitReasons);
     }
 
