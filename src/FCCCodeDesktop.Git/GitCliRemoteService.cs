@@ -654,6 +654,8 @@ public sealed class GitCliRemoteService : IGitRemoteService
         List<string> arguments,
         CancellationToken cancellationToken)
     {
+        GitCommandSafetyPolicy.EnsureAllowed(arguments);
+
         var startInfo = new ProcessStartInfo(_gitExecutable)
         {
             WorkingDirectory = workingDirectory,

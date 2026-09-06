@@ -213,6 +213,8 @@ public sealed class GitCliIndexService : IGitIndexService
         IReadOnlyList<string> arguments,
         CancellationToken cancellationToken)
     {
+        GitCommandSafetyPolicy.EnsureAllowed(arguments);
+
         var startInfo = new ProcessStartInfo(_gitExecutable)
         {
             WorkingDirectory = workingDirectory,
