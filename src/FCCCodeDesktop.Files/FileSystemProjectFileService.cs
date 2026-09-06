@@ -463,8 +463,8 @@ public sealed class FileSystemProjectFileService : IProjectFileService
     }
 
     private static bool EndsWithNewLine(string text) =>
-        text.EndsWith("\n", StringComparison.Ordinal)
-        || text.EndsWith("\r", StringComparison.Ordinal);
+        text.EndsWith('\n')
+        || text.EndsWith('\r');
 
     private static void TryDeleteTemporaryFile(string path)
     {
