@@ -8,7 +8,7 @@ namespace FCCCodeDesktop.UnitTests;
 public sealed class GitRepositoryDetectionTests
 {
     [Fact]
-    public async Task DetectRepositoryAsync_ReturnsNotRepository_ForOrdinaryDirectory()
+    public async Task DetectRepositoryAsyncReturnsNotRepositoryForOrdinaryDirectory()
     {
         using var workspace = new TemporaryDirectory("fccd-git-plain");
         var service = new GitCliService();
@@ -21,7 +21,7 @@ public sealed class GitRepositoryDetectionTests
     }
 
     [Fact]
-    public async Task DetectRepositoryAsync_DetectsWorkTreeFromNestedUnicodePathWithoutMutation()
+    public async Task DetectRepositoryAsyncDetectsWorkTreeFromNestedUnicodePathWithoutMutation()
     {
         using var workspace = new TemporaryDirectory("fccd-git-worktree");
         var init = await TestProcess.RunAsync("git", "init --quiet", workspace.Path);
@@ -48,7 +48,7 @@ public sealed class GitRepositoryDetectionTests
     }
 
     [Fact]
-    public async Task DetectRepositoryAsync_DetectsBareRepository()
+    public async Task DetectRepositoryAsyncDetectsBareRepository()
     {
         using var workspace = new TemporaryDirectory("fccd-git-bare");
         var barePath = workspace.GetPath("repository.git");
@@ -68,7 +68,7 @@ public sealed class GitRepositoryDetectionTests
     }
 
     [Fact]
-    public async Task DetectRepositoryAsync_ReturnsGitUnavailable_WhenExecutableCannotStart()
+    public async Task DetectRepositoryAsyncReturnsGitUnavailableWhenExecutableCannotStart()
     {
         using var workspace = new TemporaryDirectory("fccd-git-unavailable");
         var service = new GitCliService($"missing-git-{Guid.NewGuid():N}");
@@ -81,7 +81,7 @@ public sealed class GitRepositoryDetectionTests
     }
 
     [Fact]
-    public async Task DetectRepositoryAsync_ThrowsForMissingDirectory()
+    public async Task DetectRepositoryAsyncThrowsForMissingDirectory()
     {
         using var workspace = new TemporaryDirectory("fccd-git-missing");
         var missingPath = workspace.GetPath("missing");
@@ -92,7 +92,7 @@ public sealed class GitRepositoryDetectionTests
     }
 
     [Fact]
-    public async Task DetectRepositoryAsync_PropagatesCallerCancellation()
+    public async Task DetectRepositoryAsyncPropagatesCallerCancellation()
     {
         using var workspace = new TemporaryDirectory("fccd-git-cancel");
         using var cancellationSource = new CancellationTokenSource();
