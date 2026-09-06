@@ -123,7 +123,7 @@ public sealed class GitIndexMutationTests
         Assert.True(File.Exists(workspace.GetPath("renamed-target.txt")));
         Assert.Equal(targetBytes, await File.ReadAllBytesAsync(workspace.GetPath("renamed-target.txt")));
 
-        var stage = await service.StageAsync(workspace.Path, ["renamed-target.txt"]);
+        var stage = await service.StageAsync(workspace.Path, unstage.EffectivePaths);
         var restagedStatus = await new GitCliService().GetStatusAsync(workspace.Path);
 
         Assert.Equal(GitIndexMutationStatus.Success, stage.Status);
