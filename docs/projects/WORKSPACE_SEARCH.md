@@ -20,6 +20,8 @@ Default per-search bounds are:
 
 The service rejects caller limits above its production safety ceilings instead of allowing an accidental unbounded scan. Reaching a file or result cap is reported in the result set and surfaced to the user.
 
+P06-008 centralizes these defaults and adds a `64`-level traversal-depth cap, a `100`-match per-file cap, a bounded per-directory materialization cap, and typed limit reasons. A depth-limited, unusually wide, or match-heavy workspace therefore returns an explicit partial result instead of silently consuming unbounded time or allowing one pathological file to monopolize the result payload. Directory entries and resulting matches are ordered deterministically within every bounded listing.
+
 `FCCD-P06-008` still owns the broader large-file/tree policy for the full workspace. The P06-007 limits are search-specific safety invariants and do not close or replace P06-008.
 
 ## Filesystem safety
