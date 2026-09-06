@@ -26,7 +26,7 @@ public sealed class WorkspaceScalePolicyTests
     }
 
     [Fact]
-    public void CustomLimitsAndExclusionsAreImmutableCaseInsensitiveAndCannotRemoveBuiltIns()
+    public void CustomLimitsAndExclusionsAreImmutableAndCaseInsensitive()
     {
         var sourceExclusions = new List<string> { "vendor", "Generated", "VENDOR" };
         var policy = new WorkspaceScalePolicy(
