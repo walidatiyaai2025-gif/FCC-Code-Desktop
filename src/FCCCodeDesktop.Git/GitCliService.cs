@@ -805,7 +805,7 @@ public sealed class GitCliService : IGitService
             normalized = normalized[2..];
         }
 
-        if (normalized.Length == 0 || normalized.StartsWith("/", StringComparison.Ordinal) || Path.IsPathRooted(normalized))
+        if (normalized.Length == 0 || normalized[0] == '/' || Path.IsPathRooted(normalized))
         {
             throw new ArgumentException("Git diff path must be repository-relative.", nameof(repositoryRelativePath));
         }
