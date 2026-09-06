@@ -35,8 +35,7 @@ public partial class ProjectEditorSurface : UserControl
         {
             await workspace.SaveSelectedAsync(CancellationToken.None).ConfigureAwait(true);
         }
-        catch (Exception exception) when (exception is ProjectFileConflictException
-                                           or IOException
+        catch (Exception exception) when (exception is IOException
                                            or UnauthorizedAccessException
                                            or ArgumentException
                                            or InvalidOperationException)
@@ -77,8 +76,7 @@ public partial class ProjectEditorSurface : UserControl
                     CancellationToken.None)
                 .ConfigureAwait(true);
         }
-        catch (Exception exception) when (exception is ProjectEditorOpenException
-                                           or IOException
+        catch (Exception exception) when (exception is IOException
                                            or UnauthorizedAccessException
                                            or ArgumentException
                                            or InvalidOperationException)
