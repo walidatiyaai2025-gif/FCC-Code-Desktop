@@ -28,6 +28,7 @@ function Assert-EditorLifecycleContract {
         [string]$SurfaceCodeText,
         [string]$ProjectSurfaceCodeText,
         [string]$TestsText,
+        [string]$IntegrationTestsText,
         [string]$DocText
     )
 
@@ -90,6 +91,15 @@ function Assert-EditorLifecycleContract {
     )) { Assert-ContainsLiteral $TestsText $literal 'ProjectEditorWorkspaceTests.cs' }
 
     foreach ($literal in @(
+        'RealFileServicePreservesUnicodePathEncodingNewLinesConflictAndReload',
+        'new FileSystemProjectFileService()',
+        'ProjectTextEncoding.Utf16BigEndian',
+        'ProjectNewLineStyle.Lf',
+        'Assert.ThrowsAsync<ProjectFileConflictException>',
+        'discardUnsavedChanges: true'
+    )) { Assert-ContainsLiteral $IntegrationTestsText $literal 'ProjectEditorWorkspaceIntegrationTests.cs' }
+
+    foreach ($literal in @(
         'P06-004 safe file service',
         'P06-005 native editor',
         'optimistic version token',
@@ -98,7 +108,7 @@ function Assert-EditorLifecycleContract {
         'FINAL_OWNER_ACCEPTANCE_QUEUE'
     )) { Assert-ContainsLiteral $DocText $literal 'EDITOR_LIFECYCLE.md' }
 
-    foreach ($text in @($WorkspaceText, $SurfaceXamlText, $SurfaceCodeText, $ProjectSurfaceCodeText, $TestsText, $DocText)) {
+    foreach ($text in @($WorkspaceText, $SurfaceXamlText, $SurfaceCodeText, $ProjectSurfaceCodeText, $TestsText, $IntegrationTestsText, $DocText)) {
         foreach ($marker in @('TODO', 'FIXME', 'Coming soon', 'Placeholder')) {
             if ($text.IndexOf($marker, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
                 throw "P06-006 contains forbidden unfinished-work marker '$marker'."
@@ -131,6 +141,7 @@ $paths = @{
     SurfaceCode = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Editor\ProjectEditorSurface.xaml.cs'
     ProjectSurfaceCode = Join-Path $RepositoryRoot 'src\FCCCodeDesktop.App\Projects\ProjectWorkspaceSurface.xaml.cs'
     Tests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.UnitTests\ProjectEditorWorkspaceTests.cs'
+    IntegrationTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.IntegrationTests\ProjectEditorWorkspaceIntegrationTests.cs'
     Doc = Join-Path $RepositoryRoot 'docs\projects\EDITOR_LIFECYCLE.md'
 }
 
@@ -143,20 +154,24 @@ $surfaceXamlText = Get-Content -LiteralPath $paths.SurfaceXaml -Raw
 $surfaceCodeText = Get-Content -LiteralPath $paths.SurfaceCode -Raw
 $projectSurfaceCodeText = Get-Content -LiteralPath $paths.ProjectSurfaceCode -Raw
 $testsText = Get-Content -LiteralPath $paths.Tests -Raw
+$integrationTestsText = Get-Content -LiteralPath $paths.IntegrationTests -Raw
 $docText = Get-Content -LiteralPath $paths.Doc -Raw
 
-Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText
+Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $integrationTestsText $docText
 Write-Host 'Static P06-006 editor lifecycle contract: PASS.'
 
 if ($RunFixtures) {
     $withoutVersion = $workspaceText.Replace('document.Version)', 'expectedVersion: null)', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $withoutVersion $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText } 'save without optimistic version token'
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutVersion $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $integrationTestsText $docText } 'save without optimistic version token'
 
     $withoutDirtyGuard = $workspaceText.Replace('if (document.IsDirty && !discardUnsavedChanges)', 'if (false)', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $withoutDirtyGuard $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText } 'dirty reload/close guard removed'
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutDirtyGuard $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $integrationTestsText $docText } 'dirty reload/close guard removed'
 
     $withoutInspection = $workspaceText.Replace('.InspectAsync(normalizedRoot, normalizedPath, cancellationToken)', '.ReadTextAsync(normalizedRoot, normalizedPath, cancellationToken)', [StringComparison]::Ordinal)
-    Assert-Rejects { Assert-EditorLifecycleContract $withoutInspection $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $docText } 'large/binary preflight removed'
+    Assert-Rejects { Assert-EditorLifecycleContract $withoutInspection $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $integrationTestsText $docText } 'large/binary preflight removed'
+
+    $withoutRealServiceIntegration = $integrationTestsText.Replace('new FileSystemProjectFileService()', 'new FakeProjectFileService()', [StringComparison]::Ordinal)
+    Assert-Rejects { Assert-EditorLifecycleContract $workspaceText $surfaceXamlText $surfaceCodeText $projectSurfaceCodeText $testsText $withoutRealServiceIntegration $docText } 'real safe-file-service integration removed'
 
     Write-Host 'Negative P06-006 editor lifecycle fixtures: PASS.'
 }
@@ -170,8 +185,13 @@ if ($RequireRuntime) {
         throw "P06-006 validation requires .NET SDK 10.0.400 but resolved '$sdkVersion'."
     }
 
-    $testProject = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.UnitTests\FCCCodeDesktop.UnitTests.csproj'
-    & dotnet test $testProject -c Release --no-restore --no-build --nologo --filter 'FullyQualifiedName~ProjectEditorWorkspaceTests'
-    if ($LASTEXITCODE -ne 0) { throw 'P06-006 editor lifecycle unit/runtime tests failed.' }
-    Write-Host 'Executable P06-006 editor lifecycle validation: PASS.'
+    $unitProject = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.UnitTests\FCCCodeDesktop.UnitTests.csproj'
+    & dotnet test $unitProject -c Release --no-restore --no-build --nologo --filter 'FullyQualifiedName~ProjectEditorWorkspaceTests'
+    if ($LASTEXITCODE -ne 0) { throw 'P06-006 editor lifecycle unit tests failed.' }
+
+    $integrationProject = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.IntegrationTests\FCCCodeDesktop.IntegrationTests.csproj'
+    & dotnet test $integrationProject -c Release --no-restore --no-build --nologo --filter 'FullyQualifiedName~ProjectEditorWorkspaceIntegrationTests'
+    if ($LASTEXITCODE -ne 0) { throw 'P06-006 real safe-file lifecycle integration test failed.' }
+
+    Write-Host 'Executable P06-006 editor lifecycle unit + integration validation: PASS.'
 }
