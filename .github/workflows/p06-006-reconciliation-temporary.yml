@@ -1,0 +1,153 @@
+name: P06-006 Temporary Reconciliation
+
+on:
+  push:
+    branches:
+      - worker-b/fccd-p06-006-reconcile
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: worker-b/fccd-p06-006-reconcile
+          fetch-depth: 0
+
+      - name: Apply guarded P06-006 reconciliation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          candidate = "60aca82b36b046c7d5373cb8b4c807e0550e85e4"
+          merge_sha = "8d204b9618be9d398d29668bc2b7f1ddec9f0ceb"
+
+          provenance = """## P06-006 integration provenance
+
+          - Exact repaired implementation candidate: `60aca82b36b046c7d5373cb8b4c807e0550e85e4`.
+          - PR #157 exact-head Windows CI: run `34028644029` / run #343 — SUCCESS.
+          - PR #157 exact-head P06-007 workspace-search CI: run `34028644082` / run #72 — SUCCESS.
+          - PR #157 exact-head P06-008 large-workspace CI: run `34028644031` / run #52 — SUCCESS.
+          - Normal merge commit: `8d204b9618be9d398d29668bc2b7f1ddec9f0ceb`.
+          - Exact post-merge canonical-main Windows CI: run `34028997094` / run #344 — SUCCESS.
+          - Exact post-merge P06-007 workspace-search CI: run `34028996981` / run #73 — SUCCESS.
+          - Exact post-merge P06-008 large-workspace CI: run `34028997023` / run #53 — SUCCESS.
+          - Integrated evidence: `evidence/phases/P06/P06_006_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+          - Evidence class remains cloud/self-test for editor tab/save/reload/dirty/conflict/concurrency mechanics plus canonical integration provenance; no new owner-only evidence, P06 phase-exit PASS, P07 authorization, or release eligibility is implied.
+
+          """
+
+          task_paragraph = """`FCCD-P06-006` is CLOSED from the production editor lifecycle integration and permanent validation. The implementation composes the P06-004 safe file service and P06-005 native editor into multi-tab open/save/reload/dirty-state behavior; refuses binary and oversized materialization through the P06-008 inspection boundary; pins tabs to their original project roots; preserves encoding and CRLF/LF/CR newline policy; fails closed on optimistic-version conflicts while retaining dirty buffers; serializes lifecycle operations so concurrent same-file opens deduplicate safely; and protects dirty/in-flight editor state during reload, close, and application shutdown. Exact repaired candidate `60aca82b36b046c7d5373cb8b4c807e0550e85e4` passed Windows CI `34028644029` / #343, P06-007 regression `34028644082` / #72, and P06-008 safeguard `34028644031` / #52 before normal merge `8d204b9618be9d398d29668bc2b7f1ddec9f0ceb`; exact post-merge main then passed Windows CI `34028997094` / #344, P06-007 `34028996981` / #73, and P06-008 `34028997023` / #53. Task evidence: `evidence/phases/P06/P06_006_INTEGRATED_RECONCILIATION_2026-09-06.md`. This evidence is cloud/self-test plus canonical integration provenance only; it adds no owner-only obligation and does not claim P06 phase closure, P07 authorization, release eligibility, or `VERIFIED_FINAL_COMPLETE`.
+
+          """
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{label}: expected exactly one occurrence, found {count}")
+              return text.replace(old, new, 1)
+
+          # CURRENT_PHASE.md
+          path = Path("CURRENT_PHASE.md")
+          text = path.read_text(encoding="utf-8")
+          old = "P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows`, `FCCD-P06-002 — Project technology/tool detection framework`, `FCCD-P06-003 — Lazy file explorer`, `FCCD-P06-004 — Safe file service`, `FCCD-P06-005 — Locally bundled code editor`, `FCCD-P06-007 — Workspace content/file/regex search`, and `FCCD-P06-008 — Large file/tree safeguards` have been normally integrated and exact-main verified. `FCCD-P06-006 — Editor tabs/save/reload/dirty state` is the sole remaining P06 task. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, select P06-006 only if it remains unclaimed and no higher-priority recovery work exists. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase."
+          new = "P06 remains the sole legal cloud convergence phase. `FCCD-P06-001` through `FCCD-P06-008` are now all normally integrated, reconciled at task level where applicable, and exact-main verified, including `FCCD-P06-006 — Editor tabs/save/reload/dirty state`. P06 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN` until the phase-exit contract is executed and truthfully reconciled. P07 and later work remain prohibited until that gate is genuinely `PASS` and canonical governance advances the single current cloud phase."
+          text = replace_once(text, old, new, "CURRENT_PHASE active rule")
+          text = replace_once(text, "- `FCCD-P06-006` — Editor tabs/save/reload/dirty state — PENDING.", "- `FCCD-P06-006` — Editor tabs/save/reload/dirty state — CLOSED.", "CURRENT_PHASE inventory")
+          anchor = "## P06-007 integration provenance\n"
+          if provenance.strip() not in text:
+              text = replace_once(text, anchor, provenance + anchor, "CURRENT_PHASE provenance anchor")
+          heading = "## Next legitimate action after this reconciliation is integrated\n"
+          idx = text.find(heading)
+          if idx < 0:
+              raise SystemExit("CURRENT_PHASE next-action heading missing")
+          text = text[:idx] + heading + "\nRe-fetch live main, queue, open PRs/branches/issues, and exact-head CI. All mandatory P06 task rows are now CLOSED with canonical integration and exact-main non-regression evidence. The next legal cloud convergence unit is the P06 phase-exit gate and phase reconciliation. Do not start P07 until that gate genuinely passes, its evidence is integrated, and canonical governance explicitly advances to P07. Preserve both existing owner-last queue blockers unchanged.\n"
+          path.write_text(text, encoding="utf-8", newline="\n")
+
+          # PROJECT_CONTROL.md
+          path = Path("PROJECT_CONTROL.md")
+          text = path.read_text(encoding="utf-8")
+          old = "Under the owner-last scheduling amendment, P06 is now the sole legal **cloud implementation phase**. `FCCD-P06-001`, `FCCD-P06-002`, `FCCD-P06-003`, `FCCD-P06-004`, `FCCD-P06-005`, `FCCD-P06-007`, and `FCCD-P06-008` are CLOSED after canonical integration and exact-main validation; `FCCD-P06-006 — Editor tabs/save/reload/dirty state` is the sole remaining P06 task and remains PENDING. P06 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; P07 and later implementation remain prohibited until P06 cloud work is complete and canonical governance advances sequentially. This preserves both queued owner blockers, `P04=NOT_RUN`, `P05=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes."
+          new = "Under the owner-last scheduling amendment, P06 remains the sole legal **cloud convergence phase**. `FCCD-P06-001` through `FCCD-P06-008` are CLOSED after canonical integration and exact-main validation, including `FCCD-P06-006 — Editor tabs/save/reload/dirty state`. P06 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; the next legal unit is P06 phase-exit validation/reconciliation, and P07 and later implementation remain prohibited until that gate genuinely passes and canonical governance advances sequentially. This preserves both queued owner blockers, `P04=NOT_RUN`, `P05=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes."
+          text = replace_once(text, old, new, "PROJECT_CONTROL P06 status")
+          text = replace_once(text, "| FCCD-P06-006 | Editor tabs/save/reload/dirty state | PENDING |", "| FCCD-P06-006 | Editor tabs/save/reload/dirty state | CLOSED |", "PROJECT_CONTROL P06-006 row")
+          anchor = "`FCCD-P06-007` is CLOSED"
+          if task_paragraph.strip() not in text:
+              text = replace_once(text, anchor, task_paragraph + anchor, "PROJECT_CONTROL task paragraph anchor")
+          path.write_text(text, encoding="utf-8", newline="\n")
+
+          # docs/TASK_LEDGER.md
+          path = Path("docs/TASK_LEDGER.md")
+          text = path.read_text(encoding="utf-8")
+          text = replace_once(text, "| FCCD-P06-006 | Editor tabs/save/reload/dirty state | PENDING |", "| FCCD-P06-006 | Editor tabs/save/reload/dirty state | CLOSED |", "TASK_LEDGER P06-006 row")
+          anchor = "`FCCD-P06-007` is CLOSED"
+          if task_paragraph.strip() not in text:
+              text = replace_once(text, anchor, task_paragraph + anchor, "TASK_LEDGER task paragraph anchor")
+          heading = "## Current next action\n"
+          idx = text.find(heading)
+          if idx < 0:
+              raise SystemExit("TASK_LEDGER Current next action heading missing")
+          text = text[:idx] + heading + "\n`CURRENT_PHASE = P06` and every mandatory P06 task row, `FCCD-P06-001` through `FCCD-P06-008`, is now CLOSED after exact PR-head validation, normal merge integration, exact post-merge canonical-main validation, permanent CI coverage where applicable, and durable task reconciliation evidence. P06 itself remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; the next legal cloud convergence unit is the P06 phase-exit gate and phase reconciliation. Do not begin P07 until the P06 exit gate is genuinely `PASS` with canonical evidence and `CURRENT_PHASE.md` explicitly advances sequentially.\n\nP04 remains acceptance-unresolved through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. P05 cloud implementation remains integrated, but its standalone exit observation remains queued as `OWNER-P05-EXIT-REAL-TARGET`. Their phase gates remain `P04=NOT_RUN;P05=NOT_RUN`; owner-last scheduling does not close either deferred acceptance requirement or permit release.\n"
+          path.write_text(text, encoding="utf-8", newline="\n")
+
+          evidence = Path("evidence/phases/P06/P06_006_INTEGRATED_RECONCILIATION_2026-09-06.md")
+          if evidence.exists():
+              raise SystemExit(f"Evidence already exists unexpectedly: {evidence}")
+          evidence.write_text("""# FCCD-P06-006 — Integrated Reconciliation
+
+**Status:** CLOSED / canonical cloud integration verified  
+**Phase:** P06  
+**Task:** `FCCD-P06-006 — Editor tabs/save/reload/dirty state`
+
+## Integrated production scope
+
+The canonical implementation composes the P06-004 safe file service with the P06-005 native editor and the already-integrated P06-007/P06-008 workspace guarantees. It provides multi-tab file editing, same-file tab deduplication, root-pinned tabs, save/reload/close dirty-state protection, optimistic-version conflict handling that retains the unsaved buffer, encoding/newline preservation, binary/oversized preflight refusal, serialized lifecycle operations, concurrent-open regression protection, and fail-safe dirty/in-flight application shutdown behavior. No direct filesystem-write bypass, P07 work, or owner-only evidence is introduced.
+
+Permanent validation is tracked by `tools/ui/validate-editor-lifecycle.ps1` and the mandatory Windows CI P06-006 gate. The validator includes negative fixtures for version-aware save, dirty discard protection, large/binary inspection, operation serialization/disposal, real safe-file-service integration, shutdown guards, and concurrent-open coverage. The real integration fixture exercises `ProjectEditorWorkspace` with `FileSystemProjectFileService` on a Unicode/space-containing path and verifies encoding/newline preservation, external-change refusal, and explicit reload recovery.
+
+## Exact implementation provenance
+
+- Exact repaired implementation candidate: `60aca82b36b046c7d5373cb8b4c807e0550e85e4`.
+- PR #157 exact-head Windows CI: run `34028644029` / run #343 — SUCCESS.
+- PR #157 exact-head P06-007 workspace-search CI: run `34028644082` / run #72 — SUCCESS.
+- PR #157 exact-head P06-008 large-workspace CI: run `34028644031` / run #52 — SUCCESS.
+- Normal merge commit: `8d204b9618be9d398d29668bc2b7f1ddec9f0ceb`.
+- Exact post-merge canonical-main Windows CI: run `34028997094` / run #344 — SUCCESS.
+- Exact post-merge P06-007 workspace-search CI: run `34028996981` / run #73 — SUCCESS.
+- Exact post-merge P06-008 large-workspace CI: run `34028997023` / run #53 — SUCCESS.
+
+## Closure statement
+
+`FCCD-P06-006` is CLOSED because its production implementation, focused/full automated validation, exact-head non-regression gates, normal merge integration, and exact post-merge canonical-main verification are complete with no unresolved task-local regression.
+
+This is task-level cloud integration evidence only. It does **not** claim P06 `PHASE_EXIT_GATE=PASS`, P06 phase closure, P07 authorization, final-owner acceptance, release eligibility, or `VERIFIED_FINAL_COMPLETE=true`. The canonical final-owner queue remains unchanged with `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET` still `QUEUED` and release-blocking.
+""", encoding="utf-8", newline="\n")
+
+          # Fail closed against accidental phase/owner changes.
+          current = Path("CURRENT_PHASE.md").read_text(encoding="utf-8")
+          if "CURRENT_PHASE: P06" not in current or "PHASE_EXIT_GATE: NOT_RUN" not in current:
+              raise SystemExit("P06 phase/gate state changed unexpectedly")
+          if "NEXT_PHASE: P07" not in current or "VERIFIED_FINAL_COMPLETE: false" not in current:
+              raise SystemExit("future/final state changed unexpectedly")
+          if current.count("OWNER-P04-008-REAL-TARGET") < 1 or current.count("OWNER-P05-EXIT-REAL-TARGET") < 1:
+              raise SystemExit("owner-last queue references were damaged")
+          PY
+
+          git diff --check
+          git diff -- CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P06/P06_006_INTEGRATED_RECONCILIATION_2026-09-06.md
+
+      - name: Commit reconciliation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P06/P06_006_INTEGRATED_RECONCILIATION_2026-09-06.md
+          git diff --cached --quiet && { echo "No reconciliation changes produced"; exit 1; }
+          git commit -m "docs: reconcile FCCD-P06-006 integrated closure"
+          git push origin HEAD:worker-b/fccd-p06-006-reconcile
