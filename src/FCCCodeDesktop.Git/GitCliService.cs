@@ -11,16 +11,25 @@ public sealed class GitCliService : IGitService
     public static readonly TimeSpan MaximumProbeTimeout = TimeSpan.FromSeconds(30);
     public static readonly TimeSpan DefaultStatusTimeout = TimeSpan.FromSeconds(15);
     public static readonly TimeSpan MaximumStatusTimeout = TimeSpan.FromSeconds(60);
+    public static readonly TimeSpan DefaultDiffTimeout = TimeSpan.FromSeconds(20);
+    public static readonly TimeSpan MaximumDiffTimeout = TimeSpan.FromSeconds(60);
+
+    public const int DefaultMaxDiffCharacters = 2 * 1024 * 1024;
+    public const int MaximumDiffCharacters = 8 * 1024 * 1024;
 
     private const string NotRepositoryMessage = "not a git repository";
     private readonly string _gitExecutable;
     private readonly TimeSpan _probeTimeout;
     private readonly TimeSpan _statusTimeout;
+    private readonly TimeSpan _diffTimeout;
+    private readonly int _maxDiffCharacters;
 
     public GitCliService(
         string gitExecutable = "git",
         TimeSpan? probeTimeout = null,
-        TimeSpan? statusTimeout = null)
+        TimeSpan? statusTimeout = null,
+        TimeSpan? diffTimeout = null,
+        int maxDiffCharacters = DefaultMaxDiffCharacters)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(gitExecutable);
 
@@ -42,9 +51,28 @@ public sealed class GitCliService : IGitService
                 $"Git status timeout must be greater than zero and no more than {MaximumStatusTimeout.TotalSeconds} seconds.");
         }
 
+        var resolvedDiffTimeout = diffTimeout ?? DefaultDiffTimeout;
+        if (resolvedDiffTimeout <= TimeSpan.Zero || resolvedDiffTimeout > MaximumDiffTimeout)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(diffTimeout),
+                diffTimeout,
+                $"Git diff timeout must be greater than zero and no more than {MaximumDiffTimeout.TotalSeconds} seconds.");
+        }
+
+        if (maxDiffCharacters <= 0 || maxDiffCharacters > MaximumDiffCharacters)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maxDiffCharacters),
+                maxDiffCharacters,
+                $"Git diff materialization limit must be greater than zero and no more than {MaximumDiffCharacters} characters.");
+        }
+
         _gitExecutable = gitExecutable;
         _probeTimeout = resolvedProbeTimeout;
         _statusTimeout = resolvedStatusTimeout;
+        _diffTimeout = resolvedDiffTimeout;
+        _maxDiffCharacters = maxDiffCharacters;
     }
 
     public async Task<GitRepositoryDetectionResult> DetectRepositoryAsync(
@@ -166,6 +194,111 @@ public sealed class GitCliService : IGitService
             files);
     }
 
+    public async Task<GitFileDiffResult> GetDiffAsync(
+        string path,
+        string repositoryRelativePath,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        var normalizedPath = NormalizeRepositoryRelativePath(repositoryRelativePath);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var detection = await DetectRepositoryAsync(path, cancellationToken).ConfigureAwait(false);
+        switch (detection.Status)
+        {
+            case GitRepositoryDetectionStatus.NotRepository:
+                return EmptyDiff(GitDiffQueryStatus.NotRepository, normalizedPath);
+            case GitRepositoryDetectionStatus.GitUnavailable:
+                return EmptyDiff(GitDiffQueryStatus.GitUnavailable, normalizedPath);
+            case GitRepositoryDetectionStatus.ProbeFailed:
+                return EmptyDiff(GitDiffQueryStatus.QueryFailed, normalizedPath);
+            case GitRepositoryDetectionStatus.Repository:
+                break;
+            default:
+                return EmptyDiff(GitDiffQueryStatus.QueryFailed, normalizedPath);
+        }
+
+        var repository = detection.Repository;
+        if (repository is null)
+        {
+            return EmptyDiff(GitDiffQueryStatus.QueryFailed, normalizedPath);
+        }
+
+        if (repository.Kind == GitRepositoryKind.Bare)
+        {
+            return EmptyDiff(
+                GitDiffQueryStatus.BareRepository,
+                normalizedPath,
+                repository.RepositoryRootPath);
+        }
+
+        var status = await GetStatusAsync(repository.RepositoryRootPath, cancellationToken).ConfigureAwait(false);
+        if (status.Status != GitStatusQueryStatus.Success)
+        {
+            return EmptyDiff(
+                status.Status switch
+                {
+                    GitStatusQueryStatus.NotRepository => GitDiffQueryStatus.NotRepository,
+                    GitStatusQueryStatus.BareRepository => GitDiffQueryStatus.BareRepository,
+                    GitStatusQueryStatus.GitUnavailable => GitDiffQueryStatus.GitUnavailable,
+                    _ => GitDiffQueryStatus.QueryFailed,
+                },
+                normalizedPath,
+                repository.RepositoryRootPath);
+        }
+
+        var pathComparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        var statusEntry = status.Files.FirstOrDefault(
+            entry => string.Equals(entry.Path, normalizedPath, pathComparison));
+
+        if (statusEntry?.IsUntracked == true)
+        {
+            var untracked = await ExecuteUntrackedDiffAsync(
+                repository.RepositoryRootPath,
+                normalizedPath,
+                cancellationToken).ConfigureAwait(false);
+            return BuildDiffResult(
+                untracked.Status,
+                repository.RepositoryRootPath,
+                normalizedPath,
+                EmptyDiffSection(GitDiffSectionKind.Staged),
+                untracked.Section);
+        }
+
+        var staged = await ExecuteTrackedDiffSectionAsync(
+            repository.RepositoryRootPath,
+            normalizedPath,
+            GitDiffSectionKind.Staged,
+            cancellationToken).ConfigureAwait(false);
+        if (staged.Status != GitDiffQueryStatus.Success)
+        {
+            return BuildDiffResult(
+                staged.Status,
+                repository.RepositoryRootPath,
+                normalizedPath,
+                staged.Section,
+                EmptyDiffSection(GitDiffSectionKind.WorkTree));
+        }
+
+        var workTree = await ExecuteTrackedDiffSectionAsync(
+            repository.RepositoryRootPath,
+            normalizedPath,
+            GitDiffSectionKind.WorkTree,
+            cancellationToken).ConfigureAwait(false);
+
+        var finalStatus = workTree.Status == GitDiffQueryStatus.Success
+            ? GitDiffQueryStatus.Success
+            : workTree.Status;
+        return BuildDiffResult(
+            finalStatus,
+            repository.RepositoryRootPath,
+            normalizedPath,
+            staged.Section,
+            workTree.Section);
+    }
+
     private async Task<GitRepositoryDetectionResult> BuildWorkTreeResultAsync(
         string probePath,
         CancellationToken cancellationToken)
@@ -237,11 +370,147 @@ public sealed class GitCliService : IGitService
                 GitRepositoryKind.Bare));
     }
 
+    private async Task<DiffSectionQueryResult> ExecuteTrackedDiffSectionAsync(
+        string repositoryRoot,
+        string repositoryRelativePath,
+        GitDiffSectionKind kind,
+        CancellationToken cancellationToken)
+    {
+        var arguments = new List<string>
+        {
+            "-c",
+            "core.quotePath=false",
+            "diff",
+        };
+
+        if (kind == GitDiffSectionKind.Staged)
+        {
+            arguments.Add("--cached");
+        }
+
+        arguments.Add("--no-color");
+        arguments.Add("--no-ext-diff");
+        arguments.Add("--no-textconv");
+        arguments.Add("--find-renames");
+        arguments.Add("--unified=3");
+        arguments.Add("--");
+        arguments.Add($":(literal){repositoryRelativePath}");
+
+        var command = await ExecuteGitAsync(
+            repositoryRoot,
+            arguments,
+            _diffTimeout,
+            cancellationToken,
+            _maxDiffCharacters).ConfigureAwait(false);
+
+        if (!command.Started)
+        {
+            return new DiffSectionQueryResult(
+                GitDiffQueryStatus.GitUnavailable,
+                EmptyDiffSection(kind));
+        }
+
+        if (command.TimedOut || command.ExitCode != 0)
+        {
+            return new DiffSectionQueryResult(
+                GitDiffQueryStatus.QueryFailed,
+                EmptyDiffSection(kind));
+        }
+
+        if (command.StandardOutputTruncated)
+        {
+            return new DiffSectionQueryResult(
+                GitDiffQueryStatus.TooLarge,
+                new GitDiffSection(kind, string.Empty, IsBinary: false, WasTruncated: true));
+        }
+
+        return new DiffSectionQueryResult(
+            GitDiffQueryStatus.Success,
+            new GitDiffSection(
+                kind,
+                command.StandardOutput,
+                IsBinaryDiff(command.StandardOutput),
+                WasTruncated: false));
+    }
+
+    private async Task<DiffSectionQueryResult> ExecuteUntrackedDiffAsync(
+        string repositoryRoot,
+        string repositoryRelativePath,
+        CancellationToken cancellationToken)
+    {
+        var fullPath = ResolveRepositoryRelativePath(repositoryRoot, repositoryRelativePath);
+        if (!File.Exists(fullPath))
+        {
+            return new DiffSectionQueryResult(
+                GitDiffQueryStatus.QueryFailed,
+                EmptyDiffSection(GitDiffSectionKind.WorkTree));
+        }
+
+        var emptyFilePath = OperatingSystem.IsWindows() ? "NUL" : "/dev/null";
+        var arguments = new List<string>
+        {
+            "-c",
+            "core.quotePath=false",
+            "diff",
+            "--no-index",
+            "--no-color",
+            "--no-ext-diff",
+            "--no-textconv",
+            "--unified=3",
+            "--",
+            emptyFilePath,
+            fullPath,
+        };
+
+        var command = await ExecuteGitAsync(
+            repositoryRoot,
+            arguments,
+            _diffTimeout,
+            cancellationToken,
+            _maxDiffCharacters).ConfigureAwait(false);
+
+        if (!command.Started)
+        {
+            return new DiffSectionQueryResult(
+                GitDiffQueryStatus.GitUnavailable,
+                EmptyDiffSection(GitDiffSectionKind.WorkTree));
+        }
+
+        if (command.TimedOut || command.ExitCode is not (0 or 1))
+        {
+            return new DiffSectionQueryResult(
+                GitDiffQueryStatus.QueryFailed,
+                EmptyDiffSection(GitDiffSectionKind.WorkTree));
+        }
+
+        if (command.StandardOutputTruncated)
+        {
+            return new DiffSectionQueryResult(
+                GitDiffQueryStatus.TooLarge,
+                new GitDiffSection(
+                    GitDiffSectionKind.WorkTree,
+                    string.Empty,
+                    IsBinary: false,
+                    WasTruncated: true,
+                    IsNewFile: true));
+        }
+
+        return new DiffSectionQueryResult(
+            GitDiffQueryStatus.Success,
+            new GitDiffSection(
+                GitDiffSectionKind.WorkTree,
+                command.StandardOutput,
+                IsBinaryDiff(command.StandardOutput),
+                WasTruncated: false,
+                IsNewFile: true));
+    }
+
     private async Task<GitCommandResult> ExecuteGitAsync(
         string workingDirectory,
         IReadOnlyList<string> arguments,
         TimeSpan timeout,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int? maxStandardOutputCharacters = null)
     {
         var startInfo = new ProcessStartInfo(_gitExecutable)
         {
@@ -261,6 +530,8 @@ public sealed class GitCliService : IGitService
 
         startInfo.Environment["GIT_TERMINAL_PROMPT"] = "0";
         startInfo.Environment["GIT_OPTIONAL_LOCKS"] = "0";
+        startInfo.Environment["GIT_PAGER"] = "cat";
+        startInfo.Environment["PAGER"] = "cat";
         startInfo.Environment["LC_ALL"] = "C";
         startInfo.Environment["LANG"] = "C";
 
@@ -277,7 +548,9 @@ public sealed class GitCliService : IGitService
             return GitCommandResult.NotStarted;
         }
 
-        var standardOutputTask = process.StandardOutput.ReadToEndAsync(CancellationToken.None);
+        var standardOutputTask = ReadProcessOutputAsync(
+            process.StandardOutput,
+            maxStandardOutputCharacters);
         var standardErrorTask = process.StandardError.ReadToEndAsync(CancellationToken.None);
         using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutSource.CancelAfter(timeout);
@@ -292,19 +565,87 @@ public sealed class GitCliService : IGitService
             var cancelledOutput = await standardOutputTask.ConfigureAwait(false);
             var cancelledError = await standardErrorTask.ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            return new GitCommandResult(true, null, cancelledOutput, cancelledError, TimedOut: true);
+            return new GitCommandResult(
+                true,
+                null,
+                cancelledOutput.Text,
+                cancelledError,
+                TimedOut: true,
+                cancelledOutput.WasTruncated);
         }
 
+        var standardOutput = await standardOutputTask.ConfigureAwait(false);
         return new GitCommandResult(
             true,
             process.ExitCode,
-            await standardOutputTask.ConfigureAwait(false),
+            standardOutput.Text,
             await standardErrorTask.ConfigureAwait(false),
-            TimedOut: false);
+            TimedOut: false,
+            standardOutput.WasTruncated);
+    }
+
+    private static async Task<BoundedTextResult> ReadProcessOutputAsync(
+        StreamReader reader,
+        int? maxCharacters)
+    {
+        if (maxCharacters is null)
+        {
+            return new BoundedTextResult(
+                await reader.ReadToEndAsync(CancellationToken.None).ConfigureAwait(false),
+                WasTruncated: false);
+        }
+
+        var builder = new StringBuilder(Math.Min(maxCharacters.Value, 64 * 1024));
+        var buffer = new char[8192];
+        var wasTruncated = false;
+
+        while (true)
+        {
+            var read = await reader.ReadAsync(buffer.AsMemory(), CancellationToken.None).ConfigureAwait(false);
+            if (read == 0)
+            {
+                break;
+            }
+
+            var remaining = maxCharacters.Value - builder.Length;
+            if (remaining > 0)
+            {
+                builder.Append(buffer, 0, Math.Min(remaining, read));
+            }
+
+            if (read > remaining)
+            {
+                wasTruncated = true;
+            }
+        }
+
+        return new BoundedTextResult(builder.ToString(), wasTruncated);
     }
 
     private static GitStatusResult EmptyStatus(GitStatusQueryStatus status) =>
         new(status, null, Array.Empty<GitFileStatusEntry>());
+
+    private static GitFileDiffResult EmptyDiff(
+        GitDiffQueryStatus status,
+        string repositoryRelativePath,
+        string? repositoryRoot = null) =>
+        BuildDiffResult(
+            status,
+            repositoryRoot,
+            repositoryRelativePath,
+            EmptyDiffSection(GitDiffSectionKind.Staged),
+            EmptyDiffSection(GitDiffSectionKind.WorkTree));
+
+    private static GitFileDiffResult BuildDiffResult(
+        GitDiffQueryStatus status,
+        string? repositoryRoot,
+        string repositoryRelativePath,
+        GitDiffSection staged,
+        GitDiffSection workTree) =>
+        new(status, repositoryRoot, repositoryRelativePath, staged, workTree);
+
+    private static GitDiffSection EmptyDiffSection(GitDiffSectionKind kind) =>
+        new(kind, string.Empty, IsBinary: false, WasTruncated: false);
 
     private static bool TryParseStatus(string output, out IReadOnlyList<GitFileStatusEntry> files)
     {
@@ -367,7 +708,6 @@ public sealed class GitCliService : IGitService
                     break;
 
                 case '!':
-                    // Ignored records are not requested, but tolerate them defensively.
                     break;
 
                 default:
@@ -456,6 +796,51 @@ public sealed class GitCliService : IGitService
         return status is '.' or 'M' or 'A' or 'D' or 'R' or 'C' or 'T' or 'U';
     }
 
+    private static string NormalizeRepositoryRelativePath(string repositoryRelativePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(repositoryRelativePath);
+        var normalized = repositoryRelativePath.Replace('\\', '/').Trim();
+        while (normalized.StartsWith("./", StringComparison.Ordinal))
+        {
+            normalized = normalized[2..];
+        }
+
+        if (normalized.Length == 0 || normalized[0] == '/' || Path.IsPathRooted(normalized))
+        {
+            throw new ArgumentException("Git diff path must be repository-relative.", nameof(repositoryRelativePath));
+        }
+
+        var segments = normalized.Split('/', StringSplitOptions.None);
+        if (segments.Any(static segment => segment.Length == 0 || segment is "." or ".."))
+        {
+            throw new ArgumentException("Git diff path must not contain empty, current-directory, or parent-directory segments.", nameof(repositoryRelativePath));
+        }
+
+        return string.Join('/', segments);
+    }
+
+    private static string ResolveRepositoryRelativePath(string repositoryRoot, string repositoryRelativePath)
+    {
+        var fullRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(repositoryRoot));
+        var nativeRelativePath = repositoryRelativePath.Replace('/', Path.DirectorySeparatorChar);
+        var fullPath = Path.GetFullPath(Path.Combine(fullRoot, nativeRelativePath));
+        var rootPrefix = fullRoot + Path.DirectorySeparatorChar;
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        if (!fullPath.StartsWith(rootPrefix, comparison))
+        {
+            throw new ArgumentException("Git diff path escapes the detected repository root.", nameof(repositoryRelativePath));
+        }
+
+        return fullPath;
+    }
+
+    private static bool IsBinaryDiff(string patch) =>
+        patch.Contains("GIT binary patch", StringComparison.Ordinal)
+        || patch.Contains("Binary files ", StringComparison.Ordinal);
+
     private static async Task TerminateProcessAsync(Process process)
     {
         try
@@ -476,7 +861,6 @@ public sealed class GitCliService : IGitService
         }
         catch (InvalidOperationException)
         {
-            // The process already exited while cleanup was being reconciled.
         }
     }
 
@@ -492,13 +876,23 @@ public sealed class GitCliService : IGitService
         return Path.TrimEndingDirectorySeparator(Path.GetFullPath(candidate));
     }
 
+    private sealed record DiffSectionQueryResult(
+        GitDiffQueryStatus Status,
+        GitDiffSection Section);
+
+    private sealed record BoundedTextResult(
+        string Text,
+        bool WasTruncated);
+
     private sealed record GitCommandResult(
         bool Started,
         int? ExitCode,
         string StandardOutput,
         string StandardError,
-        bool TimedOut)
+        bool TimedOut,
+        bool StandardOutputTruncated)
     {
-        public static GitCommandResult NotStarted { get; } = new(false, null, string.Empty, string.Empty, TimedOut: false);
+        public static GitCommandResult NotStarted { get; } =
+            new(false, null, string.Empty, string.Empty, TimedOut: false, StandardOutputTruncated: false);
     }
 }
