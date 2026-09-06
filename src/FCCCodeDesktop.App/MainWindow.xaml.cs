@@ -66,7 +66,20 @@ public partial class MainWindow : Window
 
     private void OnWindowClosing(object? sender, CancelEventArgs e)
     {
-        var dirtyDocumentCount = _projectWorkspaceSurface?.EditorWorkspace.Documents.Count(document => document.IsDirty) ?? 0;
+        var editorWorkspace = _projectWorkspaceSurface?.EditorWorkspace;
+        if (editorWorkspace is { IsBusy: true })
+        {
+            e.Cancel = true;
+            MessageBox.Show(
+                this,
+                "An editor save, reload, or open operation is still in progress. Wait for it to finish before exiting FCC Code Desktop.",
+                "Editor operation in progress",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return;
+        }
+
+        var dirtyDocumentCount = editorWorkspace?.Documents.Count(document => document.IsDirty) ?? 0;
         if (dirtyDocumentCount == 0)
         {
             return;
