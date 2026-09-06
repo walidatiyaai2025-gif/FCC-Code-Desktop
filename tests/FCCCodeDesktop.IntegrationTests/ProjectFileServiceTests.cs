@@ -8,6 +8,10 @@ namespace FCCCodeDesktop.IntegrationTests;
 
 public sealed class ProjectFileServiceTests
 {
+    private static readonly byte[] Utf8Bom = [0xEF, 0xBB, 0xBF];
+    private static readonly byte[] Utf16BigEndianBom = [0xFE, 0xFF];
+    private static readonly byte[] InvalidUtf8Bytes = [0xC3, 0x28];
+
     [Fact]
     public async Task ReadsUtf8BomMetadataAndMixedNewLinesWithoutChangingSource()
     {
@@ -15,7 +19,7 @@ public sealed class ProjectFileServiceTests
         var root = workspace.GetPath("مشروع safe files");
         Directory.CreateDirectory(root);
         var filePath = Path.Combine(root, "notes ütf8.txt");
-        var originalBytes = Combine([0xEF, 0xBB, 0xBF], Encoding.UTF8.GetBytes("alpha\r\nbeta\ngamma\r"));
+        var originalBytes = Combine(Utf8Bom, Encoding.UTF8.GetBytes("alpha\r\nbeta\ngamma\r"));
         await File.WriteAllBytesAsync(filePath, originalBytes, CancellationToken.None);
 
         var snapshot = await new FileSystemProjectFileService()
@@ -65,7 +69,7 @@ public sealed class ProjectFileServiceTests
         var savedBytes = await File.ReadAllBytesAsync(filePath, CancellationToken.None);
         var savedSnapshot = await service.ReadTextAsync(root, filePath, CancellationToken.None);
 
-        Assert.True(savedBytes.AsSpan().StartsWith([0xFE, 0xFF]));
+        Assert.True(savedBytes.AsSpan().StartsWith(Utf16BigEndianBom));
         Assert.Equal("second\r\nline\r\n", savedSnapshot.Text);
         Assert.Equal(ProjectTextEncoding.Utf16BigEndian, savedSnapshot.Encoding);
         Assert.Equal(saved.Version, savedSnapshot.Version);
@@ -126,13 +130,13 @@ public sealed class ProjectFileServiceTests
             service.ReadTextAsync(root, outsidePath, CancellationToken.None));
         Assert.Contains("outside", outsideFailure.Message, StringComparison.OrdinalIgnoreCase);
 
-        _ = await Assert.ThrowsAsync<IOException>(() =>
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             service.WriteTextAsync(
                 new ProjectTextFileWriteRequest(root, root, "bad", ProjectTextEncoding.Utf8),
                 CancellationToken.None));
 
         var invalidTextPath = Path.Combine(root, "binary.dat");
-        await File.WriteAllBytesAsync(invalidTextPath, [0xC3, 0x28], CancellationToken.None);
+        await File.WriteAllBytesAsync(invalidTextPath, InvalidUtf8Bytes, CancellationToken.None);
         _ = await Assert.ThrowsAsync<InvalidDataException>(() =>
             service.ReadTextAsync(root, invalidTextPath, CancellationToken.None));
 
