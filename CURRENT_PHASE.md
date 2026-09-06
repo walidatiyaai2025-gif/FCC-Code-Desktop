@@ -87,7 +87,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P07-007` — Commit/push — CLOSED.
 - `FCCD-P07-008` — History — CLOSED.
 - `FCCD-P07-009` — Dirty/pre-existing-change provenance — CLOSED.
-- `FCCD-P07-010` — Destructive-operation safeguards — PENDING.
+- `FCCD-P07-010` — Destructive-operation safeguards — CLOSED.
 - `FCCD-P07-011` — Git integration tests/conflict scenarios — PENDING.
 
 ## P07-001 integration provenance
@@ -207,6 +207,19 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact post-merge P06-008 Large Workspace Safeguards: run `34061750177` / run #133 — SUCCESS.
 - Integrated evidence: `evidence/phases/P07/P07_009_INTEGRATED_RECONCILIATION_2026-09-07.md`.
 - Evidence class remains cloud/self-test for conservative read-only dirty/pre-existing-change provenance plus canonical integration provenance; no destructive-operation safeguard closure, conflict-scenario closure, P07 phase closure, P08/P11/P12 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is implied.
+
+## P07-010 integration provenance
+
+- Exact implementation candidate: `b2ebc3b811f1b0ac0320fa01212567a8256f29a6` from PR #183 (`worker-b/fccd-p07-010-destructive-operation-safeguards`).
+- PR #183 exact-head Windows CI: run `34064091958` / run #424 — SUCCESS.
+- PR #183 exact-head P06-007 Workspace Search: run `34064092009` / run #153 — SUCCESS.
+- PR #183 exact-head P06-008 Large Workspace Safeguards: run `34064092001` / run #137 — SUCCESS.
+- Normal merge commit: `161e725e3c72743ed31ddcbd277b8b0ee3354f66`.
+- Exact post-merge canonical-main Windows CI: run `34064629191` / run #425 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34064629184` / run #154 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34064629256` / run #138 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_010_INTEGRATED_RECONCILIATION_2026-09-07.md`.
+- Evidence class remains cloud/self-test for fail-closed destructive Git command safeguards plus canonical integration provenance; no conflict-scenario closure, P07 phase closure, P08/P11/P12 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is implied.
 
 ## P07 cloud activation provenance
 
