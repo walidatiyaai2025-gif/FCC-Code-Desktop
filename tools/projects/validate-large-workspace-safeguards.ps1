@@ -270,12 +270,14 @@ foreach ($literal in @(
     'SyntheticLargeTreeIsBoundedResponsiveAndStableAfterCancellation',
     'LockedFileIsSkippedAndOperationRecoversWithoutMutation',
     'ReparsePointDoesNotEscapeProjectRootWhenSupported',
-    'cancellation.CancelAfter(TimeSpan.FromMilliseconds(1))',
+    'cancellation.Cancel();',
+    'Assert.True(cancellation.IsCancellationRequested);',
     'FileShare.None',
     'Directory.CreateSymbolicLink',
     'ProjectSearchLimitReason.Files',
     'Assert.Equal(sentinelWriteTime, File.GetLastWriteTimeUtc(sentinelPath))'
 )) { Assert-ContainsLiteral $text.StressTests $literal 'LargeWorkspaceSafeguardsTests.cs' }
+Assert-DoesNotContainLiteral $text.StressTests 'cancellation.CancelAfter(' 'LargeWorkspaceSafeguardsTests.cs timing-dependent cancellation'
 Write-Host 'Static P06-008 large workspace safeguard validation: PASS.'
 
 if ($RunFixtures) {
