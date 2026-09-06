@@ -158,7 +158,7 @@ public sealed class GitCliIndexService : IGitIndexService
 
     private Task<GitCommandResult> ExecuteStageAsync(
         string repositoryRoot,
-        IReadOnlyList<string> paths,
+        List<string> paths,
         CancellationToken cancellationToken)
     {
         var arguments = new List<string>(paths.Count + 2)
@@ -172,7 +172,7 @@ public sealed class GitCliIndexService : IGitIndexService
 
     private async Task<GitCommandResult> ExecuteUnstageAsync(
         string repositoryRoot,
-        IReadOnlyList<string> paths,
+        List<string> paths,
         CancellationToken cancellationToken)
     {
         var headProbe = await ExecuteGitAsync(
@@ -352,7 +352,7 @@ public sealed class GitCliIndexService : IGitIndexService
     }
 
     private static List<string> ExpandRenamePairs(
-        IReadOnlyList<string> requestedPaths,
+        List<string> requestedPaths,
         IReadOnlyList<GitFileStatusEntry> statusEntries)
     {
         var comparer = OperatingSystem.IsWindows()
@@ -390,7 +390,7 @@ public sealed class GitCliIndexService : IGitIndexService
         return effective;
     }
 
-    private static void AddLiteralPathspecs(List<string> arguments, IReadOnlyList<string> paths)
+    private static void AddLiteralPathspecs(List<string> arguments, List<string> paths)
     {
         foreach (var pathValue in paths)
         {
@@ -410,7 +410,7 @@ public sealed class GitCliIndexService : IGitIndexService
     private static GitIndexMutationResult EmptyResult(
         GitIndexMutationStatus status,
         GitIndexMutationKind kind,
-        IReadOnlyList<string> requestedPaths) =>
+        List<string> requestedPaths) =>
         new(status, kind, null, requestedPaths, requestedPaths);
 
     private static string? NormalizeFailureMessage(string standardError)
