@@ -7,6 +7,7 @@ namespace FCCCodeDesktop.Application.Projects;
 public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
 {
     private readonly IProjectFileService _fileService;
+    private readonly SemaphoreSlim _operationGate = new(1, 1);
     private readonly ObservableCollection<ProjectEditorDocument> _documents = [];
     private readonly ReadOnlyObservableCollection<ProjectEditorDocument> _readonlyDocuments;
     private ProjectEditorDocument? _selectedDocument;
@@ -79,56 +80,64 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
 
         var normalizedRoot = Path.GetFullPath(projectRootPath);
         var normalizedPath = Path.GetFullPath(filePath);
-        var existing = _documents.FirstOrDefault(document =>
-            string.Equals(document.ProjectRootPath, normalizedRoot, StringComparison.OrdinalIgnoreCase)
-            && string.Equals(document.FullPath, normalizedPath, StringComparison.OrdinalIgnoreCase));
-        if (existing is not null)
-        {
-            SelectedDocument = existing;
-            SetError(null);
-            SetStatus($"{existing.RelativePath} is already open.");
-            return existing;
-        }
-
-        SetBusy(true);
-        SetError(null);
-        SetStatus("Opening file…");
+        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(true);
         try
         {
-            var inspection = await _fileService
-                .InspectAsync(normalizedRoot, normalizedPath, cancellationToken)
-                .ConfigureAwait(true);
-            if (!inspection.CanOpenAsNormalText)
+            var existing = _documents.FirstOrDefault(document =>
+                string.Equals(document.ProjectRootPath, normalizedRoot, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(document.FullPath, normalizedPath, StringComparison.OrdinalIgnoreCase));
+            if (existing is not null)
             {
-                throw new ProjectEditorOpenException(
-                    inspection.ContentKind == ProjectFileContentKind.Binary
-                        ? "Binary files are not opened in the text editor."
-                        : "This file exceeds the normal text-editor materialization limit.");
+                SelectedDocument = existing;
+                SetError(null);
+                SetStatus($"{existing.RelativePath} is already open.");
+                return existing;
             }
 
-            var snapshot = await _fileService
-                .ReadTextAsync(normalizedRoot, normalizedPath, cancellationToken)
-                .ConfigureAwait(true);
-            var document = new ProjectEditorDocument(snapshot);
-            document.PropertyChanged += OnDocumentPropertyChanged;
-            _documents.Add(document);
-            SelectedDocument = document;
-            OnPropertyChanged(nameof(HasDocuments));
-            SetStatus($"Opened {document.RelativePath}.");
-            return document;
-        }
-        catch (Exception exception) when (exception is IOException
-                                           or UnauthorizedAccessException
-                                           or ArgumentException
-                                           or InvalidOperationException)
-        {
-            SetError(exception.Message);
-            SetStatus("File open failed; no source file was modified.");
-            throw;
+            SetBusy(true);
+            SetError(null);
+            SetStatus("Opening file…");
+            try
+            {
+                var inspection = await _fileService
+                    .InspectAsync(normalizedRoot, normalizedPath, cancellationToken)
+                    .ConfigureAwait(true);
+                if (!inspection.CanOpenAsNormalText)
+                {
+                    throw new ProjectEditorOpenException(
+                        inspection.ContentKind == ProjectFileContentKind.Binary
+                            ? "Binary files are not opened in the text editor."
+                            : "This file exceeds the normal text-editor materialization limit.");
+                }
+
+                var snapshot = await _fileService
+                    .ReadTextAsync(normalizedRoot, normalizedPath, cancellationToken)
+                    .ConfigureAwait(true);
+                var document = new ProjectEditorDocument(snapshot);
+                document.PropertyChanged += OnDocumentPropertyChanged;
+                _documents.Add(document);
+                SelectedDocument = document;
+                OnPropertyChanged(nameof(HasDocuments));
+                SetStatus($"Opened {document.RelativePath}.");
+                return document;
+            }
+            catch (Exception exception) when (exception is IOException
+                                               or UnauthorizedAccessException
+                                               or ArgumentException
+                                               or InvalidOperationException)
+            {
+                SetError(exception.Message);
+                SetStatus("File open failed; no source file was modified.");
+                throw;
+            }
+            finally
+            {
+                SetBusy(false);
+            }
         }
         finally
         {
-            SetBusy(false);
+            _operationGate.Release();
         }
     }
 
@@ -142,51 +151,59 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
-        EnsureOwnedDocument(document);
-        if (!document.IsDirty)
-        {
-            SetError(null);
-            SetStatus($"{document.RelativePath} has no unsaved changes.");
-            return;
-        }
-
-        SetBusy(true);
-        SetError(null);
-        SetStatus($"Saving {document.RelativePath}…");
+        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(true);
         try
         {
-            var persistedText = ProjectEditorTextPolicy.NormalizeForSave(document.Text, document.NewLineStyle);
-            var result = await _fileService.WriteTextAsync(
-                    new ProjectTextFileWriteRequest(
-                        document.ProjectRootPath,
-                        document.FullPath,
-                        persistedText,
-                        document.Encoding,
-                        document.Version),
-                    cancellationToken)
-                .ConfigureAwait(true);
-            document.ApplySaved(result);
-            SetStatus($"Saved {document.RelativePath}.");
-        }
-        catch (ProjectFileConflictException exception)
-        {
-            document.MarkConflict(exception.Message);
-            SetError(exception.Message);
-            SetStatus("Save blocked because the file changed on disk. Reload or reconcile the external change first.");
-            throw;
-        }
-        catch (Exception exception) when (exception is IOException
-                                           or UnauthorizedAccessException
-                                           or ArgumentException
-                                           or InvalidOperationException)
-        {
-            SetError(exception.Message);
-            SetStatus("Save failed; the editor kept the unsaved buffer.");
-            throw;
+            EnsureOwnedDocument(document);
+            if (!document.IsDirty)
+            {
+                SetError(null);
+                SetStatus($"{document.RelativePath} has no unsaved changes.");
+                return;
+            }
+
+            SetBusy(true);
+            SetError(null);
+            SetStatus($"Saving {document.RelativePath}…");
+            try
+            {
+                var persistedText = ProjectEditorTextPolicy.NormalizeForSave(document.Text, document.NewLineStyle);
+                var result = await _fileService.WriteTextAsync(
+                        new ProjectTextFileWriteRequest(
+                            document.ProjectRootPath,
+                            document.FullPath,
+                            persistedText,
+                            document.Encoding,
+                            document.Version),
+                        cancellationToken)
+                    .ConfigureAwait(true);
+                document.ApplySaved(result);
+                SetStatus($"Saved {document.RelativePath}.");
+            }
+            catch (ProjectFileConflictException exception)
+            {
+                document.MarkConflict(exception.Message);
+                SetError(exception.Message);
+                SetStatus("Save blocked because the file changed on disk. Reload or reconcile the external change first.");
+                throw;
+            }
+            catch (Exception exception) when (exception is IOException
+                                               or UnauthorizedAccessException
+                                               or ArgumentException
+                                               or InvalidOperationException)
+            {
+                SetError(exception.Message);
+                SetStatus("Save failed; the editor kept the unsaved buffer.");
+                throw;
+            }
+            finally
+            {
+                SetBusy(false);
+            }
         }
         finally
         {
-            SetBusy(false);
+            _operationGate.Release();
         }
     }
 
@@ -204,45 +221,53 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
-        EnsureOwnedDocument(document);
-        if (document.IsDirty && !discardUnsavedChanges)
-        {
-            throw new ProjectEditorDirtyException(
-                $"{document.RelativePath} has unsaved changes. Explicitly discard them before reloading from disk.");
-        }
-
-        SetBusy(true);
-        SetError(null);
-        SetStatus($"Reloading {document.RelativePath}…");
+        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(true);
         try
         {
-            var inspection = await _fileService
-                .InspectAsync(document.ProjectRootPath, document.FullPath, cancellationToken)
-                .ConfigureAwait(true);
-            if (!inspection.CanOpenAsNormalText)
+            EnsureOwnedDocument(document);
+            if (document.IsDirty && !discardUnsavedChanges)
             {
-                throw new ProjectEditorOpenException(
-                    "The file can no longer be materialized safely as normal text.");
+                throw new ProjectEditorDirtyException(
+                    $"{document.RelativePath} has unsaved changes. Explicitly discard them before reloading from disk.");
             }
 
-            var snapshot = await _fileService
-                .ReadTextAsync(document.ProjectRootPath, document.FullPath, cancellationToken)
-                .ConfigureAwait(true);
-            document.ApplyReload(snapshot);
-            SetStatus($"Reloaded {document.RelativePath} from disk.");
-        }
-        catch (Exception exception) when (exception is IOException
-                                           or UnauthorizedAccessException
-                                           or ArgumentException
-                                           or InvalidOperationException)
-        {
-            SetError(exception.Message);
-            SetStatus("Reload failed; the existing editor buffer was retained.");
-            throw;
+            SetBusy(true);
+            SetError(null);
+            SetStatus($"Reloading {document.RelativePath}…");
+            try
+            {
+                var inspection = await _fileService
+                    .InspectAsync(document.ProjectRootPath, document.FullPath, cancellationToken)
+                    .ConfigureAwait(true);
+                if (!inspection.CanOpenAsNormalText)
+                {
+                    throw new ProjectEditorOpenException(
+                        "The file can no longer be materialized safely as normal text.");
+                }
+
+                var snapshot = await _fileService
+                    .ReadTextAsync(document.ProjectRootPath, document.FullPath, cancellationToken)
+                    .ConfigureAwait(true);
+                document.ApplyReload(snapshot);
+                SetStatus($"Reloaded {document.RelativePath} from disk.");
+            }
+            catch (Exception exception) when (exception is IOException
+                                               or UnauthorizedAccessException
+                                               or ArgumentException
+                                               or InvalidOperationException)
+            {
+                SetError(exception.Message);
+                SetStatus("Reload failed; the existing editor buffer was retained.");
+                throw;
+            }
+            finally
+            {
+                SetBusy(false);
+            }
         }
         finally
         {
-            SetBusy(false);
+            _operationGate.Release();
         }
     }
 
@@ -254,6 +279,11 @@ public sealed class ProjectEditorWorkspace : INotifyPropertyChanged
     public void Close(ProjectEditorDocument document, bool discardUnsavedChanges)
     {
         ArgumentNullException.ThrowIfNull(document);
+        if (IsBusy)
+        {
+            throw new InvalidOperationException("Wait for the current editor operation to finish before closing a tab.");
+        }
+
         EnsureOwnedDocument(document);
         if (document.IsDirty && !discardUnsavedChanges)
         {
