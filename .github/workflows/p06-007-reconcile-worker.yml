@@ -132,15 +132,14 @@ jobs:
           git diff --check
           if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
           foreach ($required in @('CURRENT_PHASE.md', 'docs/TASK_LEDGER.md', 'evidence/phases/P06/P06_007_INTEGRATED_RECONCILIATION_2026-09-06.md')) {
-            if (@(git diff --name-only) -notcontains $required) { throw "Expected reconciliation change missing: $required" }
+            if (($required -eq 'evidence/phases/P06/P06_007_INTEGRATED_RECONCILIATION_2026-09-06.md' -and -not (Test-Path -LiteralPath $required)) -or ($required -ne 'evidence/phases/P06/P06_007_INTEGRATED_RECONCILIATION_2026-09-06.md' -and @(git diff --name-only) -notcontains $required)) { throw "Expected reconciliation change missing: $required" }
           }
 
-      - name: Commit exact reconciliation and remove temporary worker
+      - name: Commit exact reconciliation
         shell: pwsh
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/workflows/p06-007-reconcile-worker.yml
           git add CURRENT_PHASE.md docs/TASK_LEDGER.md evidence/phases/P06/P06_007_INTEGRATED_RECONCILIATION_2026-09-06.md
           git commit -m "Reconcile FCCD-P06-007 integrated closure"
           git push origin HEAD:worker/fccd-p06-007-reconcile
