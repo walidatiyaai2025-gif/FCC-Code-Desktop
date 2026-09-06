@@ -1,0 +1,159 @@
+name: P06-005 Reconciliation Worker V2
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p06-005-integrated
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: windows-2025
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Apply exact P06-005 reconciliation
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+
+          function Replace-Exactly-Once {
+            param([string]$Text, [string]$Old, [string]$New, [string]$Label)
+            $count = ([regex]::Matches($Text, [regex]::Escape($Old))).Count
+            if ($count -ne 1) { throw "$Label expected exactly one match, found $count." }
+            return $Text.Replace($Old, $New)
+          }
+
+          $phasePath = 'CURRENT_PHASE.md'
+          $phase = [IO.File]::ReadAllText($phasePath)
+          $oldScheduling = 'P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows`, `FCCD-P06-002 — Project technology/tool detection framework`, `FCCD-P06-003 — Lazy file explorer`, `FCCD-P06-004 — Safe file service`, and `FCCD-P06-007 — Workspace content/file/regex search` have been normally integrated and exact-main verified. Live ownership currently shows `FCCD-P06-005 — Locally bundled code editor` on fresh branch `worker/fccd-p06-005-local-code-editor`; workers must not duplicate or steal that work. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, select only a dependency-valid unclaimed P06 task whose file/semantic surface does not collide with fresh owned work. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.'
+          $newScheduling = 'P06 is now the sole legal cloud implementation/convergence phase. `FCCD-P06-001 — Add/open/recent project workflows`, `FCCD-P06-002 — Project technology/tool detection framework`, `FCCD-P06-003 — Lazy file explorer`, `FCCD-P06-004 — Safe file service`, `FCCD-P06-005 — Locally bundled code editor`, and `FCCD-P06-007 — Workspace content/file/regex search` have been normally integrated and exact-main verified. Live ownership currently shows `FCCD-P06-008 — Large file/tree safeguards` on draft PR #152 / branch `codex/fccd-p06-008-large-workspace-safeguards`; workers must not duplicate or steal that work. Subject to the normal live recovery/ownership check in `docs/WORKER_PROTOCOL.md`, select only a dependency-valid unclaimed P06 task whose file/semantic surface does not collide with fresh owned work. P07 and later work remain prohibited until P06 cloud work is complete and governance truthfully advances the single current cloud phase.'
+          $phase = Replace-Exactly-Once $phase $oldScheduling $newScheduling 'P06 scheduling paragraph'
+          $phase = Replace-Exactly-Once $phase '- `FCCD-P06-005` — Locally bundled code editor — PENDING (fresh active worker claim observed; do not duplicate).' '- `FCCD-P06-005` — Locally bundled code editor — CLOSED.' 'P06-005 phase inventory row'
+
+          $phaseAnchor = '- Evidence class remains cloud/self-test for bounded conflict-aware project text-file I/O and atomic/version-aware save mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.' + "`n`n## P06-007 integration provenance"
+          $phaseInsert = @(
+            '- Evidence class remains cloud/self-test for bounded conflict-aware project text-file I/O and atomic/version-aware save mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.',
+            '',
+            '## P06-005 integration provenance',
+            '',
+            '- Recovered exact implementation candidate: `b09dfcfa90fd737f11d564fb7155f4c48705a663`.',
+            '- PR #149 exact-head Windows CI: run `34019277443` / run #285 — SUCCESS.',
+            '- Normal merge commit: `5d5a09627dc2a11d1a7ee0692e706d7e89be0a23`.',
+            '- Exact post-merge canonical-main Windows CI: run `34019689317` / run #286 — SUCCESS.',
+            '- Exact post-merge P06-007 workspace-search regression CI: run `34019689309` / run #15 — SUCCESS.',
+            '- Integrated evidence: `evidence/phases/P06/P06_005_INTEGRATED_RECONCILIATION_2026-09-06.md`.',
+            '- Evidence class remains cloud/self-test for native locally bundled WPF editor mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.',
+            '',
+            '## P06-007 integration provenance'
+          ) -join "`n"
+          $phase = Replace-Exactly-Once $phase $phaseAnchor $phaseInsert 'P06-005 phase provenance insertion'
+
+          $oldNext = 'Re-fetch live main, queue, open PRs/branches/issues, and exact-head CI. `FCCD-P06-005 — Locally bundled code editor` is currently actively owned by fresh branch `worker/fccd-p06-005-local-code-editor`; do not duplicate or steal it. Select only another dependency-valid unclaimed P06 task with a non-overlapping implementation surface, or report `NO_SAFE_PARALLEL_WORK`. Do not start P07 until P06 cloud work is complete and governance truthfully advances the single current cloud phase.'
+          $newNext = 'Re-fetch live main, queue, open PRs/branches/issues, and exact-head CI. `FCCD-P06-008 — Large file/tree safeguards` is currently actively owned by draft PR #152 / branch `codex/fccd-p06-008-large-workspace-safeguards`; do not duplicate or steal it. Recover/integrate that legitimate work when ready before selecting a new task. Otherwise select only another dependency-valid unclaimed P06 task with a non-overlapping implementation surface, or report `NO_SAFE_PARALLEL_WORK`. Do not start P07 until P06 cloud work is complete and governance truthfully advances the single current cloud phase.'
+          $phase = Replace-Exactly-Once $phase $oldNext $newNext 'Next legitimate action'
+          [IO.File]::WriteAllText($phasePath, $phase, [Text.UTF8Encoding]::new($false))
+
+          $ledgerPath = 'docs/TASK_LEDGER.md'
+          $ledger = [IO.File]::ReadAllText($ledgerPath)
+          $ledger = Replace-Exactly-Once $ledger '| FCCD-P06-005 | Locally bundled code editor | PENDING |' '| FCCD-P06-005 | Locally bundled code editor | CLOSED |' 'P06-005 ledger row'
+          $ledgerAnchor = "`n`n" + '`FCCD-P06-007` is CLOSED from the production bounded workspace search and permanent validation.'
+          $ledgerParagraph = @(
+            '',
+            '',
+            '`FCCD-P06-005` is CLOSED from the production native locally bundled code-editor implementation and permanent validation. The implementation adds a WPF-only `CodeEditorControl` with multiline Unicode editing, deterministic CRLF/LF/lone-CR line metrics, no-wrap monospaced presentation, horizontal/vertical scrolling, Tab input, native undo, read-only propagation, line-number gutter, one-based caret status, semantic theme resources, and production `MainWindow` composition without taking P06-006 file-lifecycle ownership. The stale but already-green PR #149 was recovered against current canonical P06 without rebase, squash, force-push, or unrelated changes: recovered exact head `b09dfcfa90fd737f11d564fb7155f4c48705a663` preserved the previously tested editor ancestry and live main as two parents, had an exact eight-file diff against live main, and passed Windows CI run `34019277443` / run #285 including the dedicated P06-005 gate. PR #149 was normally merged as `5d5a09627dc2a11d1a7ee0692e706d7e89be0a23`; exact post-merge canonical-main Windows CI run `34019689317` / run #286 and P06-007 workspace-search regression run `34019689309` / run #15 both completed SUCCESS on that exact merge SHA. Task evidence: `evidence/phases/P06/P06_005_INTEGRATED_RECONCILIATION_2026-09-06.md`. This evidence is cloud/self-test plus canonical integration provenance only; it adds no owner-only obligation and does not claim P05 exit-gate PASS, P06 phase closure, release eligibility, or `VERIFIED_FINAL_COMPLETE`.',
+            '',
+            '`FCCD-P06-007` is CLOSED from the production bounded workspace search and permanent validation.'
+          ) -join "`n"
+          $ledger = Replace-Exactly-Once $ledger $ledgerAnchor $ledgerParagraph 'P06-005 ledger provenance insertion'
+          [IO.File]::WriteAllText($ledgerPath, $ledger, [Text.UTF8Encoding]::new($false))
+
+          $evidencePath = 'evidence/phases/P06/P06_005_INTEGRATED_RECONCILIATION_2026-09-06.md'
+          $evidence = @(
+            '# P06-005 Integrated Reconciliation — 2026-09-06',
+            '',
+            '## Task',
+            '',
+            '- Task: `FCCD-P06-005 — Locally bundled code editor`.',
+            '- Reconciliation classification: cloud integration evidence only.',
+            '- Canonical task closure is justified by production integration plus exact recovered-head and exact-post-merge validation; no provider-backed, manual, target-machine, or owner-only evidence is claimed here.',
+            '',
+            '## Live-state recovery',
+            '',
+            '- Canonical `CURRENT_PHASE` remained `P06`; P08 and later work were not legal.',
+            '- PR #149 contained legitimate completed P06-005 work with a prior green head, but it lagged the live P06 base while newer non-overlapping P06 work had integrated.',
+            '- Recovery/integration-pending work therefore took precedence over selecting a new task.',
+            '- P06-008 remains separately owned by draft PR #152 / `codex/fccd-p06-008-large-workspace-safeguards`; this unit does not modify, duplicate, or steal that work.',
+            '',
+            '## Production implementation',
+            '',
+            '- Native WPF `CodeEditorControl`; no browser, WebView, JavaScript, CDN, HTTP, external executable, or runtime-download editor dependency.',
+            '- Multiline Unicode editing with no-wrap monospaced presentation, horizontal/vertical scrolling, Tab input, native undo, and explicit read-only mode.',
+            '- Deterministic line-number gutter and one-based caret line/column metrics across CRLF, LF, and lone CR.',
+            '- Document/language labels, semantic theme resources, automation names, and production `MainWindow` composition.',
+            '- P06-005 deliberately does not read/write project files, save/reload buffers, own dirty state, search the workspace, or bypass P06-004 safe file I/O; those boundaries remain with P06-004/P06-006/P06-007/P06-008.',
+            '',
+            '## Recovery and ancestry',
+            '',
+            '- Previously tested head: `adf798a7e4a4e27f5275e47922d599595809c055`; Windows CI run `34015825599` / run #272 — SUCCESS.',
+            '- Live recovery base: `fa9bf58a115b1412a360de5676d850d253a282a9`.',
+            '- No file overlap existed between newer live-main changes and the eight P06-005 task/CI files.',
+            '- Recovered exact candidate: `b09dfcfa90fd737f11d564fb7155f4c48705a663`, a normal two-parent convergence commit preserving live main and the previously tested P06-005 ancestry.',
+            '- No rebase, squash, force-push, or safety-check weakening was used.',
+            '',
+            '## Exact-head validation',
+            '',
+            '- Canonical Windows CI run `34019277443` / run #285 — SUCCESS.',
+            '- Release baseline and P05-005 through P05-008 regression gates — SUCCESS.',
+            '- P06-001 through P06-004 regression gates — SUCCESS.',
+            '- Dedicated `Validate P06-005 local code editor` gate — SUCCESS, including static contract checks, destructive negative fixtures, and executable Windows/WPF runtime coverage.',
+            '',
+            '## Normal integration and exact post-merge validation',
+            '',
+            '- Implementation PR: #149 — `FCCD-P06-005: add native locally bundled code editor`.',
+            '- Normal merge commit: `5d5a09627dc2a11d1a7ee0692e706d7e89be0a23`.',
+            '- Exact post-merge canonical-main Windows CI run `34019689317` / run #286 — SUCCESS, including the P06-005 local-editor gate.',
+            '- Exact post-merge P06-007 Workspace Search regression run `34019689309` / run #15 — SUCCESS.',
+            '',
+            '## Owner-last boundary',
+            '',
+            '- P06-005 introduces no new owner-only/manual/FCC/provider/Unity/Blender/clean-machine evidence requirement.',
+            '- `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` is intentionally unchanged.',
+            '- Existing `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET` remain queued and release-blocking.',
+            '- P04/P05 deferred phase gates remain `NOT_RUN`.',
+            '- P06 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`.',
+            '- No P07/P08 authorization, P06 phase closure, release eligibility, or `VERIFIED_FINAL_COMPLETE` claim is made.',
+            '',
+            '## Reconciliation result',
+            '',
+            '- Mark `FCCD-P06-005` `CLOSED` in the canonical task ledger and P06 inventory.',
+            '- Record exact recovered implementation, normal merge, and post-merge CI provenance.',
+            '- Leave P06-006 and P06-008 unresolved; P06-008 remains separately owned by PR #152.',
+            '- Re-run live claim/recovery selection only after this reconciliation is integrated and exact resulting main remains green.'
+          ) -join "`n"
+          New-Item -ItemType Directory -Path (Split-Path $evidencePath) -Force | Out-Null
+          [IO.File]::WriteAllText($evidencePath, $evidence, [Text.UTF8Encoding]::new($false))
+
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+          $status = @(git status --porcelain)
+          foreach ($required in @('CURRENT_PHASE.md','docs/TASK_LEDGER.md','evidence/phases/P06/P06_005_INTEGRATED_RECONCILIATION_2026-09-06.md')) {
+            if (-not ($status -match [regex]::Escape($required))) { throw "Expected reconciliation change missing: $required" }
+          }
+          if ($status.Count -ne 3) { throw "Expected exactly three reconciliation paths, found $($status.Count): $($status -join '; ')" }
+
+      - name: Commit reconciliation
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CURRENT_PHASE.md docs/TASK_LEDGER.md evidence/phases/P06/P06_005_INTEGRATED_RECONCILIATION_2026-09-06.md
+          git commit -m "Reconcile FCCD-P06-005 integrated closure"
+          git push origin HEAD:reconcile/fccd-p06-005-integrated
