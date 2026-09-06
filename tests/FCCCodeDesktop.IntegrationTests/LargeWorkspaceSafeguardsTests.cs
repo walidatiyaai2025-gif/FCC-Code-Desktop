@@ -46,7 +46,8 @@ public sealed class LargeWorkspaceSafeguardsTests
             var cancelledSearch = service.SearchAsync(
                 new ProjectSearchRequest(root, "needle", ProjectSearchMode.Content),
                 cancellation.Token);
-            cancellation.CancelAfter(TimeSpan.FromMilliseconds(1));
+            cancellation.Cancel();
+            Assert.True(cancellation.IsCancellationRequested);
             _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelledSearch);
         }
 
