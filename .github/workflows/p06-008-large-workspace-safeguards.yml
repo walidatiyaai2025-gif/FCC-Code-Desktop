@@ -1,0 +1,39 @@
+name: P06-008 Large Workspace Safeguards
+
+on:
+  push:
+    branches:
+      - main
+      - codex/fccd-p06-008-large-workspace-safeguards
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p06-008-large-workspace-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  safeguards:
+    name: Large Workspace Safeguard Validation
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Run Windows Release baseline
+        shell: pwsh
+        run: .\tools\ci\run-windows-ci.ps1
+
+      - name: Validate P06-008 large workspace safeguards
+        shell: pwsh
+        run: .\tools\projects\validate-large-workspace-safeguards.ps1 -RunFixtures -RequireRuntime

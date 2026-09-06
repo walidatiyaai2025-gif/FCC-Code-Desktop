@@ -4,24 +4,32 @@ namespace FCCCodeDesktop.Files;
 
 public sealed class FileSystemProjectFileExplorerService : IProjectFileExplorerService
 {
-    public const int DefaultMaximumEntriesPerDirectory = 2048;
-    public const int MaximumSupportedEntriesPerDirectory = 20_000;
+    public const int DefaultMaximumEntriesPerDirectory = WorkspaceScalePolicy.DefaultMaximumDirectoryEntries;
+    public const int MaximumSupportedEntriesPerDirectory = WorkspaceScalePolicy.MaximumSupportedDirectoryEntries;
+
+    private static readonly char[] DirectorySeparators =
+    [
+        Path.DirectorySeparatorChar,
+        Path.AltDirectorySeparatorChar,
+    ];
 
     private readonly int _maximumEntriesPerDirectory;
+    private readonly WorkspaceScalePolicy _policy;
 
-    public FileSystemProjectFileExplorerService(
-        int maximumEntriesPerDirectory = DefaultMaximumEntriesPerDirectory)
+    public FileSystemProjectFileExplorerService()
+        : this(WorkspaceScalePolicy.Default)
     {
-        if (maximumEntriesPerDirectory < 1
-            || maximumEntriesPerDirectory > MaximumSupportedEntriesPerDirectory)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(maximumEntriesPerDirectory),
-                maximumEntriesPerDirectory,
-                $"Directory entry limit must be between 1 and {MaximumSupportedEntriesPerDirectory}.");
-        }
+    }
 
-        _maximumEntriesPerDirectory = maximumEntriesPerDirectory;
+    public FileSystemProjectFileExplorerService(int maximumEntriesPerDirectory)
+        : this(new WorkspaceScalePolicy(maximumDirectoryEntries: maximumEntriesPerDirectory))
+    {
+    }
+
+    public FileSystemProjectFileExplorerService(WorkspaceScalePolicy policy)
+    {
+        _policy = policy ?? throw new ArgumentNullException(nameof(policy));
+        _maximumEntriesPerDirectory = policy.MaximumDirectoryEntries;
     }
 
     public Task<ProjectDirectoryListing> ListChildrenAsync(
@@ -64,10 +72,12 @@ public sealed class FileSystemProjectFileExplorerService : IProjectFileExplorerS
             throw new DirectoryNotFoundException($"Project directory does not exist: {normalizedDirectoryPath}");
         }
 
-        if (!PathsEqual(normalizedRootPath, normalizedDirectoryPath)
-            && HasReparsePointAttribute(normalizedDirectoryPath))
+        EnsureNoReparseTraversal(normalizedRootPath, normalizedDirectoryPath);
+        var directoryDepth = GetDirectoryDepth(normalizedRootPath, normalizedDirectoryPath);
+        if (directoryDepth > _policy.MaximumTraversalDepth)
         {
-            throw new IOException("Reparse-point directories are visible but are not traversed by the project explorer.");
+            throw new InvalidOperationException(
+                $"The requested directory exceeds the configured {_policy.MaximumTraversalDepth}-level traversal depth.");
         }
 
         string[] boundedEntries;
@@ -96,6 +106,8 @@ public sealed class FileSystemProjectFileExplorerService : IProjectFileExplorerS
             : boundedEntries;
         var entries = new List<ProjectFileSystemEntry>(entriesToInspect.Length);
         var skippedEntries = 0;
+        var excludedDirectories = 0;
+        var depthLimitedDirectories = 0;
 
         foreach (var entryPath in entriesToInspect)
         {
@@ -136,13 +148,30 @@ public sealed class FileSystemProjectFileExplorerService : IProjectFileExplorerS
             var relativePath = Path
                 .GetRelativePath(normalizedRootPath, fullPath)
                 .Replace('\\', '/');
+            var traversalRestriction = ProjectFileTraversalRestriction.None;
+            if (isReparsePoint)
+            {
+                traversalRestriction = ProjectFileTraversalRestriction.ReparsePoint;
+            }
+            else if (isDirectory && _policy.ShouldExcludeDirectory(name))
+            {
+                traversalRestriction = ProjectFileTraversalRestriction.ExcludedDirectory;
+                excludedDirectories++;
+            }
+            else if (isDirectory && directoryDepth >= _policy.MaximumTraversalDepth)
+            {
+                traversalRestriction = ProjectFileTraversalRestriction.MaximumDepth;
+                depthLimitedDirectories++;
+            }
+
             entries.Add(
                 new ProjectFileSystemEntry(
                     name,
                     fullPath,
                     relativePath,
                     isDirectory,
-                    isReparsePoint));
+                    isReparsePoint,
+                    traversalRestriction));
         }
 
         var orderedEntries = entries
@@ -157,7 +186,44 @@ public sealed class FileSystemProjectFileExplorerService : IProjectFileExplorerS
             orderedEntries,
             skippedEntries,
             _maximumEntriesPerDirectory,
-            limitReached);
+            limitReached,
+            directoryDepth,
+            excludedDirectories,
+            depthLimitedDirectories);
+    }
+
+    private static int GetDirectoryDepth(string rootPath, string directoryPath)
+    {
+        if (PathsEqual(rootPath, directoryPath))
+        {
+            return 0;
+        }
+
+        return Path.GetRelativePath(rootPath, directoryPath)
+            .Split(DirectorySeparators, StringSplitOptions.RemoveEmptyEntries)
+            .Length;
+    }
+
+    private static void EnsureNoReparseTraversal(string rootPath, string directoryPath)
+    {
+        if (PathsEqual(rootPath, directoryPath))
+        {
+            return;
+        }
+
+        var relativeDirectory = Path.GetRelativePath(rootPath, directoryPath);
+        var currentPath = rootPath;
+        foreach (var segment in relativeDirectory.Split(
+                     DirectorySeparators,
+                     StringSplitOptions.RemoveEmptyEntries))
+        {
+            currentPath = Path.Combine(currentPath, segment);
+            if (HasReparsePointAttribute(currentPath))
+            {
+                throw new IOException(
+                    "Reparse-point directories are visible but are not traversed by the project explorer.");
+            }
+        }
     }
 
     private static bool HasReparsePointAttribute(string path)

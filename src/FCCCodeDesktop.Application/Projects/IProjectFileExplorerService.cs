@@ -13,9 +13,20 @@ public sealed record ProjectFileSystemEntry(
     string FullPath,
     string RelativePath,
     bool IsDirectory,
-    bool IsReparsePoint)
+    bool IsReparsePoint,
+    ProjectFileTraversalRestriction TraversalRestriction = ProjectFileTraversalRestriction.None)
 {
-    public bool CanExpand => IsDirectory && !IsReparsePoint;
+    public bool CanExpand => IsDirectory
+        && !IsReparsePoint
+        && TraversalRestriction == ProjectFileTraversalRestriction.None;
+}
+
+public enum ProjectFileTraversalRestriction
+{
+    None,
+    ReparsePoint,
+    ExcludedDirectory,
+    MaximumDepth,
 }
 
 public sealed record ProjectDirectoryListing(
@@ -24,4 +35,10 @@ public sealed record ProjectDirectoryListing(
     IReadOnlyList<ProjectFileSystemEntry> Entries,
     int SkippedEntries,
     int MaximumEntries,
-    bool LimitReached);
+    bool LimitReached,
+    int DirectoryDepth = 0,
+    int ExcludedDirectories = 0,
+    int DepthLimitedDirectories = 0)
+{
+    public bool IsPartial => LimitReached || SkippedEntries > 0;
+}

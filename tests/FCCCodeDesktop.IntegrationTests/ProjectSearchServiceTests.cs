@@ -146,6 +146,86 @@ public sealed class ProjectSearchServiceTests
     }
 
     [Fact]
+    public async Task SharedPolicyBoundsTraversalPerFileMatchesAndReportsMetadataWithoutMutation()
+    {
+        using var workspace = new TemporaryDirectory("fccd-p06-search-scale-policy");
+        var root = workspace.GetPath("مشروع bounded search");
+        var levelOne = Path.Combine(root, "level one");
+        var levelTwo = Path.Combine(levelOne, "level two");
+        Directory.CreateDirectory(levelTwo);
+        var hotFile = Path.Combine(root, "hot.txt");
+        const string hotContent = "needle needle needle";
+        await File.WriteAllTextAsync(hotFile, hotContent, Encoding.UTF8, CancellationToken.None);
+        await File.WriteAllTextAsync(Path.Combine(levelTwo, "deep.txt"), "needle", Encoding.UTF8, CancellationToken.None);
+        var policy = new WorkspaceScalePolicy(
+            maximumTraversalDepth: 1,
+            maximumFilesPerOperation: 10,
+            maximumSearchResults: 10,
+            maximumSearchMatchesPerFile: 2,
+            maximumSearchFileBytes: 1_024,
+            maximumPreviewCharacters: 64,
+            binaryProbeBytes: 128);
+        var service = new FileSystemProjectSearchService(policy);
+
+        var result = await service.SearchAsync(
+            new ProjectSearchRequest(
+                root,
+                "needle",
+                ProjectSearchMode.Content,
+                MaximumResults: 10,
+                MaximumFiles: 10,
+                MaximumFileBytes: 1_024,
+                MaximumMatchesPerFile: 2,
+                MaximumTraversalDepth: 1),
+            CancellationToken.None);
+
+        Assert.Equal(2, result.Matches.Count);
+        Assert.All(result.Matches, match => Assert.Equal("hot.txt", match.RelativePath));
+        Assert.True(result.DirectoriesSkipped >= 1);
+        Assert.True(result.LimitReached);
+        Assert.Equal(2, result.MaximumMatchesPerFile);
+        Assert.Equal(1, result.MaximumTraversalDepth);
+        Assert.Equal(64, result.MaximumPreviewCharacters);
+        Assert.Equal(128, result.BinaryProbeBytes);
+        Assert.Equal(hotContent, await File.ReadAllTextAsync(hotFile, Encoding.UTF8, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task SearchRejectsRequestsAboveInjectedWorkspacePolicy()
+    {
+        using var workspace = new TemporaryDirectory("fccd-p06-search-policy-rejection");
+        var root = workspace.GetPath("project");
+        Directory.CreateDirectory(root);
+        var policy = new WorkspaceScalePolicy(
+            maximumTraversalDepth: 2,
+            maximumFilesPerOperation: 4,
+            maximumSearchResults: 3,
+            maximumSearchMatchesPerFile: 2,
+            maximumSearchFileBytes: 128);
+        var service = new FileSystemProjectSearchService(policy);
+        var request = new ProjectSearchRequest(
+            root,
+            "needle",
+            ProjectSearchMode.Content,
+            MaximumResults: 3,
+            MaximumFiles: 4,
+            MaximumFileBytes: 128,
+            MaximumMatchesPerFile: 2,
+            MaximumTraversalDepth: 2);
+
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            service.SearchAsync(request with { MaximumResults = 4 }, CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            service.SearchAsync(request with { MaximumFiles = 5 }, CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            service.SearchAsync(request with { MaximumFileBytes = 129 }, CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            service.SearchAsync(request with { MaximumMatchesPerFile = 3 }, CancellationToken.None));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            service.SearchAsync(request with { MaximumTraversalDepth = 3 }, CancellationToken.None));
+    }
+
+    [Fact]
     public async Task CancellationMissingRootAndInvalidBoundsFailExplicitly()
     {
         using var workspace = new TemporaryDirectory("fccd-p06-search-errors");

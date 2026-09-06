@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Security.Cryptography;
 using System.Text;
 using FCCCodeDesktop.Application.Projects;
@@ -6,8 +7,8 @@ namespace FCCCodeDesktop.Files;
 
 public sealed class FileSystemProjectFileService : IProjectFileService
 {
-    public const int DefaultMaximumFileBytes = 8 * 1024 * 1024;
-    public const int MaximumSupportedFileBytes = 128 * 1024 * 1024;
+    public const int DefaultMaximumFileBytes = (int)WorkspaceScalePolicy.DefaultMaximumTextFileBytes;
+    public const int MaximumSupportedFileBytes = (int)WorkspaceScalePolicy.MaximumSupportedTextFileBytes;
 
     private static readonly byte[] Utf8Bom = [0xEF, 0xBB, 0xBF];
     private static readonly byte[] Utf16LittleEndianBom = [0xFF, 0xFE];
@@ -22,18 +23,73 @@ public sealed class FileSystemProjectFileService : IProjectFileService
     private static readonly UnicodeEncoding StrictUtf16BigEndian = new(true, false, true);
 
     private readonly int _maximumFileBytes;
+    private readonly WorkspaceScalePolicy _policy;
 
-    public FileSystemProjectFileService(int maximumFileBytes = DefaultMaximumFileBytes)
+    public FileSystemProjectFileService()
+        : this(WorkspaceScalePolicy.Default)
     {
-        if (maximumFileBytes < 1 || maximumFileBytes > MaximumSupportedFileBytes)
+    }
+
+    public FileSystemProjectFileService(int maximumFileBytes)
+        : this(new WorkspaceScalePolicy(maximumTextFileBytes: maximumFileBytes))
+    {
+    }
+
+    public FileSystemProjectFileService(WorkspaceScalePolicy policy)
+    {
+        _policy = policy ?? throw new ArgumentNullException(nameof(policy));
+        _maximumFileBytes = checked((int)policy.MaximumTextFileBytes);
+    }
+
+    public async Task<ProjectFileInspection> InspectAsync(
+        string projectRootPath,
+        string filePath,
+        CancellationToken cancellationToken = default)
+    {
+        var paths = ValidatePaths(projectRootPath, filePath, requireExistingFile: true);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var fileLength = new FileInfo(paths.FullPath).Length;
+        var probe = await ReadBinaryProbeAsync(paths.FullPath, cancellationToken).ConfigureAwait(false);
+        if (LooksBinary(probe))
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(maximumFileBytes),
-                maximumFileBytes,
-                $"File byte limit must be between 1 and {MaximumSupportedFileBytes}.");
+            return BuildInspection(
+                paths,
+                fileLength,
+                ProjectFileContentKind.Binary,
+                preview: null,
+                previewTruncated: false,
+                encoding: null);
         }
 
-        _maximumFileBytes = maximumFileBytes;
+        var encoding = DetectEncoding(probe);
+        try
+        {
+            var preview = await ReadPreviewAsync(
+                    paths.FullPath,
+                    encoding,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            return BuildInspection(
+                paths,
+                fileLength,
+                fileLength > _maximumFileBytes
+                    ? ProjectFileContentKind.TooLarge
+                    : ProjectFileContentKind.Text,
+                preview.Text,
+                preview.Truncated,
+                encoding.ProjectEncoding);
+        }
+        catch (DecoderFallbackException)
+        {
+            return BuildInspection(
+                paths,
+                fileLength,
+                ProjectFileContentKind.Binary,
+                preview: null,
+                previewTruncated: false,
+                encoding: null);
+        }
     }
 
     public async Task<ProjectTextFileSnapshot> ReadTextAsync(
@@ -192,6 +248,117 @@ public sealed class FileSystemProjectFileService : IProjectFileService
         var bytes = new byte[(int)stream.Length];
         await stream.ReadExactlyAsync(bytes, cancellationToken).ConfigureAwait(false);
         return bytes;
+    }
+
+    private async Task<byte[]> ReadBinaryProbeAsync(
+        string filePath,
+        CancellationToken cancellationToken)
+    {
+        var buffer = ArrayPool<byte>.Shared.Rent(_policy.BinaryProbeBytes);
+        try
+        {
+            await using var stream = new FileStream(
+                filePath,
+                new FileStreamOptions
+                {
+                    Mode = FileMode.Open,
+                    Access = FileAccess.Read,
+                    Share = FileShare.ReadWrite | FileShare.Delete,
+                    Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
+                    BufferSize = Math.Min(_policy.BinaryProbeBytes, 64 * 1024),
+                });
+            var bytesRead = await stream
+                .ReadAsync(buffer.AsMemory(0, _policy.BinaryProbeBytes), cancellationToken)
+                .ConfigureAwait(false);
+            return buffer.AsSpan(0, bytesRead).ToArray();
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+        }
+    }
+
+    private async Task<PreviewReadResult> ReadPreviewAsync(
+        string filePath,
+        DetectedEncoding encoding,
+        CancellationToken cancellationToken)
+    {
+        await using var stream = new FileStream(
+            filePath,
+            new FileStreamOptions
+            {
+                Mode = FileMode.Open,
+                Access = FileAccess.Read,
+                Share = FileShare.ReadWrite | FileShare.Delete,
+                Options = FileOptions.Asynchronous | FileOptions.SequentialScan,
+                BufferSize = 4_096,
+            });
+        stream.Position = encoding.PreambleLength;
+        using var reader = new StreamReader(
+            stream,
+            encoding.Encoding,
+            detectEncodingFromByteOrderMarks: false,
+            bufferSize: 4_096,
+            leaveOpen: false);
+        var characters = new char[_policy.MaximumPreviewCharacters + 1];
+        var charactersRead = await reader
+            .ReadBlockAsync(characters.AsMemory(), cancellationToken)
+            .ConfigureAwait(false);
+        var truncated = charactersRead > _policy.MaximumPreviewCharacters;
+        var previewLength = Math.Min(charactersRead, _policy.MaximumPreviewCharacters);
+        return new PreviewReadResult(new string(characters, 0, previewLength), truncated);
+    }
+
+    private ProjectFileInspection BuildInspection(
+        ValidatedProjectFilePaths paths,
+        long length,
+        ProjectFileContentKind contentKind,
+        string? preview,
+        bool previewTruncated,
+        ProjectTextEncoding? encoding) =>
+        new(
+            paths.ProjectRootPath,
+            paths.FullPath,
+            paths.RelativePath,
+            length,
+            contentKind,
+            preview,
+            previewTruncated,
+            _policy.MaximumPreviewCharacters,
+            encoding);
+
+    private static bool LooksBinary(ReadOnlySpan<byte> bytes) =>
+        !HasUnicodeBom(bytes) && bytes.Contains((byte)0);
+
+    private static bool HasUnicodeBom(ReadOnlySpan<byte> bytes) =>
+        bytes.StartsWith(Utf8Bom)
+        || bytes.StartsWith(Utf16LittleEndianBom)
+        || bytes.StartsWith(Utf16BigEndianBom);
+
+    private static DetectedEncoding DetectEncoding(ReadOnlySpan<byte> bytes)
+    {
+        if (bytes.StartsWith(Utf8Bom))
+        {
+            return new DetectedEncoding(StrictUtf8, Utf8Bom.Length, ProjectTextEncoding.Utf8WithBom);
+        }
+
+        if (bytes.StartsWith(Utf16LittleEndianBom))
+        {
+            return new DetectedEncoding(
+                StrictUtf16LittleEndian,
+                Utf16LittleEndianBom.Length,
+                ProjectTextEncoding.Utf16LittleEndian);
+        }
+
+        if (bytes.StartsWith(Utf16BigEndianBom))
+        {
+            return new DetectedEncoding(
+                StrictUtf16BigEndian,
+                Utf16BigEndianBom.Length,
+                ProjectTextEncoding.Utf16BigEndian);
+        }
+
+        return new DetectedEncoding(StrictUtf8, 0, ProjectTextEncoding.Utf8);
     }
 
     private static async Task WriteTemporaryFileAsync(
@@ -497,4 +664,11 @@ public sealed class FileSystemProjectFileService : IProjectFileService
         string RelativePath);
 
     private sealed record DecodedText(string Text, ProjectTextEncoding Encoding);
+
+    private sealed record DetectedEncoding(
+        Encoding Encoding,
+        int PreambleLength,
+        ProjectTextEncoding ProjectEncoding);
+
+    private sealed record PreviewReadResult(string Text, bool Truncated);
 }

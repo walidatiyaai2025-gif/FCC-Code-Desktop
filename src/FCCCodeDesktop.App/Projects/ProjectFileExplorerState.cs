@@ -28,7 +28,7 @@ public sealed class ProjectFileExplorerState : DispatcherObject, INotifyProperty
 
     public string StatusText => _project is null
         ? "Open a project to browse its files."
-        : "Folders load only when expanded. Reparse-point directories are visible but never traversed.";
+        : "Folders load only when expanded. Generated, depth-limited, and reparse-point directories are visible but never traversed.";
 
     public void SetProject(PersistedProject? project)
     {
