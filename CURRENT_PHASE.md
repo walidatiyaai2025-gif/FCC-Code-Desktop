@@ -84,7 +84,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P07-004` — Stage/unstage — CLOSED.
 - `FCCD-P07-005` — Branch create/checkout — CLOSED.
 - `FCCD-P07-006` — Fetch/pull — CLOSED.
-- `FCCD-P07-007` — Commit/push — PENDING.
+- `FCCD-P07-007` — Commit/push — CLOSED.
 - `FCCD-P07-008` — History — PENDING.
 - `FCCD-P07-009` — Dirty/pre-existing-change provenance — PENDING.
 - `FCCD-P07-010` — Destructive-operation safeguards — PENDING.
@@ -168,6 +168,19 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact post-merge P06-008 Large Workspace Safeguards: run `34053539834` / run #121 — SUCCESS.
 - Integrated evidence: `evidence/phases/P07/P07_006_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded Git fetch and clean-tree fast-forward pull plus canonical integration provenance. No commit/push, history, destructive-operation safeguard closure, P07 phase closure, P08/P11 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is implied.
+
+## P07-007 integration provenance
+
+- Exact implementation candidate: `e7e6365ae0f2113a23f7b48327a537ab7af6298d` from PR #177 (`worker-b/fccd-p07-007-commit-push`).
+- PR #177 exact-head Windows CI: run `34055661399` / run #411 — SUCCESS.
+- PR #177 exact-head P06-007 Workspace Search: run `34055661425` / run #140 — SUCCESS.
+- PR #177 exact-head P06-008 Large Workspace Safeguards: run `34055661393` / run #124 — SUCCESS.
+- Normal merge commit: `f22eb711bef214e222fc22cc670e08b90fd58a1b`.
+- Exact post-merge canonical-main Windows CI: run `34056109391` / run #412 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34056109410` / run #141 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34056109409` / run #125 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_007_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded staged-index commit and non-force current-branch push plus canonical integration provenance; no history, dirty-provenance, destructive-operation safeguard closure, P07 phase closure, P08/P11 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is implied.
 
 ## P07 cloud activation provenance
 
