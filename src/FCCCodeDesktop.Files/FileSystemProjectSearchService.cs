@@ -479,7 +479,7 @@ public sealed class FileSystemProjectSearchService : IProjectSearchService
             || maximumPreviewCharacters > _scalePolicy.MaximumPreviewCharacters)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(request.MaximumPreviewCharacters),
+                nameof(request),
                 maximumPreviewCharacters,
                 $"Maximum preview characters must be between {WorkspaceScalePolicy.MinimumPreviewCharacters} and {_scalePolicy.MaximumPreviewCharacters}.");
         }
