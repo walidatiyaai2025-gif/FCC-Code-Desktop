@@ -82,7 +82,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P07-002` — Status/changed-files surface — CLOSED.
 - `FCCD-P07-003` — Diff viewer — CLOSED.
 - `FCCD-P07-004` — Stage/unstage — CLOSED.
-- `FCCD-P07-005` — Branch create/checkout — PENDING.
+- `FCCD-P07-005` — Branch create/checkout — CLOSED.
 - `FCCD-P07-006` — Fetch/pull — PENDING.
 - `FCCD-P07-007` — Commit/push — PENDING.
 - `FCCD-P07-008` — History — PENDING.
@@ -141,6 +141,20 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact post-merge P06-008 Large Workspace Safeguards: run `34047377708` / run #111 — SUCCESS.
 - Integrated evidence: `evidence/phases/P07/P07_004_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded explicit Git index stage/unstage plus canonical integration provenance; no branch create/checkout, fetch/pull, commit/push, history, dirty provenance, destructive-operation safeguards, P07 phase closure, P08/P11 authorization, owner-only evidence, release eligibility, or `VERIFIED_FINAL_COMPLETE` is implied.
+
+## P07-005 integration provenance
+
+- Exact accepted implementation candidate: `f45018c57fb5474730f4007a55bd9999429eaa4e` from PR #173 (`worker-b/fccd-p07-005-branch-create-checkout`).
+- Initial implementation commit `897fbe79f3844d452ac2a0c1f93a29c3dc575bf7` exposed a Windows fixture-only Unicode console-decoding defect; the production adapter had explicit UTF-8 streams and was unchanged by the repair. Final candidate `f45018c57fb5474730f4007a55bd9999429eaa4e` made the disposable-Git Unicode branch assertion encoding-stable by reading `.git/HEAD` as UTF-8.
+- PR #173 exact-head Windows CI: run `34050245282` / run #402 — SUCCESS.
+- PR #173 exact-head P06-007 Workspace Search: run `34050245383` / run #131 — SUCCESS.
+- PR #173 exact-head P06-008 Large Workspace Safeguards: run `34050245390` / run #115 — SUCCESS.
+- Normal merge commit: `238bc26e7e6aa96b4cd504fca17ba882d42db35f`.
+- Exact post-merge canonical-main Windows CI: run `34050681680` / run #403 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34050681720` / run #132 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34050681691` / run #116 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_005_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded safe local Git branch create/checkout plus canonical integration provenance; no fetch/pull, commit/push, history, destructive Git operation, P07 phase closure, P08/P11 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE` is implied.
 
 ## P07 cloud activation provenance
 
