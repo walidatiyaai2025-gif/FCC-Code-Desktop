@@ -203,9 +203,10 @@ public sealed class GitBranchMutationTests
 
     private static async Task<string> GetCurrentBranchAsync(string repositoryPath)
     {
-        var result = await TestProcess.RunAsync("git", "branch --show-current", repositoryPath);
-        Assert.Equal(0, result.ExitCode);
-        var branch = result.StandardOutput.Trim();
+        var head = (await File.ReadAllTextAsync(Path.Combine(repositoryPath, ".git", "HEAD"))).Trim();
+        const string prefix = "ref: refs/heads/";
+        Assert.StartsWith(prefix, head, StringComparison.Ordinal);
+        var branch = head[prefix.Length..];
         Assert.False(string.IsNullOrWhiteSpace(branch));
         return branch;
     }
