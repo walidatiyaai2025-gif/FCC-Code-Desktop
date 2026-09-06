@@ -110,6 +110,13 @@
       "fcccodedesktop.core": {
         "type": "Project"
       },
+      "fcccodedesktop.git": {
+        "type": "Project",
+        "dependencies": {
+          "FCCCodeDesktop.Application": "[1.0.0, )",
+          "FCCCodeDesktop.Core": "[1.0.0, )"
+        }
+      },
       "fcccodedesktop.runtime": {
         "type": "Project",
         "dependencies": {

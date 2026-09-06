@@ -74,8 +74,7 @@
         "type": "Project",
         "dependencies": {
           "FCCCodeDesktop.Application": "[1.0.0, )",
-          "FCCCodeDesktop.Core": "[1.0.0, )",
-          "FCCCodeDesktop.Infrastructure": "[1.0.0, )"
+          "FCCCodeDesktop.Core": "[1.0.0, )"
         }
       },
       "fcccodedesktop.infrastructure": {
