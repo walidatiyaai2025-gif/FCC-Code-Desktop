@@ -88,7 +88,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P07-008` — History — CLOSED.
 - `FCCD-P07-009` — Dirty/pre-existing-change provenance — CLOSED.
 - `FCCD-P07-010` — Destructive-operation safeguards — CLOSED.
-- `FCCD-P07-011` — Git integration tests/conflict scenarios — PENDING.
+- `FCCD-P07-011` — Git integration tests/conflict scenarios — CLOSED.
 
 ## P07-001 integration provenance
 
@@ -220,6 +220,19 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact post-merge P06-008 Large Workspace Safeguards: run `34064629256` / run #138 — SUCCESS.
 - Integrated evidence: `evidence/phases/P07/P07_010_INTEGRATED_RECONCILIATION_2026-09-07.md`.
 - Evidence class remains cloud/self-test for fail-closed destructive Git command safeguards plus canonical integration provenance; no conflict-scenario closure, P07 phase closure, P08/P11/P12 authorization, new owner-only obligation, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is implied.
+
+## P07-011 integration provenance
+
+- Exact implementation candidate: `391f9caf8cd53cc810ca02012def35d7815b937a` from PR #185 (`worker-b/fccd-p07-011-git-integration-conflicts`).
+- PR #185 exact-head Windows CI: run `34066314053` / run #428 — SUCCESS.
+- PR #185 exact-head P06-007 Workspace Search: run `34066314086` / run #157 — SUCCESS.
+- PR #185 exact-head P06-008 Large Workspace Safeguards: run `34066314047` / run #141 — SUCCESS.
+- Normal merge commit: `f889b901ebc9fda362813c18827585551775e877`.
+- Exact post-merge canonical-main Windows CI: run `34066787222` / run #429 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34066787177` / run #158 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34066787145` / run #142 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_011_INTEGRATED_RECONCILIATION_2026-09-07.md`.
+- Evidence class is cloud/self-test plus canonical integration provenance for final P07 Git workflow/conflict acceptance. All mandatory P07 task rows are now CLOSED, but `PHASE_EXIT_GATE` remains `NOT_RUN` until a separate canonical phase-exit decision is executed and integrated. No P08/P12 authorization or release-readiness claim is implied.
 
 ## P07 cloud activation provenance
 
