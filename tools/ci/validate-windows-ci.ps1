@@ -42,7 +42,8 @@ function Assert-CiPolicy {
         '.\tools\ui\validate-conversation-content-rendering.ps1 -RunFixtures -RequireRuntime',
         '.\tools\ui\validate-conversation-virtualization.ps1 -RunFixtures -RequireRuntime',
         '.\tools\projects\validate-project-workflows.ps1 -RunFixtures -RequireRuntime',
-        '.\tools\projects\validate-project-technology-detection.ps1 -RunFixtures -RequireRuntime'
+        '.\tools\projects\validate-project-technology-detection.ps1 -RunFixtures -RequireRuntime',
+        '.\tools\projects\validate-lazy-file-explorer.ps1 -RunFixtures -RequireRuntime'
     )) {
         Assert-ContainsLiteral $WorkflowText $requiredWorkflowText 'Windows CI workflow'
     }
@@ -138,6 +139,7 @@ Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\valida
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\ui\validate-conversation-virtualization.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P05-008 conversation virtualization validation'
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\projects\validate-project-workflows.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P06-001 project-workflow validation'
 Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\projects\validate-project-technology-detection.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P06-002 project-technology validation'
+Assert-PolicyRejects { Assert-CiPolicy ($workflowText.Replace('.\tools\projects\validate-lazy-file-explorer.ps1 -RunFixtures -RequireRuntime', '')) $runnerText } 'missing P06-003 lazy-explorer validation'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('--locked-mode', '')) } 'unlocked restore'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-c Release', '-c Debug')) } 'non-Release build'
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('-Suite all', '-Suite unit')) } 'incomplete test lane'
@@ -165,7 +167,7 @@ Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\too
 Assert-PolicyRejects { Assert-CiPolicy $workflowText ($runnerText.Replace('.\tools\ui\validate-dpi-layout.ps1 -RunFixtures -RequireRuntime', '')) } 'missing DPI/resolution layout validation'
 
 Write-Host 'Static Windows CI policy validation: PASS.'
-Write-Host 'Negative fixtures verified runner, SDK, permissions, P05-005 task-state gate, P05-006 task-controls gate, P05-007 content-rendering gate, P05-008 conversation virtualization gate, P06-001 project-workflow gate, P06-002 project-technology gate, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, conversation-composer, session-workspace, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
+Write-Host 'Negative fixtures verified runner, SDK, permissions, P05-005 task-state gate, P05-006 task-controls gate, P05-007 content-rendering gate, P05-008 conversation virtualization gate, P06-001 project-workflow gate, P06-002 project-technology gate, P06-003 lazy-explorer gate, locked restore, Release build, complete tests, build metadata, quality, owner-last governance, FCC environment discovery, FCC runtime health/version compatibility, FCC structured runtime, FCC runtime event normalization, FCC CLI fallback runtime, P04 aggregate runtime contract suite, design-system, semantic-theme, app-chrome, workspace-layout, navigation-surface, streaming-conversation, tool-activity-timeline, conversation-composer, session-workspace, bottom-tool-panel, command-palette, common-state, and DPI/resolution layout enforcement.'
 
 if ($RequireDotNet) {
     if (-not $IsWindows) {
