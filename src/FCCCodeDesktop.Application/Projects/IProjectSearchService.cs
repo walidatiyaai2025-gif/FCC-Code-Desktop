@@ -21,7 +21,10 @@ public sealed record ProjectSearchRequest(
     bool MatchCase = false,
     int MaximumResults = 500,
     int MaximumFiles = 20_000,
-    long MaximumFileBytes = 4 * 1024 * 1024);
+    long MaximumFileBytes = 4 * 1024 * 1024,
+    int? MaximumTraversalDepth = null,
+    int? MaximumMatchesPerFile = null,
+    int? MaximumPreviewCharacters = null);
 
 public sealed record ProjectSearchMatch(
     string FullPath,
@@ -46,6 +49,10 @@ public sealed record ProjectSearchResultSet(
     int MaximumResults,
     int MaximumFiles,
     long MaximumFileBytes,
+    int MaximumTraversalDepth,
+    int MaximumMatchesPerFile,
+    int MaximumPreviewCharacters,
+    int BinaryProbeBytes,
     bool LimitReached)
 {
     public bool HasMatches => Matches.Count > 0;
