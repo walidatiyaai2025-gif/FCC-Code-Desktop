@@ -81,7 +81,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P07-001` — `IGitService` and repository detection — CLOSED.
 - `FCCD-P07-002` — Status/changed-files surface — CLOSED.
 - `FCCD-P07-003` — Diff viewer — CLOSED.
-- `FCCD-P07-004` — Stage/unstage — PENDING.
+- `FCCD-P07-004` — Stage/unstage — CLOSED.
 - `FCCD-P07-005` — Branch create/checkout — PENDING.
 - `FCCD-P07-006` — Fetch/pull — PENDING.
 - `FCCD-P07-007` — Commit/push — PENDING.
@@ -128,6 +128,19 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact post-merge P06-008 Large Workspace Safeguards: run `34043423769` / run #98 — SUCCESS.
 - Integrated evidence: `evidence/phases/P07/P07_003_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded read-only Git diff review plus canonical integration provenance; no stage/unstage, branch/fetch/pull, commit/push, P07 phase closure, P08 authorization, owner-only evidence, release eligibility, P11 implementation, or `VERIFIED_FINAL_COMPLETE` is implied.
+
+## P07-004 integration provenance
+
+- Exact implementation candidate: `5ea39d620def36a0855bf88fab67860ea9899c06` from PR #171 (`worker-b/fccd-p07-004-stage-unstage`).
+- PR #171 exact-head Windows CI: run `34046933272` / run #397 — SUCCESS.
+- PR #171 exact-head P06-007 Workspace Search: run `34046933243` / run #126 — SUCCESS.
+- PR #171 exact-head P06-008 Large Workspace Safeguards: run `34046933327` / run #110 — SUCCESS.
+- Normal merge commit: `106ca224d01b2398c5a3e799a1943213df57b667`.
+- Exact post-merge canonical-main Windows CI: run `34047377699` / run #398 — SUCCESS.
+- Exact post-merge P06-007 Workspace Search: run `34047377677` / run #127 — SUCCESS.
+- Exact post-merge P06-008 Large Workspace Safeguards: run `34047377708` / run #111 — SUCCESS.
+- Integrated evidence: `evidence/phases/P07/P07_004_INTEGRATED_RECONCILIATION_2026-09-06.md`.
+- Evidence class remains cloud/self-test for bounded explicit Git index stage/unstage plus canonical integration provenance; no branch create/checkout, fetch/pull, commit/push, history, dirty provenance, destructive-operation safeguards, P07 phase closure, P08/P11 authorization, owner-only evidence, release eligibility, or `VERIFIED_FINAL_COMPLETE` is implied.
 
 ## P07 cloud activation provenance
 
