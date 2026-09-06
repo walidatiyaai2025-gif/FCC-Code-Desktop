@@ -82,24 +82,24 @@ public static class GitCommandSafetyPolicy
         }
     }
 
-    private static GitCommandSafetyDecision EvaluateSymbolicRef(IReadOnlyList<string> arguments) =>
-        arguments.Count == 3
+    private static GitCommandSafetyDecision EvaluateSymbolicRef(string[] arguments) =>
+        arguments.Length == 3
         && string.Equals(arguments[0], "--quiet", StringComparison.Ordinal)
         && string.Equals(arguments[1], "--short", StringComparison.Ordinal)
         && string.Equals(arguments[2], "HEAD", StringComparison.Ordinal)
             ? Allowed("read-only-current-branch-query")
             : Blocked("symbolic-ref-mutation-or-unsupported-shape");
 
-    private static GitCommandSafetyDecision EvaluateRemote(IReadOnlyList<string> arguments)
+    private static GitCommandSafetyDecision EvaluateRemote(string[] arguments)
     {
-        if (arguments.Count == 2
+        if (arguments.Length == 2
             && string.Equals(arguments[0], "get-url", StringComparison.Ordinal)
             && IsSafeAtom(arguments[1]))
         {
             return Allowed("read-only-remote-url-query");
         }
 
-        if (arguments.Count == 3
+        if (arguments.Length == 3
             && string.Equals(arguments[0], "get-url", StringComparison.Ordinal)
             && string.Equals(arguments[1], "--all", StringComparison.Ordinal)
             && IsSafeAtom(arguments[2]))
@@ -110,23 +110,23 @@ public static class GitCommandSafetyPolicy
         return Blocked("remote-mutation-or-unsupported-shape");
     }
 
-    private static GitCommandSafetyDecision EvaluateAdd(IReadOnlyList<string> arguments) =>
-        arguments.Count >= 2
+    private static GitCommandSafetyDecision EvaluateAdd(string[] arguments) =>
+        arguments.Length >= 2
         && string.Equals(arguments[0], "--", StringComparison.Ordinal)
         && AllLiteralPathspecs(arguments, 1)
             ? Allowed("explicit-index-stage")
             : Blocked("broad-or-unsupported-index-stage");
 
-    private static GitCommandSafetyDecision EvaluateRestore(IReadOnlyList<string> arguments) =>
-        arguments.Count >= 3
+    private static GitCommandSafetyDecision EvaluateRestore(string[] arguments) =>
+        arguments.Length >= 3
         && string.Equals(arguments[0], "--staged", StringComparison.Ordinal)
         && string.Equals(arguments[1], "--", StringComparison.Ordinal)
         && AllLiteralPathspecs(arguments, 2)
             ? Allowed("index-only-restore")
             : Blocked("worktree-restore-or-unsupported-shape");
 
-    private static GitCommandSafetyDecision EvaluateRm(IReadOnlyList<string> arguments) =>
-        arguments.Count >= 5
+    private static GitCommandSafetyDecision EvaluateRm(string[] arguments) =>
+        arguments.Length >= 5
         && string.Equals(arguments[0], "--cached", StringComparison.Ordinal)
         && string.Equals(arguments[1], "--force", StringComparison.Ordinal)
         && string.Equals(arguments[2], "--ignore-unmatch", StringComparison.Ordinal)
@@ -135,14 +135,14 @@ public static class GitCommandSafetyPolicy
             ? Allowed("unborn-index-only-remove")
             : Blocked("worktree-remove-or-unsupported-shape");
 
-    private static GitCommandSafetyDecision EvaluateSwitch(IReadOnlyList<string> arguments)
+    private static GitCommandSafetyDecision EvaluateSwitch(string[] arguments)
     {
-        if (arguments.Count == 1 && IsSafeAtom(arguments[0]))
+        if (arguments.Length == 1 && IsSafeAtom(arguments[0]))
         {
             return Allowed("safe-existing-branch-switch");
         }
 
-        if (arguments.Count == 2
+        if (arguments.Length == 2
             && string.Equals(arguments[0], "--create", StringComparison.Ordinal)
             && IsSafeAtom(arguments[1]))
         {
@@ -152,9 +152,9 @@ public static class GitCommandSafetyPolicy
         return Blocked("forced-or-discarding-branch-switch");
     }
 
-    private static GitCommandSafetyDecision EvaluateFetch(IReadOnlyList<string> arguments)
+    private static GitCommandSafetyDecision EvaluateFetch(string[] arguments)
     {
-        if (arguments.Count is not (3 or 4)
+        if (arguments.Length is not (3 or 4)
             || !string.Equals(arguments[0], "--no-tags", StringComparison.Ordinal)
             || !string.Equals(arguments[1], "--no-recurse-submodules", StringComparison.Ordinal)
             || !IsSafeFetchAtom(arguments[2]))
@@ -162,7 +162,7 @@ public static class GitCommandSafetyPolicy
             return Blocked("forced-pruning-or-unsupported-fetch");
         }
 
-        if (arguments.Count == 4 && !IsSafeFetchAtom(arguments[3]))
+        if (arguments.Length == 4 && !IsSafeFetchAtom(arguments[3]))
         {
             return Blocked("unsafe-fetch-refspec");
         }
@@ -170,16 +170,16 @@ public static class GitCommandSafetyPolicy
         return Allowed("bounded-fetch");
     }
 
-    private static GitCommandSafetyDecision EvaluateMerge(IReadOnlyList<string> arguments) =>
-        arguments.Count == 3
+    private static GitCommandSafetyDecision EvaluateMerge(string[] arguments) =>
+        arguments.Length == 3
         && string.Equals(arguments[0], "--ff-only", StringComparison.Ordinal)
         && string.Equals(arguments[1], "--no-edit", StringComparison.Ordinal)
         && string.Equals(arguments[2], "FETCH_HEAD", StringComparison.Ordinal)
             ? Allowed("fast-forward-only-fetch-head-merge")
             : Blocked("non-fast-forward-or-unsupported-merge");
 
-    private static GitCommandSafetyDecision EvaluateCommit(IReadOnlyList<string> arguments) =>
-        arguments.Count == 5
+    private static GitCommandSafetyDecision EvaluateCommit(string[] arguments) =>
+        arguments.Length == 5
         && string.Equals(arguments[0], "--no-verify", StringComparison.Ordinal)
         && string.Equals(arguments[1], "--no-gpg-sign", StringComparison.Ordinal)
         && string.Equals(arguments[2], "--cleanup=verbatim", StringComparison.Ordinal)
@@ -187,9 +187,9 @@ public static class GitCommandSafetyPolicy
             ? Allowed("new-staged-index-commit")
             : Blocked("history-rewrite-or-unsupported-commit");
 
-    private static GitCommandSafetyDecision EvaluatePush(IReadOnlyList<string> arguments)
+    private static GitCommandSafetyDecision EvaluatePush(string[] arguments)
     {
-        if (arguments.Count != 4
+        if (arguments.Length != 4
             || !string.Equals(arguments[0], "--porcelain", StringComparison.Ordinal)
             || !string.Equals(arguments[1], "--no-verify", StringComparison.Ordinal)
             || !IsSafeAtom(arguments[2]))
@@ -208,14 +208,14 @@ public static class GitCommandSafetyPolicy
         return Allowed("non-force-current-head-push");
     }
 
-    private static bool AllLiteralPathspecs(IReadOnlyList<string> arguments, int startIndex)
+    private static bool AllLiteralPathspecs(string[] arguments, int startIndex)
     {
-        if (startIndex >= arguments.Count)
+        if (startIndex >= arguments.Length)
         {
             return false;
         }
 
-        for (var index = startIndex; index < arguments.Count; index++)
+        for (var index = startIndex; index < arguments.Length; index++)
         {
             var argument = arguments[index];
             if (!argument.StartsWith(LiteralPathspecPrefix, StringComparison.Ordinal)
