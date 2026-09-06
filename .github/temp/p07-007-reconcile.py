@@ -146,6 +146,8 @@ allowed = {
 }
 import subprocess
 changed = subprocess.check_output(["git", "diff", "--name-only", BASE_SHA], text=True).splitlines()
+untracked = subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard"], text=True).splitlines()
+changed = sorted(set(changed + untracked))
 unexpected = sorted(set(changed) - allowed)
 if unexpected:
     raise SystemExit(f"unexpected durable reconciliation paths: {unexpected}")
