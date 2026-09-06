@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Text;
 using FCCCodeDesktop.Application.Git;
 
 namespace FCCCodeDesktop.Git;
@@ -8,16 +9,23 @@ public sealed class GitCliService : IGitService
 {
     public static readonly TimeSpan DefaultProbeTimeout = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan MaximumProbeTimeout = TimeSpan.FromSeconds(30);
+    public static readonly TimeSpan DefaultStatusTimeout = TimeSpan.FromSeconds(15);
+    public static readonly TimeSpan MaximumStatusTimeout = TimeSpan.FromSeconds(60);
 
     private const string NotRepositoryMessage = "not a git repository";
     private readonly string _gitExecutable;
     private readonly TimeSpan _probeTimeout;
+    private readonly TimeSpan _statusTimeout;
 
-    public GitCliService(string gitExecutable = "git", TimeSpan? probeTimeout = null)
+    public GitCliService(
+        string gitExecutable = "git",
+        TimeSpan? probeTimeout = null,
+        TimeSpan? statusTimeout = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(gitExecutable);
-        var resolvedTimeout = probeTimeout ?? DefaultProbeTimeout;
-        if (resolvedTimeout <= TimeSpan.Zero || resolvedTimeout > MaximumProbeTimeout)
+
+        var resolvedProbeTimeout = probeTimeout ?? DefaultProbeTimeout;
+        if (resolvedProbeTimeout <= TimeSpan.Zero || resolvedProbeTimeout > MaximumProbeTimeout)
         {
             throw new ArgumentOutOfRangeException(
                 nameof(probeTimeout),
@@ -25,8 +33,18 @@ public sealed class GitCliService : IGitService
                 $"Git probe timeout must be greater than zero and no more than {MaximumProbeTimeout.TotalSeconds} seconds.");
         }
 
+        var resolvedStatusTimeout = statusTimeout ?? DefaultStatusTimeout;
+        if (resolvedStatusTimeout <= TimeSpan.Zero || resolvedStatusTimeout > MaximumStatusTimeout)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(statusTimeout),
+                statusTimeout,
+                $"Git status timeout must be greater than zero and no more than {MaximumStatusTimeout.TotalSeconds} seconds.");
+        }
+
         _gitExecutable = gitExecutable;
-        _probeTimeout = resolvedTimeout;
+        _probeTimeout = resolvedProbeTimeout;
+        _statusTimeout = resolvedStatusTimeout;
     }
 
     public async Task<GitRepositoryDetectionResult> DetectRepositoryAsync(
@@ -45,6 +63,7 @@ public sealed class GitCliService : IGitService
         var classification = await ExecuteGitAsync(
             probePath,
             ["rev-parse", "--is-inside-work-tree", "--is-bare-repository"],
+            _probeTimeout,
             cancellationToken).ConfigureAwait(false);
 
         if (!classification.Started)
@@ -78,6 +97,75 @@ public sealed class GitCliService : IGitService
             : await BuildWorkTreeResultAsync(probePath, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<GitStatusResult> GetStatusAsync(
+        string path,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var detection = await DetectRepositoryAsync(path, cancellationToken).ConfigureAwait(false);
+        switch (detection.Status)
+        {
+            case GitRepositoryDetectionStatus.NotRepository:
+                return EmptyStatus(GitStatusQueryStatus.NotRepository);
+            case GitRepositoryDetectionStatus.GitUnavailable:
+                return EmptyStatus(GitStatusQueryStatus.GitUnavailable);
+            case GitRepositoryDetectionStatus.ProbeFailed:
+                return EmptyStatus(GitStatusQueryStatus.QueryFailed);
+            case GitRepositoryDetectionStatus.Repository:
+                break;
+            default:
+                return EmptyStatus(GitStatusQueryStatus.QueryFailed);
+        }
+
+        var repository = detection.Repository;
+        if (repository is null)
+        {
+            return EmptyStatus(GitStatusQueryStatus.QueryFailed);
+        }
+
+        if (repository.Kind == GitRepositoryKind.Bare)
+        {
+            return new GitStatusResult(
+                GitStatusQueryStatus.BareRepository,
+                repository.RepositoryRootPath,
+                Array.Empty<GitFileStatusEntry>());
+        }
+
+        var statusCommand = await ExecuteGitAsync(
+            repository.RepositoryRootPath,
+            ["status", "--porcelain=v2", "-z", "--untracked-files=all", "--renames"],
+            _statusTimeout,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!statusCommand.Started)
+        {
+            return EmptyStatus(GitStatusQueryStatus.GitUnavailable);
+        }
+
+        if (statusCommand.TimedOut || statusCommand.ExitCode != 0)
+        {
+            return new GitStatusResult(
+                GitStatusQueryStatus.QueryFailed,
+                repository.RepositoryRootPath,
+                Array.Empty<GitFileStatusEntry>());
+        }
+
+        if (!TryParseStatus(statusCommand.StandardOutput, out var files))
+        {
+            return new GitStatusResult(
+                GitStatusQueryStatus.QueryFailed,
+                repository.RepositoryRootPath,
+                Array.Empty<GitFileStatusEntry>());
+        }
+
+        return new GitStatusResult(
+            GitStatusQueryStatus.Success,
+            repository.RepositoryRootPath,
+            files);
+    }
+
     private async Task<GitRepositoryDetectionResult> BuildWorkTreeResultAsync(
         string probePath,
         CancellationToken cancellationToken)
@@ -85,6 +173,7 @@ public sealed class GitCliService : IGitService
         var details = await ExecuteGitAsync(
             probePath,
             ["rev-parse", "--show-toplevel", "--absolute-git-dir"],
+            _probeTimeout,
             cancellationToken).ConfigureAwait(false);
 
         if (!details.Started)
@@ -119,6 +208,7 @@ public sealed class GitCliService : IGitService
         var details = await ExecuteGitAsync(
             probePath,
             ["rev-parse", "--absolute-git-dir"],
+            _probeTimeout,
             cancellationToken).ConfigureAwait(false);
 
         if (!details.Started)
@@ -150,6 +240,7 @@ public sealed class GitCliService : IGitService
     private async Task<GitCommandResult> ExecuteGitAsync(
         string workingDirectory,
         IReadOnlyList<string> arguments,
+        TimeSpan timeout,
         CancellationToken cancellationToken)
     {
         var startInfo = new ProcessStartInfo(_gitExecutable)
@@ -157,6 +248,8 @@ public sealed class GitCliService : IGitService
             WorkingDirectory = workingDirectory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
             UseShellExecute = false,
             CreateNoWindow = true,
         };
@@ -187,7 +280,7 @@ public sealed class GitCliService : IGitService
         var standardOutputTask = process.StandardOutput.ReadToEndAsync(CancellationToken.None);
         var standardErrorTask = process.StandardError.ReadToEndAsync(CancellationToken.None);
         using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutSource.CancelAfter(_probeTimeout);
+        timeoutSource.CancelAfter(timeout);
 
         try
         {
@@ -208,6 +301,159 @@ public sealed class GitCliService : IGitService
             await standardOutputTask.ConfigureAwait(false),
             await standardErrorTask.ConfigureAwait(false),
             TimedOut: false);
+    }
+
+    private static GitStatusResult EmptyStatus(GitStatusQueryStatus status) =>
+        new(status, null, Array.Empty<GitFileStatusEntry>());
+
+    private static bool TryParseStatus(string output, out IReadOnlyList<GitFileStatusEntry> files)
+    {
+        var parsed = new List<GitFileStatusEntry>();
+        var records = output.Split('\0');
+
+        for (var index = 0; index < records.Length; index++)
+        {
+            var record = records[index];
+            if (record.Length == 0)
+            {
+                continue;
+            }
+
+            switch (record[0])
+            {
+                case '1':
+                    if (!TryParseOrdinaryEntry(record, out var ordinaryEntry))
+                    {
+                        files = Array.Empty<GitFileStatusEntry>();
+                        return false;
+                    }
+
+                    parsed.Add(ordinaryEntry);
+                    break;
+
+                case '2':
+                    if (!TryParseRenameOrCopyEntry(record, out var renameEntry)
+                        || index + 1 >= records.Length
+                        || string.IsNullOrEmpty(records[index + 1]))
+                    {
+                        files = Array.Empty<GitFileStatusEntry>();
+                        return false;
+                    }
+
+                    parsed.Add(renameEntry with { OriginalPath = records[++index] });
+                    break;
+
+                case 'u':
+                    if (!TryParseUnmergedEntry(record, out var unmergedEntry))
+                    {
+                        files = Array.Empty<GitFileStatusEntry>();
+                        return false;
+                    }
+
+                    parsed.Add(unmergedEntry);
+                    break;
+
+                case '?':
+                    if (record.Length < 3 || record[1] != ' ')
+                    {
+                        files = Array.Empty<GitFileStatusEntry>();
+                        return false;
+                    }
+
+                    parsed.Add(new GitFileStatusEntry(
+                        record[2..],
+                        GitFileChangeKind.None,
+                        GitFileChangeKind.Untracked));
+                    break;
+
+                case '!':
+                    // Ignored records are not requested, but tolerate them defensively.
+                    break;
+
+                default:
+                    files = Array.Empty<GitFileStatusEntry>();
+                    return false;
+            }
+        }
+
+        files = parsed
+            .OrderBy(static entry => entry.Path, StringComparer.Ordinal)
+            .ToArray();
+        return true;
+    }
+
+    private static bool TryParseOrdinaryEntry(string record, out GitFileStatusEntry entry)
+    {
+        var fields = record.Split(' ', 9, StringSplitOptions.None);
+        if (fields.Length != 9 || fields[0] != "1" || fields[1].Length != 2 || string.IsNullOrEmpty(fields[8]))
+        {
+            entry = default!;
+            return false;
+        }
+
+        if (!TryMapChange(fields[1][0], out var indexChange)
+            || !TryMapChange(fields[1][1], out var workTreeChange))
+        {
+            entry = default!;
+            return false;
+        }
+
+        entry = new GitFileStatusEntry(fields[8], indexChange, workTreeChange);
+        return true;
+    }
+
+    private static bool TryParseRenameOrCopyEntry(string record, out GitFileStatusEntry entry)
+    {
+        var fields = record.Split(' ', 10, StringSplitOptions.None);
+        if (fields.Length != 10 || fields[0] != "2" || fields[1].Length != 2 || string.IsNullOrEmpty(fields[9]))
+        {
+            entry = default!;
+            return false;
+        }
+
+        if (!TryMapChange(fields[1][0], out var indexChange)
+            || !TryMapChange(fields[1][1], out var workTreeChange))
+        {
+            entry = default!;
+            return false;
+        }
+
+        entry = new GitFileStatusEntry(fields[9], indexChange, workTreeChange);
+        return true;
+    }
+
+    private static bool TryParseUnmergedEntry(string record, out GitFileStatusEntry entry)
+    {
+        var fields = record.Split(' ', 11, StringSplitOptions.None);
+        if (fields.Length != 11 || fields[0] != "u" || fields[1].Length != 2 || string.IsNullOrEmpty(fields[10]))
+        {
+            entry = default!;
+            return false;
+        }
+
+        entry = new GitFileStatusEntry(
+            fields[10],
+            GitFileChangeKind.Unmerged,
+            GitFileChangeKind.Unmerged);
+        return true;
+    }
+
+    private static bool TryMapChange(char status, out GitFileChangeKind change)
+    {
+        change = status switch
+        {
+            '.' => GitFileChangeKind.None,
+            'M' => GitFileChangeKind.Modified,
+            'A' => GitFileChangeKind.Added,
+            'D' => GitFileChangeKind.Deleted,
+            'R' => GitFileChangeKind.Renamed,
+            'C' => GitFileChangeKind.Copied,
+            'T' => GitFileChangeKind.TypeChanged,
+            'U' => GitFileChangeKind.Unmerged,
+            _ => GitFileChangeKind.None,
+        };
+
+        return status is '.' or 'M' or 'A' or 'D' or 'R' or 'C' or 'T' or 'U';
     }
 
     private static async Task TerminateProcessAsync(Process process)

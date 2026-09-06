@@ -55,9 +55,22 @@ public sealed class TemporaryDirectory : IDisposable
 
         if (Directory.Exists(path))
         {
+            ClearReadOnlyAttributes(path);
             Directory.Delete(path, recursive: true);
         }
 
         GC.SuppressFinalize(this);
+    }
+
+    private static void ClearReadOnlyAttributes(string rootPath)
+    {
+        foreach (var filePath in Directory.EnumerateFiles(rootPath, "*", SearchOption.AllDirectories))
+        {
+            var attributes = File.GetAttributes(filePath);
+            if ((attributes & FileAttributes.ReadOnly) != 0)
+            {
+                File.SetAttributes(filePath, attributes & ~FileAttributes.ReadOnly);
+            }
+        }
     }
 }
