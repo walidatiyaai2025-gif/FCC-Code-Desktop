@@ -73,6 +73,10 @@ jobs:
         shell: pwsh
         run: .\tools\ui\validate-local-code-editor.ps1 -RunFixtures -RequireRuntime
 
+      - name: Validate P06-006 editor lifecycle
+        shell: pwsh
+        run: .\tools\ui\validate-editor-lifecycle.ps1 -RunFixtures -RequireRuntime
+
       - name: Validate P06-008 large workspace safeguards
         shell: pwsh
         run: .\tools\projects\validate-large-workspace-safeguards.ps1 -RunFixtures -RequireRuntime
