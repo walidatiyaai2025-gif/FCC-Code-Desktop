@@ -87,7 +87,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Release status: this P05 obligation is resolved; `OWNER-P04-008-REAL-TARGET` remains release-blocking.
 ## P09 cloud task inventory
 
-- `FCCD-P09-001` — `IExternalToolAdapter` contract — PENDING.
+- `FCCD-P09-001` — `IExternalToolAdapter` contract — CLOSED.
 - `FCCD-P09-002` — Tool discovery/capability registry — PENDING.
 - `FCCD-P09-003` — Structured invocation/result contracts — PENDING.
 - `FCCD-P09-004` — Tool resource locking — PENDING.
@@ -108,6 +108,22 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; P05 remains `PASS_INTEGRATED`; `P04=NOT_RUN`.
 - `VERIFIED_FINAL_COMPLETE` remains `false`; P22 remains prohibited while any required owner queue item is unresolved.
 - This is scheduling/governance activation only; no P09 product implementation is included.
+
+## P09-001 integration provenance
+
+- Task: `FCCD-P09-001 — IExternalToolAdapter contract` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #214 (`worker/fccd-p09-001-external-tool-adapter-contract`).
+- Exact accepted implementation candidate: `1f33b646deecdb471741ddc406e998c8a5f97da5`.
+- Exact implementation-head Windows CI: run `34169157466` — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34169157495` — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34169157524` — SUCCESS.
+- Normal implementation merge / accepted implementation main: `44dbee3107d4fd3a410629fb72fec5978440683b`.
+- Exact implementation-main Windows CI: run `34169744778` — SUCCESS.
+- Exact implementation-main P06-007 Workspace Search: run `34169744791` — SUCCESS.
+- Exact implementation-main P06-008 Large Workspace Safeguards: run `34169744771` — SUCCESS.
+- Integrated evidence: `evidence/phases/P09/P09_001_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-002` through `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+
 ## P08 cloud task inventory
 
 - `FCCD-P08-001` — Process supervisor with owned process-tree tracking — CLOSED.

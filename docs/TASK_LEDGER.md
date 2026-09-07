@@ -255,7 +255,7 @@ P08 is canonically CLOSED at the phase level on immutable candidate `bb372da0a45
 
 | ID | Task | State |
 |---|---|---|
-| FCCD-P09-001 | `IExternalToolAdapter` contract | PENDING |
+| FCCD-P09-001 | `IExternalToolAdapter` contract | CLOSED |
 | FCCD-P09-002 | Tool discovery/capability registry | PENDING |
 | FCCD-P09-003 | Structured invocation/result contracts | PENDING |
 | FCCD-P09-004 | Tool resource locking | PENDING |
@@ -263,6 +263,8 @@ P08 is canonically CLOSED at the phase level on immutable candidate `bb372da0a45
 | FCCD-P09-006 | Tool diagnostics/health framework | PENDING |
 | FCCD-P09-007 | CLI/process generic adapter primitives | PENDING |
 | FCCD-P09-008 | Optional protocol adapter seam (DAP/MCP/etc.) without core coupling | PENDING |
+
+`FCCD-P09-001` is CLOSED from the project-owned external-tool adapter contract integrated in PR #214. Exact accepted implementation candidate `1f33b646deecdb471741ddc406e998c8a5f97da5` passed Windows CI `34169157466`, P06-007 Workspace Search `34169157495`, and P06-008 Large Workspace Safeguards `34169157524`. PR #214 was normally merged as `44dbee3107d4fd3a410629fb72fec5978440683b`; exact implementation-main Windows CI `34169744778`, Workspace Search `34169744791`, and Large Workspace Safeguards `34169744771` all completed SUCCESS. Task evidence: `evidence/phases/P09/P09_001_INTEGRATED_RECONCILIATION_2026-09-08.md`. The contract owns adapter identity, project context, discovery/capability/streamed execution seams, and cancellation propagation only; it does not take P09-002 through P09-008 ownership. No owner-only evidence is required. P09 remains `IN_PROGRESS`, `PHASE_EXIT_GATE=NOT_RUN`, P10 and later implementation remain prohibited, `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item, and `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P10 — Unity first-class adapter
 
