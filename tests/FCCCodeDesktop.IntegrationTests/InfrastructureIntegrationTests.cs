@@ -61,6 +61,37 @@ public sealed class InfrastructureIntegrationTests
         Assert.Equal("recovered", File.ReadAllText(recoveryFile, System.Text.Encoding.UTF8));
     }
 
+    [Fact]
+    public async Task TemporaryDirectoryCleanupWaitsForTransientWindowsHandleSettlement()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        using var workspace = new TemporaryDirectory("fccd-integration-transient-lock");
+        var workspacePath = workspace.Path;
+        var lockedFile = workspace.GetPath("transient.lock");
+        File.WriteAllText(lockedFile, "locked", System.Text.Encoding.UTF8);
+
+        using var handle = new FileStream(
+            lockedFile,
+            FileMode.Open,
+            FileAccess.ReadWrite,
+            FileShare.None);
+
+        var releaseTask = Task.Run(async () =>
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(250));
+            handle.Dispose();
+        });
+
+        workspace.Dispose();
+        await releaseTask;
+
+        Assert.False(Directory.Exists(workspacePath));
+    }
+
     private static string FindRepositoryRoot()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
