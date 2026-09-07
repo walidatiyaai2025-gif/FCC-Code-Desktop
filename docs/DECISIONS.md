@@ -269,3 +269,20 @@ Unrecognized valid frames or nested blocks remain `AgentRuntimeEventKind.Unknown
 See `docs/runtime/FCC_RUNTIME_EVENT_NORMALIZATION.md`.
 
 ---
+
+## ADR-024 — Supervised process output uses bounded latest-history plus lossy live delivery
+
+**Status:** Accepted
+**Date:** 2026-09-07
+
+`FCCD-P08-003` extends the P08 owned-process boundary with runtime-owned concurrent stdout/stderr readers and a WPF-independent output contract. Each process uses one validated `ProcessOutputPolicy` for retained entries and UTF-8 bytes, individual entry characters and UTF-8 bytes, partial-line characters, pending live-delivery entries, and reader-buffer characters. There is no unbounded output mode.
+
+The authoritative in-memory history retains the newest bounded entries and explicitly counts oldest-entry evictions. A separate bounded single-consumer live channel never makes UI consumption responsible for draining child pipes: a full channel drops that notification and records exact dropped-entry and retained-payload-byte counters. Entries preserve stdout/stderr identity, process and optional durable task/run correlation, global acceptance sequence, UTC timestamp, retained UTF-8 size, and explicit line-truncation counts.
+
+The supervisor's lifecycle completion barrier follows owned-tree exit and both redirected-stream EOF drains, including final unterminated lines. UTF-8 decoding uses replacement fallback for malformed bytes; stream read failures are represented as typed source state without retaining exception stacks or expanding process output into diagnostics.
+
+**Reason:** A bounded history and independently bounded delivery path keep memory stable and process pipes draining under a slow UI while making every truncation, eviction, and delivery loss truthful. Integrating at the P08-001 supervisor seam preserves one process-ownership architecture for later ConPTY and external-tool consumers.
+
+See `docs/runtime/BOUNDED_PROCESS_OUTPUT.md`.
+
+---
