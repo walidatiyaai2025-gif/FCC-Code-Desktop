@@ -1,0 +1,25 @@
+name: P08-007 Reconciliation Bootstrap
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p08-007-integrated-closure
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout reconciliation branch
+        uses: actions/checkout@v7
+        with:
+          ref: reconcile/fccd-p08-007-integrated-closure
+          fetch-depth: 0
+
+      - name: Apply and commit canonical P08-007 reconciliation
+        shell: bash
+        run: python tools/reconciliation/finalize-p08-007.py
