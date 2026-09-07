@@ -37,8 +37,8 @@ jobs:
           $text = [IO.File]::ReadAllText((Resolve-Path $path))
           $old = '- Canonical owner queue remains exactly `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET`, both unresolved and release-blocking.'
           $new = '- Canonical owner queue now has one unresolved release-blocking item: `OWNER-P04-008-REAL-TARGET`; `OWNER-P05-EXIT-REAL-TARGET` is `PASS_INTEGRATED` and is no longer deferred.'
-          if (-not $text.Contains($old)) { throw 'Expected stale CURRENT_PHASE owner-queue sentence was not found.' }
-          if (($text.Split($old).Count - 1) -ne 1) { throw 'Stale CURRENT_PHASE owner-queue sentence is duplicated.' }
+          $staleCount = [regex]::Matches($text, [regex]::Escape($old)).Count
+          if ($staleCount -ne 1) { throw "Expected exactly one stale CURRENT_PHASE owner-queue sentence; found $staleCount." }
           $text = $text.Replace($old, $new)
           [IO.File]::WriteAllText((Resolve-Path $path), $text, [Text.UTF8Encoding]::new($false))
 
