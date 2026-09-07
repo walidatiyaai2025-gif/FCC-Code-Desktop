@@ -50,6 +50,10 @@ The exact descendant baseline also passed the complete current regression set tr
 
 No P08-008 safety regression is known on this descendant baseline.
 
+## Reconciliation validation boundary
+
+This documentation/evidence-only reconciliation must itself pass the permanent exact-head Windows CI, Workspace Search, and Large Workspace Safeguards gates before normal merge. After normal merge, the exact resulting canonical `main` must pass the same applicable shared gates before `FCCD-P08-008` is treated as canonical CLOSED. No task-local production byte is changed by this reconciliation.
+
 ## Closure boundary
 
 `FCCD-P08-008` is closed in this reconciliation candidate from normally integrated production safety validation plus exact-candidate, exact-integration-main, ancestry/applicability, and current-main regression evidence. Canonical closure still requires this reconciliation to pass exact-head CI, normal merge, and exact resulting-main verification.
