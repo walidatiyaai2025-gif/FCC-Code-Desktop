@@ -7,6 +7,16 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+function Get-ReflectionBaseObject {
+    param([Parameter(Mandatory)]$Value)
+
+    if ($Value -is [Management.Automation.PSObject]) {
+        return $Value.BaseObject
+    }
+
+    return $Value
+}
+
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $implementationPath = Join-Path $repositoryRoot 'src\FCCCodeDesktop.Terminal\WindowsConPtyTerminalHost.cs'
 $terminalProject = Join-Path $repositoryRoot 'src\FCCCodeDesktop.Terminal\FCCCodeDesktop.Terminal.csproj'
@@ -105,16 +115,16 @@ try {
     $initialSize = [Activator]::CreateInstance($sizeType, @([int]80, [int]25))
     $launchArguments = [string[]]@('/d', '/q')
     $requestArguments = [object[]]::new(4)
-    $requestArguments[0] = $comSpec
-    $requestArguments[1] = $launchArguments
-    $requestArguments[2] = $fixtureRoot
-    $requestArguments[3] = $initialSize
+    $requestArguments[0] = Get-ReflectionBaseObject ([string]$comSpec)
+    $requestArguments[1] = Get-ReflectionBaseObject $launchArguments
+    $requestArguments[2] = Get-ReflectionBaseObject ([string]$fixtureRoot)
+    $requestArguments[3] = Get-ReflectionBaseObject $initialSize
     $request = $requestConstructor.Invoke($requestArguments)
 
     $host = [Activator]::CreateInstance($hostType)
     $startArguments = [object[]]::new(2)
-    $startArguments[0] = $request
-    $startArguments[1] = [Threading.CancellationToken]::None
+    $startArguments[0] = Get-ReflectionBaseObject $request
+    $startArguments[1] = Get-ReflectionBaseObject ([Threading.CancellationToken]::None)
     $startTask = $hostType.GetMethod('StartAsync').Invoke($host, $startArguments)
     $session = $startTask.GetAwaiter().GetResult()
 
