@@ -74,6 +74,133 @@ function Write-ConPtyInput {
     }
 }
 
+function Wait-FileContent {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$Expected,
+        [TimeSpan]$Timeout = ([TimeSpan]::FromSeconds(10))
+    )
+
+    $deadline = [DateTimeOffset]::UtcNow.Add($Timeout)
+    do {
+        if (Test-Path -LiteralPath $Path) {
+            $actual = (Get-Content -LiteralPath $Path -Raw).Trim()
+            if ($actual -eq $Expected) {
+                return
+            }
+        }
+        Start-Sleep -Milliseconds 50
+    } while ([DateTimeOffset]::UtcNow -lt $deadline)
+
+    $observed = if (Test-Path -LiteralPath $Path) { (Get-Content -LiteralPath $Path -Raw) } else { '<missing>' }
+    throw "Timed out waiting for '$Path' to contain '$Expected'. Observed: $observed"
+}
+
+function Wait-FileInteger {
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [TimeSpan]$Timeout = ([TimeSpan]::FromSeconds(10))
+    )
+
+    $deadline = [DateTimeOffset]::UtcNow.Add($Timeout)
+    do {
+        if (Test-Path -LiteralPath $Path) {
+            $text = (Get-Content -LiteralPath $Path -Raw).Trim()
+            $value = 0
+            if ([int]::TryParse($text, [ref]$value) -and $value -gt 0) {
+                return $value
+            }
+        }
+        Start-Sleep -Milliseconds 50
+    } while ([DateTimeOffset]::UtcNow -lt $deadline)
+
+    throw "Timed out waiting for positive process ID in '$Path'."
+}
+
+function Test-ProcessAlive {
+    param([Parameter(Mandatory)][int]$ProcessId)
+
+    try {
+        $process = [Diagnostics.Process]::GetProcessById($ProcessId)
+        try {
+            return -not $process.HasExited
+        }
+        finally {
+            $process.Dispose()
+        }
+    }
+    catch [ArgumentException] {
+        return $false
+    }
+}
+
+function Wait-ProcessGone {
+    param(
+        [Parameter(Mandatory)][int]$ProcessId,
+        [TimeSpan]$Timeout = ([TimeSpan]::FromSeconds(10))
+    )
+
+    $deadline = [DateTimeOffset]::UtcNow.Add($Timeout)
+    while ([DateTimeOffset]::UtcNow -lt $deadline) {
+        if (-not (Test-ProcessAlive -ProcessId $ProcessId)) {
+            return
+        }
+        Start-Sleep -Milliseconds 50
+    }
+
+    throw "Owned process $ProcessId remained alive after ConPTY session disposal."
+}
+
+function Invoke-ConPtyStart {
+    param(
+        [Parameter(Mandatory)][Type]$HostType,
+        [Parameter(Mandatory)]$Host,
+        [Parameter(Mandatory)]$Request,
+        [Parameter(Mandatory)][Threading.CancellationToken]$CancellationToken
+    )
+
+    $arguments = [object[]]::new(2)
+    $arguments[0] = Get-ReflectionBaseObject $Request
+    $arguments[1] = Get-ReflectionBaseObject $CancellationToken
+    $task = $HostType.GetMethod('StartAsync').Invoke($Host, $arguments)
+    return $task.GetAwaiter().GetResult()
+}
+
+function Assert-ConPtyStartFailure {
+    param(
+        [Parameter(Mandatory)][Type]$HostType,
+        [Parameter(Mandatory)]$Host,
+        [Parameter(Mandatory)]$Request,
+        [Parameter(Mandatory)][Threading.CancellationToken]$CancellationToken,
+        [Parameter(Mandatory)][Type]$ExpectedException,
+        [Parameter(Mandatory)][string]$Stage
+    )
+
+    $observed = $null
+    try {
+        $unexpectedSession = Invoke-ConPtyStart -HostType $HostType -Host $Host -Request $Request -CancellationToken $CancellationToken
+        if ($unexpectedSession) {
+            $null = $unexpectedSession.DisposeAsync().AsTask().GetAwaiter().GetResult()
+        }
+    }
+    catch {
+        $observed = $_.Exception
+        while ($observed -is [Reflection.TargetInvocationException] -and $observed.InnerException) {
+            $observed = $observed.InnerException
+        }
+        if ($observed -is [AggregateException] -and $observed.InnerExceptions.Count -eq 1) {
+            $observed = $observed.InnerExceptions[0]
+        }
+    }
+
+    if ($null -eq $observed) {
+        throw "ConPTY $Stage unexpectedly succeeded."
+    }
+    if (-not $ExpectedException.IsAssignableFrom($observed.GetType())) {
+        throw "ConPTY $Stage raised '$($observed.GetType().FullName)' instead of '$($ExpectedException.FullName)': $($observed.Message)"
+    }
+}
+
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $implementationPath = Join-Path $repositoryRoot 'src\FCCCodeDesktop.Terminal\WindowsConPtyTerminalHost.cs'
 $terminalProject = Join-Path $repositoryRoot 'src\FCCCodeDesktop.Terminal\FCCCodeDesktop.Terminal.csproj'
@@ -97,7 +224,11 @@ $requiredTokens = @(
     'ProcThreadAttributeJobList',
     'UpdateProcThreadAttribute(JOB_LIST)',
     'JobObjectLimitKillOnJobClose',
-    'ExtendedStartupInfoPresent'
+    'ExtendedStartupInfoPresent',
+    'StartfUseStdHandles',
+    'StandardInput = IntPtr.Zero',
+    'StandardOutput = IntPtr.Zero',
+    'StandardError = IntPtr.Zero'
 )
 foreach ($token in $requiredTokens) {
     if (-not $implementation.Contains($token, [StringComparison]::Ordinal)) {
@@ -127,7 +258,7 @@ if ($jobAttributeIndex -lt 0 -or $createProcessIndex -lt 0 -or $jobAttributeInde
     throw 'P08-004 must bind the kill-on-close job in STARTUPINFOEX before CreateProcessW.'
 }
 
-Write-Host 'P08-004 static ConPTY + atomic job-list contract: PASS.'
+Write-Host 'P08-004 static ConPTY + atomic job-list + isolated std-handle contract: PASS.'
 
 & dotnet restore (Join-Path $repositoryRoot 'FCCCodeDesktop.sln') --locked-mode --nologo
 if ($LASTEXITCODE -ne 0) {
@@ -169,57 +300,81 @@ $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ('fcc-p08-004 conpty عرب�
 [IO.Directory]::CreateDirectory($fixtureRoot) | Out-Null
 [IO.File]::WriteAllText((Join-Path $fixtureRoot 'marker.txt'), 'owner-data', [Text.UTF8Encoding]::new($false))
 
+$comSpec = [Environment]::GetEnvironmentVariable('ComSpec')
+if ([string]::IsNullOrWhiteSpace($comSpec) -or -not (Test-Path -LiteralPath $comSpec)) {
+    throw 'ComSpec was not available for the hosted-Windows ConPTY fixture.'
+}
+
+$initialSize = [Activator]::CreateInstance($sizeType, @([int]80, [int]25))
+$emptyLaunchArguments = [string[]]@()
+function New-ConPtyRequest {
+    param(
+        [Parameter(Mandatory)][string]$Executable,
+        [Parameter(Mandatory)][string]$WorkingDirectory,
+        [Parameter(Mandatory)]$Size
+    )
+
+    $arguments = [object[]]::new(4)
+    $arguments[0] = Get-ReflectionBaseObject $Executable
+    $arguments[1] = $emptyLaunchArguments
+    $arguments[2] = Get-ReflectionBaseObject $WorkingDirectory
+    $arguments[3] = Get-ReflectionBaseObject $Size
+    return $requestConstructor.Invoke($arguments)
+}
+
+$terminalHost = [Activator]::CreateInstance($hostType)
+
+# Negative/cancellation paths are task-local launch guarantees and must fail before
+# any usable session escapes to the caller.
+$missingExecutable = Join-Path $fixtureRoot 'missing-shell.exe'
+$missingExecutableRequest = New-ConPtyRequest -Executable $missingExecutable -WorkingDirectory $fixtureRoot -Size $initialSize
+Assert-ConPtyStartFailure -HostType $hostType -Host $terminalHost -Request $missingExecutableRequest -CancellationToken ([Threading.CancellationToken]::None) -ExpectedException ([IO.FileNotFoundException]) -Stage 'missing-executable path'
+
+$missingDirectory = Join-Path $fixtureRoot 'missing-directory'
+$missingDirectoryRequest = New-ConPtyRequest -Executable $comSpec -WorkingDirectory $missingDirectory -Size $initialSize
+Assert-ConPtyStartFailure -HostType $hostType -Host $terminalHost -Request $missingDirectoryRequest -CancellationToken ([Threading.CancellationToken]::None) -ExpectedException ([IO.DirectoryNotFoundException]) -Stage 'missing-working-directory path'
+
+$cancelledRequest = New-ConPtyRequest -Executable $comSpec -WorkingDirectory $fixtureRoot -Size $initialSize
+$cancelledSource = [Threading.CancellationTokenSource]::new()
+$cancelledSource.Cancel()
+try {
+    Assert-ConPtyStartFailure -HostType $hostType -Host $terminalHost -Request $cancelledRequest -CancellationToken $cancelledSource.Token -ExpectedException ([OperationCanceledException]) -Stage 'pre-cancelled launch'
+}
+finally {
+    $cancelledSource.Dispose()
+}
+Write-Host 'P08-004 launch negative/cancellation paths: PASS.'
+
+# Exact P08-005 CMD profile contract: cmd.exe with no arguments.
 $session = $null
 $reader = $null
 try {
-    $comSpec = [Environment]::GetEnvironmentVariable('ComSpec')
-    if ([string]::IsNullOrWhiteSpace($comSpec) -or -not (Test-Path -LiteralPath $comSpec)) {
-        throw 'ComSpec was not available for the hosted-Windows ConPTY fixture.'
-    }
-
-    $initialSize = [Activator]::CreateInstance($sizeType, @([int]80, [int]25))
-
-    # Launch a genuinely interactive command shell. Readiness is established over
-    # ConPTY stdin/stdout instead of relying on /K startup-command semantics.
-    $launchArguments = [string[]]@('/d', '/q')
-    $requestArguments = [object[]]::new(4)
-    $requestArguments[0] = Get-ReflectionBaseObject ([string]$comSpec)
-    $requestArguments[1] = $launchArguments
-    $requestArguments[2] = Get-ReflectionBaseObject ([string]$fixtureRoot)
-    $requestArguments[3] = Get-ReflectionBaseObject $initialSize
-    $request = $requestConstructor.Invoke($requestArguments)
-
-    $terminalHost = [Activator]::CreateInstance($hostType)
-    $startArguments = [object[]]::new(2)
-    $startArguments[0] = Get-ReflectionBaseObject $request
-    $startArguments[1] = Get-ReflectionBaseObject ([Threading.CancellationToken]::None)
-    $startTask = $hostType.GetMethod('StartAsync').Invoke($terminalHost, $startArguments)
-    $session = $startTask.GetAwaiter().GetResult()
+    $request = New-ConPtyRequest -Executable $comSpec -WorkingDirectory $fixtureRoot -Size $initialSize
+    $session = Invoke-ConPtyStart -HostType $hostType -Host $terminalHost -Request $request -CancellationToken ([Threading.CancellationToken]::None)
 
     if ($session.ProcessId -le 0) {
         throw 'ConPTY session returned an invalid process ID.'
+    }
+    if ($session.Completion.IsCompleted) {
+        throw "ConPTY CMD profile exited before interaction with code $($session.Completion.GetAwaiter().GetResult())."
     }
 
     $reader = [IO.StreamReader]::new($session.Output, [Text.Encoding]::UTF8, $true, 4096, $true)
     $captured = [Text.StringBuilder]::new()
 
+    $preResizePath = Join-Path $fixtureRoot 'pre-resize.txt'
+    Write-ConPtyInput -InputStream $session.Input -Text ">pre-resize.txt echo P08_004_INPUT_EXECUTED`r" -Session $session -Stage 'pre-resize execution proof'
+    Wait-FileContent -Path $preResizePath -Expected 'P08_004_INPUT_EXECUTED'
     if ($session.Completion.IsCompleted) {
-        $prematureExitCode = $session.Completion.GetAwaiter().GetResult()
-        $prematureOutput = $reader.ReadToEnd()
-        throw "ConPTY fixture shell exited before interaction with code $prematureExitCode. Output: $prematureOutput"
+        throw "ConPTY CMD profile completed after pre-resize command execution with exit $($session.Completion.GetAwaiter().GetResult())."
     }
 
-    Write-ConPtyInput -InputStream $session.Input -Text "echo P08_004_CONPTY_READY`r" -Session $session -Stage 'readiness handshake'
-    Read-ConPtyUntilMarker -Reader $reader -Buffer $captured -Marker 'P08_004_CONPTY_READY'
-    if ($session.Completion.IsCompleted) {
-        throw "ConPTY shell completed immediately after readiness handshake with exit $($session.Completion.GetAwaiter().GetResult()). Output: $($captured.ToString())"
-    }
-
-    Write-ConPtyInput -InputStream $session.Input -Text "echo P08_004_CONPTY_INPUT_OK`r" -Session $session -Stage 'pre-resize round trip'
-    Read-ConPtyUntilMarker -Reader $reader -Buffer $captured -Marker 'P08_004_CONPTY_INPUT_OK'
-    if ($session.Completion.IsCompleted) {
-        throw "ConPTY shell completed after pre-resize round trip with exit $($session.Completion.GetAwaiter().GetResult()). Output: $($captured.ToString())"
-    }
+    # Build the output marker in environment pieces so the complete marker never
+    # appears in injected terminal input. Observing it therefore proves child output.
+    Write-ConPtyInput -InputStream $session.Input -Text "set P08A=P08_004_`r" -Session $session -Stage 'pre-resize output prefix'
+    Write-ConPtyInput -InputStream $session.Input -Text "set P08B=INPUT_OUTPUT_OK`r" -Session $session -Stage 'pre-resize output suffix'
+    Write-ConPtyInput -InputStream $session.Input -Text "echo %P08A%%P08B%`r" -Session $session -Stage 'pre-resize output round trip'
+    Read-ConPtyUntilMarker -Reader $reader -Buffer $captured -Marker 'P08_004_INPUT_OUTPUT_OK'
 
     $resized = [Activator]::CreateInstance($sizeType, @([int]100, [int]40))
     $null = $session.ResizeAsync($resized, [Threading.CancellationToken]::None).AsTask().GetAwaiter().GetResult()
@@ -227,38 +382,35 @@ try {
         throw 'ConPTY resize did not update the observable terminal size.'
     }
 
-    Write-ConPtyInput -InputStream $session.Input -Text "echo P08_004_CONPTY_RESIZE_OK`r" -Session $session -Stage 'post-resize round trip'
-    Read-ConPtyUntilMarker -Reader $reader -Buffer $captured -Marker 'P08_004_CONPTY_RESIZE_OK'
+    $postResizePath = Join-Path $fixtureRoot 'post-resize.txt'
+    Write-ConPtyInput -InputStream $session.Input -Text ">post-resize.txt echo P08_004_RESIZE_EXECUTED`r" -Session $session -Stage 'post-resize execution proof'
+    Wait-FileContent -Path $postResizePath -Expected 'P08_004_RESIZE_EXECUTED'
     if ($session.Completion.IsCompleted) {
-        throw "ConPTY shell completed after resize round trip with exit $($session.Completion.GetAwaiter().GetResult()). Output: $($captured.ToString())"
+        throw "ConPTY CMD profile completed after resize with exit $($session.Completion.GetAwaiter().GetResult())."
     }
 
-    Write-ConPtyInput -InputStream $session.Input -Text "if exist marker.txt echo P08_004_CONPTY_OK`rexit /b 0`r" -Session $session -Stage 'clean exit'
+    Write-ConPtyInput -InputStream $session.Input -Text "set P08B=RESIZE_OUTPUT_OK`r" -Session $session -Stage 'post-resize output suffix'
+    Write-ConPtyInput -InputStream $session.Input -Text "echo %P08A%%P08B%`r" -Session $session -Stage 'post-resize output round trip'
+    Read-ConPtyUntilMarker -Reader $reader -Buffer $captured -Marker 'P08_004_RESIZE_OUTPUT_OK'
 
+    Write-ConPtyInput -InputStream $session.Input -Text "exit /b 0`r" -Session $session -Stage 'clean exit'
     $exitCode = $session.Completion.WaitAsync([TimeSpan]::FromSeconds(20)).GetAwaiter().GetResult()
     $tail = $reader.ReadToEndAsync().WaitAsync([TimeSpan]::FromSeconds(20)).GetAwaiter().GetResult()
     $null = $captured.Append($tail)
-    $output = $captured.ToString()
 
     if ($exitCode -ne 0) {
-        throw "ConPTY fixture exited with code $exitCode. Output: $output"
+        throw "ConPTY CMD profile exited with code $exitCode. Output: $($captured.ToString())"
     }
-
-    foreach ($marker in @(
-        'P08_004_CONPTY_READY',
-        'P08_004_CONPTY_INPUT_OK',
-        'P08_004_CONPTY_RESIZE_OK',
-        'P08_004_CONPTY_OK')) {
-        if (-not $output.Contains($marker, [StringComparison]::Ordinal)) {
-            throw "ConPTY fixture did not observe marker '$marker'. Output: $output"
+    foreach ($marker in @('P08_004_INPUT_OUTPUT_OK', 'P08_004_RESIZE_OUTPUT_OK')) {
+        if (-not $captured.ToString().Contains($marker, [StringComparison]::Ordinal)) {
+            throw "ConPTY fixture did not observe proven child-output marker '$marker'."
         }
     }
-
     if ((Get-Content -LiteralPath (Join-Path $fixtureRoot 'marker.txt') -Raw) -ne 'owner-data') {
         throw 'ConPTY fixture modified owner data unexpectedly.'
     }
 
-    Write-Host 'P08-004 hosted-Windows ConPTY launch/input/output/resize fixture: PASS.'
+    Write-Host 'P08-004 exact CMD-profile launch/input/output/resize/clean-exit fixture: PASS.'
 }
 finally {
     if ($reader) {
@@ -266,6 +418,69 @@ finally {
     }
     if ($session) {
         $null = $session.DisposeAsync().AsTask().GetAwaiter().GetResult()
+    }
+}
+
+# Disposal must terminate the entire owned tree while preserving an unrelated process.
+$cleanupSession = $null
+$sentinel = $null
+try {
+    $sentinelExecutable = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    if (-not (Test-Path -LiteralPath $sentinelExecutable)) {
+        throw "Cleanup sentinel executable is missing: $sentinelExecutable"
+    }
+    $sentinel = Start-Process -FilePath $sentinelExecutable -ArgumentList @('-NoLogo', '-NoProfile', '-Command', 'Start-Sleep -Seconds 60') -WindowStyle Hidden -PassThru
+
+    $childPidPath = Join-Path $fixtureRoot 'child.pid'
+    Remove-Item -LiteralPath $childPidPath -Force -ErrorAction SilentlyContinue
+
+    $cleanupRequest = New-ConPtyRequest -Executable $comSpec -WorkingDirectory $fixtureRoot -Size $initialSize
+    $cleanupSession = Invoke-ConPtyStart -HostType $hostType -Host $terminalHost -Request $cleanupRequest -CancellationToken ([Threading.CancellationToken]::None)
+    $rootPid = [int]$cleanupSession.ProcessId
+    if ($cleanupSession.Completion.IsCompleted) {
+        throw "Cleanup CMD profile exited before descendant launch with code $($cleanupSession.Completion.GetAwaiter().GetResult())."
+    }
+
+    $childCommand = 'powershell.exe -NoLogo -NoProfile -Command "$PID | Set-Content -NoNewline -Encoding Ascii -LiteralPath ''child.pid''; Start-Sleep -Seconds 60"' + "`r"
+    Write-ConPtyInput -InputStream $cleanupSession.Input -Text $childCommand -Session $cleanupSession -Stage 'owned descendant launch'
+    $childPid = Wait-FileInteger -Path $childPidPath
+
+    if (-not (Test-ProcessAlive -ProcessId $rootPid)) {
+        throw "Owned ConPTY root $rootPid was not alive before disposal."
+    }
+    if (-not (Test-ProcessAlive -ProcessId $childPid)) {
+        throw "Owned ConPTY descendant $childPid was not alive before disposal."
+    }
+    if ($sentinel.HasExited) {
+        throw 'Unrelated sentinel exited before ConPTY disposal and cannot prove ownership isolation.'
+    }
+
+    $null = $cleanupSession.DisposeAsync().AsTask().GetAwaiter().GetResult()
+    $cleanupSession = $null
+
+    Wait-ProcessGone -ProcessId $rootPid
+    Wait-ProcessGone -ProcessId $childPid
+    $sentinel.Refresh()
+    if ($sentinel.HasExited) {
+        throw 'ConPTY disposal terminated the unrelated sentinel process.'
+    }
+
+    Write-Host 'P08-004 dispose/owned-descendant cleanup/unrelated-process isolation fixture: PASS.'
+}
+finally {
+    if ($cleanupSession) {
+        $null = $cleanupSession.DisposeAsync().AsTask().GetAwaiter().GetResult()
+    }
+    if ($sentinel) {
+        try {
+            if (-not $sentinel.HasExited) {
+                $sentinel.Kill($true)
+                $sentinel.WaitForExit(5000)
+            }
+        }
+        finally {
+            $sentinel.Dispose()
+        }
     }
     if (Test-Path -LiteralPath $fixtureRoot) {
         Remove-Item -LiteralPath $fixtureRoot -Recurse -Force
