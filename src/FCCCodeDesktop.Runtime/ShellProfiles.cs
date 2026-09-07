@@ -47,7 +47,7 @@ public sealed record ShellProfile
 public static class DefaultShellProfiles
 {
     public static IReadOnlyList<ShellProfile> WindowsProfiles { get; } =
-        Array.AsReadOnly(
+        Array.AsReadOnly<ShellProfile>(
         [
             new("powershell", "PowerShell", "powershell.exe", ["-NoLogo"], true),
             new("cmd", "Command Prompt", "cmd.exe", Array.Empty<string>(), true),
