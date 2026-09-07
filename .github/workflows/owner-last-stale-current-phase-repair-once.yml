@@ -39,13 +39,27 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Branch is not descended from exact accepted main $base." }
 
       - name: Apply canonical correction and write evidence
+        id: helper
+        continue-on-error: true
         shell: pwsh
         run: |
-          python .\tools\reconciliation\owner-last-post-p05-drift-repair.py
-          if ($LASTEXITCODE -ne 0) { throw 'Deterministic owner-last drift repair helper failed.' }
+          $output = & python .\tools\reconciliation\owner-last-post-p05-drift-repair.py 2>&1
+          $code = $LASTEXITCODE
+          $output | Tee-Object -FilePath owner-last-helper-output.txt
+          exit $code
+
+      - name: Upload repair diagnostics on failure
+        if: steps.helper.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-last-helper-diagnostics
+          path: owner-last-helper-output.txt
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Validate owner-last governance and negative fixtures
         id: governance
+        if: steps.helper.outcome == 'success'
         continue-on-error: true
         shell: pwsh
         run: |
@@ -56,7 +70,7 @@ jobs:
           exit $code
 
       - name: Upload validator diagnostics on failure
-        if: steps.governance.outcome == 'failure'
+        if: steps.helper.outcome == 'success' && steps.governance.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: owner-last-validator-diagnostics
@@ -65,7 +79,7 @@ jobs:
           retention-days: 1
 
       - name: Validate exact repaired state
-        if: steps.governance.outcome == 'success'
+        if: steps.helper.outcome == 'success' && steps.governance.outcome == 'success'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -85,12 +99,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
 
       - name: Remove one-shot machinery and commit
-        if: steps.governance.outcome == 'success'
+        if: steps.helper.outcome == 'success' && steps.governance.outcome == 'success'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           Remove-Item -LiteralPath '.\.github\workflows\owner-last-stale-current-phase-repair-once.yml' -Force
           Remove-Item -LiteralPath '.\tools\reconciliation\owner-last-post-p05-drift-repair.py' -Force
+          Remove-Item -LiteralPath '.\owner-last-helper-output.txt' -Force -ErrorAction SilentlyContinue
           Remove-Item -LiteralPath '.\owner-last-validator-output.txt' -Force -ErrorAction SilentlyContinue
           git config user.name 'fcc-cloud-reconciliation'
           git config user.email 'actions@users.noreply.github.com'
@@ -103,7 +118,12 @@ jobs:
           git commit -m 'governance: repair stale owner-last current-phase claim'
           git push origin HEAD:reconcile/owner-last-p05-stale-current-phase-line
 
+      - name: Fail if repair helper failed
+        if: steps.helper.outcome == 'failure'
+        shell: pwsh
+        run: throw 'Owner-last repair helper failed; diagnostic artifact uploaded.'
+
       - name: Fail if governance validation failed
-        if: steps.governance.outcome == 'failure'
+        if: steps.helper.outcome == 'success' && steps.governance.outcome == 'failure'
         shell: pwsh
         run: throw 'Owner-last governance validation failed; diagnostic artifact uploaded.'
