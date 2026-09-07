@@ -1,0 +1,52 @@
+name: TEMP P08-004 Reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p08-004-integrated
+    paths:
+      - .github/workflows/temp-p08-004-reconcile.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout reconciliation branch
+        uses: actions/checkout@v7
+        with:
+          ref: reconcile/fccd-p08-004-integrated
+          fetch-depth: 0
+
+      - name: Guard exact reconciliation base
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor f86e8bc5e08b4def96fc50fc2cc3d3819621aa68 HEAD
+          test "$(git rev-parse f86e8bc5e08b4def96fc50fc2cc3d3819621aa68^{tree})" = "baded42ef7666d85016c1788d92a50b412744d83"
+
+      - name: Prepare P08-004 canonical reconciliation
+        shell: bash
+        run: python tools/temp/reconcile_p08_004.py
+
+      - name: Remove temporary reconciliation machinery
+        shell: bash
+        run: |
+          rm tools/temp/reconcile_p08_004.py
+          rm .github/workflows/temp-p08-004-reconcile.yml
+
+      - name: Validate and commit reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
+          git status --short
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P08/P08_004_INTEGRATED_RECONCILIATION_2026-09-07.md tools/temp/reconcile_p08_004.py .github/workflows/temp-p08-004-reconcile.yml
+          git diff --cached --check
+          git commit -m "P08-004: reconcile integrated ConPTY closure"
+          git push origin HEAD:reconcile/fccd-p08-004-integrated
