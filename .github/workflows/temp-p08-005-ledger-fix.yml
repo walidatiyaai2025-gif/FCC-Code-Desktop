@@ -1,0 +1,34 @@
+name: TEMP P08-005 Ledger Fix
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p08-005-integrated-closure
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Apply guarded ledger consistency fix
+        run: python .github/temp/p08-005-ledger-fix.py
+      - name: Commit durable fix and remove helpers
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="9bcb6b94bbc5f185e8615c38b73e4f5496a0397e"
+          git rm .github/temp/p08-005-ledger-fix.py .github/workflows/temp-p08-005-ledger-fix.yml
+          git add docs/TASK_LEDGER.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "P08-005: reconcile ledger pending-list consistency"
+          ACTUAL="$(git diff --name-only "$BASE" HEAD | sort)"
+          EXPECTED="$(printf '%s\n' CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P08/P08_005_INTEGRATED_RECONCILIATION_2026-09-07.md | sort)"
+          test "$ACTUAL" = "$EXPECTED"
+          git push origin HEAD:reconcile/fccd-p08-005-integrated-closure
