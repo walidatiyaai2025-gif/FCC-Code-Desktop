@@ -5,11 +5,11 @@ This file is the fastest canonical resume checkpoint. It must be updated only wh
 ```text
 PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
-CURRENT_PHASE: P07
-CURRENT_PHASE_NAME: Change review + Git
-CURRENT_PHASE_STATE: CLOSED
-NEXT_PHASE: P08
-PHASE_EXIT_GATE: PASS
+CURRENT_PHASE: P08
+CURRENT_PHASE_NAME: Terminal/process supervision
+CURRENT_PHASE_STATE: IN_PROGRESS
+NEXT_PHASE: P09
+PHASE_EXIT_GATE: NOT_RUN
 KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 2
 VERIFIED_FINAL_COMPLETE: false
@@ -26,9 +26,9 @@ LAST_RECONCILED: 2026-09-07
 
 P06 is canonically CLOSED. `FCCD-P06-001` through `FCCD-P06-008` are normally integrated, dedicated exact-candidate phase-exit run `34030997937` passed, closure PR #160 was normally merged as `38f01c2c07104b1e169a8fd4606f374e499cafc7`, and exact post-merge Windows CI `34031863567`, Workspace Search `34031863569`, and Large Workspace Safeguards `34031863551` all completed SUCCESS. Canonical closure evidence is `evidence/phases/P06/CLOSURE.md`.
 
-P07 is canonically CLOSED in this closure state. `FCCD-P07-001` through `FCCD-P07-011` are normally integrated and exact-main verified, and dedicated exact-candidate phase-exit run `34068796895` passed on immutable product candidate `7561dd88b16531403a9f8f5667db17801105687f`. Canonical closure evidence is `evidence/phases/P07/CLOSURE.md`.
+P07 is canonically CLOSED. `FCCD-P07-001` through `FCCD-P07-011` are normally integrated and exact-main verified, dedicated exact-candidate phase-exit run `34068796895` passed on immutable product candidate `7561dd88b16531403a9f8f5667db17801105687f`, closure PR #187 was normally merged as `e94f241b75ab7119bbb45f48872d24b78c5f9007`, and exact post-closure Windows CI `34069973813`, Workspace Search `34069973830`, and Large Workspace Safeguards `34069973823` all completed SUCCESS. Canonical closure evidence is `evidence/phases/P07/CLOSURE.md`.
 
-`CURRENT_PHASE` deliberately remains `P07` after closure. P08 is not active yet. A separate governance transition may activate `CURRENT_PHASE=P08` only after this closure state is normally merged and the resulting exact canonical `main` remains green. No P08 or later implementation is authorized inside this closure state.
+P08 — Terminal/process supervision — is now the sole legal cloud implementation/convergence phase. Only dependency-valid, unclaimed P08 work may begin. P09 and later implementation remain prohibited until P08 is truthfully closed with its exit gate resolved under canonical governance.
 
 P05 cloud implementation is complete: `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified. Its mandatory exit observation still requires genuine owner Windows/FCC/provider interaction: a real task in the application conversation surface, structured execution, stop/retry, close/reopen, and durable session resume. That standalone phase-gate requirement is queued as `OWNER-P05-EXIT-REAL-TARGET`, remains `releaseBlocking=true`, and P05 remains deferred as `P05=NOT_RUN`; no P05 `CLOSURE.md` PASS is claimed.
 
@@ -38,7 +38,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 
 ## Owner-last invariants
 
-- P07 is CLOSED and retained as the current closure checkpoint until a separate, validated transition activates P08; no later-phase implementation is authorized yet.
+- Exactly one cloud implementation/convergence phase is active: P08.
 - Earlier unresolved task work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
 - A phase-exit requirement may be queued only when all cloud-actionable implementation/tests/CI are complete, the remaining evidence is genuinely environment-bound, and the phase gate remains truthfully unresolved rather than being represented as PASS.
 - Code defects, failed CI, missing tests/implementation, security/data-integrity defects, and repairable repository problems are never deferrable.
@@ -77,6 +77,30 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Tracked owner runner: `tools/ui/run-p05-phase-exit-owner-validation.ps1`.
 - Expected evidence: `evidence/phases/P05/owner/P05_PHASE_EXIT_REAL_TARGET.json`.
 - Release status: blocking until genuine exact-head PASS evidence is reviewed, integrated and reconciled.
+
+## P08 cloud task inventory
+
+- `FCCD-P08-001` — Process supervisor with owned process-tree tracking — PENDING.
+- `FCCD-P08-002` — Graceful→forced cancellation escalation — PENDING.
+- `FCCD-P08-003` — Bounded streaming log pipeline — PENDING.
+- `FCCD-P08-004` — ConPTY terminal host — PENDING.
+- `FCCD-P08-005` — PowerShell/CMD profiles — PENDING.
+- `FCCD-P08-006` — Optional Git Bash/WSL detection — PENDING.
+- `FCCD-P08-007` — Interactive terminal UX — PENDING.
+- `FCCD-P08-008` — Process/terminal safety tests — PENDING.
+
+## P08 cloud activation provenance
+
+- Source closed-phase canonical main: `e94f241b75ab7119bbb45f48872d24b78c5f9007`.
+- P07 closure integration: PR #187, normal merge.
+- Dedicated P07 exact-candidate phase-exit gate: run `34068796895` — SUCCESS.
+- Exact post-closure main Windows CI: run `34069973813` / #433 — SUCCESS.
+- Exact post-closure main P06-007 Workspace Search: run `34069973830` / #162 — SUCCESS.
+- Exact post-closure main P06-008 Large Workspace Safeguards: run `34069973823` / #146 — SUCCESS.
+- Pre-activation live claim scan: no open PR and no P08 branch/claim was present.
+- Canonical owner queue remains exactly `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET`, both unresolved and release-blocking.
+- `VERIFIED_FINAL_COMPLETE` remains `false`; P22 remains prohibited while any required owner queue item is unresolved.
+- This is scheduling/governance activation only; no P08 product implementation is included.
 
 ## P07 cloud task inventory
 
