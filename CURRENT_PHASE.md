@@ -11,12 +11,12 @@ CURRENT_PHASE_STATE: IN_PROGRESS
 NEXT_PHASE: P09
 PHASE_EXIT_GATE: NOT_RUN
 KNOWN_PHASE_BLOCKERS: 0
-KNOWN_RELEASE_BLOCKERS: 2
+KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
 OWNER_LAST_MODE: ACTIVE
-DEFERRED_OWNER_ACCEPTANCE_COUNT: 2
-DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET;OWNER-P05-EXIT-REAL-TARGET
-DEFERRED_PHASE_GATES: P04=NOT_RUN;P05=NOT_RUN
+DEFERRED_OWNER_ACCEPTANCE_COUNT: 1
+DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET
+DEFERRED_PHASE_GATES: P04=NOT_RUN
 LAST_RECONCILED: 2026-09-07
 ```
 
@@ -30,11 +30,11 @@ P07 is canonically CLOSED. `FCCD-P07-001` through `FCCD-P07-011` are normally in
 
 P08 — Terminal/process supervision — is now the sole legal cloud implementation/convergence phase. Only dependency-valid, unclaimed P08 work may begin. P09 and later implementation remain prohibited until P08 is truthfully closed with its exit gate resolved under canonical governance.
 
-P05 cloud implementation is complete: `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified. Its mandatory exit observation still requires genuine owner Windows/FCC/provider interaction: a real task in the application conversation surface, structured execution, stop/retry, close/reopen, and durable session resume. That standalone phase-gate requirement is queued as `OWNER-P05-EXIT-REAL-TARGET`, remains `releaseBlocking=true`, and P05 remains deferred as `P05=NOT_RUN`; no P05 `CLOSURE.md` PASS is claimed.
+P05 is now canonically closed at the phase level. `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified, and the owner completed the required genuine Windows/FCC/provider interaction on exact tested SHA `60b6ef491e9dde3ca195b377a2ce07442452a6ce`. Provider-backed conversation execution, structured activity, Stop/Retry, close/reopen, and durable session resume all passed. `OWNER-P05-EXIT-REAL-TARGET` is reconciled as `PASS_INTEGRATED`, the P05 exit gate is `PASS`, and canonical closure evidence is `evidence/phases/P05/CLOSURE.md`.
 
 This is **not** a P04 closure and does not weaken P04 acceptance. `FCCD-P04-008 — Runtime contract suite` remains unresolved in `docs/TASK_LEDGER.md`; the P04 exit gate remains `NOT_RUN`; no P04 `CLOSURE.md` PASS is claimed by this scheduling transition. Its fresh owner-Windows/provider `REAL_TARGET` obligation is durably queued as `OWNER-P04-008-REAL-TARGET`, remains `releaseBlocking=true`, and must later be genuinely executed, reviewed, integrated, and reconciled.
 
-The owner-last policy permits sequential cloud advancement despite those two earlier environment-bound obligations only because their cloud preparation is complete and they are represented one-to-one in the canonical release-blocking owner queue. All P04/P05 functional and acceptance requirements remain unchanged.
+The owner-last policy continues to permit sequential cloud advancement despite the remaining earlier P04 environment-bound obligation because its cloud preparation is complete and it remains represented one-to-one in the canonical release-blocking owner queue. The former P05 owner obligation has passed and is integrated. All P04/P05 functional and acceptance requirements remain unchanged.
 
 ## Owner-last invariants
 
@@ -64,20 +64,25 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Final execution runner: `tools/final-acceptance/run-final-owner-acceptance.ps1`.
 - Release status: blocking until genuine PASS evidence is integrated and reconciled.
 
-### OWNER-P05-EXIT-REAL-TARGET
+### OWNER-P05-EXIT-REAL-TARGET — PASS_INTEGRATED
 
 - Source kind: phase gate.
 - Source requirement: `P05_EXIT_GATE`.
 - Source phase: P05.
 - P05 task rows: 8/8 CLOSED.
-- P05 exit gate: `NOT_RUN`.
+- P05 exit gate: `PASS`.
 - Classification: `REAL_TARGET`.
-- Reason: requires the owner Windows FCC Code Desktop application plus installed `fcc-claude`/FCC/provider environment and an actual close/reopen persistence interaction; GitHub-hosted CI proves only deterministic mechanics.
-- Cloud convergence evidence: `evidence/phases/P05/P05_PHASE_EXIT_CLOUD_COMPLETE_OWNER_TARGET_REQUIRED_2026-09-05.md`.
-- Tracked owner runner: `tools/ui/run-p05-phase-exit-owner-validation.ps1`.
-- Expected evidence: `evidence/phases/P05/owner/P05_PHASE_EXIT_REAL_TARGET.json`.
-- Release status: blocking until genuine exact-head PASS evidence is reviewed, integrated and reconciled.
-
+- Tested repository SHA: `60b6ef491e9dde3ca195b377a2ce07442452a6ce`.
+- Tested tree SHA: `221ebaf238346bdcc91cdc2fe2a1524637e312f1`.
+- Owner observations: provider-backed task PASS; structured execution PASS; Stop/Retry PASS; close/reopen PASS; durable session resume PASS.
+- Exact tested-main Windows CI: `34092682076` — SUCCESS.
+- Exact tested-main Workspace Search: `34092682081` — SUCCESS.
+- Exact tested-main Large Workspace Safeguards: `34092682122` — SUCCESS.
+- Machine-readable evidence: `evidence/phases/P05/owner/P05_PHASE_EXIT_REAL_TARGET.json`.
+- Reconciliation evidence: `evidence/phases/P05/owner/P05_EXIT_OWNER_RECONCILIATION_2026-09-07.md`.
+- Canonical phase closure: `evidence/phases/P05/CLOSURE.md`.
+- Queue state: `PASS_INTEGRATED`.
+- Release status: this P05 obligation is resolved; `OWNER-P04-008-REAL-TARGET` remains release-blocking.
 ## P08 cloud task inventory
 
 - `FCCD-P08-001` — Process supervisor with owned process-tree tracking — CLOSED.
