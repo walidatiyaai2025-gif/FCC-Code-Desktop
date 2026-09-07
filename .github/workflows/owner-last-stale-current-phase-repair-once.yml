@@ -25,75 +25,68 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply canonical drift repair
+      - name: Confirm recovery baseline
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
           $base = '596c43641b8f0706f27b96bfcb92cabb5859df62'
           git merge-base --is-ancestor $base HEAD
           if ($LASTEXITCODE -ne 0) { throw "Branch is not descended from exact accepted main $base." }
 
+      - name: Apply one-line canonical correction
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
           $path = 'CURRENT_PHASE.md'
-          $text = [IO.File]::ReadAllText((Resolve-Path $path))
           $old = '- Canonical owner queue remains exactly `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET`, both unresolved and release-blocking.'
           $new = '- Canonical owner queue now has one unresolved release-blocking item: `OWNER-P04-008-REAL-TARGET`; `OWNER-P05-EXIT-REAL-TARGET` is `PASS_INTEGRATED` and is no longer deferred.'
-          $staleCount = [regex]::Matches($text, [regex]::Escape($old)).Count
-          if ($staleCount -ne 1) { throw "Expected exactly one stale CURRENT_PHASE owner-queue sentence; found $staleCount." }
-          $text = $text.Replace($old, $new)
-          [IO.File]::WriteAllText((Resolve-Path $path), $text, [Text.UTF8Encoding]::new($false))
+          $lines = @(Get-Content -LiteralPath $path)
+          $matchIndexes = @(for ($i = 0; $i -lt $lines.Count; $i++) { if ($lines[$i] -ceq $old) { $i } })
+          if ($matchIndexes.Count -ne 1) { throw "Expected one exact stale owner-queue line; found $($matchIndexes.Count)." }
+          $lines[$matchIndexes[0]] = $new
+          [IO.File]::WriteAllLines((Join-Path $PWD $path), $lines, [Text.UTF8Encoding]::new($false))
+          $reloaded = @(Get-Content -LiteralPath $path)
+          if (@($reloaded | Where-Object { $_ -ceq $old }).Count -ne 0) { throw 'Stale owner-queue line remains after repair.' }
+          if (@($reloaded | Where-Object { $_ -ceq $new }).Count -ne 1) { throw 'Corrected owner-queue line is missing or duplicated.' }
 
-          $evidence = @'
-          # Owner-last canonical drift repair — 2026-09-07
-
-          ## Classification
-
-          Integration-pending governance reconciliation. No product implementation task is claimed.
-
-          ## Live baseline
-
-          - Exact canonical main before repair: `596c43641b8f0706f27b96bfcb92cabb5859df62`.
-          - `CURRENT_PHASE=P08`; `FCCD-P08-007` and `FCCD-P08-008` remain pending.
-          - `OWNER-P04-008-REAL-TARGET` is the sole unresolved/deferred owner-last release blocker.
-          - `OWNER-P05-EXIT-REAL-TARGET` is already `PASS_INTEGRATED` with P05 exit gate `PASS`.
-          - Exact-main Windows CI run `34157477029` / #543 completed SUCCESS.
-          - Exact-main Workspace Search run `34157477032` / #272 completed SUCCESS.
-          - Exact-main Large Workspace Safeguards run `34157477043` / #256 completed SUCCESS.
-
-          ## Defect recovered
-
-          The canonical header and owner queue were already reconciled correctly by PR #205, but the historical P08 activation-provenance bullet inside `CURRENT_PHASE.md` still used present-tense text claiming P04 and P05 were both unresolved. That sentence contradicted the live canonical state and could mislead a later worker into treating P05 as deferred again.
-
-          ## Repair
-
-          Only the stale present-tense sentence is changed. It now records P04 as the single unresolved owner-last blocker and P05 as `PASS_INTEGRATED`. No P08 task state, phase gate, product source, tests, release status, or owner evidence is changed.
-
-          ## Validation
-
-          - `tools/final-acceptance/validate-owner-last-policy.ps1 -RunNegativeFixtures`
-          - exact assertions for P08 current phase, one deferred owner item, P04-only deferred gate map, and P05 `PASS_INTEGRATED`
-          - `git diff --check`
-
-          No owner/manual evidence is required for this reconciliation repair.
-          '@
-          $evidencePath = 'evidence/governance/OWNER_LAST_POST_P05_CANONICAL_DRIFT_REPAIR_2026-09-07.md'
-          [IO.File]::WriteAllText((Join-Path $PWD $evidencePath), ($evidence.TrimStart() + "`n"), [Text.UTF8Encoding]::new($false))
-
-          $phase = [IO.File]::ReadAllText((Resolve-Path 'CURRENT_PHASE.md'))
-          foreach ($required in @(
-              'CURRENT_PHASE: P08',
-              'DEFERRED_OWNER_ACCEPTANCE_COUNT: 1',
-              'DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET',
-              'DEFERRED_PHASE_GATES: P04=NOT_RUN'
-          )) {
-              if (-not $phase.Contains($required)) { throw "Missing canonical invariant after repair: $required" }
-          }
-          if ($phase.Contains('both unresolved and release-blocking')) { throw 'Stale two-owner-blocker claim remains in CURRENT_PHASE.' }
-          if (-not $phase.Contains($new)) { throw 'Corrected current owner-queue sentence is missing.' }
-
-          $queue = [IO.File]::ReadAllText((Resolve-Path 'docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md'))
-          if ($queue -notmatch '(?s)"id"\s*:\s*"OWNER-P05-EXIT-REAL-TARGET".*?"state"\s*:\s*"PASS_INTEGRATED"') {
-              throw 'P05 PASS_INTEGRATED queue record is missing or malformed.'
-          }
+      - name: Write reconciliation evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $lines = @(
+            '# Owner-last canonical drift repair — 2026-09-07',
+            '',
+            '## Classification',
+            '',
+            'Integration-pending governance reconciliation. No product implementation task is claimed.',
+            '',
+            '## Live baseline',
+            '',
+            '- Exact canonical main before repair: `596c43641b8f0706f27b96bfcb92cabb5859df62`.',
+            '- `CURRENT_PHASE=P08`; `FCCD-P08-007` and `FCCD-P08-008` remain pending.',
+            '- `OWNER-P04-008-REAL-TARGET` is the sole unresolved/deferred owner-last release blocker.',
+            '- `OWNER-P05-EXIT-REAL-TARGET` is already `PASS_INTEGRATED` with P05 exit gate `PASS`.',
+            '- Exact-main Windows CI run `34157477029` / #543 completed SUCCESS.',
+            '- Exact-main Workspace Search run `34157477032` / #272 completed SUCCESS.',
+            '- Exact-main Large Workspace Safeguards run `34157477043` / #256 completed SUCCESS.',
+            '',
+            '## Defect recovered',
+            '',
+            'The canonical header and owner queue were already reconciled correctly by PR #205, but the historical P08 activation-provenance bullet inside `CURRENT_PHASE.md` still used present-tense text claiming P04 and P05 were both unresolved. That sentence contradicted the live canonical state and could mislead a later worker into treating P05 as deferred again.',
+            '',
+            '## Repair',
+            '',
+            'Only the stale present-tense sentence is changed. It now records P04 as the single unresolved owner-last blocker and P05 as `PASS_INTEGRATED`. No P08 task state, phase gate, product source, tests, release status, or owner evidence is changed.',
+            '',
+            '## Validation',
+            '',
+            '- `tools/final-acceptance/validate-owner-last-policy.ps1 -RunNegativeFixtures`',
+            '- exact assertions for P08 current phase, one deferred owner item, P04-only deferred gate map, and P05 `PASS_INTEGRATED`',
+            '- `git diff --check`',
+            '',
+            'No owner/manual evidence is required for this reconciliation repair.'
+          )
+          $path = 'evidence/governance/OWNER_LAST_POST_P05_CANONICAL_DRIFT_REPAIR_2026-09-07.md'
+          [IO.File]::WriteAllLines((Join-Path $PWD $path), $lines, [Text.UTF8Encoding]::new($false))
 
       - name: Validate owner-last governance and negative fixtures
         id: governance
@@ -115,6 +108,26 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Validate exact repaired state
+        if: steps.governance.outcome == 'success'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $phase = [IO.File]::ReadAllText((Resolve-Path 'CURRENT_PHASE.md'))
+          foreach ($required in @(
+              'CURRENT_PHASE: P08',
+              'DEFERRED_OWNER_ACCEPTANCE_COUNT: 1',
+              'DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET',
+              'DEFERRED_PHASE_GATES: P04=NOT_RUN'
+          )) {
+              if (-not $phase.Contains($required)) { throw "Missing canonical invariant after repair: $required" }
+          }
+          if ($phase.Contains('both unresolved and release-blocking')) { throw 'Stale two-owner-blocker claim remains in CURRENT_PHASE.' }
+          $queue = [IO.File]::ReadAllText((Resolve-Path 'docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md'))
+          if ($queue -notmatch '(?s)"id"\s*:\s*"OWNER-P05-EXIT-REAL-TARGET".*?"state"\s*:\s*"PASS_INTEGRATED"') { throw 'P05 PASS_INTEGRATED queue record is missing or malformed.' }
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+
       - name: Remove one-shot machinery and commit
         if: steps.governance.outcome == 'success'
         shell: pwsh
@@ -122,8 +135,6 @@ jobs:
           $ErrorActionPreference = 'Stop'
           Remove-Item -LiteralPath '.\.github\workflows\owner-last-stale-current-phase-repair-once.yml' -Force
           Remove-Item -LiteralPath '.\owner-last-validator-output.txt' -Force -ErrorAction SilentlyContinue
-          git diff --check
-          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
           git config user.name 'fcc-cloud-reconciliation'
           git config user.email 'actions@users.noreply.github.com'
           git add -A
@@ -131,9 +142,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'staged diff check failed.' }
           $changed = @(git diff --cached --name-only)
           $expected = @('CURRENT_PHASE.md','evidence/governance/OWNER_LAST_POST_P05_CANONICAL_DRIFT_REPAIR_2026-09-07.md')
-          $actualText = (($changed | Sort-Object) -join "`n")
-          $expectedText = (($expected | Sort-Object) -join "`n")
-          if ($actualText -ne $expectedText) { throw "Unexpected final recovery diff: $($changed -join ', ')" }
+          if ((($changed | Sort-Object) -join "`n") -ne (($expected | Sort-Object) -join "`n")) { throw "Unexpected final recovery diff: $($changed -join ', ')" }
           git commit -m 'governance: repair stale owner-last current-phase claim'
           git push origin HEAD:reconcile/owner-last-p05-stale-current-phase-line
 
