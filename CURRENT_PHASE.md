@@ -82,7 +82,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 
 - `FCCD-P08-001` — Process supervisor with owned process-tree tracking — CLOSED.
 - `FCCD-P08-002` — Graceful→forced cancellation escalation — CLOSED.
-- `FCCD-P08-003` — Bounded streaming log pipeline — PENDING.
+- `FCCD-P08-003` — Bounded streaming log pipeline — CLOSED.
 - `FCCD-P08-004` — ConPTY terminal host — PENDING.
 - `FCCD-P08-005` — PowerShell/CMD profiles — CLOSED.
 - `FCCD-P08-006` — Optional Git Bash/WSL detection — CLOSED.
@@ -143,6 +143,23 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact accepted-main P06-008 Large Workspace Safeguards: run `34079056670` / #166 — SUCCESS.
 - Integrated evidence: `evidence/phases/P08/P08_002_INTEGRATED_RECONCILIATION_2026-09-07.md`.
 - Evidence is cloud/Windows-CI process-supervision evidence only. No owner-only evidence is added; P08 remains IN_PROGRESS, P08-003..008 remain PENDING, P09+ remain prohibited, and `VERIFIED_FINAL_COMPLETE` remains false.
+
+## P08-003 integration provenance
+
+- Task: `FCCD-P08-003 — Bounded streaming log pipeline` — CLOSED.
+- Implementation PR: #195 (`codex/fccd-p08-003-bounded-streaming-logs`).
+- Exact implementation candidate: `9ffabc1c85a70ebea9d6bbbc0c2478bdffae3136`.
+- Exact implementation-head Windows CI: run `34090112839` / #493 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34090112868` / #222 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34090112831` / #206 — SUCCESS.
+- Exact implementation-head P08-003 Bounded Process Output: run `34090112927` / #2 — SUCCESS.
+- Normal implementation merge / accepted main: `eae2134666fe659fd26bf065b89d8fd661c9b0da`.
+- Exact accepted-main Windows CI: run `34090854609` / #494 — SUCCESS.
+- Exact accepted-main P06-007 Workspace Search: run `34090854605` / #223 — SUCCESS.
+- Exact accepted-main P06-008 Large Workspace Safeguards: run `34090854583` / #207 — SUCCESS.
+- Exact accepted-main P08-003 Bounded Process Output: run `34090854589` / #3 — SUCCESS.
+- Integrated evidence: `evidence/phases/P08/P08_003_INTEGRATED_RECONCILIATION_2026-09-07.md`.
+- Evidence is cloud/hosted-Windows bounded-process-output evidence only. P08 remains IN_PROGRESS; P08-004, P08-007, and P08-008 remain PENDING; P09/P14 and later phases remain prohibited. The owner queue is unchanged and `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## P08-005 integration provenance
 
