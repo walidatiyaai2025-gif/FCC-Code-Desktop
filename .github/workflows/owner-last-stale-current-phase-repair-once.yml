@@ -25,7 +25,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Reconcile canonical current-phase prose
+      - name: Apply canonical drift repair
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -78,9 +78,6 @@ jobs:
           $evidencePath = 'evidence/governance/OWNER_LAST_POST_P05_CANONICAL_DRIFT_REPAIR_2026-09-07.md'
           [IO.File]::WriteAllText((Join-Path $PWD $evidencePath), ($evidence.TrimStart() + "`n"), [Text.UTF8Encoding]::new($false))
 
-          & .\tools\final-acceptance\validate-owner-last-policy.ps1 -RunNegativeFixtures
-          if ($LASTEXITCODE -ne 0) { throw 'Owner-last governance validator failed.' }
-
           $phase = [IO.File]::ReadAllText((Resolve-Path 'CURRENT_PHASE.md'))
           foreach ($required in @(
               'CURRENT_PHASE: P08',
@@ -98,11 +95,33 @@ jobs:
               throw 'P05 PASS_INTEGRATED queue record is missing or malformed.'
           }
 
+      - name: Validate owner-last governance and negative fixtures
+        id: governance
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $output = & pwsh -NoProfile -File .\tools\final-acceptance\owner-last-policy-validator.ps1 -RepositoryRoot $PWD -RunNegativeFixtures 2>&1
+          $code = $LASTEXITCODE
+          $output | Tee-Object -FilePath owner-last-validator-output.txt
+          exit $code
+
+      - name: Upload validator diagnostics on failure
+        if: steps.governance.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-last-validator-diagnostics
+          path: owner-last-validator-output.txt
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Remove one-shot machinery and commit
+        if: steps.governance.outcome == 'success'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           Remove-Item -LiteralPath '.\.github\workflows\owner-last-stale-current-phase-repair-once.yml' -Force
+          Remove-Item -LiteralPath '.\owner-last-validator-output.txt' -Force -ErrorAction SilentlyContinue
           git diff --check
           if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
           git config user.name 'fcc-cloud-reconciliation'
@@ -112,8 +131,13 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'staged diff check failed.' }
           $changed = @(git diff --cached --name-only)
           $expected = @('CURRENT_PHASE.md','evidence/governance/OWNER_LAST_POST_P05_CANONICAL_DRIFT_REPAIR_2026-09-07.md')
-          if (($changed | Sort-Object) -join "`n" -ne ($expected | Sort-Object) -join "`n") {
-              throw "Unexpected final recovery diff: $($changed -join ', ')"
-          }
+          $actualText = (($changed | Sort-Object) -join "`n")
+          $expectedText = (($expected | Sort-Object) -join "`n")
+          if ($actualText -ne $expectedText) { throw "Unexpected final recovery diff: $($changed -join ', ')" }
           git commit -m 'governance: repair stale owner-last current-phase claim'
           git push origin HEAD:reconcile/owner-last-p05-stale-current-phase-line
+
+      - name: Fail if governance validation failed
+        if: steps.governance.outcome == 'failure'
+        shell: pwsh
+        run: throw 'Owner-last governance validation failed; diagnostic artifact uploaded.'
