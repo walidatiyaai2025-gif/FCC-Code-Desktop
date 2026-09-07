@@ -99,9 +99,6 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             EnsureHResult(createPseudoConsoleResult, "CreatePseudoConsole");
             pseudoConsole = new SafePseudoConsoleHandle(pseudoConsoleRaw);
 
-            CloseRawHandle(ref pseudoInputRead);
-            CloseRawHandle(ref pseudoOutputWrite);
-
             nuint attributeListSize = 0;
             _ = NativeMethods.InitializeProcThreadAttributeList(
                 IntPtr.Zero,
@@ -159,6 +156,12 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                     ref startupInfo,
                     out var processInformation),
                 "CreateProcessW");
+
+            // Keep the PTY-side communication handles alive through CreateProcess so
+            // the hosted client can finish attaching to the pseudoconsole without a
+            // broken-channel race. The ConPTY retains its own copies after creation.
+            CloseRawHandle(ref pseudoInputRead);
+            CloseRawHandle(ref pseudoOutputWrite);
 
             processHandle = new SafeKernelHandle(processInformation.ProcessHandle);
             threadHandle = new SafeKernelHandle(processInformation.ThreadHandle);
