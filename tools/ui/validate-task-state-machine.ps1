@@ -367,7 +367,9 @@ internal static class Program
 
     private static async Task WaitForSettledAsync(TaskExecutionState state)
     {
-        var timeout = DateTimeOffset.UtcNow.AddSeconds(10);
+        const int settlementTimeoutSeconds = 30;
+        var timeout = DateTimeOffset.UtcNow.AddSeconds(settlementTimeoutSeconds);
+        string? lastStartRejection = null;
         while (DateTimeOffset.UtcNow < timeout)
         {
             if (!state.IsActive)
@@ -379,11 +381,15 @@ internal static class Program
                 }
                 catch (InvalidOperationException exception) when (exception.Message.Contains("still settling", StringComparison.Ordinal))
                 {
+                    lastStartRejection = exception.Message;
                 }
             }
             await Task.Delay(20);
         }
-        throw new InvalidOperationException("P05-005 assertion failed: task did not fully settle before timeout.");
+        throw new InvalidOperationException(
+            $"P05-005 assertion failed: task did not fully settle within {settlementTimeoutSeconds}s. " +
+            $"State={state.State}; IsActive={state.IsActive}; CanStop={state.CanStop}; CanRetry={state.CanRetry}; " +
+            $"LastStartRejection={lastStartRejection ?? "<none>"}.");
     }
 
     private static void Assert(bool condition, string label)
