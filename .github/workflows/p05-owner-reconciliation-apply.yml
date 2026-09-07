@@ -6,6 +6,7 @@ on:
       - owner/p05-exit-real-target-evidence-20260907
     paths:
       - tools/reconciliation/apply-p05-owner-reconciliation-v2.ps1
+      - tools/reconciliation/apply-p05-owner-reconciliation-v3.ps1
       - .github/workflows/p05-owner-reconciliation-apply.yml
 
 permissions:
@@ -28,7 +29,7 @@ jobs:
 
       - name: Apply reconciliation
         shell: pwsh
-        run: .\tools\reconciliation\apply-p05-owner-reconciliation-v2.ps1
+        run: .\tools\reconciliation\apply-p05-owner-reconciliation-v3.ps1
 
       - name: Validate owner-last governance with negative fixtures
         shell: pwsh
