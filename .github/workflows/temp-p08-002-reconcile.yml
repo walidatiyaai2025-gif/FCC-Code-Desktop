@@ -34,12 +34,21 @@ jobs:
           set -euo pipefail
           python .github/temp/p08-002-reconcile.py
 
-      - name: Remove temporary orchestration and validate durable scope
+      - name: Build final local reconciliation commit
         shell: bash
         run: |
           set -euo pipefail
+          git config user.name "walidatiyaai2025-gif"
+          git config user.email "walidatiyaai2025@gmail.com"
           git rm .github/temp/p08-002-reconcile.py .github/workflows/temp-p08-002-reconcile.yml
-          mapfile -t changed < <(git status --porcelain | sed -E 's/^.. //' | sort)
+          git add CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P08/P08_002_INTEGRATED_RECONCILIATION_2026-09-07.md
+          git commit -m "P08-002: reconcile integrated cancellation escalation closure"
+
+      - name: Validate final durable scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t changed < <(git diff --name-only origin/main...HEAD | sort)
           printf '%s\n' "${changed[@]}"
           expected=(
             CURRENT_PHASE.md
@@ -50,13 +59,11 @@ jobs:
           mapfile -t expected_sorted < <(printf '%s\n' "${expected[@]}" | sort)
           test "${#changed[@]}" -eq 4
           diff -u <(printf '%s\n' "${expected_sorted[@]}") <(printf '%s\n' "${changed[@]}")
+          test ! -e .github/temp/p08-002-reconcile.py
+          test ! -e .github/workflows/temp-p08-002-reconcile.yml
 
-      - name: Commit and push durable reconciliation
+      - name: Push durable reconciliation
         shell: bash
         run: |
           set -euo pipefail
-          git config user.name "walidatiyaai2025-gif"
-          git config user.email "walidatiyaai2025@gmail.com"
-          git add CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P08/P08_002_INTEGRATED_RECONCILIATION_2026-09-07.md
-          git commit -m "P08-002: reconcile integrated cancellation escalation closure"
           git push origin HEAD:reconcile/fccd-p08-002-integrated-closure
