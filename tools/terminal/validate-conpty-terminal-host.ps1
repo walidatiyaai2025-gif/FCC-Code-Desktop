@@ -17,6 +17,63 @@ function Get-ReflectionBaseObject {
     return $Value
 }
 
+function Read-ConPtyUntilMarker {
+    param(
+        [Parameter(Mandatory)][IO.StreamReader]$Reader,
+        [Parameter(Mandatory)][Text.StringBuilder]$Buffer,
+        [Parameter(Mandatory)][string]$Marker,
+        [TimeSpan]$Timeout = ([TimeSpan]::FromSeconds(10))
+    )
+
+    $deadline = [DateTimeOffset]::UtcNow.Add($Timeout)
+    $chars = [char[]]::new(1024)
+
+    while (-not $Buffer.ToString().Contains($Marker, [StringComparison]::Ordinal)) {
+        $remaining = $deadline - [DateTimeOffset]::UtcNow
+        if ($remaining -le [TimeSpan]::Zero) {
+            throw "Timed out waiting for ConPTY marker '$Marker'. Output so far: $($Buffer.ToString())"
+        }
+
+        try {
+            $readTask = $Reader.ReadAsync($chars, 0, $chars.Length)
+            $count = $readTask.WaitAsync($remaining).GetAwaiter().GetResult()
+        }
+        catch [TimeoutException] {
+            throw "Timed out waiting for ConPTY marker '$Marker'. Output so far: $($Buffer.ToString())"
+        }
+
+        if ($count -eq 0) {
+            throw "ConPTY output reached EOF before marker '$Marker'. Output so far: $($Buffer.ToString())"
+        }
+
+        $null = $Buffer.Append($chars, 0, $count)
+    }
+}
+
+function Write-ConPtyInput {
+    param(
+        [Parameter(Mandatory)][IO.Stream]$InputStream,
+        [Parameter(Mandatory)][string]$Text,
+        [Parameter(Mandatory)]$Session,
+        [Parameter(Mandatory)][string]$Stage
+    )
+
+    $bytes = [Text.Encoding]::UTF8.GetBytes($Text)
+    try {
+        $InputStream.Write($bytes, 0, $bytes.Length)
+        $InputStream.Flush()
+    }
+    catch {
+        $writeState = if ($Session.Completion.IsCompleted) {
+            "completed(exit=$($Session.Completion.GetAwaiter().GetResult()))"
+        }
+        else {
+            'not-completed'
+        }
+        throw "ConPTY input write failed at $Stage while root completion was $writeState. $($_.Exception.Message)"
+    }
+}
+
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $implementationPath = Join-Path $repositoryRoot 'src\FCCCodeDesktop.Terminal\WindowsConPtyTerminalHost.cs'
 $terminalProject = Join-Path $repositoryRoot 'src\FCCCodeDesktop.Terminal\FCCCodeDesktop.Terminal.csproj'
@@ -121,7 +178,10 @@ try {
     }
 
     $initialSize = [Activator]::CreateInstance($sizeType, @([int]80, [int]25))
-    $launchArguments = [string[]]@('/d', '/q', '/k', 'echo P08_004_CONPTY_READY')
+
+    # Launch a genuinely interactive command shell. Readiness is established over
+    # ConPTY stdin/stdout instead of relying on /K startup-command semantics.
+    $launchArguments = [string[]]@('/d', '/q')
     $requestArguments = [object[]]::new(4)
     $requestArguments[0] = Get-ReflectionBaseObject ([string]$comSpec)
     $requestArguments[1] = $launchArguments
@@ -141,28 +201,24 @@ try {
     }
 
     $reader = [IO.StreamReader]::new($session.Output, [Text.Encoding]::UTF8, $true, 4096, $true)
+    $captured = [Text.StringBuilder]::new()
+
     if ($session.Completion.IsCompleted) {
         $prematureExitCode = $session.Completion.GetAwaiter().GetResult()
         $prematureOutput = $reader.ReadToEnd()
         throw "ConPTY fixture shell exited before interaction with code $prematureExitCode. Output: $prematureOutput"
     }
 
-    # This is terminal keyboard input, not a text-file line ending. In the normal
-    # VT input mode the Enter key is CR (0x0D); injecting CRLF synthesizes an extra
-    # control character that a terminal UI would not emit for one Enter press.
-    $preResizeBytes = [Text.Encoding]::UTF8.GetBytes("echo P08_004_CONPTY_INPUT_OK`r")
-    try {
-        $session.Input.Write($preResizeBytes, 0, $preResizeBytes.Length)
-        $session.Input.Flush()
+    Write-ConPtyInput -InputStream $session.Input -Text "echo P08_004_CONPTY_READY`r" -Session $session -Stage 'readiness handshake'
+    Read-ConPtyUntilMarker -Reader $reader -Buffer $captured -Marker 'P08_004_CONPTY_READY'
+    if ($session.Completion.IsCompleted) {
+        throw "ConPTY shell completed immediately after readiness handshake with exit $($session.Completion.GetAwaiter().GetResult()). Output: $($captured.ToString())"
     }
-    catch {
-        $writeState = if ($session.Completion.IsCompleted) {
-            "completed(exit=$($session.Completion.GetAwaiter().GetResult()))"
-        }
-        else {
-            'not-completed'
-        }
-        throw "ConPTY pre-resize input write failed while root completion was $writeState. $($_.Exception.Message)"
+
+    Write-ConPtyInput -InputStream $session.Input -Text "echo P08_004_CONPTY_INPUT_OK`r" -Session $session -Stage 'pre-resize round trip'
+    Read-ConPtyUntilMarker -Reader $reader -Buffer $captured -Marker 'P08_004_CONPTY_INPUT_OK'
+    if ($session.Completion.IsCompleted) {
+        throw "ConPTY shell completed after pre-resize round trip with exit $($session.Completion.GetAwaiter().GetResult()). Output: $($captured.ToString())"
     }
 
     $resized = [Activator]::CreateInstance($sizeType, @([int]100, [int]40))
@@ -171,45 +227,31 @@ try {
         throw 'ConPTY resize did not update the observable terminal size.'
     }
 
+    Write-ConPtyInput -InputStream $session.Input -Text "echo P08_004_CONPTY_RESIZE_OK`r" -Session $session -Stage 'post-resize round trip'
+    Read-ConPtyUntilMarker -Reader $reader -Buffer $captured -Marker 'P08_004_CONPTY_RESIZE_OK'
     if ($session.Completion.IsCompleted) {
-        $resizeExitCode = $session.Completion.GetAwaiter().GetResult()
-        $resizeOutput = $reader.ReadToEnd()
-        throw "ConPTY fixture shell exited immediately after resize with code $resizeExitCode. Output: $resizeOutput"
+        throw "ConPTY shell completed after resize round trip with exit $($session.Completion.GetAwaiter().GetResult()). Output: $($captured.ToString())"
     }
 
-    $readTask = $reader.ReadToEndAsync()
-    $commandBytes = [Text.Encoding]::UTF8.GetBytes("if exist marker.txt echo P08_004_CONPTY_OK`rexit /b 0`r")
-    try {
-        $session.Input.Write($commandBytes, 0, $commandBytes.Length)
-        $session.Input.Flush()
-    }
-    catch {
-        $writeState = if ($session.Completion.IsCompleted) {
-            "completed(exit=$($session.Completion.GetAwaiter().GetResult()))"
-        }
-        else {
-            'not-completed'
-        }
-        throw "ConPTY input write failed while root completion was $writeState. $($_.Exception.Message)"
-    }
+    Write-ConPtyInput -InputStream $session.Input -Text "if exist marker.txt echo P08_004_CONPTY_OK`rexit /b 0`r" -Session $session -Stage 'clean exit'
 
     $exitCode = $session.Completion.WaitAsync([TimeSpan]::FromSeconds(20)).GetAwaiter().GetResult()
-    $output = $readTask.WaitAsync([TimeSpan]::FromSeconds(20)).GetAwaiter().GetResult()
+    $tail = $reader.ReadToEndAsync().WaitAsync([TimeSpan]::FromSeconds(20)).GetAwaiter().GetResult()
+    $null = $captured.Append($tail)
+    $output = $captured.ToString()
 
     if ($exitCode -ne 0) {
         throw "ConPTY fixture exited with code $exitCode. Output: $output"
     }
 
-    if (-not $output.Contains('P08_004_CONPTY_READY', [StringComparison]::Ordinal)) {
-        throw "ConPTY fixture did not emit the explicit persistent-shell readiness marker. Output: $output"
-    }
-
-    if (-not $output.Contains('P08_004_CONPTY_INPUT_OK', [StringComparison]::Ordinal)) {
-        throw "ConPTY fixture did not round-trip input before resize. Output: $output"
-    }
-
-    if (-not $output.Contains('P08_004_CONPTY_OK', [StringComparison]::Ordinal)) {
-        throw "ConPTY fixture did not round-trip interactive input/output. Output: $output"
+    foreach ($marker in @(
+        'P08_004_CONPTY_READY',
+        'P08_004_CONPTY_INPUT_OK',
+        'P08_004_CONPTY_RESIZE_OK',
+        'P08_004_CONPTY_OK')) {
+        if (-not $output.Contains($marker, [StringComparison]::Ordinal)) {
+            throw "ConPTY fixture did not observe marker '$marker'. Output: $output"
+        }
     }
 
     if ((Get-Content -LiteralPath (Join-Path $fixtureRoot 'marker.txt') -Raw) -ne 'owner-data') {
