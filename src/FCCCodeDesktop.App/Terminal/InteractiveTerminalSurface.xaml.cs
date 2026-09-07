@@ -57,6 +57,7 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
         _resizeCancellation = null;
         await CloseSessionAsync("Closed").ConfigureAwait(true);
         _lifecycleGate.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -123,24 +124,18 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
         }
     }
 
-    private async void OnStartClicked(object sender, RoutedEventArgs e)
-    {
+    private async void OnStartClicked(object sender, RoutedEventArgs e) =>
         await StartSelectedSessionAsync().ConfigureAwait(true);
-    }
 
-    private async void OnCloseClicked(object sender, RoutedEventArgs e)
-    {
+    private async void OnCloseClicked(object sender, RoutedEventArgs e) =>
         await CloseSessionAsync("Closed").ConfigureAwait(true);
-    }
 
     private void OnShellSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (_session is null)
+        if (_session is not null)
         {
-            return;
+            StatusText.Text = "Shell selection changed. Press Start to restart with the selected shell.";
         }
-
-        StatusText.Text = "Shell selection changed. Press Start to restart with the selected shell.";
     }
 
     private async Task StartSelectedSessionAsync()
@@ -158,13 +153,11 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
             _transcript.Clear();
             TerminalOutput.Clear();
 
-            var workingDirectory = ResolveWorkingDirectory();
             var request = new ConPtyLaunchRequest(
                 choice.ExecutablePath,
                 choice.Arguments,
-                workingDirectory,
+                ResolveWorkingDirectory(),
                 MeasureTerminalSize());
-
             var cancellation = new CancellationTokenSource();
             IConPtyTerminalSession session;
             try
@@ -404,12 +397,10 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
             }
 
             var size = MeasureTerminalSize();
-            if (size.Columns == session.Size.Columns && size.Rows == session.Size.Rows)
+            if (size.Columns != session.Size.Columns || size.Rows != session.Size.Rows)
             {
-                return;
+                await session.ResizeAsync(size, cancellationToken).ConfigureAwait(true);
             }
-
-            await session.ResizeAsync(size, cancellationToken).ConfigureAwait(true);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -424,9 +415,9 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
     {
         var width = Math.Max(160d, TerminalOutput.ActualWidth - 20d);
         var height = Math.Max(90d, TerminalOutput.ActualHeight - 20d);
-        var columns = Math.Clamp((int)Math.Floor(width / 8.0d), 20, 300);
-        var rows = Math.Clamp((int)Math.Floor(height / 17.0d), 5, 120);
-        return new TerminalSize(columns, rows);
+        return new TerminalSize(
+            Math.Clamp((int)Math.Floor(width / 8.0d), 20, 300),
+            Math.Clamp((int)Math.Floor(height / 17.0d), 5, 120));
     }
 
     private async Task CloseSessionAsync(string status)
