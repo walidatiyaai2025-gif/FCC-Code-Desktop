@@ -7,9 +7,9 @@ PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
 CURRENT_PHASE: P08
 CURRENT_PHASE_NAME: Terminal/process supervision
-CURRENT_PHASE_STATE: IN_PROGRESS
+CURRENT_PHASE_STATE: CLOSED
 NEXT_PHASE: P09
-PHASE_EXIT_GATE: NOT_RUN
+PHASE_EXIT_GATE: PASS
 KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
@@ -28,7 +28,9 @@ P06 is canonically CLOSED. `FCCD-P06-001` through `FCCD-P06-008` are normally in
 
 P07 is canonically CLOSED. `FCCD-P07-001` through `FCCD-P07-011` are normally integrated and exact-main verified, dedicated exact-candidate phase-exit run `34068796895` passed on immutable product candidate `7561dd88b16531403a9f8f5667db17801105687f`, closure PR #187 was normally merged as `e94f241b75ab7119bbb45f48872d24b78c5f9007`, and exact post-closure Windows CI `34069973813`, Workspace Search `34069973830`, and Large Workspace Safeguards `34069973823` all completed SUCCESS. Canonical closure evidence is `evidence/phases/P07/CLOSURE.md`.
 
-P08 — Terminal/process supervision — is now the sole legal cloud implementation/convergence phase. Only dependency-valid, unclaimed P08 work may begin. P09 and later implementation remain prohibited until P08 is truthfully closed with its exit gate resolved under canonical governance.
+P08 — Terminal/process supervision — is canonically CLOSED in this closure state. `FCCD-P08-001` through `FCCD-P08-008` are normally integrated and exact-main verified. Immutable phase candidate `bb372da0a4506b3edc508156f06fc60ced8cc3d4` passed pre-closure Windows CI `34164500457` / #560, Workspace Search `34164500513` / #289, and Large Workspace Safeguards `34164500496` / #273; dedicated exact-candidate P08 phase-exit run `34165022901` / job `101874255929` completed SUCCESS with the full Windows baseline, interactive terminal UX runtime acceptance, process/terminal safety acceptance, exact-SHA guards, and a clean worktree. Canonical closure evidence is `evidence/phases/P08/CLOSURE.md`.
+
+`CURRENT_PHASE` deliberately remains `P08` after closure. P09 is not active yet. A separate governance transition may activate `CURRENT_PHASE=P09` only after this closure state is normally merged and the resulting exact canonical `main` remains green. No P09 or later implementation is authorized inside this closure state.
 
 P05 is canonically closed at the phase level. `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified, and the owner completed the required genuine Windows/FCC/provider interaction on exact tested SHA `60b6ef491e9dde3ca195b377a2ce07442452a6ce`. Provider-backed conversation execution, structured activity, Stop/Retry, close/reopen, and durable session resume all passed. `OWNER-P05-EXIT-REAL-TARGET` is reconciled as `PASS_INTEGRATED`, the P05 exit gate is `PASS`, and canonical closure evidence is `evidence/phases/P05/CLOSURE.md`.
 
@@ -38,7 +40,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 
 ## Owner-last invariants
 
-- Exactly one cloud implementation/convergence phase is active: P08.
+- P08 is CLOSED and retained as the current closure checkpoint until a separate, validated transition activates P09; no later-phase implementation is authorized yet.
 - Earlier unresolved task work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
 - A phase-exit requirement may be queued only when all cloud-actionable implementation/tests/CI are complete, the remaining evidence is genuinely environment-bound, and the phase gate remains truthfully unresolved rather than being represented as PASS.
 - Code defects, failed CI, missing tests/implementation, security/data-integrity defects, and repairable repository problems are never deferrable.
@@ -669,4 +671,18 @@ PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged fr
 - Exact pre-reconciliation canonical-main regression gates: Windows CI `34163272333` / #558, Workspace Search `34163272378` / #287, Large Workspace Safeguards `34163272414` / #271, and P08-007 Interactive Terminal UX `34163272377` / #6 — all `SUCCESS`.
 - Integrated evidence: `evidence/phases/P08/P08_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - No owner-only evidence is required or added. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; P05 remains `PASS_INTEGRATED`; `VERIFIED_FINAL_COMPLETE=false`.
-- P08 remains `IN_PROGRESS` and `PHASE_EXIT_GATE=NOT_RUN`. With P08-001 through P08-008 CLOSED in this candidate, the only legal next action after normal integration and exact-main verification is P08 phase-exit convergence. P09 and later implementation remain prohibited until P08 itself is canonically CLOSED with gate PASS.
+- At the P08-008 task-reconciliation checkpoint, P08 remained `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN` while all eight task rows were CLOSED. That historical checkpoint is superseded by the P08 phase-exit closure provenance below; P09 remains inactive until a separate post-closure governance transition is integrated and exact-main verified.
+
+<!-- P08-PHASE-EXIT-CLOSURE -->
+## P08 phase-exit provenance
+
+- Exact immutable product candidate: `bb372da0a4506b3edc508156f06fc60ced8cc3d4`.
+- Exact candidate pre-closure Windows CI: run `34164500457` / #560 — SUCCESS.
+- Exact candidate pre-closure P06-007 Workspace Search: run `34164500513` / #289 — SUCCESS.
+- Exact candidate pre-closure P06-008 Large Workspace Safeguards: run `34164500496` / #273 — SUCCESS.
+- Dedicated exact-candidate P08 phase-exit gate: run `34165022901` / job `101874255929` — SUCCESS.
+- Gate coverage: complete Windows baseline plus P08-007 interactive terminal UX runtime fixtures and P08-008 process/terminal safety acceptance, pre-closure state guards, exact-SHA/diff-hygiene guards, and final clean-worktree assertion.
+- Canonical closure evidence: `evidence/phases/P08/CLOSURE.md`.
+- P08 phase state: `CLOSED`; `PHASE_EXIT_GATE=PASS`; phase-local blockers/regressions: none.
+- No P08 owner-only acceptance item was created. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; P05 remains `PASS_INTEGRATED`; `VERIFIED_FINAL_COMPLETE=false`.
+- P09 is only the authorized next phase and is not active until a separate governance transition is normally integrated and exact-main verified.
