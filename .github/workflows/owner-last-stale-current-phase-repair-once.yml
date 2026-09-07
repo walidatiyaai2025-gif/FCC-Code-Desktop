@@ -37,7 +37,7 @@ jobs:
           $text = [IO.File]::ReadAllText((Resolve-Path $path))
           $old = '- Canonical owner queue remains exactly `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET`, both unresolved and release-blocking.'
           $new = '- Canonical owner queue now has one unresolved release-blocking item: `OWNER-P04-008-REAL-TARGET`; `OWNER-P05-EXIT-REAL-TARGET` is `PASS_INTEGRATED` and is no longer deferred.'
-          if (-not $text.Contains($old)) { throw 'Expected stale CURRENT_PHASE owner-queue sentence was not found exactly once.' }
+          if (-not $text.Contains($old)) { throw 'Expected stale CURRENT_PHASE owner-queue sentence was not found.' }
           if (($text.Split($old).Count - 1) -ne 1) { throw 'Stale CURRENT_PHASE owner-queue sentence is duplicated.' }
           $text = $text.Replace($old, $new)
           [IO.File]::WriteAllText((Resolve-Path $path), $text, [Text.UTF8Encoding]::new($false))
@@ -86,12 +86,17 @@ jobs:
               'CURRENT_PHASE: P08',
               'DEFERRED_OWNER_ACCEPTANCE_COUNT: 1',
               'DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET',
-              'DEFERRED_PHASE_GATES: P04=NOT_RUN',
-              '`OWNER-P05-EXIT-REAL-TARGET` is `PASS_INTEGRATED`'
+              'DEFERRED_PHASE_GATES: P04=NOT_RUN'
           )) {
               if (-not $phase.Contains($required)) { throw "Missing canonical invariant after repair: $required" }
           }
           if ($phase.Contains('both unresolved and release-blocking')) { throw 'Stale two-owner-blocker claim remains in CURRENT_PHASE.' }
+          if (-not $phase.Contains($new)) { throw 'Corrected current owner-queue sentence is missing.' }
+
+          $queue = [IO.File]::ReadAllText((Resolve-Path 'docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md'))
+          if ($queue -notmatch '(?s)"id"\s*:\s*"OWNER-P05-EXIT-REAL-TARGET".*?"state"\s*:\s*"PASS_INTEGRATED"') {
+              throw 'P05 PASS_INTEGRATED queue record is missing or malformed.'
+          }
 
       - name: Remove one-shot machinery and commit
         shell: pwsh
