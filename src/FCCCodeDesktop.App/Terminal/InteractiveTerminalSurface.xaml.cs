@@ -521,7 +521,7 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
         return values;
     }
 
-    private static bool TryReadExtendedColor(IReadOnlyList<int> values, ref int index, out Color color)
+    private static bool TryReadExtendedColor(List<int> values, ref int index, out Color color)
     {
         color = default;
         if (index + 2 < values.Count && values[index + 1] == 5)
