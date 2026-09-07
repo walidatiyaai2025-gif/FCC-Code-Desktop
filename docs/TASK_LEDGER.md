@@ -249,6 +249,8 @@ P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16
 
 `FCCD-P08-008` is CLOSED from the permanent process/terminal safety suite integrated in PR #208. Exact recovered candidate `8de5f4722b1eeba03966494738f9738bcc106adc` passed Windows CI `34160742045` / #549, P06-007 Workspace Search `34160742043` / #278, P06-008 Large Workspace Safeguards `34160742035` / #262, and P08-008 Process Terminal Safety `34160742072` / #4. PR #208 was normally merged as `7aac8a426031358954ba754a3c98ed1b458f1279`; that exact main passed Windows CI `34161388230` / #553, Workspace Search `34161388136` / #282, Large Workspace Safeguards `34161388091` / #266, and P08-008 Process Terminal Safety `34161388100` / #5. Current pre-reconciliation main `072b6470bef7bb7a540098e338050cb299d1ac2f` descends from that merge; the intervening compare changes P08-007 UX/composition/governance only and no P08-008 safety-workflow-selected path. That exact current main passed Windows CI `34163272333` / #558, Workspace Search `34163272378` / #287, Large Workspace Safeguards `34163272414` / #271, and P08-007 Interactive Terminal UX `34163272377` / #6. Safety coverage includes owned process lifecycle, graceful-to-forced cancellation, bounded output, ConPTY argv round trips for hostile/special argument shapes, concurrent/idempotent disposal, owned-tree cleanup without killing unrelated processes, fail-closed closed-session input/resize, cancelled-resize state preservation, and completed-session resize rejection. Task evidence: `evidence/phases/P08/P08_008_INTEGRATED_RECONCILIATION_2026-09-08.md`. No owner-only evidence is required. P08 remains `IN_PROGRESS`; all P08 task rows are CLOSED in this reconciliation candidate; `PHASE_EXIT_GATE=NOT_RUN`; P09 and later implementation remain prohibited until separate P08 phase-exit closure.
 
+P08 is canonically CLOSED at the phase level on immutable candidate `bb372da0a4506b3edc508156f06fc60ced8cc3d4`. Dedicated exact-candidate exit-gate run `34165022901` / job `101874255929` completed SUCCESS after pre-closure guards, the complete Windows baseline, P08-007 interactive-terminal runtime acceptance, P08-008 process/terminal safety acceptance, and exact-SHA/clean-worktree verification. Pre-closure exact-main Windows CI `34164500457` / #560, Workspace Search `34164500513` / #289, and Large Workspace Safeguards `34164500496` / #273 were SUCCESS. Canonical evidence is `evidence/phases/P08/CLOSURE.md`. P09 is only the authorized next phase and is not active until a separate governance transition is normally integrated and exact-main verified.
+
 ## P09 — External Tool Gateway
 
 | ID | Task | State |
@@ -438,11 +440,9 @@ P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16
 
 ## Current next action
 
-`CURRENT_PHASE = P08` remains `IN_PROGRESS`. `FCCD-P08-001` through `FCCD-P08-008` are CLOSED in this reconciliation candidate after implementation, focused validation, normal integration, exact-main validation, and task evidence. `PHASE_EXIT_GATE=NOT_RUN`.
+`CURRENT_PHASE = P08` is canonically `CLOSED` in this closure state. `FCCD-P08-001` through `FCCD-P08-008` are CLOSED, dedicated exact-candidate phase-exit run `34165022901` / job `101874255929` is `SUCCESS`, and `PHASE_EXIT_GATE=PASS`. Canonical phase evidence is `evidence/phases/P08/CLOSURE.md`.
 
-P04/P05 owner-last status remains governed exclusively by the canonical owner queue and current control files. P08-008 adds no owner-only obligation; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item and P05 remains `PASS_INTEGRATED`.
-
-After this reconciliation is normally merged and its exact resulting `main` remains green, the only legal P08 action is phase-exit convergence on an immutable exact candidate: verify all eight task rows CLOSED, run the P08 exit gate, record `evidence/phases/P08/CLOSURE.md`, and close P08 through a separate validated normal-merge closure change. P09 and later implementation remain prohibited until P08 is canonically CLOSED with `PHASE_EXIT_GATE=PASS` and exact post-closure main is green.
+Normally merge this P08 closure state/evidence and require the resulting exact canonical `main` to remain green. Only then may a separate governance transition activate `CURRENT_PHASE=P09`. Do not implement P09 or any later phase inside this closure change. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep P05 `PASS_INTEGRATED`, and keep `VERIFIED_FINAL_COMPLETE=false`.
 <!-- FCCD-P08-004-FINAL-CLOSURE-PROVENANCE -->
 ## FCCD-P08-004 final canonical closure provenance
 
@@ -455,4 +455,3 @@ After this reconciliation is normally merged and its exact resulting `main` rema
 - These exact-main runs completed after PR #203 merged and exposed no post-reconciliation regression. They are the final task-closure baseline and supersede the earlier pre-reconciliation `f86e8bc5...` main only as the canonical closure endpoint; the earlier implementation/integration provenance remains valid historical evidence.
 - P08 remains `IN_PROGRESS`; `FCCD-P08-007` and `FCCD-P08-008` remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; no later phase is authorized by this task closure.
 - No owner-only evidence is required for P08-004. Existing owner-last obligations are unchanged and `VERIFIED_FINAL_COMPLETE=false`.
-
