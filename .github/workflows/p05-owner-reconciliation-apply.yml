@@ -1,0 +1,70 @@
+name: P05 Owner Reconciliation Apply
+
+on:
+  push:
+    branches:
+      - owner/p05-exit-real-target-evidence-20260907
+    paths:
+      - tools/reconciliation/apply-p05-owner-reconciliation-v2.ps1
+      - .github/workflows/p05-owner-reconciliation-apply.yml
+
+permissions:
+  contents: write
+
+concurrency:
+  group: p05-owner-reconciliation-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    name: Apply P05 owner reconciliation
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Apply reconciliation
+        shell: pwsh
+        run: .\tools\reconciliation\apply-p05-owner-reconciliation-v2.ps1
+
+      - name: Validate owner-last governance with negative fixtures
+        shell: pwsh
+        run: .\tools\final-acceptance\validate-owner-last-policy.ps1 -RunNegativeFixtures
+
+      - name: Validate evidence JSON
+        shell: pwsh
+        run: |
+          $evidence = Get-Content .\evidence\phases\P05\owner\P05_PHASE_EXIT_REAL_TARGET.json -Raw | ConvertFrom-Json
+          if ($evidence.evidenceClassification -ne 'REAL_TARGET') { throw 'Wrong evidence classification.' }
+          if ($evidence.testedRepoSha -ne '60b6ef491e9dde3ca195b377a2ce07442452a6ce') { throw 'Wrong tested SHA.' }
+          if ($evidence.overallStatus -ne 'PASS') { throw 'Owner evidence is not PASS.' }
+          if (-not $evidence.sanitized) { throw 'Owner evidence is not marked sanitized.' }
+          foreach ($name in @('realProviderTaskCompleted','structuredExecutionObserved','stopRetryObserved','appClosedAndReopened','sessionResumedWithDurableState')) {
+            if (-not [bool]$evidence.observations.$name) { throw "Owner observation '$name' is not PASS." }
+          }
+
+      - name: Diff sanity
+        shell: pwsh
+        run: git diff --check
+
+      - name: Commit reconciliation outputs
+        shell: pwsh
+        run: |
+          $changed = git status --porcelain
+          if (-not $changed) {
+            Write-Host 'No reconciliation changes to commit.'
+            exit 0
+          }
+          git config user.name 'fcc-cloud-reconciliation'
+          git config user.email 'actions@users.noreply.github.com'
+          git add CURRENT_PHASE.md PROJECT_CONTROL.md docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md docs/TASK_LEDGER.md tools/final-acceptance/owner-last-policy-validator.ps1 evidence/phases/P05/CLOSURE.md
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host 'No staged reconciliation changes.'
+            exit 0
+          }
+          git commit -m 'P05: reconcile owner exit gate PASS_INTEGRATED'
+          git push origin HEAD:owner/p05-exit-real-target-evidence-20260907
