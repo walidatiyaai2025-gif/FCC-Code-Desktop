@@ -11,9 +11,14 @@ $terminalProject = Join-Path $repoRoot 'src\FCCCodeDesktop.Terminal\FCCCodeDeskt
 
 Push-Location $repoRoot
 try {
+    & dotnet restore $terminalProject --locked-mode
+    if ($LASTEXITCODE -ne 0) {
+        throw "Terminal locked restore failed with exit code $LASTEXITCODE."
+    }
+
     & dotnet restore $unitProject --locked-mode
     if ($LASTEXITCODE -ne 0) {
-        throw "Locked restore failed with exit code $LASTEXITCODE."
+        throw "Unit-test locked restore failed with exit code $LASTEXITCODE."
     }
 
     & dotnet build $terminalProject --configuration $Configuration --no-restore
