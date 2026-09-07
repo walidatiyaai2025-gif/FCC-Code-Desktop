@@ -23,8 +23,7 @@
         <chrome:WorkspaceNavigationState x:Key="WorkspaceNavigationState" />
         <chrome:WorkspaceLayoutState x:Key="WorkspaceLayoutState" />
         <terminal:InteractiveTerminalSurface x:Key="InteractiveTerminalSurface" />
-        <chrome:BottomToolPanelState x:Key="BottomToolPanelState"
-                                     TerminalContent="{StaticResource InteractiveTerminalSurface}" />
+        <chrome:BottomToolPanelState x:Key="BottomToolPanelState" />
         <chrome:CommandPaletteState x:Key="CommandPaletteState" />
         <conversation:StreamingConversationState x:Key="StreamingConversationState" />
         <conversation:ComposerState x:Key="ComposerState" />

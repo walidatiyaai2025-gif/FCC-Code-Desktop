@@ -6,6 +6,7 @@ using System.Windows.Media;
 using FCCCodeDesktop.App.Conversation;
 using FCCCodeDesktop.App.Projects;
 using FCCCodeDesktop.App.Shell;
+using FCCCodeDesktop.App.Terminal;
 using FCCCodeDesktop.Application.Projects;
 using FCCCodeDesktop.Fcc;
 using FCCCodeDesktop.Files;
@@ -58,11 +59,14 @@ public partial class MainWindow : Window
         var sessionWorkspaceSurface = RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface");
         var taskExecutionSurface = RequireResource<TaskExecutionSurface>("TaskExecutionSurface");
         var composerState = RequireResource<ComposerState>("ComposerState");
+        var bottomToolPanelState = RequireResource<BottomToolPanelState>("BottomToolPanelState");
+        var terminalSurface = RequireResource<InteractiveTerminalSurface>("InteractiveTerminalSurface");
 
         _projectWorkspaceSurface = new ProjectWorkspaceSurface();
         composerState.SubmissionRequested += OnComposerSubmissionRequested;
         navigationState.SessionsContent = sessionWorkspaceSurface;
         navigationState.TasksContent = taskExecutionSurface;
+        bottomToolPanelState.TerminalContent = terminalSurface;
     }
 
     private void OnWindowClosing(object? sender, CancelEventArgs e)
