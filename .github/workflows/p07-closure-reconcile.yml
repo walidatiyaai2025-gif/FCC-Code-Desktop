@@ -1,0 +1,32 @@
+name: P07 Closure Reconciliation
+
+on:
+  push:
+    branches:
+      - closure/p07-phase-exit
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout closure branch
+        uses: actions/checkout@v7
+        with:
+          ref: closure/p07-phase-exit
+          fetch-depth: 0
+
+      - name: Guard exact base ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git merge-base HEAD 7561dd88b16531403a9f8f5667db17801105687f)" = "7561dd88b16531403a9f8f5667db17801105687f"
+          test "$(git rev-list --count 7561dd88b16531403a9f8f5667db17801105687f..HEAD)" -eq 2
+
+      - name: Reconcile P07 closure with guarded patch
+        shell: bash
+        run: python .github/temp/p07-closure-reconcile.py
