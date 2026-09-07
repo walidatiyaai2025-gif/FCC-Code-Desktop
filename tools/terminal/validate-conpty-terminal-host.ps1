@@ -113,7 +113,10 @@ try {
     }
 
     $initialSize = [Activator]::CreateInstance($sizeType, @([int]80, [int]25))
-    $launchArguments = [string[]]@('/d', '/q')
+    # /K makes the hosted fixture explicitly persistent after its startup command so
+    # this gate validates ConPTY lifecycle/input/output/resize rather than relying on
+    # runner-specific implicit interactive-shell policy.
+    $launchArguments = [string[]]@('/d', '/q', '/k', 'echo P08_004_CONPTY_READY')
     $requestArguments = [object[]]::new(4)
     $requestArguments[0] = Get-ReflectionBaseObject ([string]$comSpec)
     $requestArguments[1] = $launchArguments
@@ -172,6 +175,10 @@ try {
 
     if ($exitCode -ne 0) {
         throw "ConPTY fixture exited with code $exitCode. Output: $output"
+    }
+
+    if (-not $output.Contains('P08_004_CONPTY_READY', [StringComparison]::Ordinal)) {
+        throw "ConPTY fixture did not emit the explicit persistent-shell readiness marker. Output: $output"
     }
 
     if (-not $output.Contains('P08_004_CONPTY_OK', [StringComparison]::Ordinal)) {
