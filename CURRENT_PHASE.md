@@ -17,7 +17,7 @@ OWNER_LAST_MODE: ACTIVE
 DEFERRED_OWNER_ACCEPTANCE_COUNT: 1
 DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET
 DEFERRED_PHASE_GATES: P04=NOT_RUN
-LAST_RECONCILED: 2026-09-07
+LAST_RECONCILED: 2026-09-08
 ```
 
 ## Active scheduling rule
@@ -91,7 +91,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P08-004` — ConPTY terminal host — CLOSED.
 - `FCCD-P08-005` — PowerShell/CMD profiles — CLOSED.
 - `FCCD-P08-006` — Optional Git Bash/WSL detection — CLOSED.
-- `FCCD-P08-007` — Interactive terminal UX — PENDING.
+- `FCCD-P08-007` — Interactive terminal UX — CLOSED.
 - `FCCD-P08-008` — Process/terminal safety tests — PENDING.
 
 ## P08 cloud activation provenance
@@ -218,6 +218,24 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Exact accepted-main P08-006 Optional Shell Detection: run `34084399934` / #7 — SUCCESS.
 - Integrated evidence: `evidence/phases/P08/P08_006_INTEGRATED_RECONCILIATION_2026-09-07.md`.
 - Evidence is cloud/hosted-Windows read-only shell-discovery evidence only. No process launch, WSL distribution enumeration/startup, environment/registry/filesystem mutation, owner-only evidence, P08 phase closure, P09/P14 authorization, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is claimed.
+
+## P08-007 integration provenance
+
+- Task: `FCCD-P08-007 — Interactive terminal UX` — CLOSED.
+- Implementation PR: #206 (`worker/fccd-p08-007-interactive-terminal-ux`).
+- Exact implementation candidate: `bebe178af5f36f97427d101c5b2e3ab2cd0ff075`.
+- Exact implementation-head Windows CI: run `34161412445` / #554 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34161412447` / #283 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34161412450` / #267 — SUCCESS.
+- Exact implementation-head P08-007 Interactive Terminal UX: run `34161412438` / #3 — SUCCESS.
+- Normal implementation merge / accepted main: `53df4d66026b0e793d7c7797a016ed654d8c3663`.
+- Exact accepted-main Windows CI: run `34161963855` / #555 — SUCCESS.
+- Exact accepted-main P06-007 Workspace Search: run `34161963822` / #284 — SUCCESS.
+- Exact accepted-main P06-008 Large Workspace Safeguards: run `34161963867` / #268 — SUCCESS.
+- Exact accepted-main P08-007 Interactive Terminal UX: run `34161963864` / #4 — SUCCESS.
+- Integrated evidence: `evidence/phases/P08/P08_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- Coverage includes Bottom Tool Panel composition without weakening the P02 shell contract, typed ConPTY shell launch, UTF-8 input/output, Ctrl+C copy-versus-interrupt semantics, Ctrl+V paste and navigation sequences, debounced resize, bounded/coalesced high-output presentation, ANSI SGR color rendering, and safe async window-close disposal. No owner-only evidence is required or added.
+- P08 remains `IN_PROGRESS`; only `FCCD-P08-008` remains PENDING. `PHASE_EXIT_GATE=NOT_RUN`, P09 and later phases remain prohibited, and `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P07 cloud task inventory
 
