@@ -55,11 +55,14 @@ public sealed class ProcessSupervisorTests
             $"[System.IO.File]::WriteAllText('{escapedPidFile}', [string]$child.Id); exit 0";
 
         await using var supervisor = new ProcessSupervisor();
+        // Keep the process CWD outside the disposable evidence directory. The PID file still
+        // proves descendant identity, while fixture cleanup no longer depends on Windows console
+        // support-process directory-handle rundown after the owned job has reached zero processes.
         var launch = await supervisor.StartAsync(
             new ProcessLaunchRequest(
                 "pwsh.exe",
                 ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script],
-                directory.Path));
+                Environment.SystemDirectory));
         Assert.Equal(ProcessLaunchStatus.Started, launch.Status);
         await using var owned = Assert.IsAssignableFrom<ISupervisedProcess>(launch.Process);
 
@@ -81,6 +84,7 @@ public sealed class ProcessSupervisorTests
             Assert.True(result.ForcedTerminationRequested);
             await WaitUntilAsync(() => !IsProcessRunning(childPid), TimeSpan.FromSeconds(5));
             Assert.False(unowned.HasExited);
+            // Completion is the public lifecycle barrier: ownership must already be absent.
             Assert.Empty(supervisor.GetActiveProcesses());
         }
         finally

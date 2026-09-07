@@ -406,22 +406,21 @@ public sealed class ProcessSupervisor : IProcessSupervisor
                     await Task.Delay(TreePollInterval, CancellationToken.None).ConfigureAwait(false);
                 }
 
-                _completion.TrySetResult(
-                    new OwnedProcessExit(
-                        OwnershipId,
-                        RootProcessId,
-                        rootExitCode,
-                        StartedUtc,
-                        DateTimeOffset.UtcNow,
-                        Volatile.Read(ref _forcedTerminationRequested) != 0));
+                var exit = new OwnedProcessExit(
+                    OwnershipId,
+                    RootProcessId,
+                    rootExitCode,
+                    StartedUtc,
+                    DateTimeOffset.UtcNow,
+                    Volatile.Read(ref _forcedTerminationRequested) != 0);
+
+                _removeActive(OwnershipId);
+                _completion.TrySetResult(exit);
             }
             catch (Exception exception)
             {
-                _completion.TrySetException(exception);
-            }
-            finally
-            {
                 _removeActive(OwnershipId);
+                _completion.TrySetException(exception);
             }
         }
     }
