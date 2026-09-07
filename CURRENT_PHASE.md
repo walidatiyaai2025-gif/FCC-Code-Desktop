@@ -84,7 +84,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P08-002` — Graceful→forced cancellation escalation — CLOSED.
 - `FCCD-P08-003` — Bounded streaming log pipeline — PENDING.
 - `FCCD-P08-004` — ConPTY terminal host — PENDING.
-- `FCCD-P08-005` — PowerShell/CMD profiles — PENDING.
+- `FCCD-P08-005` — PowerShell/CMD profiles — CLOSED.
 - `FCCD-P08-006` — Optional Git Bash/WSL detection — CLOSED.
 - `FCCD-P08-007` — Interactive terminal UX — PENDING.
 - `FCCD-P08-008` — Process/terminal safety tests — PENDING.
@@ -143,6 +143,21 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact accepted-main P06-008 Large Workspace Safeguards: run `34079056670` / #166 — SUCCESS.
 - Integrated evidence: `evidence/phases/P08/P08_002_INTEGRATED_RECONCILIATION_2026-09-07.md`.
 - Evidence is cloud/Windows-CI process-supervision evidence only. No owner-only evidence is added; P08 remains IN_PROGRESS, P08-003..008 remain PENDING, P09+ remain prohibited, and `VERIFIED_FINAL_COMPLETE` remains false.
+
+## P08-005 integration provenance
+
+- Task: `FCCD-P08-005 — PowerShell/CMD profiles` — CLOSED.
+- Implementation PR: #198 (`cloud/fccd-p08-005-shell-profiles-lane1`).
+- Exact implementation candidate: `214e3fb7e9b4a985474f5a690d4e6b90da8651fe`.
+- Exact implementation-head Windows CI: run `34086264659` / #483 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34086264671` / #212 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34086264743` / #196 — SUCCESS.
+- Normal implementation merge / accepted main: `9bcb6b94bbc5f185e8615c38b73e4f5496a0397e`.
+- Exact accepted-main Windows CI: run `34086944769` / #484 — SUCCESS.
+- Exact accepted-main P06-007 Workspace Search: run `34086944845` / #213 — SUCCESS.
+- Exact accepted-main P06-008 Large Workspace Safeguards: run `34086944798` / #197 — SUCCESS.
+- Integrated evidence: `evidence/phases/P08/P08_005_INTEGRATED_RECONCILIATION_2026-09-07.md`.
+- Evidence is cloud/hosted-Windows immutable shell-profile contract evidence only. No ConPTY ownership, optional-shell discovery, process launch, P08 phase closure, P09/P14 authorization, new owner-only evidence, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is claimed.
 
 ## P08-006 integration provenance
 
