@@ -36,7 +36,10 @@ jobs:
           set -euo pipefail
           rm .github/temp/p08-001-reconcile.py
           rm .github/workflows/temp-p08-001-reconcile.yml
-          mapfile -t changed < <(git diff --name-only ac54e739019e7264db5de3f9b26b700735924bc1 -- | sort)
+          mapfile -t changed < <({
+            git diff --name-only ac54e739019e7264db5de3f9b26b700735924bc1 --
+            git ls-files --others --exclude-standard
+          } | sort -u)
           printf '%s\n' "${changed[@]}"
           expected=(
             "CURRENT_PHASE.md"
