@@ -157,12 +157,6 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                     out var processInformation),
                 "CreateProcessW");
 
-            // Keep the PTY-side communication handles alive through CreateProcess so
-            // the hosted client can finish attaching to the pseudoconsole without a
-            // broken-channel race. The ConPTY retains its own copies after creation.
-            CloseRawHandle(ref pseudoInputRead);
-            CloseRawHandle(ref pseudoOutputWrite);
-
             processHandle = new SafeKernelHandle(processInformation.ProcessHandle);
             threadHandle = new SafeKernelHandle(processInformation.ThreadHandle);
 
@@ -180,6 +174,13 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             {
                 ThrowLastWin32("ResumeThread");
             }
+
+            // This host deliberately creates the child suspended so it can be put in
+            // the kill-on-close Job Object before any user code executes. Keep the
+            // PTY-side handles alive until the child has actually been resumed; only
+            // then can its console initialization attach without a broken-pipe race.
+            CloseRawHandle(ref pseudoInputRead);
+            CloseRawHandle(ref pseudoOutputWrite);
 
             threadHandle.Dispose();
             threadHandle = null;
