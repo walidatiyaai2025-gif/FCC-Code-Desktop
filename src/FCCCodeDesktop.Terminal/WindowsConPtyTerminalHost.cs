@@ -80,6 +80,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
         FileStream? input = null;
         FileStream? output = null;
         var processAssignedToJob = false;
+        var pseudoConsoleOwnershipReleased = false;
 
         try
         {
@@ -181,6 +182,14 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             threadHandle.Dispose();
             threadHandle = null;
 
+            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 26100))
+            {
+                EnsureHResult(
+                    NativeMethods.ReleasePseudoConsole(pseudoConsole.DangerousGetHandle()),
+                    "ReleasePseudoConsole");
+                pseudoConsoleOwnershipReleased = true;
+            }
+
             input = new FileStream(
                 new SafeFileHandle(hostInputWrite, ownsHandle: true),
                 FileAccess.Write,
@@ -202,7 +211,8 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                 pseudoConsole,
                 input,
                 output,
-                request.InitialSize);
+                request.InitialSize,
+                pseudoConsoleOwnershipReleased);
 
             process = null;
             processHandle = null;
@@ -395,6 +405,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
         private readonly SafePseudoConsoleHandle _pseudoConsole;
         private readonly FileStream _input;
         private readonly FileStream _output;
+        private readonly bool _pseudoConsoleOwnershipReleased;
         private readonly Task<int> _completion;
         private TerminalSize _size;
         private int _disposeStarted;
@@ -406,7 +417,8 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             SafePseudoConsoleHandle pseudoConsole,
             FileStream input,
             FileStream output,
-            TerminalSize initialSize)
+            TerminalSize initialSize,
+            bool pseudoConsoleOwnershipReleased)
         {
             _process = process;
             _processHandle = processHandle;
@@ -415,6 +427,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             _input = input;
             _output = output;
             _size = initialSize;
+            _pseudoConsoleOwnershipReleased = pseudoConsoleOwnershipReleased;
             _completion = ObserveCompletionAsync();
         }
 
@@ -447,7 +460,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
 
             lock (_stateGate)
             {
-                if (_pseudoConsole.IsClosed || _pseudoConsole.IsInvalid)
+                if (_completion.IsCompleted || _pseudoConsole.IsClosed || _pseudoConsole.IsInvalid)
                 {
                     throw new InvalidOperationException("The ConPTY session has already completed.");
                 }
@@ -485,8 +498,8 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             }
             finally
             {
-                _pseudoConsole.Dispose();
                 _output.Dispose();
+                _pseudoConsole.Dispose();
                 _process.Dispose();
                 _processHandle.Dispose();
                 _jobHandle.Dispose();
@@ -510,7 +523,10 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             finally
             {
                 _input.Dispose();
-                _pseudoConsole.Dispose();
+                if (!_pseudoConsoleOwnershipReleased)
+                {
+                    _pseudoConsole.Dispose();
+                }
             }
         }
     }
@@ -649,6 +665,9 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
 
         [LibraryImport("kernel32.dll")]
         internal static partial int ResizePseudoConsole(IntPtr pseudoConsole, Coord size);
+
+        [LibraryImport("kernel32.dll")]
+        internal static partial int ReleasePseudoConsole(IntPtr pseudoConsole);
 
         [LibraryImport("kernel32.dll")]
         internal static partial void ClosePseudoConsole(IntPtr pseudoConsole);
