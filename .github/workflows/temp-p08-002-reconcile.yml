@@ -1,0 +1,62 @@
+name: TEMP P08-002 Reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p08-002-integrated-closure
+    paths:
+      - .github/workflows/temp-p08-002-reconcile.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reconciliation branch
+        uses: actions/checkout@v7
+        with:
+          ref: reconcile/fccd-p08-002-integrated-closure
+          fetch-depth: 0
+
+      - name: Guard exact accepted main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "4f80433830684966405c7d76aea50583ae4df75b"
+          test "$(git merge-base HEAD origin/main)" = "4f80433830684966405c7d76aea50583ae4df75b"
+
+      - name: Apply guarded canonical reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python .github/temp/p08-002-reconcile.py
+
+      - name: Remove temporary orchestration and validate durable scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/temp/p08-002-reconcile.py .github/workflows/temp-p08-002-reconcile.yml
+          mapfile -t changed < <(git diff --name-only origin/main | sort)
+          printf '%s\n' "${changed[@]}"
+          expected=(
+            CURRENT_PHASE.md
+            PROJECT_CONTROL.md
+            docs/TASK_LEDGER.md
+            evidence/phases/P08/P08_002_INTEGRATED_RECONCILIATION_2026-09-07.md
+          )
+          mapfile -t expected_sorted < <(printf '%s\n' "${expected[@]}" | sort)
+          test "${#changed[@]}" -eq 4
+          diff -u <(printf '%s\n' "${expected_sorted[@]}") <(printf '%s\n' "${changed[@]}")
+
+      - name: Commit and push durable reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "walidatiyaai2025-gif"
+          git config user.email "walidatiyaai2025@gmail.com"
+          git add CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P08/P08_002_INTEGRATED_RECONCILIATION_2026-09-07.md
+          git commit -m "P08-002: reconcile integrated cancellation escalation closure"
+          git push origin HEAD:reconcile/fccd-p08-002-integrated-closure
