@@ -1,0 +1,95 @@
+name: Temporary P08-002 P05-005 settlement repair
+
+on:
+  push:
+    branches:
+      - repair/p08-002-p05-005-settlement-fixture
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Apply exact guarded repair
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('tools/ui/validate-task-state-machine.ps1')
+          text = path.read_text(encoding='utf-8')
+          old = '''    private static async Task WaitForSettledAsync(TaskExecutionState state)
+    {
+        var timeout = DateTimeOffset.UtcNow.AddSeconds(10);
+        while (DateTimeOffset.UtcNow < timeout)
+        {
+            if (!state.IsActive)
+            {
+                try
+                {
+                    state.ValidateCanStart();
+                    return;
+                }
+                catch (InvalidOperationException exception) when (exception.Message.Contains("still settling", StringComparison.Ordinal))
+                {
+                }
+            }
+            await Task.Delay(20);
+        }
+        throw new InvalidOperationException("P05-005 assertion failed: task did not fully settle before timeout.");
+    }
+'''
+          new = '''    private static async Task WaitForSettledAsync(TaskExecutionState state)
+    {
+        const int settlementTimeoutSeconds = 30;
+        var timeout = DateTimeOffset.UtcNow.AddSeconds(settlementTimeoutSeconds);
+        string? lastStartRejection = null;
+        while (DateTimeOffset.UtcNow < timeout)
+        {
+            if (!state.IsActive)
+            {
+                try
+                {
+                    state.ValidateCanStart();
+                    return;
+                }
+                catch (InvalidOperationException exception) when (exception.Message.Contains("still settling", StringComparison.Ordinal))
+                {
+                    lastStartRejection = exception.Message;
+                }
+            }
+            await Task.Delay(20);
+        }
+        throw new InvalidOperationException(
+            $"P05-005 assertion failed: task did not fully settle within {settlementTimeoutSeconds}s. " +
+            $"State={state.State}; IsActive={state.IsActive}; CanStop={state.CanStop}; CanRetry={state.CanRetry}; " +
+            $"LastStartRejection={lastStartRejection ?? "<none>"}.");
+    }
+'''
+          count = text.count(old)
+          if count != 1:
+              raise SystemExit(f'expected exactly one settlement block, found {count}')
+          path.write_text(text.replace(old, new), encoding='utf-8', newline='')
+      - name: Verify durable scope and self-delete
+        shell: bash
+        run: |
+          rm .github/workflows/temp-p08-002-p05-settlement-repair.yml
+          changed="$(git status --short | awk '{print $2}' | sort)"
+          expected="tools/ui/validate-task-state-machine.ps1"
+          if [ "$changed" != "$expected" ]; then
+            echo "Unexpected durable scope:"
+            git status --short
+            exit 1
+          fi
+      - name: Commit guarded repair
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/ui/validate-task-state-machine.ps1 .github/workflows/temp-p08-002-p05-settlement-repair.yml
+          git commit -m "P08-002 recovery: stabilize P05-005 settlement fixture"
+          git push origin HEAD:repair/p08-002-p05-005-settlement-fixture
