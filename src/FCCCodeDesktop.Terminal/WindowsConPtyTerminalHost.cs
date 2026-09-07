@@ -7,21 +7,21 @@ using Microsoft.Win32.SafeHandles;
 
 namespace FCCCodeDesktop.Terminal;
 
-public sealed class ConPtyException : InvalidOperationException
+internal sealed class ConPtyException : InvalidOperationException
 {
-    public ConPtyException(string operation, int nativeCode, string message)
+    internal ConPtyException(string operation, int nativeCode, string message)
         : base($"ConPTY operation '{operation}' failed with native code 0x{nativeCode:X8}: {message}")
     {
         Operation = operation;
         NativeCode = nativeCode;
     }
 
-    public string Operation { get; }
+    internal string Operation { get; }
 
-    public int NativeCode { get; }
+    internal int NativeCode { get; }
 }
 
-public sealed class WindowsConPtyTerminalHost : IConPtyTerminalHost
+public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
 {
     private const uint ExtendedStartupInfoPresent = 0x00080000;
     private const uint CreateUnicodeEnvironment = 0x00000400;
