@@ -68,7 +68,7 @@ public sealed class ProcessSupervisorTests
         var childPid = int.Parse(childPidText.Trim(), CultureInfo.InvariantCulture);
         await WaitUntilAsync(() => IsProcessRunning(childPid), TimeSpan.FromSeconds(5));
 
-        using var unowned = StartUnownedSentinel(directory.Path);
+        using var unowned = StartUnownedSentinel(Environment.SystemDirectory);
         try
         {
             await Task.Delay(200);
@@ -108,7 +108,7 @@ public sealed class ProcessSupervisorTests
         var owned = Assert.IsAssignableFrom<ISupervisedProcess>(launch.Process);
         var rootPid = owned.RootProcessId;
 
-        using var unowned = StartUnownedSentinel(directory.Path);
+        using var unowned = StartUnownedSentinel(Environment.SystemDirectory);
         try
         {
             Assert.True(IsProcessRunning(rootPid));
