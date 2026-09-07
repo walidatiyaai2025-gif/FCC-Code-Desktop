@@ -25,6 +25,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
 {
     private const uint ExtendedStartupInfoPresent = 0x00080000;
     private const uint CreateUnicodeEnvironment = 0x00000400;
+    private const int StartfUseStdHandles = 0x00000100;
     private const uint JobObjectLimitKillOnJobClose = 0x00002000;
     private const int JobObjectExtendedLimitInformationClass = 9;
     private static readonly nuint ProcThreadAttributeJobList = 0x0002000D;
@@ -154,6 +155,10 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                 StartupInfo = new StartupInfo
                 {
                     Cb = Marshal.SizeOf<StartupInfoEx>(),
+                    Flags = StartfUseStdHandles,
+                    StandardInput = IntPtr.Zero,
+                    StandardOutput = IntPtr.Zero,
+                    StandardError = IntPtr.Zero,
                 },
                 AttributeList = attributeList,
             };
@@ -161,9 +166,13 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             commandLineBuffer = Marshal.StringToHGlobalUni(
                 BuildCommandLine(request.ExecutablePath, request.Arguments));
 
+            // ConPTY owns the console channels. Do not let a redirected parent runner
+            // leak its standard handles into the client process. A null application name
+            // plus the fully-qualified, quoted executable in the mutable command line
+            // matches the supported Windows Terminal/node-pty launch shape.
             EnsureWin32(
                 NativeMethods.CreateProcess(
-                    request.ExecutablePath,
+                    null,
                     commandLineBuffer,
                     IntPtr.Zero,
                     IntPtr.Zero,
@@ -178,9 +187,8 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             processHandle = new SafeKernelHandle(processInformation.ProcessHandle);
             threadHandle = new SafeKernelHandle(processInformation.ThreadHandle);
 
-            // Microsoft documents these PTY-side channel handles as host-owned setup
-            // handles that should be released after the attached child is created.
-            // The host-facing ends remain open for the session's interactive lifetime.
+            // The ConPTY side of each channel is duplicated by the pseudoconsole. Once
+            // the attached child exists, only the host-facing ends must remain open.
             CloseRawHandle(ref pseudoInputRead);
             CloseRawHandle(ref pseudoOutputWrite);
 
