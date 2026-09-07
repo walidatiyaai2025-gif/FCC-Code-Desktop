@@ -228,7 +228,7 @@ P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16
 |---|---|---|
 | FCCD-P08-001 | Process supervisor with owned process-tree tracking | CLOSED |
 | FCCD-P08-002 | Graceful→forced cancellation escalation | CLOSED |
-| FCCD-P08-003 | Bounded streaming log pipeline | PENDING |
+| FCCD-P08-003 | Bounded streaming log pipeline | CLOSED |
 | FCCD-P08-004 | ConPTY terminal host | PENDING |
 | FCCD-P08-005 | PowerShell/CMD profiles | CLOSED |
 | FCCD-P08-006 | Optional Git Bash/WSL detection | CLOSED |
@@ -430,7 +430,7 @@ P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16
 
 ## Current next action
 
-`CURRENT_PHASE = P08` is `IN_PROGRESS`. `FCCD-P08-001 — Process supervisor with owned process-tree tracking`, `FCCD-P08-002 — Graceful→forced cancellation escalation`, and `FCCD-P08-006 — Optional Git Bash/WSL detection` are CLOSED. P08-006 is accepted only after implementation PR #197 exact-head Windows CI `34083435776`, Workspace Search `34083435742`, Large Workspace Safeguards `34083435765`, and dedicated P08-006 gate `34083435787` all completed SUCCESS; PR #197 was normally merged as `e43ef53eb8b7826e8541875576a5fa097c5c81a4`, whose exact-main Windows CI `34084399929`, Workspace Search `34084399920`, Large Workspace Safeguards `34084399959`, and dedicated P08-006 gate `34084399934` all completed SUCCESS. `FCCD-P08-003`, `FCCD-P08-004`, `FCCD-P08-005`, `FCCD-P08-007`, and `FCCD-P08-008` remain PENDING and `PHASE_EXIT_GATE=NOT_RUN`.
+`CURRENT_PHASE = P08` is `IN_PROGRESS`. `FCCD-P08-001 — Process supervisor with owned process-tree tracking`, `FCCD-P08-002 — Graceful→forced cancellation escalation`, `FCCD-P08-003 — Bounded streaming log pipeline`, `FCCD-P08-005 — PowerShell/CMD profiles`, and `FCCD-P08-006 — Optional Git Bash/WSL detection` are CLOSED. P08-003 is accepted only after implementation PR #195 exact candidate `9ffabc1c85a70ebea9d6bbbc0c2478bdffae3136` passed Windows CI `34090112839`, Workspace Search `34090112868`, Large Workspace Safeguards `34090112831`, and dedicated P08-003 gate `34090112927`; PR #195 was normally merged as `eae2134666fe659fd26bf065b89d8fd661c9b0da`, whose exact-main Windows CI `34090854609`, Workspace Search `34090854605`, Large Workspace Safeguards `34090854583`, and dedicated P08-003 gate `34090854589` all completed SUCCESS. `FCCD-P08-004`, `FCCD-P08-007`, and `FCCD-P08-008` remain PENDING and `PHASE_EXIT_GATE=NOT_RUN`. The next legal cloud action is to recover/integrate legitimate active P08 work first — currently PR #196 for P08-004 if it remains live — otherwise re-read claims and select the highest-value dependency-valid unclaimed P08 task. Do not steal active P08 work, do not skip to P09/P14 or any later phase, and do not fabricate owner/manual evidence.
 
 P04 remains acceptance-unresolved through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. P05 cloud implementation remains integrated, but its standalone exit observation remains queued as `OWNER-P05-EXIT-REAL-TARGET`. Their gates remain `P04=NOT_RUN;P05=NOT_RUN`; owner-last scheduling does not waive either obligation or permit release.
 
