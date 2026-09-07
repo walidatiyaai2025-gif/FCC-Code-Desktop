@@ -171,7 +171,7 @@ using FCCCodeDesktop.App.Terminal;
 internal static class Program
 {
     [STAThread]
-    private static async Task Main()
+    private static void Main()
     {
         var app = new App();
         app.InitializeComponent();
@@ -213,12 +213,12 @@ internal static class Program
         var scheduledField = typeof(InteractiveTerminalSurface).GetField("_outputFlushScheduled", BindingFlags.Instance | BindingFlags.NonPublic)
             ?? throw new InvalidOperationException("_outputFlushScheduled was not found.");
         Assert((int)(scheduledField.GetValue(terminal) ?? 0) == 1, "high-output dispatcher work coalesced");
-        await output.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        output.Dispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
         renderedText = new TextRange(output.Document.ContentStart, output.Document.ContentEnd).Text;
         Assert(renderedText.Length <= 250_256, "bounded high-output transcript");
 
-        await terminal.DisposeAsync();
-        await terminal.DisposeAsync();
+        terminal.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        terminal.DisposeAsync().AsTask().GetAwaiter().GetResult();
         Console.WriteLine("P08-007 interactive terminal ANSI/high-output/lifecycle runtime fixture: PASS.");
     }
 
