@@ -29,6 +29,21 @@ jobs:
           git merge-base --is-ancestor eae2134666fe659fd26bf065b89d8fd661c9b0da HEAD
           test "$(git merge-base HEAD eae2134666fe659fd26bf065b89d8fd661c9b0da)" = "eae2134666fe659fd26bf065b89d8fd661c9b0da"
 
+      - name: Correct helper net-scope comparison
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('.github/temp/p08-003-reconcile.py')
+          s = p.read_text(encoding='utf-8')
+          old = 'changed = {p.replace("\\\\", "/") for p in git("diff", "--cached", "--name-only").splitlines() if p.strip()}'
+          new = 'changed = {p.replace("\\\\", "/") for p in git("diff", "--name-only", BASE).splitlines() if p.strip()}'
+          if s.count(old) != 1:
+              raise SystemExit(f'expected one scope-guard expression, found {s.count(old)}')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8', newline='\n')
+          PY
+
       - name: Apply guarded reconciliation and self-delete orchestration
         shell: bash
         run: python .github/temp/p08-003-reconcile.py
