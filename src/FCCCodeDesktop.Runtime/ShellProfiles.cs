@@ -4,23 +4,34 @@ namespace FCCCodeDesktop.Runtime;
 /// Immutable command shell launch profiles used by terminal hosts.
 /// The profile only describes a launch contract; it does not start processes.
 /// </summary>
-public sealed record ShellProfile(
-    string Id,
-    string DisplayName,
-    string Executable,
-    IReadOnlyList<string> Arguments,
-    bool RequiresWindows)
+public sealed record ShellProfile
 {
-    public ShellProfile
+    public ShellProfile(
+        string id,
+        string displayName,
+        string executable,
+        IReadOnlyList<string>? arguments,
+        bool requiresWindows)
     {
-        if (string.IsNullOrWhiteSpace(Id))
-            throw new ArgumentException("Profile id is required.", nameof(Id));
-        if (string.IsNullOrWhiteSpace(DisplayName))
-            throw new ArgumentException("Display name is required.", nameof(DisplayName));
-        if (string.IsNullOrWhiteSpace(Executable))
-            throw new ArgumentException("Executable is required.", nameof(Executable));
-        Arguments ??= Array.Empty<string>();
+        if (string.IsNullOrWhiteSpace(id))
+            throw new ArgumentException("Profile id is required.", nameof(id));
+        if (string.IsNullOrWhiteSpace(displayName))
+            throw new ArgumentException("Display name is required.", nameof(displayName));
+        if (string.IsNullOrWhiteSpace(executable))
+            throw new ArgumentException("Executable is required.", nameof(executable));
+
+        Id = id;
+        DisplayName = displayName;
+        Executable = executable;
+        Arguments = arguments ?? Array.Empty<string>();
+        RequiresWindows = requiresWindows;
     }
+
+    public string Id { get; }
+    public string DisplayName { get; }
+    public string Executable { get; }
+    public IReadOnlyList<string> Arguments { get; }
+    public bool RequiresWindows { get; }
 }
 
 public static class DefaultShellProfiles
