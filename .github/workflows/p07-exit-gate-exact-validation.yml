@@ -1,0 +1,95 @@
+name: P07 Exit Gate Exact Validation
+
+on:
+  push:
+    branches:
+      - worker-b/p07-exit-gate
+
+permissions:
+  contents: read
+
+jobs:
+  exact-p07-exit-gate:
+    name: Exact P07 Exit Gate
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - name: Checkout immutable P07 candidate
+        uses: actions/checkout@v7
+        with:
+          ref: 7561dd88b16531403a9f8f5667db17801105687f
+          fetch-depth: 1
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate P07 pre-closure state
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidate = '7561dd88b16531403a9f8f5667db17801105687f'
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $candidate) { throw "Expected exact candidate $candidate but checked out $actual." }
+
+          $phase = Get-Content CURRENT_PHASE.md -Raw
+          $requiredPhaseFragments = @(
+            'CURRENT_PHASE: P07',
+            'CURRENT_PHASE_STATE: IN_PROGRESS',
+            'NEXT_PHASE: P08',
+            'PHASE_EXIT_GATE: NOT_RUN',
+            'KNOWN_PHASE_BLOCKERS: 0',
+            'KNOWN_RELEASE_BLOCKERS: 2',
+            'OWNER_LAST_MODE: ACTIVE',
+            'VERIFIED_FINAL_COMPLETE: false'
+          )
+          foreach ($fragment in $requiredPhaseFragments) {
+            if (-not $phase.Contains($fragment, [System.StringComparison]::Ordinal)) {
+              throw "Missing required current-phase fragment: $fragment"
+            }
+          }
+
+          if (Test-Path 'evidence/phases/P07/CLOSURE.md') {
+            throw 'P07 CLOSURE.md already exists on the candidate; exact gate must run before closure mutation.'
+          }
+
+          $ledger = Get-Content docs/TASK_LEDGER.md -Raw
+          foreach ($number in 1..11) {
+            $id = 'FCCD-P07-{0:D3}' -f $number
+            $pattern = '(?m)^\|\s*' + [regex]::Escape($id) + '\s*\|.*\|\s*CLOSED\s*\|\s*$'
+            if ($ledger -notmatch $pattern) {
+              throw "Mandatory P07 task is not canonically CLOSED: $id"
+            }
+          }
+
+          $queue = Get-Content docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md -Raw
+          foreach ($ownerItem in @('OWNER-P04-008-REAL-TARGET', 'OWNER-P05-EXIT-REAL-TARGET')) {
+            if (-not $queue.Contains($ownerItem, [System.StringComparison]::Ordinal)) {
+              throw "Expected owner-last queue item missing: $ownerItem"
+            }
+          }
+
+      - name: Run complete Windows baseline
+        shell: pwsh
+        run: .\tools\ci\run-windows-ci.ps1
+
+      - name: Run P07 Git acceptance suite explicitly
+        shell: pwsh
+        run: |
+          dotnet test tests/FCCCodeDesktop.UnitTests/FCCCodeDesktop.UnitTests.csproj --configuration Release --no-build --no-restore --filter "FullyQualifiedName~FCCCodeDesktop.UnitTests.Git" --logger "console;verbosity=normal"
+          if ($LASTEXITCODE -ne 0) { throw "P07 Git acceptance suite failed with exit code $LASTEXITCODE." }
+
+      - name: Verify clean exact candidate after gate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidate = '7561dd88b16531403a9f8f5667db17801105687f'
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+          git diff --cached --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --cached --check failed.' }
+          $status = @(git status --porcelain=v1 --untracked-files=all)
+          if ($status.Count -ne 0) { throw "P07 exit gate left a dirty worktree: $($status -join '; ')" }
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $candidate) { throw "Candidate SHA changed during gate: $actual" }
