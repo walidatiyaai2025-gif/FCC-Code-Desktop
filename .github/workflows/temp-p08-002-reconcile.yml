@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           git rm .github/temp/p08-002-reconcile.py .github/workflows/temp-p08-002-reconcile.yml
-          mapfile -t changed < <(git diff --name-only origin/main | sort)
+          mapfile -t changed < <(git status --porcelain | sed -E 's/^.. //' | sort)
           printf '%s\n' "${changed[@]}"
           expected=(
             CURRENT_PHASE.md
