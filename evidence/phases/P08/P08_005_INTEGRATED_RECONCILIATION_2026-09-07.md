@@ -47,6 +47,10 @@ On exact canonical main `9bcb6b94bbc5f185e8615c38b73e4f5496a0397e`:
 
 No task-local cloud regression remains known after these permanent gates.
 
+## Reconciliation consistency
+
+The canonical reconciliation also removes the stale P08-006 narrative reference that still listed P08-005 as PENDING; the P08 inventory and narrative now consistently leave only P08-003, P08-004, P08-007, and P08-008 pending.
+
 ## Scope / owner-last boundary
 
 This evidence closes only `FCCD-P08-005`.
