@@ -1,7 +1,9 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.Win32.SafeHandles;
 
 namespace FCCCodeDesktop.Runtime;
@@ -17,6 +19,9 @@ public sealed class ProcessSupervisor : IProcessSupervisor
     public const int MaximumEnvironmentCharacters = 32_000;
 
     private const int MaximumFailureMessageCharacters = 2_048;
+    private static readonly Encoding ProcessOutputEncoding = new UTF8Encoding(
+        encoderShouldEmitUTF8Identifier: false,
+        throwOnInvalidBytes: false);
     private readonly ConcurrentDictionary<Guid, SupervisedProcess> _active = new();
     private readonly object _lifecycleGate = new();
     private int _disposed;
@@ -76,9 +81,10 @@ public sealed class ProcessSupervisor : IProcessSupervisor
                         new ProcessLaunchResult(
                             ProcessLaunchStatus.StartFailed,
                             null,
-                            "The process API returned without starting the requested executable."));
+                        "The process API returned without starting the requested executable."));
                 }
 
+                var startedUtc = DateTimeOffset.UtcNow;
                 cancellationToken.ThrowIfCancellationRequested();
 
                 try
@@ -92,11 +98,36 @@ public sealed class ProcessSupervisor : IProcessSupervisor
                 }
 
                 var ownershipId = Guid.NewGuid();
+                var outputOptions = request.Output ?? new ProcessOutputOptions();
+                var correlation = outputOptions.Correlation;
+                var output = new BoundedProcessOutputPipeline(
+                    new ProcessOutputIdentity(
+                        ownershipId,
+                        process.Id,
+                        correlation?.TaskId,
+                        correlation?.AgentRunId,
+                        correlation?.ToolRunId,
+                        correlation?.ProcessRunId,
+                        correlation?.OperationId),
+                    outputOptions.Policy);
+                var standardOutputPump = CaptureOutputAsync(
+                    process.StandardOutput,
+                    output,
+                    ProcessOutputSource.StandardOutput,
+                    outputOptions.Policy.ReadBufferCharacters);
+                var standardErrorPump = CaptureOutputAsync(
+                    process.StandardError,
+                    output,
+                    ProcessOutputSource.StandardError,
+                    outputOptions.Policy.ReadBufferCharacters);
                 var owned = new SupervisedProcess(
                     ownershipId,
                     process,
                     job,
-                    DateTimeOffset.UtcNow,
+                    output,
+                    standardOutputPump,
+                    standardErrorPump,
+                    startedUtc,
                     RemoveActive);
                 process = null;
                 job = null;
@@ -221,6 +252,10 @@ public sealed class ProcessSupervisor : IProcessSupervisor
         var startInfo = new ProcessStartInfo(request.FileName)
         {
             WorkingDirectory = request.WorkingDirectory,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            StandardErrorEncoding = ProcessOutputEncoding,
+            StandardOutputEncoding = ProcessOutputEncoding,
             UseShellExecute = false,
             CreateNoWindow = true,
         };
@@ -246,6 +281,49 @@ public sealed class ProcessSupervisor : IProcessSupervisor
         }
 
         return startInfo;
+    }
+
+    private static async Task CaptureOutputAsync(
+        StreamReader reader,
+        BoundedProcessOutputPipeline output,
+        ProcessOutputSource source,
+        int readBufferCharacters)
+    {
+        // Ensure both source pumps are scheduled before either can consume an indefinitely hot
+        // stream through synchronously completed reads.
+        await Task.Yield();
+        var buffer = ArrayPool<char>.Shared.Rent(readBufferCharacters);
+        var readFailed = false;
+        try
+        {
+            while (true)
+            {
+                var charactersRead = await reader
+                    .ReadAsync(buffer.AsMemory(0, readBufferCharacters), CancellationToken.None)
+                    .ConfigureAwait(false);
+                if (charactersRead == 0)
+                {
+                    break;
+                }
+
+                await output
+                    .WriteAsync(source, buffer.AsMemory(0, charactersRead), CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
+        }
+        catch (IOException)
+        {
+            readFailed = true;
+        }
+        catch (ObjectDisposedException)
+        {
+            readFailed = true;
+        }
+        finally
+        {
+            output.CompleteSource(source, readFailed);
+            ArrayPool<char>.Shared.Return(buffer, clearArray: true);
+        }
     }
 
     private static ProcessLaunchStatus ClassifyStartFailure(int nativeErrorCode) =>
@@ -289,6 +367,9 @@ public sealed class ProcessSupervisor : IProcessSupervisor
 
         private readonly Process _root;
         private readonly WindowsJobObject _job;
+        private readonly BoundedProcessOutputPipeline _output;
+        private readonly Task _standardOutputPump;
+        private readonly Task _standardErrorPump;
         private readonly Action<Guid> _removeActive;
         private readonly TaskCompletionSource<OwnedProcessExit> _completion =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -300,12 +381,18 @@ public sealed class ProcessSupervisor : IProcessSupervisor
             Guid ownershipId,
             Process root,
             WindowsJobObject job,
+            BoundedProcessOutputPipeline output,
+            Task standardOutputPump,
+            Task standardErrorPump,
             DateTimeOffset startedUtc,
             Action<Guid> removeActive)
         {
             OwnershipId = ownershipId;
             _root = root;
             _job = job;
+            _output = output;
+            _standardOutputPump = standardOutputPump;
+            _standardErrorPump = standardErrorPump;
             StartedUtc = startedUtc;
             _removeActive = removeActive;
             RootProcessId = root.Id;
@@ -316,6 +403,8 @@ public sealed class ProcessSupervisor : IProcessSupervisor
         public int RootProcessId { get; }
 
         public DateTimeOffset StartedUtc { get; }
+
+        public IProcessOutput Output => _output;
 
         public Task<OwnedProcessExit> Completion => _completion.Task;
 
@@ -405,6 +494,9 @@ public sealed class ProcessSupervisor : IProcessSupervisor
                 {
                     await Task.Delay(TreePollInterval, CancellationToken.None).ConfigureAwait(false);
                 }
+
+                await Task.WhenAll(_standardOutputPump, _standardErrorPump).ConfigureAwait(false);
+                await _output.Completion.ConfigureAwait(false);
 
                 var exit = new OwnedProcessExit(
                     OwnershipId,

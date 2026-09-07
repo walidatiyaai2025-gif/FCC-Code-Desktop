@@ -58,6 +58,21 @@ public sealed class ProcessOutputCorrelation
     }
 }
 
+public sealed class ProcessOutputOptions
+{
+    public ProcessOutputOptions(
+        ProcessOutputPolicy? policy = null,
+        ProcessOutputCorrelation? correlation = null)
+    {
+        Policy = policy ?? ProcessOutputPolicy.Default;
+        Correlation = correlation;
+    }
+
+    public ProcessOutputPolicy Policy { get; }
+
+    public ProcessOutputCorrelation? Correlation { get; }
+}
+
 public sealed record ProcessOutputIdentity(
     Guid OwnershipId,
     int RootProcessId,

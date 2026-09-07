@@ -14,7 +14,8 @@ public sealed record ProcessLaunchRequest(
     string FileName,
     IReadOnlyList<string> Arguments,
     string WorkingDirectory,
-    IReadOnlyDictionary<string, string?>? Environment = null);
+    IReadOnlyDictionary<string, string?>? Environment = null,
+    ProcessOutputOptions? Output = null);
 
 public sealed record OwnedProcessSnapshot(
     Guid OwnershipId,
@@ -59,6 +60,8 @@ public interface ISupervisedProcess : IAsyncDisposable
     int RootProcessId { get; }
 
     DateTimeOffset StartedUtc { get; }
+
+    IProcessOutput Output { get; }
 
     Task<OwnedProcessExit> Completion { get; }
 
