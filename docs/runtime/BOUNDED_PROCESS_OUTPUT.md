@@ -1,8 +1,8 @@
 # Bounded Process Output Pipeline
 
-**Task:** `FCCD-P08-003`  
-**Status:** IN PROGRESS  
-**Start main SHA:** `4f80433830684966405c7d76aea50583ae4df75b`  
+**Task:** `FCCD-P08-003`
+**Status:** IN PROGRESS
+**Start main SHA:** `4f80433830684966405c7d76aea50583ae4df75b`
 **Current integrated baseline:** `3735aed19237c58ee7aab2bd554a46257a55af6c`
 
 ## Scope and ownership
