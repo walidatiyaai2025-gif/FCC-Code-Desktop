@@ -154,7 +154,7 @@ function Wait-ProcessGone {
 function Invoke-ConPtyStart {
     param(
         [Parameter(Mandatory)][Type]$HostType,
-        [Parameter(Mandatory)]$Host,
+        [Parameter(Mandatory)]$TerminalHost,
         [Parameter(Mandatory)]$Request,
         [Parameter(Mandatory)][Threading.CancellationToken]$CancellationToken
     )
@@ -162,14 +162,14 @@ function Invoke-ConPtyStart {
     $arguments = [object[]]::new(2)
     $arguments[0] = Get-ReflectionBaseObject $Request
     $arguments[1] = Get-ReflectionBaseObject $CancellationToken
-    $task = $HostType.GetMethod('StartAsync').Invoke($Host, $arguments)
+    $task = $HostType.GetMethod('StartAsync').Invoke($TerminalHost, $arguments)
     return $task.GetAwaiter().GetResult()
 }
 
 function Assert-ConPtyStartFailure {
     param(
         [Parameter(Mandatory)][Type]$HostType,
-        [Parameter(Mandatory)]$Host,
+        [Parameter(Mandatory)]$TerminalHost,
         [Parameter(Mandatory)]$Request,
         [Parameter(Mandatory)][Threading.CancellationToken]$CancellationToken,
         [Parameter(Mandatory)][Type]$ExpectedException,
@@ -178,7 +178,7 @@ function Assert-ConPtyStartFailure {
 
     $observed = $null
     try {
-        $unexpectedSession = Invoke-ConPtyStart -HostType $HostType -Host $Host -Request $Request -CancellationToken $CancellationToken
+        $unexpectedSession = Invoke-ConPtyStart -HostType $HostType -TerminalHost $TerminalHost -Request $Request -CancellationToken $CancellationToken
         if ($unexpectedSession) {
             $null = $unexpectedSession.DisposeAsync().AsTask().GetAwaiter().GetResult()
         }
@@ -328,17 +328,17 @@ $terminalHost = [Activator]::CreateInstance($hostType)
 # any usable session escapes to the caller.
 $missingExecutable = Join-Path $fixtureRoot 'missing-shell.exe'
 $missingExecutableRequest = New-ConPtyRequest -Executable $missingExecutable -WorkingDirectory $fixtureRoot -Size $initialSize
-Assert-ConPtyStartFailure -HostType $hostType -Host $terminalHost -Request $missingExecutableRequest -CancellationToken ([Threading.CancellationToken]::None) -ExpectedException ([IO.FileNotFoundException]) -Stage 'missing-executable path'
+Assert-ConPtyStartFailure -HostType $hostType -TerminalHost $terminalHost -Request $missingExecutableRequest -CancellationToken ([Threading.CancellationToken]::None) -ExpectedException ([IO.FileNotFoundException]) -Stage 'missing-executable path'
 
 $missingDirectory = Join-Path $fixtureRoot 'missing-directory'
 $missingDirectoryRequest = New-ConPtyRequest -Executable $comSpec -WorkingDirectory $missingDirectory -Size $initialSize
-Assert-ConPtyStartFailure -HostType $hostType -Host $terminalHost -Request $missingDirectoryRequest -CancellationToken ([Threading.CancellationToken]::None) -ExpectedException ([IO.DirectoryNotFoundException]) -Stage 'missing-working-directory path'
+Assert-ConPtyStartFailure -HostType $hostType -TerminalHost $terminalHost -Request $missingDirectoryRequest -CancellationToken ([Threading.CancellationToken]::None) -ExpectedException ([IO.DirectoryNotFoundException]) -Stage 'missing-working-directory path'
 
 $cancelledRequest = New-ConPtyRequest -Executable $comSpec -WorkingDirectory $fixtureRoot -Size $initialSize
 $cancelledSource = [Threading.CancellationTokenSource]::new()
 $cancelledSource.Cancel()
 try {
-    Assert-ConPtyStartFailure -HostType $hostType -Host $terminalHost -Request $cancelledRequest -CancellationToken $cancelledSource.Token -ExpectedException ([OperationCanceledException]) -Stage 'pre-cancelled launch'
+    Assert-ConPtyStartFailure -HostType $hostType -TerminalHost $terminalHost -Request $cancelledRequest -CancellationToken $cancelledSource.Token -ExpectedException ([OperationCanceledException]) -Stage 'pre-cancelled launch'
 }
 finally {
     $cancelledSource.Dispose()
@@ -350,7 +350,7 @@ $session = $null
 $reader = $null
 try {
     $request = New-ConPtyRequest -Executable $comSpec -WorkingDirectory $fixtureRoot -Size $initialSize
-    $session = Invoke-ConPtyStart -HostType $hostType -Host $terminalHost -Request $request -CancellationToken ([Threading.CancellationToken]::None)
+    $session = Invoke-ConPtyStart -HostType $hostType -TerminalHost $terminalHost -Request $request -CancellationToken ([Threading.CancellationToken]::None)
 
     if ($session.ProcessId -le 0) {
         throw 'ConPTY session returned an invalid process ID.'
@@ -435,7 +435,7 @@ try {
     Remove-Item -LiteralPath $childPidPath -Force -ErrorAction SilentlyContinue
 
     $cleanupRequest = New-ConPtyRequest -Executable $comSpec -WorkingDirectory $fixtureRoot -Size $initialSize
-    $cleanupSession = Invoke-ConPtyStart -HostType $hostType -Host $terminalHost -Request $cleanupRequest -CancellationToken ([Threading.CancellationToken]::None)
+    $cleanupSession = Invoke-ConPtyStart -HostType $hostType -TerminalHost $terminalHost -Request $cleanupRequest -CancellationToken ([Threading.CancellationToken]::None)
     $rootPid = [int]$cleanupSession.ProcessId
     if ($cleanupSession.Completion.IsCompleted) {
         throw "Cleanup CMD profile exited before descendant launch with code $($cleanupSession.Completion.GetAwaiter().GetResult())."
