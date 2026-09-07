@@ -80,7 +80,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 
 ## P08 cloud task inventory
 
-- `FCCD-P08-001` — Process supervisor with owned process-tree tracking — PENDING.
+- `FCCD-P08-001` — Process supervisor with owned process-tree tracking — CLOSED.
 - `FCCD-P08-002` — Graceful→forced cancellation escalation — PENDING.
 - `FCCD-P08-003` — Bounded streaming log pipeline — PENDING.
 - `FCCD-P08-004` — ConPTY terminal host — PENDING.
@@ -101,6 +101,26 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Canonical owner queue remains exactly `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET`, both unresolved and release-blocking.
 - `VERIFIED_FINAL_COMPLETE` remains `false`; P22 remains prohibited while any required owner queue item is unresolved.
 - This is scheduling/governance activation only; no P08 product implementation is included.
+
+## P08-001 integration provenance
+
+- P08 activation: PR #188, normal merge `36cd7984c87e3ef9e627d0bf424b414f2237f374`.
+- Exact implementation candidate: `5915ce7f21d8b487346acf7334b34bd4523a215a` from PR #189 (`worker/fccd-p08-001-process-supervisor`).
+- PR #189 exact-head Windows CI: run `34072739503` / #438 — SUCCESS.
+- PR #189 exact-head P06-007 Workspace Search: run `34072739496` / #167 — SUCCESS.
+- PR #189 exact-head P06-008 Large Workspace Safeguards: run `34072739498` / #151 — SUCCESS.
+- Initial normal merge: `d0df56e60ec62e05db793184c5bc0d53b7c65d9b`.
+- Exact post-merge validation exposed a real lifecycle race: `ISupervisedProcess.Completion` could publish before the supervisor removed the owned entry from its active registry. Workspace Search run `34073251587` / #168 failed; the task was not reconciled or closed at that point.
+- Exact repair candidate: `e3d6ecdc14f01be5460ca1656d6f6ba2b6535460` from PR #190 (`repair/p08-001-post-merge-workspace-lock`).
+- PR #190 exact-head Windows CI: run `34074218833` / #446 — SUCCESS.
+- PR #190 exact-head P06-007 Workspace Search: run `34074218827` / #175 — SUCCESS.
+- PR #190 exact-head P06-008 Large Workspace Safeguards: run `34074218830` / #159 — SUCCESS.
+- Repair normal merge / accepted canonical implementation: `ac54e739019e7264db5de3f9b26b700735924bc1`.
+- Exact accepted-main Windows CI: run `34074668199` / #447 — SUCCESS.
+- Exact accepted-main P06-007 Workspace Search: run `34074668196` / #176 — SUCCESS.
+- Exact accepted-main P06-008 Large Workspace Safeguards: run `34074668191` / #160 — SUCCESS.
+- Integrated evidence: `evidence/phases/P08/P08_001_INTEGRATED_RECONCILIATION_2026-09-07.md`.
+- Evidence is cloud/Windows-CI process-supervision evidence only. No owner-only evidence is added, P08 remains IN_PROGRESS, P08-002..008 remain PENDING, P09+ remain prohibited, and `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## P07 cloud task inventory
 
