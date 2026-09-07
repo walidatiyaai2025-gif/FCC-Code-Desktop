@@ -121,11 +121,11 @@ try {
     $requestArguments[3] = Get-ReflectionBaseObject $initialSize
     $request = $requestConstructor.Invoke($requestArguments)
 
-    $host = [Activator]::CreateInstance($hostType)
+    $terminalHost = [Activator]::CreateInstance($hostType)
     $startArguments = [object[]]::new(2)
     $startArguments[0] = Get-ReflectionBaseObject $request
     $startArguments[1] = Get-ReflectionBaseObject ([Threading.CancellationToken]::None)
-    $startTask = $hostType.GetMethod('StartAsync').Invoke($host, $startArguments)
+    $startTask = $hostType.GetMethod('StartAsync').Invoke($terminalHost, $startArguments)
     $session = $startTask.GetAwaiter().GetResult()
 
     if ($session.ProcessId -le 0) {
