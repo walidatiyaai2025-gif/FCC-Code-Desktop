@@ -84,6 +84,7 @@ public sealed class ProcessSupervisorTests
             Assert.True(result.ForcedTerminationRequested);
             await WaitUntilAsync(() => !IsProcessRunning(childPid), TimeSpan.FromSeconds(5));
             Assert.False(unowned.HasExited);
+            // Completion is the public lifecycle barrier: ownership must already be absent.
             Assert.Empty(supervisor.GetActiveProcesses());
         }
         finally
