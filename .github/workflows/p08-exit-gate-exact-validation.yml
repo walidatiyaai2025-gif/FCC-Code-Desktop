@@ -1,0 +1,96 @@
+name: P08 Exit Gate Exact Validation
+
+on:
+  push:
+    branches:
+      - worker-b/p08-exit-gate
+
+permissions:
+  contents: read
+
+jobs:
+  exact-p08-exit-gate:
+    name: Exact P08 Exit Gate
+    runs-on: windows-2025
+    timeout-minutes: 45
+    steps:
+      - name: Checkout immutable P08 candidate
+        uses: actions/checkout@v7
+        with:
+          ref: bb372da0a4506b3edc508156f06fc60ced8cc3d4
+          fetch-depth: 1
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+          cache: false
+
+      - name: Validate P08 pre-closure state
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidate = 'bb372da0a4506b3edc508156f06fc60ced8cc3d4'
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $candidate) { throw "Expected exact candidate $candidate but checked out $actual." }
+
+          $phase = Get-Content CURRENT_PHASE.md -Raw
+          $requiredPhaseFragments = @(
+            'CURRENT_PHASE: P08',
+            'CURRENT_PHASE_STATE: IN_PROGRESS',
+            'NEXT_PHASE: P09',
+            'PHASE_EXIT_GATE: NOT_RUN',
+            'KNOWN_PHASE_BLOCKERS: 0',
+            'KNOWN_RELEASE_BLOCKERS: 1',
+            'OWNER_LAST_MODE: ACTIVE',
+            'VERIFIED_FINAL_COMPLETE: false'
+          )
+          foreach ($fragment in $requiredPhaseFragments) {
+            if (-not $phase.Contains($fragment, [System.StringComparison]::Ordinal)) {
+              throw "Missing required current-phase fragment: $fragment"
+            }
+          }
+
+          if (Test-Path 'evidence/phases/P08/CLOSURE.md') {
+            throw 'P08 CLOSURE.md already exists on the candidate; exact gate must run before closure mutation.'
+          }
+
+          $ledger = Get-Content docs/TASK_LEDGER.md -Raw
+          foreach ($number in 1..8) {
+            $id = 'FCCD-P08-{0:D3}' -f $number
+            $pattern = '(?m)^\|\s*' + [regex]::Escape($id) + '\s*\|.*\|\s*CLOSED\s*\|\s*$'
+            if ($ledger -notmatch $pattern) {
+              throw "Mandatory P08 task is not canonically CLOSED: $id"
+            }
+          }
+
+          $queue = Get-Content docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md -Raw
+          if (-not $queue.Contains('OWNER-P04-008-REAL-TARGET', [System.StringComparison]::Ordinal)) {
+            throw 'Expected owner-last release blocker OWNER-P04-008-REAL-TARGET is missing.'
+          }
+
+      - name: Run complete Windows baseline
+        shell: pwsh
+        run: .\tools\ci\run-windows-ci.ps1
+
+      - name: Run P08 interactive terminal UX acceptance
+        shell: pwsh
+        run: .\tools\terminal\validate-interactive-terminal-ux.ps1 -RunFixtures -RequireRuntime
+
+      - name: Run P08 process terminal safety acceptance
+        shell: pwsh
+        run: .\tools\terminal\validate-process-terminal-safety.ps1 -Configuration Release
+
+      - name: Verify clean exact candidate after gate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $candidate = 'bb372da0a4506b3edc508156f06fc60ced8cc3d4'
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+          git diff --cached --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --cached --check failed.' }
+          $status = @(git status --porcelain=v1 --untracked-files=all)
+          if ($status.Count -ne 0) { throw "P08 exit gate left a dirty worktree: $($status -join '; ')" }
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $candidate) { throw "Candidate SHA changed during gate: $actual" }
