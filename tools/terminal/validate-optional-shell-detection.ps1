@@ -64,6 +64,21 @@ function Invoke-Detection {
     return $valueTask.AsTask().GetAwaiter().GetResult()
 }
 
+function Test-OperationCanceledExceptionChain {
+    param([Parameter(Mandatory)][Exception]$Exception)
+
+    $current = $Exception
+    while ($null -ne $current) {
+        if ($current -is [OperationCanceledException]) {
+            return $true
+        }
+
+        $current = $current.InnerException
+    }
+
+    return $false
+}
+
 $repositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $solution = Join-Path $repositoryRoot 'FCCCodeDesktop.sln'
 $implementationPath = Join-Path $repositoryRoot 'src\FCCCodeDesktop.Terminal\WindowsOptionalShellDetector.cs'
@@ -243,8 +258,8 @@ try {
                 -Environment $emptyEnvironment `
                 -CancellationToken $cancelled.Token | Out-Null
         }
-        catch [Reflection.TargetInvocationException] {
-            if ($_.Exception.InnerException -is [OperationCanceledException]) {
+        catch {
+            if (Test-OperationCanceledExceptionChain -Exception $_.Exception) {
                 $cancelObserved = $true
             }
             else {
