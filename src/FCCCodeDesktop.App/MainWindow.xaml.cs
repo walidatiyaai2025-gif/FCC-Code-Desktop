@@ -6,6 +6,7 @@ using System.Windows.Media;
 using FCCCodeDesktop.App.Conversation;
 using FCCCodeDesktop.App.Projects;
 using FCCCodeDesktop.App.Shell;
+using FCCCodeDesktop.App.Terminal;
 using FCCCodeDesktop.Application.Projects;
 using FCCCodeDesktop.Fcc;
 using FCCCodeDesktop.Files;
@@ -21,6 +22,8 @@ public partial class MainWindow : Window
     private SessionWorkspaceState? _sessionWorkspaceState;
     private TaskExecutionState? _taskExecutionState;
     private ProjectWorkspaceSurface? _projectWorkspaceSurface;
+    private bool _terminalShutdownStarted;
+    private bool _terminalShutdownCompleted;
 
     public MainWindow()
     {
@@ -58,15 +61,23 @@ public partial class MainWindow : Window
         var sessionWorkspaceSurface = RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface");
         var taskExecutionSurface = RequireResource<TaskExecutionSurface>("TaskExecutionSurface");
         var composerState = RequireResource<ComposerState>("ComposerState");
+        var bottomToolPanelState = RequireResource<BottomToolPanelState>("BottomToolPanelState");
+        var terminalSurface = RequireResource<InteractiveTerminalSurface>("InteractiveTerminalSurface");
 
         _projectWorkspaceSurface = new ProjectWorkspaceSurface();
         composerState.SubmissionRequested += OnComposerSubmissionRequested;
         navigationState.SessionsContent = sessionWorkspaceSurface;
         navigationState.TasksContent = taskExecutionSurface;
+        bottomToolPanelState.TerminalContent = terminalSurface;
     }
 
     private void OnWindowClosing(object? sender, CancelEventArgs e)
     {
+        if (_terminalShutdownCompleted)
+        {
+            return;
+        }
+
         var editorWorkspace = _projectWorkspaceSurface?.EditorWorkspace;
         if (editorWorkspace is { IsBusy: true })
         {
@@ -80,23 +91,59 @@ public partial class MainWindow : Window
             return;
         }
 
-        var dirtyDocumentCount = editorWorkspace?.Documents.Count(document => document.IsDirty) ?? 0;
-        if (dirtyDocumentCount == 0)
+        if (!_terminalShutdownStarted)
+        {
+            var dirtyDocumentCount = editorWorkspace?.Documents.Count(document => document.IsDirty) ?? 0;
+            if (dirtyDocumentCount > 0)
+            {
+                var noun = dirtyDocumentCount == 1 ? "tab has" : "tabs have";
+                var result = MessageBox.Show(
+                    this,
+                    $"{dirtyDocumentCount} editor {noun} unsaved changes. Discard those changes and exit FCC Code Desktop?",
+                    "Unsaved editor changes",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning,
+                    MessageBoxResult.No);
+                if (result != MessageBoxResult.Yes)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+        }
+
+        e.Cancel = true;
+        if (_terminalShutdownStarted)
         {
             return;
         }
 
-        var noun = dirtyDocumentCount == 1 ? "tab has" : "tabs have";
-        var result = MessageBox.Show(
-            this,
-            $"{dirtyDocumentCount} editor {noun} unsaved changes. Discard those changes and exit FCC Code Desktop?",
-            "Unsaved editor changes",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning,
-            MessageBoxResult.No);
-        if (result != MessageBoxResult.Yes)
+        _terminalShutdownStarted = true;
+        _ = ShutdownTerminalAndCloseAsync();
+    }
+
+    private async Task ShutdownTerminalAndCloseAsync()
+    {
+        await Task.Yield();
+        try
         {
-            e.Cancel = true;
+            var terminalSurface = RequireResource<InteractiveTerminalSurface>("InteractiveTerminalSurface");
+            await terminalSurface.DisposeAsync().ConfigureAwait(true);
+            _terminalShutdownCompleted = true;
+            _terminalShutdownStarted = false;
+            Close();
+        }
+        catch (Exception exception) when (exception is IOException
+                                           or InvalidOperationException
+                                           or ObjectDisposedException)
+        {
+            _terminalShutdownStarted = false;
+            MessageBox.Show(
+                this,
+                $"The terminal session could not be cleaned up safely. {exception.Message}",
+                "Terminal cleanup failed",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
 

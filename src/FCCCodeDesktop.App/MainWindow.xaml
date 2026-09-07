@@ -4,6 +4,7 @@
         xmlns:chrome="clr-namespace:FCCCodeDesktop.App.Shell"
         xmlns:conversation="clr-namespace:FCCCodeDesktop.App.Conversation"
         xmlns:editor="clr-namespace:FCCCodeDesktop.App.Editor"
+        xmlns:terminal="clr-namespace:FCCCodeDesktop.App.Terminal"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="FCC Code Desktop"
         Width="1200"
@@ -21,6 +22,7 @@
     <Window.Resources>
         <chrome:WorkspaceNavigationState x:Key="WorkspaceNavigationState" />
         <chrome:WorkspaceLayoutState x:Key="WorkspaceLayoutState" />
+        <terminal:InteractiveTerminalSurface x:Key="InteractiveTerminalSurface" />
         <chrome:BottomToolPanelState x:Key="BottomToolPanelState" />
         <chrome:CommandPaletteState x:Key="CommandPaletteState" />
         <conversation:StreamingConversationState x:Key="StreamingConversationState" />

@@ -1,0 +1,45 @@
+name: P08-007 Interactive Terminal UX
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/FCCCodeDesktop.App/MainWindow.xaml'
+      - 'src/FCCCodeDesktop.App/MainWindow.xaml.cs'
+      - 'src/FCCCodeDesktop.App/Terminal/**'
+      - 'tools/terminal/validate-interactive-terminal-ux.ps1'
+      - '.github/workflows/p08-007-interactive-terminal-ux.yml'
+      - 'docs/terminal/INTERACTIVE_TERMINAL_UX.md'
+      - 'evidence/phases/P08/P08_007_CLOUD_IMPLEMENTATION_2026-09-07.md'
+  push:
+    branches: [main]
+    paths:
+      - 'src/FCCCodeDesktop.App/MainWindow.xaml'
+      - 'src/FCCCodeDesktop.App/MainWindow.xaml.cs'
+      - 'src/FCCCodeDesktop.App/Terminal/**'
+      - 'tools/terminal/validate-interactive-terminal-ux.ps1'
+      - '.github/workflows/p08-007-interactive-terminal-ux.yml'
+      - 'docs/terminal/INTERACTIVE_TERMINAL_UX.md'
+      - 'evidence/phases/P08/P08_007_CLOUD_IMPLEMENTATION_2026-09-07.md'
+
+permissions:
+  contents: read
+
+jobs:
+  interactive-terminal-ux:
+    name: Interactive Terminal UX Validation
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+          cache: false
+
+      - name: Validate P08-007 interactive terminal UX
+        shell: pwsh
+        run: .\tools\terminal\validate-interactive-terminal-ux.ps1 -RunFixtures -RequireRuntime
