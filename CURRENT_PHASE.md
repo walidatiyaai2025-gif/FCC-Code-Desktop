@@ -92,7 +92,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P08-005` — PowerShell/CMD profiles — CLOSED.
 - `FCCD-P08-006` — Optional Git Bash/WSL detection — CLOSED.
 - `FCCD-P08-007` — Interactive terminal UX — CLOSED.
-- `FCCD-P08-008` — Process/terminal safety tests — PENDING.
+- `FCCD-P08-008` — Process/terminal safety tests — CLOSED.
 
 ## P08 cloud activation provenance
 
@@ -236,6 +236,17 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Integrated evidence: `evidence/phases/P08/P08_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - Coverage includes Bottom Tool Panel composition without weakening the P02 shell contract, typed ConPTY shell launch, UTF-8 input/output, Ctrl+C copy-versus-interrupt semantics, Ctrl+V paste and navigation sequences, debounced resize, bounded/coalesced high-output presentation, ANSI SGR color rendering, and safe async window-close disposal. No owner-only evidence is required or added.
 - P08 remains `IN_PROGRESS`; only `FCCD-P08-008` remains PENDING. `PHASE_EXIT_GATE=NOT_RUN`, P09 and later phases remain prohibited, and `VERIFIED_FINAL_COMPLETE=false`.
+
+## P08-008 integration provenance
+
+- Task: `FCCD-P08-008 — Process/terminal safety tests` — CLOSED.
+- Clean recovery PR #208 (`recovery/fccd-p08-008-main-integration`) isolated the legitimate P08-008 safety work from the then-active P08-007 stack.
+- Exact recovered candidate `8de5f4722b1eeba03966494738f9738bcc106adc` passed Windows CI `34160742045`, Workspace Search `34160742043`, Large Workspace Safeguards `34160742035`, and dedicated P08-008 Process Terminal Safety `34160742072`.
+- PR #208 was normally merged as `7aac8a426031358954ba754a3c98ed1b458f1279`; that exact integration main passed Windows CI `34161388230`, Workspace Search `34161388136`, Large Workspace Safeguards `34161388091`, and dedicated P08-008 Process Terminal Safety `34161388100`.
+- Current canonical main before this reconciliation, `072b6470bef7bb7a540098e338050cb299d1ac2f`, is a descendant whose intervening product changes are confined to P08-007 UX/application paths and do not modify any path selected by `.github/workflows/p08-008-process-terminal-safety.yml`.
+- That current main passed Windows CI `34163272333`, Workspace Search `34163272378`, Large Workspace Safeguards `34163272414`, and P08-007 Interactive Terminal UX `34163272377`; no P08-008 task-local regression is known.
+- Integrated evidence: `evidence/phases/P08/P08_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added. All P08 task rows are now CLOSED, but P08 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN` until a separate phase-exit convergence/gate passes and is integrated. P09/P15 and later implementation remain prohibited; `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P07 cloud task inventory
 
