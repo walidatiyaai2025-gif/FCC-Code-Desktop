@@ -24,6 +24,11 @@ jobs:
         run: |
           set -euo pipefail
           python tools/reconciliation/reconcile-p08-008-after-p08-007.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('CURRENT_PHASE.md')
+          path.write_text(path.read_text(encoding='utf-8').rstrip() + '\n', encoding='utf-8', newline='\n')
+          PY
           git rm tools/reconciliation/reconcile-p08-008-after-p08-007.py .github/workflows/p08-008-reconciliation-bootstrap.yml
           git diff --check
           git diff --cached --check
