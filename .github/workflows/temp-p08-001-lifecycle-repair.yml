@@ -19,8 +19,10 @@ jobs:
           ref: repair/p08-001-post-merge-workspace-lock
           fetch-depth: 0
       - name: Apply guarded lifecycle ordering repair
-        shell: python
+        shell: bash
         run: |
+          set -euo pipefail
+          python - <<'PY'
           from pathlib import Path
 
           path = Path("src/FCCCodeDesktop.Runtime/ProcessSupervisor.cs")
@@ -65,6 +67,7 @@ jobs:
               raise SystemExit(f"expected exactly one lifecycle block; found {count}")
           path.write_text(text.replace(old, new), encoding="utf-8", newline="\n")
           Path(".github/workflows/temp-p08-001-lifecycle-repair.yml").unlink()
+          PY
       - name: Verify durable scope
         shell: bash
         run: |
