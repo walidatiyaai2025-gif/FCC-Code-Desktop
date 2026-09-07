@@ -25,9 +25,9 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
 {
     private const uint ExtendedStartupInfoPresent = 0x00080000;
     private const uint CreateUnicodeEnvironment = 0x00000400;
-    private const uint CreateSuspended = 0x00000004;
     private const uint JobObjectLimitKillOnJobClose = 0x00002000;
     private const int JobObjectExtendedLimitInformationClass = 9;
+    private static readonly nuint ProcThreadAttributeJobList = 0x0002000D;
     private static readonly nuint ProcThreadAttributePseudoConsole = 0x00020016;
 
     public Task<IConPtyTerminalSession> StartAsync(
@@ -71,6 +71,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
         IntPtr hostOutputRead = IntPtr.Zero;
         IntPtr pseudoOutputWrite = IntPtr.Zero;
         IntPtr attributeList = IntPtr.Zero;
+        IntPtr jobListValue = IntPtr.Zero;
         IntPtr commandLineBuffer = IntPtr.Zero;
         SafePseudoConsoleHandle? pseudoConsole = null;
         SafeKernelHandle? jobHandle = null;
@@ -79,7 +80,6 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
         Process? process = null;
         FileStream? input = null;
         FileStream? output = null;
-        var processAssignedToJob = false;
 
         try
         {
@@ -99,10 +99,18 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             EnsureHResult(createPseudoConsoleResult, "CreatePseudoConsole");
             pseudoConsole = new SafePseudoConsoleHandle(pseudoConsoleRaw);
 
+            // Assign the child to the private kill-on-close job as part of CreateProcessW
+            // itself. This preserves the before-user-code ownership invariant without
+            // CREATE_SUSPENDED, which interferes with ConPTY client initialization on
+            // current Windows builds.
+            jobHandle = CreateKillOnCloseJob();
+            jobListValue = Marshal.AllocHGlobal(IntPtr.Size);
+            Marshal.WriteIntPtr(jobListValue, jobHandle.DangerousGetHandle());
+
             nuint attributeListSize = 0;
             _ = NativeMethods.InitializeProcThreadAttributeList(
                 IntPtr.Zero,
-                1,
+                2,
                 0,
                 ref attributeListSize);
             if (attributeListSize == 0)
@@ -114,7 +122,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             EnsureWin32(
                 NativeMethods.InitializeProcThreadAttributeList(
                     attributeList,
-                    1,
+                    2,
                     0,
                     ref attributeListSize),
                 "InitializeProcThreadAttributeList");
@@ -130,6 +138,17 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                     IntPtr.Zero),
                 "UpdateProcThreadAttribute(PSEUDOCONSOLE)");
 
+            EnsureWin32(
+                NativeMethods.UpdateProcThreadAttribute(
+                    attributeList,
+                    0,
+                    ProcThreadAttributeJobList,
+                    jobListValue,
+                    (nuint)IntPtr.Size,
+                    IntPtr.Zero,
+                    IntPtr.Zero),
+                "UpdateProcThreadAttribute(JOB_LIST)");
+
             var startupInfo = new StartupInfoEx
             {
                 StartupInfo = new StartupInfo
@@ -139,7 +158,6 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                 AttributeList = attributeList,
             };
 
-            jobHandle = CreateKillOnCloseJob();
             commandLineBuffer = Marshal.StringToHGlobalUni(
                 BuildCommandLine(request.ExecutablePath, request.Arguments));
 
@@ -150,7 +168,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                     IntPtr.Zero,
                     IntPtr.Zero,
                     false,
-                    ExtendedStartupInfoPresent | CreateUnicodeEnvironment | CreateSuspended,
+                    ExtendedStartupInfoPresent | CreateUnicodeEnvironment,
                     IntPtr.Zero,
                     request.WorkingDirectory,
                     ref startupInfo,
@@ -160,30 +178,16 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             processHandle = new SafeKernelHandle(processInformation.ProcessHandle);
             threadHandle = new SafeKernelHandle(processInformation.ThreadHandle);
 
-            EnsureWin32(
-                NativeMethods.AssignProcessToJobObject(
-                    jobHandle.DangerousGetHandle(),
-                    processHandle.DangerousGetHandle()),
-                "AssignProcessToJobObject");
-            processAssignedToJob = true;
-
-            process = Process.GetProcessById(checked((int)processInformation.ProcessId));
-
-            var resumeResult = NativeMethods.ResumeThread(threadHandle.DangerousGetHandle());
-            if (resumeResult == uint.MaxValue)
-            {
-                ThrowLastWin32("ResumeThread");
-            }
-
-            // This host deliberately creates the child suspended so it can be put in
-            // the kill-on-close Job Object before any user code executes. Keep the
-            // PTY-side handles alive until the child has actually been resumed; only
-            // then can its console initialization attach without a broken-pipe race.
+            // Microsoft documents these PTY-side channel handles as host-owned setup
+            // handles that should be released after the attached child is created.
+            // The host-facing ends remain open for the session's interactive lifetime.
             CloseRawHandle(ref pseudoInputRead);
             CloseRawHandle(ref pseudoOutputWrite);
 
             threadHandle.Dispose();
             threadHandle = null;
+
+            process = Process.GetProcessById(checked((int)processInformation.ProcessId));
 
             input = new FileStream(
                 new SafeFileHandle(hostInputWrite, ownsHandle: true),
@@ -219,11 +223,6 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
         }
         catch
         {
-            if (processHandle is not null && !processAssignedToJob && !processHandle.IsInvalid)
-            {
-                _ = NativeMethods.TerminateProcess(processHandle.DangerousGetHandle(), uint.MaxValue);
-            }
-
             output?.Dispose();
             input?.Dispose();
             process?.Dispose();
@@ -244,6 +243,11 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             {
                 NativeMethods.DeleteProcThreadAttributeList(attributeList);
                 Marshal.FreeHGlobal(attributeList);
+            }
+
+            if (jobListValue != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(jobListValue);
             }
 
             if (commandLineBuffer != IntPtr.Zero)
@@ -733,18 +737,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
 
         [LibraryImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static partial bool AssignProcessToJobObject(IntPtr job, IntPtr process);
-
-        [LibraryImport("kernel32.dll", SetLastError = true)]
-        internal static partial uint ResumeThread(IntPtr thread);
-
-        [LibraryImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool GetExitCodeProcess(IntPtr process, out uint exitCode);
-
-        [LibraryImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static partial bool TerminateProcess(IntPtr process, uint exitCode);
 
         [LibraryImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]

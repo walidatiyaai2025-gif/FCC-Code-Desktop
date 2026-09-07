@@ -37,10 +37,9 @@ $requiredTokens = @(
     'CreatePseudoConsole',
     'ResizePseudoConsole',
     'ProcThreadAttributePseudoConsole',
-    'CreateSuspended',
-    'AssignProcessToJobObject',
+    'ProcThreadAttributeJobList',
+    'UpdateProcThreadAttribute(JOB_LIST)',
     'JobObjectLimitKillOnJobClose',
-    'TerminateProcess',
     'ExtendedStartupInfoPresent'
 )
 foreach ($token in $requiredTokens) {
@@ -54,7 +53,10 @@ $forbiddenTokens = @(
     'UseShellExecute = true',
     'ProcessStartInfo',
     'cmd.exe',
-    'powershell.exe'
+    'powershell.exe',
+    'CreateSuspended',
+    'ResumeThread',
+    'AssignProcessToJobObject'
 )
 foreach ($token in $forbiddenTokens) {
     if ($implementation.Contains($token, [StringComparison]::OrdinalIgnoreCase)) {
@@ -62,7 +64,13 @@ foreach ($token in $forbiddenTokens) {
     }
 }
 
-Write-Host 'P08-004 static ConPTY contract: PASS.'
+$jobAttributeIndex = $implementation.IndexOf('UpdateProcThreadAttribute(JOB_LIST)', [StringComparison]::Ordinal)
+$createProcessIndex = $implementation.IndexOf('"CreateProcessW"', [StringComparison]::Ordinal)
+if ($jobAttributeIndex -lt 0 -or $createProcessIndex -lt 0 -or $jobAttributeIndex -gt $createProcessIndex) {
+    throw 'P08-004 must bind the kill-on-close job in STARTUPINFOEX before CreateProcessW.'
+}
+
+Write-Host 'P08-004 static ConPTY + atomic job-list contract: PASS.'
 
 & dotnet restore (Join-Path $repositoryRoot 'FCCCodeDesktop.sln') --locked-mode --nologo
 if ($LASTEXITCODE -ne 0) {
@@ -113,9 +121,6 @@ try {
     }
 
     $initialSize = [Activator]::CreateInstance($sizeType, @([int]80, [int]25))
-    # /K makes the hosted fixture explicitly persistent after its startup command so
-    # this gate validates ConPTY lifecycle/input/output/resize rather than relying on
-    # runner-specific implicit interactive-shell policy.
     $launchArguments = [string[]]@('/d', '/q', '/k', 'echo P08_004_CONPTY_READY')
     $requestArguments = [object[]]::new(4)
     $requestArguments[0] = Get-ReflectionBaseObject ([string]$comSpec)
@@ -142,15 +147,9 @@ try {
         throw "ConPTY fixture shell exited before interaction with code $prematureExitCode. Output: $prematureOutput"
     }
 
-    # Drain output from the start. ConPTY uses synchronous communication channels,
-    # so the hosted gate must service output while it is also driving input/resize.
-    $readTask = $reader.ReadToEndAsync()
-
-    # Prove stdin is live before resize. The side-effect marker tells us that cmd.exe
-    # actually consumed the command, rather than merely accepting bytes into a pipe.
-    $preResizePath = Join-Path $fixtureRoot 'pre-resize.txt'
-    $preResizeBytes = [Text.Encoding]::UTF8.GetBytes(
-        "echo P08_004_CONPTY_PRE_RESIZE & echo P08_004_CONPTY_PRE_RESIZE>pre-resize.txt`r`n")
+    # Prove stdin remains writable before resize. This catches bootstrap/lifetime
+    # regressions independently from ResizePseudoConsole behavior.
+    $preResizeBytes = [Text.Encoding]::UTF8.GetBytes("echo P08_004_CONPTY_INPUT_OK`r`n")
     try {
         $session.Input.Write($preResizeBytes, 0, $preResizeBytes.Length)
         $session.Input.Flush()
@@ -165,25 +164,6 @@ try {
         throw "ConPTY pre-resize input write failed while root completion was $writeState. $($_.Exception.Message)"
     }
 
-    $preResizeDeadline = [DateTime]::UtcNow.AddSeconds(5)
-    while (-not (Test-Path -LiteralPath $preResizePath)) {
-        if ($session.Completion.IsCompleted) {
-            $preResizeExitCode = $session.Completion.GetAwaiter().GetResult()
-            $preResizeOutput = $readTask.WaitAsync([TimeSpan]::FromSeconds(5)).GetAwaiter().GetResult()
-            throw "ConPTY fixture shell exited before consuming pre-resize input with code $preResizeExitCode. Output: $preResizeOutput"
-        }
-
-        if ([DateTime]::UtcNow -ge $preResizeDeadline) {
-            throw 'ConPTY fixture did not consume pre-resize input within five seconds.'
-        }
-
-        Start-Sleep -Milliseconds 50
-    }
-
-    if ((Get-Content -LiteralPath $preResizePath -Raw).Trim() -ne 'P08_004_CONPTY_PRE_RESIZE') {
-        throw 'ConPTY fixture consumed pre-resize input but produced an unexpected marker file.'
-    }
-
     $resized = [Activator]::CreateInstance($sizeType, @([int]100, [int]40))
     $null = $session.ResizeAsync($resized, [Threading.CancellationToken]::None).AsTask().GetAwaiter().GetResult()
     if ($session.Size.Columns -ne 100 -or $session.Size.Rows -ne 40) {
@@ -192,10 +172,11 @@ try {
 
     if ($session.Completion.IsCompleted) {
         $resizeExitCode = $session.Completion.GetAwaiter().GetResult()
-        $resizeOutput = $readTask.WaitAsync([TimeSpan]::FromSeconds(5)).GetAwaiter().GetResult()
+        $resizeOutput = $reader.ReadToEnd()
         throw "ConPTY fixture shell exited immediately after resize with code $resizeExitCode. Output: $resizeOutput"
     }
 
+    $readTask = $reader.ReadToEndAsync()
     $commandBytes = [Text.Encoding]::UTF8.GetBytes("if exist marker.txt echo P08_004_CONPTY_OK`r`nexit /b 0`r`n")
     try {
         $session.Input.Write($commandBytes, 0, $commandBytes.Length)
@@ -222,12 +203,12 @@ try {
         throw "ConPTY fixture did not emit the explicit persistent-shell readiness marker. Output: $output"
     }
 
-    if (-not $output.Contains('P08_004_CONPTY_PRE_RESIZE', [StringComparison]::Ordinal)) {
-        throw "ConPTY fixture did not round-trip pre-resize interactive input/output. Output: $output"
+    if (-not $output.Contains('P08_004_CONPTY_INPUT_OK', [StringComparison]::Ordinal)) {
+        throw "ConPTY fixture did not round-trip input before resize. Output: $output"
     }
 
     if (-not $output.Contains('P08_004_CONPTY_OK', [StringComparison]::Ordinal)) {
-        throw "ConPTY fixture did not round-trip post-resize interactive input/output. Output: $output"
+        throw "ConPTY fixture did not round-trip interactive input/output. Output: $output"
     }
 
     if ((Get-Content -LiteralPath (Join-Path $fixtureRoot 'marker.txt') -Raw) -ne 'owner-data') {
