@@ -35,16 +35,18 @@ function Assert-InteractiveTerminalContract {
     foreach ($literal in @(
         'xmlns:terminal="clr-namespace:FCCCodeDesktop.App.Terminal"',
         '<terminal:InteractiveTerminalSurface x:Key="InteractiveTerminalSurface" />',
-        'TerminalContent="{StaticResource InteractiveTerminalSurface}"'
+        '<chrome:BottomToolPanelState x:Key="BottomToolPanelState" />'
     )) { Assert-ContainsLiteral $MainXaml $literal 'MainWindow.xaml' }
 
     foreach ($literal in @(
+        'RequireResource<BottomToolPanelState>("BottomToolPanelState")',
         'RequireResource<InteractiveTerminalSurface>("InteractiveTerminalSurface")',
-        'await terminalSurface.DisposeAsync()',
+        'bottomToolPanelState.TerminalContent = terminalSurface',
         '_terminalShutdownStarted',
         '_terminalShutdownCompleted',
         'e.Cancel = true',
-        'await Task.Yield()',
+        'ShutdownTerminalAndCloseAsync()',
+        'await terminalSurface.DisposeAsync()',
         '_projectWorkspaceSurface?.EditorWorkspace.Dispose()'
     )) { Assert-ContainsLiteral $MainCode $literal 'MainWindow.xaml.cs' }
 
@@ -55,7 +57,7 @@ function Assert-InteractiveTerminalContract {
         'AutomationProperties.Name="Start terminal session"',
         'x:Name="CloseButton"',
         'AutomationProperties.Name="Close terminal session"',
-        'x:Name="TerminalOutput"',
+        '<RichTextBox x:Name="TerminalOutput"',
         'PreviewKeyDown="OnPreviewKeyDown"',
         'PreviewTextInput="OnPreviewTextInput"',
         'SizeChanged="OnSurfaceSizeChanged"'
@@ -63,37 +65,52 @@ function Assert-InteractiveTerminalContract {
 
     foreach ($literal in @(
         'MaximumTranscriptCharacters = 250_000',
+        'MaximumPendingOutputCharacters = 65_536',
         'WindowsConPtyTerminalHost()',
         'WindowsOptionalShellDetector()',
         '_terminalHost.StartAsync(request, cancellation.Token)',
         'Encoding.UTF8',
+        'QueueTerminalOutput(new string(characters, 0, charactersUsed))',
+        'Interlocked.CompareExchange(ref _outputFlushScheduled, 1, 0)',
+        'Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(FlushPendingOutput))',
+        'AppendAnsiText(chunk)',
+        'ApplySgr(input.AsSpan',
+        'Color.FromRgb(',
+        'StandardAnsiColor(',
+        'Ansi256Color(',
+        'TrimTranscript()',
+        '_renderedRuns.RemoveFirst()',
+        'TerminalOutput.Selection.Text',
         'await SendInputAsync("\u0003")',
         'Clipboard.ContainsText()',
         'Key.Left => "\u001b[D"',
         'Key.Right => "\u001b[C"',
         'Key.Up => "\u001b[A"',
         'Key.Down => "\u001b[B"',
-        'Task.Delay(75, cancellation.Token)',
+        'Task.Delay(75, cancellationToken)',
         'await session.ResizeAsync(size, cancellationToken)',
-        'AnsiEscape.Replace(text, string.Empty)',
-        '_transcript.Remove(0, _transcript.Length - MaximumTranscriptCharacters)',
-        '_resizeCancellation?.Cancel()',
-        '_resizeCancellation?.Dispose()',
+        'CancelPendingResize()',
         'await session.DisposeAsync()',
         'await outputPump.ConfigureAwait(true)',
         'public async ValueTask DisposeAsync()'
     )) { Assert-ContainsLiteral $TerminalCode $literal 'InteractiveTerminalSurface.xaml.cs' }
 
+    foreach ($forbidden in @(
+        'AnsiEscape.Replace(text, string.Empty)',
+        'TerminalOutput.Text =',
+        'Process.Start(',
+        'cmd.exe /c',
+        'powershell.exe -Command'
+    )) {
+        if ($TerminalCode.Contains($forbidden, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "Interactive terminal contains forbidden implementation: $forbidden"
+        }
+    }
+
     foreach ($placeholder in @('TODO', 'FIXME', 'Coming soon', 'Placeholder')) {
         if ($TerminalXaml.IndexOf($placeholder, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
             $TerminalCode.IndexOf($placeholder, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
             throw "Interactive terminal contains forbidden placeholder text '$placeholder'."
-        }
-    }
-
-    foreach ($forbidden in @('Process.Start(', 'cmd.exe /c', 'powershell.exe -Command')) {
-        if ($TerminalCode.Contains($forbidden, [StringComparison]::OrdinalIgnoreCase)) {
-            throw "Interactive terminal bypasses the typed ConPTY host boundary: $forbidden"
         }
     }
 }
@@ -140,9 +157,13 @@ function Invoke-RuntimeFixture {
 </Project>
 "@
         $program = @'
+using System.Reflection;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
+using System.Windows.Threading;
 using FCCCodeDesktop.App;
 using FCCCodeDesktop.App.Shell;
 using FCCCodeDesktop.App.Terminal;
@@ -155,7 +176,6 @@ internal static class Program
         var app = new App();
         app.InitializeComponent();
         var window = new MainWindow();
-
         var terminal = window.Resources["InteractiveTerminalSurface"] as InteractiveTerminalSurface
             ?? throw new InvalidOperationException("InteractiveTerminalSurface resource was not created.");
         var panelState = window.Resources["BottomToolPanelState"] as BottomToolPanelState
@@ -168,16 +188,38 @@ internal static class Program
             ?? throw new InvalidOperationException("StartButton was not created.");
         var close = terminal.FindName("CloseButton") as Button
             ?? throw new InvalidOperationException("CloseButton was not created.");
-        var output = terminal.FindName("TerminalOutput") as TextBox
-            ?? throw new InvalidOperationException("TerminalOutput was not created.");
+        var output = terminal.FindName("TerminalOutput") as RichTextBox
+            ?? throw new InvalidOperationException("TerminalOutput RichTextBox was not created.");
         Assert(shellSelector is not null, "shell selector");
         Assert(AutomationProperties.GetName(start) == "Start terminal session", "start accessibility name");
         Assert(AutomationProperties.GetName(close) == "Close terminal session", "close accessibility name");
         Assert(AutomationProperties.GetName(output) == "Terminal output and input surface", "output accessibility name");
 
+        var appendAnsi = typeof(InteractiveTerminalSurface).GetMethod("AppendAnsiText", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("AppendAnsiText was not found.");
+        appendAnsi.Invoke(terminal, new object[] { "plain \u001b[31mred\u001b[0m normal" });
+        var renderedText = new TextRange(output.Document.ContentStart, output.Document.ContentEnd).Text;
+        Assert(renderedText.Contains("plain", StringComparison.Ordinal) && renderedText.Contains("red", StringComparison.Ordinal), "ANSI text retained");
+        var runs = output.Document.Blocks.OfType<Paragraph>().SelectMany(paragraph => paragraph.Inlines.OfType<Run>()).ToList();
+        Assert(runs.Any(run => run.Foreground is SolidColorBrush brush && brush.Color.R > brush.Color.G), "ANSI foreground color rendered");
+
+        var queueOutput = typeof(InteractiveTerminalSurface).GetMethod("QueueTerminalOutput", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("QueueTerminalOutput was not found.");
+        for (var index = 0; index < 500; index++)
+        {
+            queueOutput.Invoke(terminal, new object[] { new string('x', 4096) });
+        }
+
+        var scheduledField = typeof(InteractiveTerminalSurface).GetField("_outputFlushScheduled", BindingFlags.Instance | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException("_outputFlushScheduled was not found.");
+        Assert((int)(scheduledField.GetValue(terminal) ?? 0) == 1, "high-output dispatcher work coalesced");
+        await output.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+        renderedText = new TextRange(output.Document.ContentStart, output.Document.ContentEnd).Text;
+        Assert(renderedText.Length <= 250_256, "bounded high-output transcript");
+
         await terminal.DisposeAsync();
         await terminal.DisposeAsync();
-        Console.WriteLine("P08-007 interactive terminal runtime composition/disposal fixture: PASS.");
+        Console.WriteLine("P08-007 interactive terminal ANSI/high-output/lifecycle runtime fixture: PASS.");
     }
 
     private static void Assert(bool condition, string label)
@@ -213,11 +255,15 @@ Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml $terminalCo
 Write-Host 'Static P08-007 interactive terminal UX validation: PASS.'
 
 if ($RunFixtures) {
+    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml ($mainCode.Replace('bottomToolPanelState.TerminalContent = terminalSurface', '')) $terminalXaml $terminalCode } 'terminal composition removed'
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml ($mainCode.Replace('await terminalSurface.DisposeAsync()', 'await Task.CompletedTask')) $terminalXaml $terminalCode } 'window-close terminal disposal removed'
+    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode ($terminalXaml.Replace('<RichTextBox x:Name="TerminalOutput"', '<TextBox x:Name="TerminalOutput"')) $terminalCode } 'rich ANSI surface removed'
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('MaximumTranscriptCharacters = 250_000', 'MaximumTranscriptCharacters = int.MaxValue')) } 'transcript bound removed'
+    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('MaximumPendingOutputCharacters = 65_536', 'MaximumPendingOutputCharacters = int.MaxValue')) } 'pending-output bound removed'
+    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('Interlocked.CompareExchange(ref _outputFlushScheduled, 1, 0)', '0')) } 'dispatcher coalescing removed'
+    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('ApplySgr(input.AsSpan', 'IgnoreSgr(input.AsSpan')) } 'ANSI rendering removed'
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('await SendInputAsync("\u0003")', 'await SendInputAsync(string.Empty)')) } 'Ctrl+C interrupt removed'
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('await session.ResizeAsync(size, cancellationToken)', 'await Task.CompletedTask')) } 'ConPTY resize forwarding removed'
-    Assert-Rejected { Assert-InteractiveTerminalContract ($mainXaml.Replace('TerminalContent="{StaticResource InteractiveTerminalSurface}"', 'TerminalContent="{x:Null}"')) $mainCode $terminalXaml $terminalCode } 'bottom-panel terminal composition removed'
     Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml $terminalCode
     Write-Host 'P08-007 negative/recovery fixtures: PASS.'
 }

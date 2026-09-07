@@ -1,9 +1,10 @@
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using FCCCodeDesktop.Application.Terminal;
 using FCCCodeDesktop.Terminal;
@@ -13,19 +14,28 @@ namespace FCCCodeDesktop.App.Terminal;
 public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
 {
     private const int MaximumTranscriptCharacters = 250_000;
-    private static readonly Regex AnsiEscape = new(
-        "\\x1B(?:\\[[0-?]*[ -/]*[@-~]|\\][^\\x07]*(?:\\x07|\\x1B\\\\))",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private const int MaximumPendingOutputCharacters = 65_536;
+    private const int MaximumCoalescedRunCharacters = 8_192;
 
     private readonly IConPtyTerminalHost _terminalHost;
     private readonly IOptionalShellDetector _optionalShellDetector;
-    private readonly StringBuilder _transcript = new();
     private readonly SemaphoreSlim _lifecycleGate = new(1, 1);
+    private readonly object _outputSync = new();
+    private readonly Queue<string> _pendingOutput = new();
+    private readonly LinkedList<RenderedRun> _renderedRuns = new();
+    private readonly Paragraph _terminalParagraph;
     private IConPtyTerminalSession? _session;
     private CancellationTokenSource? _sessionCancellation;
     private CancellationTokenSource? _resizeCancellation;
     private Task? _outputPump;
+    private int _pendingOutputCharacters;
+    private int _outputFlushScheduled;
+    private int _transcriptCharacters;
+    private string _ansiCarry = string.Empty;
+    private TerminalStyle _terminalStyle;
+    private bool _pendingOutputWasTrimmed;
     private bool _initialized;
+    private bool _disposeStarted;
     private bool _disposed;
 
     public InteractiveTerminalSurface()
@@ -40,24 +50,35 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
         _terminalHost = terminalHost ?? throw new ArgumentNullException(nameof(terminalHost));
         _optionalShellDetector = optionalShellDetector ?? throw new ArgumentNullException(nameof(optionalShellDetector));
         InitializeComponent();
+        _terminalParagraph = new Paragraph { Margin = new Thickness(0) };
+        TerminalOutput.Document.Blocks.Clear();
+        TerminalOutput.Document.Blocks.Add(_terminalParagraph);
         Loaded += OnLoaded;
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if (_disposed || _disposeStarted)
         {
             return;
         }
 
-        _disposed = true;
+        _disposeStarted = true;
         Loaded -= OnLoaded;
-        _resizeCancellation?.Cancel();
-        _resizeCancellation?.Dispose();
-        _resizeCancellation = null;
-        await CloseSessionAsync("Closed").ConfigureAwait(true);
-        _lifecycleGate.Dispose();
-        GC.SuppressFinalize(this);
+        CancelPendingResize();
+        ClearPendingOutput();
+        try
+        {
+            await CloseSessionAsync("Closed").ConfigureAwait(true);
+            _disposed = true;
+            _lifecycleGate.Dispose();
+            GC.SuppressFinalize(this);
+        }
+        catch
+        {
+            _disposeStarted = false;
+            throw;
+        }
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -150,8 +171,7 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
         {
             await CloseSessionCoreAsync().ConfigureAwait(true);
             SetBusyState(true, "Starting…");
-            _transcript.Clear();
-            TerminalOutput.Clear();
+            ResetPresentation();
 
             var request = new ConPtyLaunchRequest(
                 choice.ExecutablePath,
@@ -239,16 +259,10 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
                     out _,
                     out var charactersUsed,
                     out _);
-                if (charactersUsed == 0)
+                if (charactersUsed > 0)
                 {
-                    continue;
+                    QueueTerminalOutput(new string(characters, 0, charactersUsed));
                 }
-
-                var text = new string(characters, 0, charactersUsed);
-                await Dispatcher.InvokeAsync(
-                    () => AppendTerminalText(text),
-                    DispatcherPriority.Background,
-                    cancellationToken);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -262,20 +276,387 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
         }
     }
 
-    private void AppendTerminalText(string text)
+    private void QueueTerminalOutput(string text)
     {
-        var normalized = AnsiEscape.Replace(text, string.Empty)
-            .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Replace('\r', '\n');
-        _transcript.Append(normalized);
-        if (_transcript.Length > MaximumTranscriptCharacters)
+        if (string.IsNullOrEmpty(text) || _disposed)
         {
-            _transcript.Remove(0, _transcript.Length - MaximumTranscriptCharacters);
+            return;
         }
 
-        TerminalOutput.Text = _transcript.ToString();
-        TerminalOutput.CaretIndex = TerminalOutput.Text.Length;
-        TerminalOutput.ScrollToEnd();
+        lock (_outputSync)
+        {
+            _pendingOutput.Enqueue(text);
+            _pendingOutputCharacters += text.Length;
+            while (_pendingOutputCharacters > MaximumPendingOutputCharacters && _pendingOutput.Count > 1)
+            {
+                var dropped = _pendingOutput.Dequeue();
+                _pendingOutputCharacters -= dropped.Length;
+                _pendingOutputWasTrimmed = true;
+            }
+        }
+
+        ScheduleOutputFlush();
+    }
+
+    private void ScheduleOutputFlush()
+    {
+        if (Interlocked.CompareExchange(ref _outputFlushScheduled, 1, 0) != 0)
+        {
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(FlushPendingOutput));
+    }
+
+    private void FlushPendingOutput()
+    {
+        try
+        {
+            List<string> chunks;
+            bool wasTrimmed;
+            lock (_outputSync)
+            {
+                chunks = new List<string>(_pendingOutput.Count);
+                while (_pendingOutput.TryDequeue(out var chunk))
+                {
+                    chunks.Add(chunk);
+                }
+
+                _pendingOutputCharacters = 0;
+                wasTrimmed = _pendingOutputWasTrimmed;
+                _pendingOutputWasTrimmed = false;
+            }
+
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (wasTrimmed)
+            {
+                _ansiCarry = string.Empty;
+                _terminalStyle = default;
+                AppendStyledText("[terminal output coalesced to protect UI responsiveness]\n", default);
+            }
+
+            foreach (var chunk in chunks)
+            {
+                AppendAnsiText(chunk);
+            }
+
+            TerminalOutput.CaretPosition = TerminalOutput.Document.ContentEnd;
+            TerminalOutput.ScrollToEnd();
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _outputFlushScheduled, 0);
+            bool hasPending;
+            lock (_outputSync)
+            {
+                hasPending = _pendingOutput.Count > 0;
+            }
+
+            if (hasPending && !_disposed)
+            {
+                ScheduleOutputFlush();
+            }
+        }
+    }
+
+    private void AppendAnsiText(string text)
+    {
+        var input = (_ansiCarry + text)
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n');
+        _ansiCarry = string.Empty;
+        var plainStart = 0;
+        var index = 0;
+        while (index < input.Length)
+        {
+            if (input[index] != '\u001b')
+            {
+                index++;
+                continue;
+            }
+
+            if (index > plainStart)
+            {
+                AppendStyledText(input[plainStart..index], _terminalStyle);
+            }
+
+            if (!TryConsumeEscapeSequence(input, index, out var nextIndex))
+            {
+                _ansiCarry = input[index..];
+                return;
+            }
+
+            index = nextIndex;
+            plainStart = index;
+        }
+
+        if (plainStart < input.Length)
+        {
+            AppendStyledText(input[plainStart..], _terminalStyle);
+        }
+    }
+
+    private bool TryConsumeEscapeSequence(string input, int start, out int nextIndex)
+    {
+        nextIndex = start;
+        if (start + 1 >= input.Length)
+        {
+            return false;
+        }
+
+        var introducer = input[start + 1];
+        if (introducer == '[')
+        {
+            for (var index = start + 2; index < input.Length; index++)
+            {
+                var final = input[index];
+                if (final is < '@' or > '~')
+                {
+                    continue;
+                }
+
+                if (final == 'm')
+                {
+                    ApplySgr(input.AsSpan(start + 2, index - start - 2));
+                }
+
+                nextIndex = index + 1;
+                return true;
+            }
+
+            return false;
+        }
+
+        if (introducer == ']')
+        {
+            for (var index = start + 2; index < input.Length; index++)
+            {
+                if (input[index] == '\a')
+                {
+                    nextIndex = index + 1;
+                    return true;
+                }
+
+                if (input[index] == '\u001b' && index + 1 < input.Length && input[index + 1] == '\\')
+                {
+                    nextIndex = index + 2;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        nextIndex = start + 2;
+        return true;
+    }
+
+    private void ApplySgr(ReadOnlySpan<char> parameters)
+    {
+        var values = ParseSgr(parameters);
+        for (var index = 0; index < values.Count; index++)
+        {
+            var code = values[index];
+            switch (code)
+            {
+                case 0:
+                    _terminalStyle = default;
+                    break;
+                case 1:
+                    _terminalStyle = _terminalStyle with { Bold = true };
+                    break;
+                case 22:
+                    _terminalStyle = _terminalStyle with { Bold = false };
+                    break;
+                case >= 30 and <= 37:
+                    _terminalStyle = _terminalStyle with { Foreground = StandardAnsiColor(code - 30, bright: false) };
+                    break;
+                case 39:
+                    _terminalStyle = _terminalStyle with { Foreground = null };
+                    break;
+                case >= 40 and <= 47:
+                    _terminalStyle = _terminalStyle with { Background = StandardAnsiColor(code - 40, bright: false) };
+                    break;
+                case 49:
+                    _terminalStyle = _terminalStyle with { Background = null };
+                    break;
+                case >= 90 and <= 97:
+                    _terminalStyle = _terminalStyle with { Foreground = StandardAnsiColor(code - 90, bright: true) };
+                    break;
+                case >= 100 and <= 107:
+                    _terminalStyle = _terminalStyle with { Background = StandardAnsiColor(code - 100, bright: true) };
+                    break;
+                case 38:
+                case 48:
+                    if (TryReadExtendedColor(values, ref index, out var color))
+                    {
+                        _terminalStyle = code == 38
+                            ? _terminalStyle with { Foreground = color }
+                            : _terminalStyle with { Background = color };
+                    }
+
+                    break;
+            }
+        }
+    }
+
+    private static List<int> ParseSgr(ReadOnlySpan<char> parameters)
+    {
+        var values = new List<int>();
+        if (parameters.IsEmpty)
+        {
+            values.Add(0);
+            return values;
+        }
+
+        foreach (var part in parameters.ToString().Split(';'))
+        {
+            values.Add(int.TryParse(part, out var value) ? value : 0);
+        }
+
+        return values;
+    }
+
+    private static bool TryReadExtendedColor(IReadOnlyList<int> values, ref int index, out Color color)
+    {
+        color = default;
+        if (index + 2 < values.Count && values[index + 1] == 5)
+        {
+            color = Ansi256Color(Math.Clamp(values[index + 2], 0, 255));
+            index += 2;
+            return true;
+        }
+
+        if (index + 4 < values.Count && values[index + 1] == 2)
+        {
+            color = Color.FromRgb(
+                (byte)Math.Clamp(values[index + 2], 0, 255),
+                (byte)Math.Clamp(values[index + 3], 0, 255),
+                (byte)Math.Clamp(values[index + 4], 0, 255));
+            index += 4;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static Color Ansi256Color(int value)
+    {
+        if (value < 16)
+        {
+            return StandardAnsiColor(value % 8, value >= 8);
+        }
+
+        if (value < 232)
+        {
+            var cube = value - 16;
+            var red = cube / 36;
+            var green = (cube / 6) % 6;
+            var blue = cube % 6;
+            return Color.FromRgb(CubeComponent(red), CubeComponent(green), CubeComponent(blue));
+        }
+
+        var gray = (byte)(8 + ((value - 232) * 10));
+        return Color.FromRgb(gray, gray, gray);
+    }
+
+    private static byte CubeComponent(int value) => value == 0 ? (byte)0 : (byte)(55 + (value * 40));
+
+    private static Color StandardAnsiColor(int index, bool bright)
+    {
+        var normal = new[]
+        {
+            Color.FromRgb(0, 0, 0),
+            Color.FromRgb(205, 49, 49),
+            Color.FromRgb(13, 188, 121),
+            Color.FromRgb(229, 229, 16),
+            Color.FromRgb(36, 114, 200),
+            Color.FromRgb(188, 63, 188),
+            Color.FromRgb(17, 168, 205),
+            Color.FromRgb(229, 229, 229),
+        };
+        var intense = new[]
+        {
+            Color.FromRgb(102, 102, 102),
+            Color.FromRgb(241, 76, 76),
+            Color.FromRgb(35, 209, 139),
+            Color.FromRgb(245, 245, 67),
+            Color.FromRgb(59, 142, 234),
+            Color.FromRgb(214, 112, 214),
+            Color.FromRgb(41, 184, 219),
+            Color.FromRgb(255, 255, 255),
+        };
+        return (bright ? intense : normal)[Math.Clamp(index, 0, 7)];
+    }
+
+    private void AppendStyledText(string text, TerminalStyle style)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+
+        if (text.Length > MaximumTranscriptCharacters)
+        {
+            text = text[^MaximumTranscriptCharacters..];
+        }
+
+        var last = _renderedRuns.Last?.Value;
+        if (last is not null
+            && last.Style.Equals(style)
+            && last.Length + text.Length <= MaximumCoalescedRunCharacters)
+        {
+            last.Run.Text += text;
+            last.Length += text.Length;
+        }
+        else
+        {
+            var run = new Run(text)
+            {
+                FontWeight = style.Bold ? FontWeights.Bold : FontWeights.Normal,
+            };
+            if (style.Foreground is Color foreground)
+            {
+                run.Foreground = new SolidColorBrush(foreground);
+            }
+
+            if (style.Background is Color background)
+            {
+                run.Background = new SolidColorBrush(background);
+            }
+
+            _terminalParagraph.Inlines.Add(run);
+            _renderedRuns.AddLast(new RenderedRun(run, style, text.Length));
+        }
+
+        _transcriptCharacters += text.Length;
+        TrimTranscript();
+    }
+
+    private void TrimTranscript()
+    {
+        var overflow = _transcriptCharacters - MaximumTranscriptCharacters;
+        while (overflow > 0 && _renderedRuns.First is { } node)
+        {
+            var rendered = node.Value;
+            if (rendered.Length <= overflow)
+            {
+                overflow -= rendered.Length;
+                _transcriptCharacters -= rendered.Length;
+                _terminalParagraph.Inlines.Remove(rendered.Run);
+                _renderedRuns.RemoveFirst();
+                continue;
+            }
+
+            rendered.Run.Text = rendered.Run.Text[overflow..];
+            rendered.Length -= overflow;
+            _transcriptCharacters -= overflow;
+            overflow = 0;
+        }
     }
 
     private async void OnPreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -300,7 +681,7 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
         {
             if (e.Key == Key.C)
             {
-                if (!string.IsNullOrEmpty(TerminalOutput.SelectedText))
+                if (!string.IsNullOrEmpty(TerminalOutput.Selection.Text))
                 {
                     return;
                 }
@@ -379,8 +760,7 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
             return;
         }
 
-        _resizeCancellation?.Cancel();
-        _resizeCancellation?.Dispose();
+        CancelPendingResize();
         _resizeCancellation = new CancellationTokenSource();
         _ = ResizeAfterLayoutSettlesAsync(_resizeCancellation.Token);
     }
@@ -411,6 +791,13 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
         }
     }
 
+    private void CancelPendingResize()
+    {
+        _resizeCancellation?.Cancel();
+        _resizeCancellation?.Dispose();
+        _resizeCancellation = null;
+    }
+
     private TerminalSize MeasureTerminalSize()
     {
         var width = Math.Max(160d, TerminalOutput.ActualWidth - 20d);
@@ -436,6 +823,7 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
 
     private async Task CloseSessionCoreAsync()
     {
+        CancelPendingResize();
         var session = _session;
         var cancellation = _sessionCancellation;
         var outputPump = _outputPump;
@@ -462,6 +850,26 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
 
         cancellation?.Dispose();
         CloseButton.IsEnabled = false;
+    }
+
+    private void ResetPresentation()
+    {
+        ClearPendingOutput();
+        _ansiCarry = string.Empty;
+        _terminalStyle = default;
+        _transcriptCharacters = 0;
+        _renderedRuns.Clear();
+        _terminalParagraph.Inlines.Clear();
+    }
+
+    private void ClearPendingOutput()
+    {
+        lock (_outputSync)
+        {
+            _pendingOutput.Clear();
+            _pendingOutputCharacters = 0;
+            _pendingOutputWasTrimmed = false;
+        }
     }
 
     private void SetBusyState(bool busy, string status)
@@ -494,4 +902,15 @@ public partial class InteractiveTerminalSurface : UserControl, IAsyncDisposable
         string DisplayName,
         string ExecutablePath,
         IReadOnlyList<string> Arguments);
+
+    private readonly record struct TerminalStyle(Color? Foreground, Color? Background, bool Bold);
+
+    private sealed class RenderedRun(Run run, TerminalStyle style, int length)
+    {
+        public Run Run { get; } = run;
+
+        public TerminalStyle Style { get; } = style;
+
+        public int Length { get; set; } = length;
+    }
 }
