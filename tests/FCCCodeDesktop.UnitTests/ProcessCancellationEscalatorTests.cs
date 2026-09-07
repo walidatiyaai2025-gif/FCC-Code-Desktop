@@ -230,12 +230,28 @@ public sealed class ProcessCancellationEscalatorTests
     {
         private readonly TaskCompletionSource<OwnedProcessExit> _completion =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly BoundedProcessOutputPipeline _output;
+
+        public IncompleteSupervisedProcess()
+        {
+            _output = new BoundedProcessOutputPipeline(
+                new ProcessOutputIdentity(
+                    OwnershipId,
+                    RootProcessId,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null));
+        }
 
         public Guid OwnershipId { get; } = Guid.NewGuid();
 
         public int RootProcessId => 42;
 
         public DateTimeOffset StartedUtc { get; } = DateTimeOffset.UtcNow;
+
+        public IProcessOutput Output => _output;
 
         public Task<OwnedProcessExit> Completion => _completion.Task;
 
@@ -247,6 +263,6 @@ public sealed class ProcessCancellationEscalatorTests
             return ValueTask.CompletedTask;
         }
 
-        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        public ValueTask DisposeAsync() => _output.DisposeAsync();
     }
 }
