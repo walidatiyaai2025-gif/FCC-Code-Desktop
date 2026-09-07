@@ -1,0 +1,77 @@
+name: Temporary P08-008 canonical reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p08-008-after-p08-007
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply fail-closed canonical reconciliation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected exactly one match, found {count}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'CURRENT_PHASE.md',
+              '- `FCCD-P08-008` — Process/terminal safety tests — PENDING.',
+              '- `FCCD-P08-008` — Process/terminal safety tests — CLOSED.'
+          )
+
+          current_marker = '## P07 cloud task inventory\n'
+          current_insert = '''## P08-008 integration provenance\n\n- Task: `FCCD-P08-008 — Process/terminal safety tests` — CLOSED.\n- Clean recovery PR #208 (`recovery/fccd-p08-008-main-integration`) isolated the legitimate P08-008 safety work from the then-active P08-007 stack.\n- Exact recovered candidate `8de5f4722b1eeba03966494738f9738bcc106adc` passed Windows CI `34160742045`, Workspace Search `34160742043`, Large Workspace Safeguards `34160742035`, and dedicated P08-008 Process Terminal Safety `34160742072`.\n- PR #208 was normally merged as `7aac8a426031358954ba754a3c98ed1b458f1279`; that exact integration main passed Windows CI `34161388230`, Workspace Search `34161388136`, Large Workspace Safeguards `34161388091`, and dedicated P08-008 Process Terminal Safety `34161388100`.\n- Current canonical main before this reconciliation, `072b6470bef7bb7a540098e338050cb299d1ac2f`, is a descendant whose intervening product changes are confined to P08-007 UX/application paths and do not modify any path selected by `.github/workflows/p08-008-process-terminal-safety.yml`.\n- That current main passed Windows CI `34163272333`, Workspace Search `34163272378`, Large Workspace Safeguards `34163272414`, and P08-007 Interactive Terminal UX `34163272377`; no P08-008 task-local regression is known.\n- Integrated evidence: `evidence/phases/P08/P08_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.\n- No owner-only evidence is required or added. All P08 task rows are now CLOSED, but P08 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN` until a separate phase-exit convergence/gate passes and is integrated. P09/P15 and later implementation remain prohibited; `VERIFIED_FINAL_COMPLETE=false`.\n\n'''
+          p = Path('CURRENT_PHASE.md')
+          text = p.read_text(encoding='utf-8')
+          if current_marker not in text:
+              raise SystemExit('CURRENT_PHASE.md: insertion marker missing')
+          if '## P08-008 integration provenance' in text:
+              raise SystemExit('CURRENT_PHASE.md: P08-008 provenance already exists')
+          p.write_text(text.replace(current_marker, current_insert + current_marker, 1), encoding='utf-8')
+
+          replace_once(
+              'docs/TASK_LEDGER.md',
+              '| FCCD-P08-008 | Process/terminal safety tests | PENDING |',
+              '| FCCD-P08-008 | Process/terminal safety tests | CLOSED |'
+          )
+
+          old_next = '''`CURRENT_PHASE = P08` remains `IN_PROGRESS`. `FCCD-P08-001` through `FCCD-P08-007` are now canonically CLOSED after implementation, exact-head validation, normal integration, exact-main validation, and durable reconciliation. `FCCD-P08-008 — Process/terminal safety tests` remains PENDING and `PHASE_EXIT_GATE=NOT_RUN`.\n\nP04/P05 owner-last status remains governed exclusively by the canonical owner queue and current control files; this P08-007 reconciliation does not add, remove, pass, or waive any owner obligation.\n\nThe next legal action is a fresh live-state scan for current-phase claims, stale/integration-pending P08 work, open PRs, and exact-current-main CI. If no higher-priority P08 recovery exists, `FCCD-P08-008 — Process/terminal safety tests` is the final dependency-valid P08 task. P09 and later implementation remain prohibited until P08-008 is CLOSED and the P08 phase exit gate and closure evidence are formally integrated and exact-main verified.'''
+          new_next = '''`CURRENT_PHASE = P08` remains `IN_PROGRESS`. `FCCD-P08-001` through `FCCD-P08-008` are now canonically CLOSED after implementation/recovery, exact-head validation, normal integration, exact-main validation, and durable task reconciliation. `PHASE_EXIT_GATE=NOT_RUN`.\n\nP04/P05 owner-last status remains governed exclusively by the canonical owner queue and current control files. P08-008 adds no owner-only obligation and does not pass or waive `OWNER-P04-008-REAL-TARGET`.\n\nThe next legal cloud action is a separate P08 phase-exit convergence on the exact current integrated baseline: verify zero unresolved P08 cloud defects/claims, run the strongest P08 exact-head phase gate defined by canonical execution policy, repair any cloud failure, and only if that gate genuinely passes integrate `evidence/phases/P08/CLOSURE.md` and advance the canonical cloud phase to P09. P09/P15 and later implementation remain prohibited until that separate phase-level closure is normally integrated and exact-main verified.'''
+          replace_once('docs/TASK_LEDGER.md', old_next, new_next)
+
+          ledger_marker = '## P09 — External Tool Gateway\n'
+          ledger_insert = '''`FCCD-P08-008` is CLOSED from the clean P08-008 recovery/integration plus exact-current-main applicability evidence. Recovery PR #208 exact candidate `8de5f4722b1eeba03966494738f9738bcc106adc` passed Windows CI `34160742045`, Workspace Search `34160742043`, Large Workspace Safeguards `34160742035`, and dedicated P08-008 Process Terminal Safety `34160742072`; PR #208 normally merged as `7aac8a426031358954ba754a3c98ed1b458f1279`, whose exact-main Windows CI `34161388230`, Workspace Search `34161388136`, Large Workspace Safeguards `34161388091`, and dedicated P08-008 gate `34161388100` all passed. Current main `072b6470bef7bb7a540098e338050cb299d1ac2f` descends from that merge, and the intervening product changes are confined to P08-007 paths outside the P08-008 workflow-selected safety scope; current-main Windows CI `34163272333`, Workspace Search `34163272378`, Large Workspace Safeguards `34163272414`, and P08-007 gate `34163272377` all passed. Task evidence: `evidence/phases/P08/P08_008_INTEGRATED_RECONCILIATION_2026-09-08.md`. No owner-only obligation is added. All P08 task rows are CLOSED, but the P08 phase itself remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN` pending separate phase-exit convergence; P09/P15+ remain prohibited and `VERIFIED_FINAL_COMPLETE=false`.\n\n'''
+          p = Path('docs/TASK_LEDGER.md')
+          text = p.read_text(encoding='utf-8')
+          if ledger_marker not in text:
+              raise SystemExit('TASK_LEDGER.md: P09 marker missing')
+          if '`FCCD-P08-008` is CLOSED from the clean P08-008 recovery/integration' in text:
+              raise SystemExit('TASK_LEDGER.md: P08-008 closure prose already exists')
+          p.write_text(text.replace(ledger_marker, ledger_insert + ledger_marker, 1), encoding='utf-8')
+          PY
+      - name: Remove temporary workflow and commit reconciliation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/_temp-p08-008-reconcile.yml
+          git add CURRENT_PHASE.md docs/TASK_LEDGER.md evidence/phases/P08/P08_008_INTEGRATED_RECONCILIATION_2026-09-08.md
+          git diff --cached --check
+          git commit -m "docs(p08-008): finalize canonical reconciliation"
+          git push origin HEAD:reconcile/fccd-p08-008-after-p08-007
