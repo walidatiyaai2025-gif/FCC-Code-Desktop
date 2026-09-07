@@ -48,3 +48,5 @@ Exact accepted-main permanent gates:
 This evidence closes only `FCCD-P08-001`. P08 remains `IN_PROGRESS`, `PHASE_EXIT_GATE=NOT_RUN`, and `FCCD-P08-002` through `FCCD-P08-008` remain PENDING. P09 and later implementation remain prohibited until P08 truthfully closes.
 
 The canonical final-owner queue is unchanged: `OWNER-P04-008-REAL-TARGET` and `OWNER-P05-EXIT-REAL-TARGET` remain `QUEUED`, release-blocking obligations. No real-target/manual evidence is fabricated or reclassified, and `VERIFIED_FINAL_COMPLETE=false` remains mandatory.
+
+Reconciliation was applied by guarded run `34075323776`, which required exact base `ac54e739019e7264db5de3f9b26b700735924bc1`, verified the four-file durable scope, and removed its temporary orchestration before producing the reconciliation candidate.
