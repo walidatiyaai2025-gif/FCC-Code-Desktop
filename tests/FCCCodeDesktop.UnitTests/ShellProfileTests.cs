@@ -1,4 +1,5 @@
 using FCCCodeDesktop.Runtime;
+using Xunit;
 
 namespace FCCCodeDesktop.UnitTests;
 
@@ -19,5 +20,17 @@ public sealed class ShellProfileTests
     public void ProfileRejectsMissingIdentity()
     {
         Assert.Throws<ArgumentException>(() => new ShellProfile("", "cmd", "cmd.exe", [], true));
+    }
+
+    [Fact]
+    public void ProfileSnapshotsCallerArguments()
+    {
+        var source = new List<string> { "-NoLogo" };
+        var profile = new ShellProfile("powershell", "PowerShell", "powershell.exe", source, true);
+
+        source[0] = "-EncodedCommand";
+        source.Add("malicious-change");
+
+        Assert.Equal(["-NoLogo"], profile.Arguments);
     }
 }
