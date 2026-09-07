@@ -27,11 +27,11 @@ The owner supervises outcomes. AI workers research, choose, implement, verify an
 PROJECT_STATE: SPECIFICATION_AND_CONTROL_BASELINE
 RELEASE_STATE: NOT_RELEASED
 TARGET_VERSION: 1.0.0
-CURRENT_PHASE: P07
-CURRENT_PHASE_NAME: Change review + Git
-CURRENT_PHASE_STATE: CLOSED
-NEXT_PHASE: P08
-PHASE_EXIT_GATE: PASS
+CURRENT_PHASE: P08
+CURRENT_PHASE_NAME: Terminal/process supervision
+CURRENT_PHASE_STATE: IN_PROGRESS
+NEXT_PHASE: P09
+PHASE_EXIT_GATE: NOT_RUN
 KNOWN_RELEASE_BLOCKERS: 2
 VERIFIED_FINAL_COMPLETE: false
 OWNER_LAST_MODE: ACTIVE
@@ -50,7 +50,9 @@ P05 cloud implementation is complete and integrated: `FCCD-P05-001` through `FCC
 
 P06 is canonically CLOSED: `FCCD-P06-001` through `FCCD-P06-008` are CLOSED, dedicated exact-candidate P06 phase-exit run `34030997937` completed SUCCESS, closure PR #160 was normally merged as `38f01c2c07104b1e169a8fd4606f374e499cafc7`, and exact post-merge Windows CI run `34031863567`, Workspace Search run `34031863569`, and Large Workspace Safeguards run `34031863551` all completed SUCCESS. Closure evidence is `evidence/phases/P06/CLOSURE.md`.
 
-P07 — Change review + Git — is canonically CLOSED in this closure state. `FCCD-P07-001` through `FCCD-P07-011` are CLOSED after exact PR-head validation, normal merge integration, exact post-merge canonical-main validation, and durable task reconciliation. Exact immutable phase candidate `7561dd88b16531403a9f8f5667db17801105687f` passed pre-closure Windows CI `34068325212` / #431, Workspace Search `34068325218` / #160, and Large Workspace Safeguards `34068325246` / #144, then dedicated P07 phase-exit run `34068796895` / job `101582228434` completed SUCCESS with the full Windows baseline, explicit Git acceptance suite, exact-SHA/diff-hygiene guards, and a clean worktree. Closure evidence is `evidence/phases/P07/CLOSURE.md`. `CURRENT_PHASE` deliberately remains P07 until this closure change is normally integrated and the resulting exact canonical `main` remains green; only then may a separate governance transition activate P08. The two earlier owner-last queue obligations remain unresolved/release-blocking, `P04=NOT_RUN`, `P05=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
+P07 — Change review + Git — is canonically CLOSED: `FCCD-P07-001` through `FCCD-P07-011` are CLOSED after exact PR-head validation, normal merge integration, exact post-merge canonical-main validation, and durable task reconciliation. Exact immutable phase candidate `7561dd88b16531403a9f8f5667db17801105687f` passed pre-closure Windows CI `34068325212` / #431, Workspace Search `34068325218` / #160, and Large Workspace Safeguards `34068325246` / #144; dedicated P07 phase-exit run `34068796895` / job `101582228434` completed SUCCESS; closure PR #187 was normally merged as `e94f241b75ab7119bbb45f48872d24b78c5f9007`; and exact post-closure Windows CI `34069973813` / #433, Workspace Search `34069973830` / #162, and Large Workspace Safeguards `34069973823` / #146 all completed SUCCESS. Closure evidence is `evidence/phases/P07/CLOSURE.md`.
+
+P08 — Terminal/process supervision — is now the single active cloud implementation/convergence phase. Its eight mandatory ledger tasks remain PENDING at activation. Workers must select dependency-valid unclaimed P08 work while preserving owned-process boundaries, bounded output, cancellation escalation, interactive terminal safety, and owner work. P09 and later implementation remain prohibited until P08 is truthfully closed. The two earlier owner-last queue obligations remain unresolved/release-blocking, `P04=NOT_RUN`, `P05=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all queued owner evidence is genuinely executed, reviewed, integrated, and reconciled and every normal mandatory release gate passes.
 
 ---
 
