@@ -113,7 +113,7 @@ try {
     }
 
     $initialSize = [Activator]::CreateInstance($sizeType, @([int]80, [int]25))
-    $launchArguments = [string[]]@('/d', '/q', '/k', 'ver >nul')
+    $launchArguments = [string[]]@('/d', '/q')
     $requestArguments = [object[]]::new(4)
     $requestArguments[0] = Get-ReflectionBaseObject ([string]$comSpec)
     $requestArguments[1] = $launchArguments
