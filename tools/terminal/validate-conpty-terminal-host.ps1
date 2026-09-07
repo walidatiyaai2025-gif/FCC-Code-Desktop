@@ -113,7 +113,7 @@ try {
     }
 
     $initialSize = [Activator]::CreateInstance($sizeType, @([int]80, [int]25))
-    $launchArguments = [string[]]@('/d', '/q')
+    $launchArguments = [string[]]@('/d', '/q', '/k', 'ver >nul')
     $requestArguments = [object[]]::new(4)
     $requestArguments[0] = Get-ReflectionBaseObject ([string]$comSpec)
     $requestArguments[1] = $launchArguments
@@ -132,13 +132,19 @@ try {
         throw 'ConPTY session returned an invalid process ID.'
     }
 
+    $reader = [IO.StreamReader]::new($session.Output, [Text.Encoding]::UTF8, $true, 4096, $true)
+    if ($session.Completion.IsCompleted) {
+        $prematureExitCode = $session.Completion.GetAwaiter().GetResult()
+        $prematureOutput = $reader.ReadToEnd()
+        throw "ConPTY fixture shell exited before interaction with code $prematureExitCode. Output: $prematureOutput"
+    }
+
     $resized = [Activator]::CreateInstance($sizeType, @([int]100, [int]40))
-    $session.ResizeAsync($resized, [Threading.CancellationToken]::None).AsTask().GetAwaiter().GetResult()
+    $null = $session.ResizeAsync($resized, [Threading.CancellationToken]::None).AsTask().GetAwaiter().GetResult()
     if ($session.Size.Columns -ne 100 -or $session.Size.Rows -ne 40) {
         throw 'ConPTY resize did not update the observable terminal size.'
     }
 
-    $reader = [IO.StreamReader]::new($session.Output, [Text.Encoding]::UTF8, $true, 4096, $true)
     $readTask = $reader.ReadToEndAsync()
     $commandBytes = [Text.Encoding]::UTF8.GetBytes("if exist marker.txt echo P08_004_CONPTY_OK`r`nexit /b 0`r`n")
     $session.Input.Write($commandBytes, 0, $commandBytes.Length)
