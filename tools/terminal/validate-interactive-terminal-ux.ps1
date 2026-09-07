@@ -41,6 +41,10 @@ function Assert-InteractiveTerminalContract {
     foreach ($literal in @(
         'RequireResource<InteractiveTerminalSurface>("InteractiveTerminalSurface")',
         'await terminalSurface.DisposeAsync()',
+        '_terminalShutdownStarted',
+        '_terminalShutdownCompleted',
+        'e.Cancel = true',
+        'await Task.Yield()',
         '_projectWorkspaceSurface?.EditorWorkspace.Dispose()'
     )) { Assert-ContainsLiteral $MainCode $literal 'MainWindow.xaml.cs' }
 
@@ -63,16 +67,18 @@ function Assert-InteractiveTerminalContract {
         'WindowsOptionalShellDetector()',
         '_terminalHost.StartAsync(request, cancellation.Token)',
         'Encoding.UTF8',
-        'await SendInputAsync("\\u0003")',
+        'await SendInputAsync("\u0003")',
         'Clipboard.ContainsText()',
-        'Key.Left => "\\u001b[D"',
-        'Key.Right => "\\u001b[C"',
-        'Key.Up => "\\u001b[A"',
-        'Key.Down => "\\u001b[B"',
+        'Key.Left => "\u001b[D"',
+        'Key.Right => "\u001b[C"',
+        'Key.Up => "\u001b[A"',
+        'Key.Down => "\u001b[B"',
         'Task.Delay(75, cancellation.Token)',
-        'await session.ResizeAsync(requested, cancellation.Token)',
+        'await session.ResizeAsync(size, cancellationToken)',
         'AnsiEscape.Replace(text, string.Empty)',
         '_transcript.Remove(0, _transcript.Length - MaximumTranscriptCharacters)',
+        '_resizeCancellation?.Cancel()',
+        '_resizeCancellation?.Dispose()',
         'await session.DisposeAsync()',
         'await outputPump.ConfigureAwait(true)',
         'public async ValueTask DisposeAsync()'
@@ -156,10 +162,15 @@ internal static class Program
             ?? throw new InvalidOperationException("BottomToolPanelState resource was not created.");
         Assert(ReferenceEquals(panelState.TerminalContent, terminal), "terminal content composition");
 
-        Assert(terminal.FindName("ShellSelector") is ComboBox, "shell selector");
-        Assert(terminal.FindName("StartButton") is Button start, "start button");
-        Assert(terminal.FindName("CloseButton") is Button close, "close button");
-        Assert(terminal.FindName("TerminalOutput") is TextBox output, "terminal output");
+        var shellSelector = terminal.FindName("ShellSelector") as ComboBox
+            ?? throw new InvalidOperationException("ShellSelector was not created.");
+        var start = terminal.FindName("StartButton") as Button
+            ?? throw new InvalidOperationException("StartButton was not created.");
+        var close = terminal.FindName("CloseButton") as Button
+            ?? throw new InvalidOperationException("CloseButton was not created.");
+        var output = terminal.FindName("TerminalOutput") as TextBox
+            ?? throw new InvalidOperationException("TerminalOutput was not created.");
+        Assert(shellSelector is not null, "shell selector");
         Assert(AutomationProperties.GetName(start) == "Start terminal session", "start accessibility name");
         Assert(AutomationProperties.GetName(close) == "Close terminal session", "close accessibility name");
         Assert(AutomationProperties.GetName(output) == "Terminal output and input surface", "output accessibility name");
@@ -204,8 +215,8 @@ Write-Host 'Static P08-007 interactive terminal UX validation: PASS.'
 if ($RunFixtures) {
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml ($mainCode.Replace('await terminalSurface.DisposeAsync()', 'await Task.CompletedTask')) $terminalXaml $terminalCode } 'window-close terminal disposal removed'
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('MaximumTranscriptCharacters = 250_000', 'MaximumTranscriptCharacters = int.MaxValue')) } 'transcript bound removed'
-    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('await SendInputAsync("\\u0003")', 'await SendInputAsync(string.Empty)')) } 'Ctrl+C interrupt removed'
-    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('await session.ResizeAsync(requested, cancellation.Token)', 'await Task.CompletedTask')) } 'ConPTY resize forwarding removed'
+    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('await SendInputAsync("\u0003")', 'await SendInputAsync(string.Empty)')) } 'Ctrl+C interrupt removed'
+    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('await session.ResizeAsync(size, cancellationToken)', 'await Task.CompletedTask')) } 'ConPTY resize forwarding removed'
     Assert-Rejected { Assert-InteractiveTerminalContract ($mainXaml.Replace('TerminalContent="{StaticResource InteractiveTerminalSurface}"', 'TerminalContent="{x:Null}"')) $mainCode $terminalXaml $terminalCode } 'bottom-panel terminal composition removed'
     Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml $terminalCode
     Write-Host 'P08-007 negative/recovery fixtures: PASS.'
