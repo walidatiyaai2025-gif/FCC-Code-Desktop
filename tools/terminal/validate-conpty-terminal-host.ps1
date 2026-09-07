@@ -185,11 +185,11 @@ function Assert-ConPtyStartFailure {
     }
     catch {
         $observed = $_.Exception
-        while ($observed -is [Reflection.TargetInvocationException] -and $observed.InnerException) {
+        # PowerShell reflection adds MethodInvocationException and
+        # TargetInvocationException wrappers. Acceptance is about the contract
+        # exception produced by the host, so unwrap to the deepest cause.
+        while ($observed.InnerException) {
             $observed = $observed.InnerException
-        }
-        if ($observed -is [AggregateException] -and $observed.InnerExceptions.Count -eq 1) {
-            $observed = $observed.InnerExceptions[0]
         }
     }
 
