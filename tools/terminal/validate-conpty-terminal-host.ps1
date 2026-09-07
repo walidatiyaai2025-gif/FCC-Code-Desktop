@@ -83,6 +83,12 @@ $terminalAssembly = [Reflection.Assembly]::LoadFrom($terminalAssemblyPath)
 $sizeType = $applicationAssembly.GetType('FCCCodeDesktop.Application.Terminal.TerminalSize', $true)
 $requestType = $applicationAssembly.GetType('FCCCodeDesktop.Application.Terminal.ConPtyLaunchRequest', $true)
 $hostType = $terminalAssembly.GetType('FCCCodeDesktop.Terminal.WindowsConPtyTerminalHost', $true)
+$enumerableStringType = [Collections.Generic.IEnumerable[string]]
+$requestConstructor = $requestType.GetConstructor(
+    [Type[]]@([string], $enumerableStringType, [string], $sizeType))
+if ($null -eq $requestConstructor) {
+    throw 'The expected ConPtyLaunchRequest constructor was not found.'
+}
 
 $fixtureRoot = Join-Path ([IO.Path]::GetTempPath()) ('fcc-p08-004 conpty عربي ' + [Guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($fixtureRoot) | Out-Null
@@ -103,7 +109,7 @@ try {
     $requestArguments[1] = $launchArguments
     $requestArguments[2] = $fixtureRoot
     $requestArguments[3] = $initialSize
-    $request = [Activator]::CreateInstance($requestType, $requestArguments)
+    $request = $requestConstructor.Invoke($requestArguments)
 
     $host = [Activator]::CreateInstance($hostType)
     $startArguments = [object[]]::new(2)
