@@ -1,0 +1,57 @@
+name: Temp P08 activation
+
+on:
+  push:
+    branches:
+      - governance/p08-cloud-activation
+
+permissions:
+  contents: write
+
+jobs:
+  activate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Guard exact source main
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_SHA="e94f241b75ab7119bbb45f48872d24b78c5f9007"
+          git fetch origin main --no-tags
+          test "$(git rev-parse origin/main)" = "$SOURCE_SHA"
+          test "$(git merge-base HEAD origin/main)" = "$SOURCE_SHA"
+      - name: Apply guarded activation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python .github/temp/p08-activation.py
+      - name: Verify durable scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          SOURCE_SHA="e94f241b75ab7119bbb45f48872d24b78c5f9007"
+          actual="$(git diff --name-only "$SOURCE_SHA" -- | sort)"
+          expected="$(printf '%s\n' CURRENT_PHASE.md PROJECT_CONTROL.md evidence/governance/OWNER_LAST_P08_CLOUD_ACTIVATION_2026-09-07.md | sort)"
+          printf 'Durable diff:\n%s\n' "$actual"
+          test "$actual" = "$expected"
+          grep -Fq 'CURRENT_PHASE: P08' CURRENT_PHASE.md
+          grep -Fq 'CURRENT_PHASE_STATE: IN_PROGRESS' CURRENT_PHASE.md
+          grep -Fq 'NEXT_PHASE: P09' CURRENT_PHASE.md
+          grep -Fq 'PHASE_EXIT_GATE: NOT_RUN' CURRENT_PHASE.md
+          grep -Fq 'CURRENT_PHASE: P08' PROJECT_CONTROL.md
+          grep -Fq 'KNOWN_RELEASE_BLOCKERS: 2' CURRENT_PHASE.md
+          grep -Fq 'VERIFIED_FINAL_COMPLETE: false' CURRENT_PHASE.md
+          test ! -e .github/temp/p08-activation.py
+          test ! -e .github/workflows/temp-p08-activation.yml
+      - name: Commit canonical activation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "walidatiyaai2025-gif"
+          git config user.email "walidatiyaai2025@gmail.com"
+          git add -A
+          git commit -m "Governance: activate P08 Terminal/process supervision"
+          git push origin HEAD:governance/p08-cloud-activation
