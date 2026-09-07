@@ -116,7 +116,7 @@ try {
     $launchArguments = [string[]]@('/d', '/q')
     $requestArguments = [object[]]::new(4)
     $requestArguments[0] = Get-ReflectionBaseObject ([string]$comSpec)
-    $requestArguments[1] = Get-ReflectionBaseObject $launchArguments
+    $requestArguments[1] = $launchArguments
     $requestArguments[2] = Get-ReflectionBaseObject ([string]$fixtureRoot)
     $requestArguments[3] = Get-ReflectionBaseObject $initialSize
     $request = $requestConstructor.Invoke($requestArguments)
