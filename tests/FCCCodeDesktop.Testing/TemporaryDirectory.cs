@@ -2,6 +2,9 @@ namespace FCCCodeDesktop.Testing;
 
 public sealed class TemporaryDirectory : IDisposable
 {
+    private const int DeleteAttemptCount = 20;
+    private const int DeleteRetryDelayMilliseconds = 100;
+
     private string? _path;
 
     public TemporaryDirectory(string prefix = "fccd-test")
@@ -55,11 +58,29 @@ public sealed class TemporaryDirectory : IDisposable
 
         if (Directory.Exists(path))
         {
-            ClearReadOnlyAttributes(path);
-            Directory.Delete(path, recursive: true);
+            DeleteDirectoryWithTransientRetry(path);
         }
 
         GC.SuppressFinalize(this);
+    }
+
+    private static void DeleteDirectoryWithTransientRetry(string path)
+    {
+        for (var attempt = 1; attempt <= DeleteAttemptCount; attempt++)
+        {
+            try
+            {
+                ClearReadOnlyAttributes(path);
+                Directory.Delete(path, recursive: true);
+                return;
+            }
+            catch (Exception ex) when (
+                attempt < DeleteAttemptCount &&
+                (ex is IOException or UnauthorizedAccessException))
+            {
+                Thread.Sleep(DeleteRetryDelayMilliseconds);
+            }
+        }
     }
 
     private static void ClearReadOnlyAttributes(string rootPath)
