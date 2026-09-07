@@ -18,6 +18,7 @@ public sealed class ProcessSupervisor : IProcessSupervisor
 
     private const int MaximumFailureMessageCharacters = 2_048;
     private readonly ConcurrentDictionary<Guid, SupervisedProcess> _active = new();
+    private readonly object _lifecycleGate = new();
     private int _disposed;
 
     public IReadOnlyList<OwnedProcessSnapshot> GetActiveProcesses() =>
@@ -30,121 +31,130 @@ public sealed class ProcessSupervisor : IProcessSupervisor
         ProcessLaunchRequest request,
         CancellationToken cancellationToken = default)
     {
-        ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
         ArgumentNullException.ThrowIfNull(request);
         cancellationToken.ThrowIfCancellationRequested();
-
         ValidateRequest(request);
 
-        if (!OperatingSystem.IsWindows())
+        lock (_lifecycleGate)
         {
-            return Task.FromResult(
-                new ProcessLaunchResult(
-                    ProcessLaunchStatus.UnsupportedPlatform,
-                    null,
-                    "Owned Windows process-tree supervision requires Windows."));
-        }
+            ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
 
-        if (!Directory.Exists(request.WorkingDirectory))
-        {
-            return Task.FromResult(
-                new ProcessLaunchResult(
-                    ProcessLaunchStatus.InvalidWorkingDirectory,
-                    null,
-                    "The requested process working directory does not exist."));
-        }
-
-        WindowsJobObject? job = null;
-        Process? process = null;
-        try
-        {
-            job = WindowsJobObject.Create();
-            process = new Process
+            if (!OperatingSystem.IsWindows())
             {
-                StartInfo = BuildStartInfo(request),
-                EnableRaisingEvents = false,
-            };
-
-            if (!process.Start())
-            {
-                process.Dispose();
-                job.Dispose();
                 return Task.FromResult(
                     new ProcessLaunchResult(
-                        ProcessLaunchStatus.StartFailed,
+                        ProcessLaunchStatus.UnsupportedPlatform,
                         null,
-                        "The process API returned without starting the requested executable."));
+                        "Owned Windows process-tree supervision requires Windows."));
             }
 
-            cancellationToken.ThrowIfCancellationRequested();
+            if (!Directory.Exists(request.WorkingDirectory))
+            {
+                return Task.FromResult(
+                    new ProcessLaunchResult(
+                        ProcessLaunchStatus.InvalidWorkingDirectory,
+                        null,
+                        "The requested process working directory does not exist."));
+            }
 
+            WindowsJobObject? job = null;
+            Process? process = null;
             try
             {
-                job.Assign(process);
+                job = WindowsJobObject.Create();
+                process = new Process
+                {
+                    StartInfo = BuildStartInfo(request),
+                    EnableRaisingEvents = false,
+                };
+
+                if (!process.Start())
+                {
+                    process.Dispose();
+                    job.Dispose();
+                    return Task.FromResult(
+                        new ProcessLaunchResult(
+                            ProcessLaunchStatus.StartFailed,
+                            null,
+                            "The process API returned without starting the requested executable."));
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                try
+                {
+                    job.Assign(process);
+                }
+                catch
+                {
+                    TryKillUnassignedTree(process);
+                    throw;
+                }
+
+                var ownershipId = Guid.NewGuid();
+                var owned = new SupervisedProcess(
+                    ownershipId,
+                    process,
+                    job,
+                    DateTimeOffset.UtcNow,
+                    RemoveActive);
+                process = null;
+                job = null;
+
+                if (!_active.TryAdd(ownershipId, owned))
+                {
+                    owned.BeginObservation();
+                    owned.DisposeAsync().AsTask().GetAwaiter().GetResult();
+                    throw new InvalidOperationException("Failed to register a newly owned process tree.");
+                }
+
+                owned.BeginObservation();
+                return Task.FromResult(
+                    new ProcessLaunchResult(ProcessLaunchStatus.Started, owned));
+            }
+            catch (OperationCanceledException)
+            {
+                if (process is not null)
+                {
+                    TryKillUnassignedTree(process);
+                }
+
+                process?.Dispose();
+                job?.Dispose();
+                throw;
+            }
+            catch (Win32Exception exception)
+            {
+                process?.Dispose();
+                job?.Dispose();
+                return Task.FromResult(
+                    new ProcessLaunchResult(
+                        ClassifyStartFailure(exception.NativeErrorCode),
+                        null,
+                        BoundFailureMessage(exception.Message)));
             }
             catch
             {
-                TryKillUnassignedTree(process);
+                process?.Dispose();
+                job?.Dispose();
                 throw;
             }
-
-            var ownershipId = Guid.NewGuid();
-            var owned = new SupervisedProcess(
-                ownershipId,
-                process,
-                job,
-                DateTimeOffset.UtcNow,
-                RemoveActive);
-            process = null;
-            job = null;
-
-            if (!_active.TryAdd(ownershipId, owned))
-            {
-                owned.DisposeAsync().AsTask().GetAwaiter().GetResult();
-                throw new InvalidOperationException("Failed to register a newly owned process tree.");
-            }
-
-            owned.BeginObservation();
-            return Task.FromResult(
-                new ProcessLaunchResult(ProcessLaunchStatus.Started, owned));
-        }
-        catch (OperationCanceledException)
-        {
-            if (process is not null)
-            {
-                TryKillUnassignedTree(process);
-            }
-
-            process?.Dispose();
-            job?.Dispose();
-            throw;
-        }
-        catch (Win32Exception exception)
-        {
-            process?.Dispose();
-            job?.Dispose();
-            return Task.FromResult(
-                new ProcessLaunchResult(
-                    ClassifyStartFailure(exception.NativeErrorCode),
-                    null,
-                    BoundFailureMessage(exception.Message)));
-        }
-        catch
-        {
-            process?.Dispose();
-            job?.Dispose();
-            throw;
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        SupervisedProcess[] active;
+        lock (_lifecycleGate)
         {
-            return;
+            if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            {
+                return;
+            }
+
+            active = _active.Values.ToArray();
         }
 
-        var active = _active.Values.ToArray();
         foreach (var process in active)
         {
             await process.DisposeAsync().ConfigureAwait(false);
