@@ -83,7 +83,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - `FCCD-P08-001` — Process supervisor with owned process-tree tracking — CLOSED.
 - `FCCD-P08-002` — Graceful→forced cancellation escalation — CLOSED.
 - `FCCD-P08-003` — Bounded streaming log pipeline — CLOSED.
-- `FCCD-P08-004` — ConPTY terminal host — PENDING.
+- `FCCD-P08-004` — ConPTY terminal host — CLOSED.
 - `FCCD-P08-005` — PowerShell/CMD profiles — CLOSED.
 - `FCCD-P08-006` — Optional Git Bash/WSL detection — CLOSED.
 - `FCCD-P08-007` — Interactive terminal UX — PENDING.
@@ -160,6 +160,27 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact accepted-main P08-003 Bounded Process Output: run `34090854589` / #3 — SUCCESS.
 - Integrated evidence: `evidence/phases/P08/P08_003_INTEGRATED_RECONCILIATION_2026-09-07.md`.
 - Evidence is cloud/hosted-Windows bounded-process-output evidence only. P08 remains IN_PROGRESS; P08-004, P08-007, and P08-008 remain PENDING; P09/P14 and later phases remain prohibited. The owner queue is unchanged and `VERIFIED_FINAL_COMPLETE` remains false.
+
+## P08-004 integration provenance
+
+- Task: `FCCD-P08-004 — ConPTY terminal host` — CLOSED.
+- Implementation PR: #196 (`worker/fccd-p08-004-conpty-terminal-host`).
+- Exact implementation candidate: `218cc7d93fafb690a5e2cf7192970bf6be0caa1f`.
+- Exact implementation-head Windows CI: run `34119217635` / #534 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34119217493` / #263 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34119217492` / #247 — SUCCESS.
+- Exact implementation-head P08-004 ConPTY Terminal Host: run `34119217478` / #29 — SUCCESS.
+- Normal implementation merge: `da9caf9fb1542b7e080ddd768b77f73e653bb08b`.
+- Exact implementation-merge P08-004 ConPTY Terminal Host: run `34119961238` / #30 — SUCCESS.
+- Exact implementation-merge P06-007 Workspace Search: run `34119961241` / #264 — SUCCESS.
+- Exact implementation-merge P06-008 Large Workspace Safeguards: run `34119961210` / #248 — SUCCESS.
+- The implementation-merge Windows CI run `34119961204` / #535 was cancelled by a later main push and is not counted as PASS evidence.
+- Current accepted main `f86e8bc5e08b4def96fc50fc2cc3d3819621aa68` is two commits ahead of the implementation merge with zero changed files and the identical Git tree `baded42ef7666d85016c1788d92a50b412744d83`.
+- Exact current-main Windows CI: run `34120686533` / #537 — SUCCESS.
+- Exact current-main P06-007 Workspace Search: run `34120686443` / #266 — SUCCESS.
+- Exact current-main P06-008 Large Workspace Safeguards: run `34120686425` / #250 — SUCCESS.
+- Integrated evidence: `evidence/phases/P08/P08_004_INTEGRATED_RECONCILIATION_2026-09-07.md`.
+- Evidence is cloud/hosted-Windows ConPTY evidence only. No owner-only evidence is added; P08 remains `IN_PROGRESS`, P08-007 and P08-008 remain PENDING, P09/P15 and later phases remain prohibited, and `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## P08-005 integration provenance
 
