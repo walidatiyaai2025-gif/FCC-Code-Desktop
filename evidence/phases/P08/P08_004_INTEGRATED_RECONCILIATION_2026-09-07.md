@@ -44,3 +44,16 @@ The content accepted by the successful dedicated ConPTY run and by the successfu
 P08-004 is therefore CLOSED. P08 remains `IN_PROGRESS`; P08-007 and P08-008 remain PENDING and `PHASE_EXIT_GATE=NOT_RUN`. P09, P15, and later phases remain prohibited until P08 closes through normal governance.
 
 P08-004 requires no owner-only/manual evidence: its Windows-specific acceptance is covered by the real GitHub-hosted Windows ConPTY fixture. This reconciliation does not modify `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`, does not waive any existing owner obligation, does not claim release eligibility, and does not set `VERIFIED_FINAL_COMPLETE=true`.
+<!-- FCCD-P08-004-FINAL-CLOSURE-PROVENANCE -->
+## FCCD-P08-004 final canonical closure provenance
+
+- Task: `FCCD-P08-004 — ConPTY terminal host` — `CLOSED`.
+- Implementation PR: #196; exact implementation candidate `218cc7d93fafb690a5e2cf7192970bf6be0caa1f`; normal implementation merge `da9caf9fb1542b7e080ddd768b77f73e653bb08b`.
+- Canonical closure reconciliation PR: #203; exact reconciliation head `d09653191cf36a9f1b428d785ec572c5d1183382`; normal reconciliation merge / exact resulting main `7228fac7f32abf1d80a39ac697120c2d16306044`.
+- Exact resulting-main Windows CI: run `34122854398` / #539 — `SUCCESS`.
+- Exact resulting-main P06-007 Workspace Search: run `34122854368` / #268 — `SUCCESS`.
+- Exact resulting-main P06-008 Large Workspace Safeguards: run `34122854364` / #252 — `SUCCESS`.
+- These exact-main runs completed after PR #203 merged and exposed no post-reconciliation regression. They are the final task-closure baseline and supersede the earlier pre-reconciliation `f86e8bc5...` main only as the canonical closure endpoint; the earlier implementation/integration provenance remains valid historical evidence.
+- P08 remains `IN_PROGRESS`; `FCCD-P08-007` and `FCCD-P08-008` remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; no later phase is authorized by this task closure.
+- No owner-only evidence is required for P08-004. Existing owner-last obligations are unchanged and `VERIFIED_FINAL_COMPLETE=false`.
+
