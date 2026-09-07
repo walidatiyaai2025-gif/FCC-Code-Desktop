@@ -80,7 +80,6 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
         FileStream? input = null;
         FileStream? output = null;
         var processAssignedToJob = false;
-        var pseudoConsoleOwnershipReleased = false;
 
         try
         {
@@ -176,18 +175,6 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                 ThrowLastWin32("ResumeThread");
             }
 
-            // Windows Server 2025 / Windows 11 24H2 can relinquish host ownership
-            // after the client has been created and resumed. The pseudoconsole then
-            // follows its client lifetime while the host keeps the communication
-            // handles until the session itself is disposed.
-            if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 26100))
-            {
-                EnsureHResult(
-                    NativeMethods.ReleasePseudoConsole(pseudoConsole.DangerousGetHandle()),
-                    "ReleasePseudoConsole");
-                pseudoConsoleOwnershipReleased = true;
-            }
-
             // This host deliberately creates the child suspended so it can be put in
             // the kill-on-close Job Object before any user code executes. Keep the
             // PTY-side handles alive until the child has actually been resumed; only
@@ -220,7 +207,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                 input,
                 output,
                 request.InitialSize,
-                pseudoConsoleOwnershipReleased);
+                OperatingSystem.IsWindowsVersionAtLeast(10, 0, 26100));
 
             process = null;
             processHandle = null;
@@ -413,7 +400,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
         private readonly SafePseudoConsoleHandle _pseudoConsole;
         private readonly FileStream _input;
         private readonly FileStream _output;
-        private readonly bool _pseudoConsoleOwnershipReleased;
+        private readonly bool _releasePseudoConsoleOnCompletion;
         private readonly Task<int> _completion;
         private TerminalSize _size;
         private int _disposeStarted;
@@ -426,7 +413,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             FileStream input,
             FileStream output,
             TerminalSize initialSize,
-            bool pseudoConsoleOwnershipReleased)
+            bool releasePseudoConsoleOnCompletion)
         {
             _process = process;
             _processHandle = processHandle;
@@ -435,7 +422,7 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             _input = input;
             _output = output;
             _size = initialSize;
-            _pseudoConsoleOwnershipReleased = pseudoConsoleOwnershipReleased;
+            _releasePseudoConsoleOnCompletion = releasePseudoConsoleOnCompletion;
             _completion = ObserveCompletionAsync();
         }
 
@@ -526,12 +513,21 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                     ThrowLastWin32("GetExitCodeProcess");
                 }
 
+                if (_releasePseudoConsoleOnCompletion &&
+                    !_pseudoConsole.IsClosed &&
+                    !_pseudoConsole.IsInvalid)
+                {
+                    EnsureHResult(
+                        NativeMethods.ReleasePseudoConsole(_pseudoConsole.DangerousGetHandle()),
+                        "ReleasePseudoConsole");
+                }
+
                 return unchecked((int)exitCode);
             }
             finally
             {
                 _input.Dispose();
-                if (!_pseudoConsoleOwnershipReleased)
+                if (!_releasePseudoConsoleOnCompletion)
                 {
                     _pseudoConsole.Dispose();
                 }
