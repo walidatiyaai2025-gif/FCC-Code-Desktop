@@ -1,0 +1,52 @@
+name: P08-008 Process Terminal Safety
+
+on:
+  pull_request:
+    paths:
+      - 'src/FCCCodeDesktop.Application/Terminal/**'
+      - 'src/FCCCodeDesktop.Runtime/**'
+      - 'src/FCCCodeDesktop.Terminal/**'
+      - 'tests/FCCCodeDesktop.UnitTests/BoundedProcessOutputPipelineTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ConPtyTerminalContractTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessCancellationEscalatorTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessSupervisorTests.cs'
+      - 'tools/terminal/validate-conpty-terminal-host.ps1'
+      - 'tools/terminal/validate-process-terminal-safety.ps1'
+      - '.github/workflows/p08-004-conpty-terminal-host.yml'
+      - '.github/workflows/p08-008-process-terminal-safety.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/FCCCodeDesktop.Application/Terminal/**'
+      - 'src/FCCCodeDesktop.Runtime/**'
+      - 'src/FCCCodeDesktop.Terminal/**'
+      - 'tests/FCCCodeDesktop.UnitTests/BoundedProcessOutputPipelineTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ConPtyTerminalContractTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessCancellationEscalatorTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessSupervisorTests.cs'
+      - 'tools/terminal/validate-conpty-terminal-host.ps1'
+      - 'tools/terminal/validate-process-terminal-safety.ps1'
+      - '.github/workflows/p08-004-conpty-terminal-host.yml'
+      - '.github/workflows/p08-008-process-terminal-safety.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  process-terminal-safety:
+    name: Process Terminal Safety Validation
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+          cache: false
+
+      - name: Validate P08-008 process and terminal safety
+        shell: pwsh
+        run: .\tools\terminal\validate-process-terminal-safety.ps1 -Configuration Release
