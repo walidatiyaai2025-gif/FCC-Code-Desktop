@@ -1,0 +1,52 @@
+name: TEMP P08-005 Reconcile
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p08-005-integrated-closure
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reconciliation branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Guard canonical base
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="9bcb6b94bbc5f185e8615c38b73e4f5496a0397e"
+          REMOTE_MAIN="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          test "$REMOTE_MAIN" = "$BASE"
+          test "$(git merge-base HEAD "$BASE")" = "$BASE"
+
+      - name: Apply guarded canonical reconciliation
+        shell: bash
+        run: python .github/temp/p08-005-reconcile.py
+
+      - name: Commit durable four-file reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="9bcb6b94bbc5f185e8615c38b73e4f5496a0397e"
+          git rm .github/temp/p08-005-reconcile.py .github/workflows/temp-p08-005-reconcile.yml
+          git add CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P08/P08_005_INTEGRATED_RECONCILIATION_2026-09-07.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "P08-005: reconcile integrated shell profiles closure"
+          ACTUAL="$(git diff --name-only "$BASE" HEAD | sort)"
+          EXPECTED="$(printf '%s\n' CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P08/P08_005_INTEGRATED_RECONCILIATION_2026-09-07.md | sort)"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "Unexpected durable diff:"
+            printf '%s\n' "$ACTUAL"
+            exit 1
+          fi
+          REMOTE_MAIN="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
+          test "$REMOTE_MAIN" = "$BASE"
+          git push origin HEAD:reconcile/fccd-p08-005-integrated-closure
