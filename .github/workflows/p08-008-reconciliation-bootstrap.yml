@@ -26,8 +26,11 @@ jobs:
           python tools/reconciliation/reconcile-p08-008-after-p08-007.py
           python - <<'PY'
           from pathlib import Path
-          path = Path('CURRENT_PHASE.md')
-          path.write_text(path.read_text(encoding='utf-8').rstrip() + '\n', encoding='utf-8', newline='\n')
+          phase = Path('CURRENT_PHASE.md')
+          phase.write_text(phase.read_text(encoding='utf-8').rstrip() + '\n', encoding='utf-8', newline='\n')
+          evidence = Path('evidence/phases/P08/P08_008_INTEGRATED_RECONCILIATION_2026-09-08.md')
+          normalized = '\n'.join(line.rstrip() for line in evidence.read_text(encoding='utf-8').splitlines()) + '\n'
+          evidence.write_text(normalized, encoding='utf-8', newline='\n')
           PY
           git rm tools/reconciliation/reconcile-p08-008-after-p08-007.py .github/workflows/p08-008-reconciliation-bootstrap.yml
           git diff --check
