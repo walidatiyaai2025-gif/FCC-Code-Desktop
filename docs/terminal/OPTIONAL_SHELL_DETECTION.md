@@ -48,7 +48,9 @@ Presence of `wsl.exe` is intentionally represented only as executable detection.
 
 ## Cloud validation
 
-The focused unit suite uses disposable filesystem fixtures to prove:
+Cross-platform `net10.0` unit tests verify the Application-owned contract boundary: fully-qualified executable paths, immutable result snapshots, typed lookup, and absent-kind behavior. The Windows implementation is validated separately in the dedicated hosted-Windows gate, preserving the existing target-framework boundary instead of making the general unit-test project depend on `net10.0-windows`.
+
+The hosted-Windows reflection fixture uses disposable filesystem candidates to prove:
 
 - standard Git Bash detection;
 - WSL executable detection;
@@ -56,9 +58,10 @@ The focused unit suite uses disposable filesystem fixtures to prove:
 - PATH-derived portable Git-for-Windows detection;
 - rejection of unrelated generic `bash.exe` candidates;
 - empty results when candidates are absent;
-- pre-cancelled execution.
+- pre-cancelled execution;
+- preservation of owner fixture bytes and absence of detector-created filesystem entries.
 
-A dedicated hosted-Windows workflow runs the focused test suite in Release configuration. Standard Windows CI, Workspace Search, and Large Workspace Safeguards remain mandatory non-regression gates before integration.
+The dedicated workflow runs locked solution restore, Terminal Release build, contract unit tests, static side-effect guards, and the hosted implementation fixture. Standard Windows CI, Workspace Search, and Large Workspace Safeguards remain mandatory non-regression gates before integration.
 
 ## Non-claims
 
