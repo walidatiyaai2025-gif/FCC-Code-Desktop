@@ -45,6 +45,7 @@ public sealed class ProcessOutputStressTests
         var snapshot = process.Output.GetSnapshot();
 
         Assert.Equal(0, exit.RootExitCode);
+        Assert.Same(policy, process.Output.Policy);
         Assert.Equal(SingleSourceLineCount, snapshot.Statistics.AcceptedEntries);
         Assert.InRange(snapshot.Statistics.RetainedEntries, 1, policy.MaximumRetainedEntries);
         Assert.InRange(

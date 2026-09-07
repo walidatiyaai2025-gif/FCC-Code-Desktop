@@ -230,15 +230,20 @@ public sealed class ProcessCancellationEscalatorTests
     {
         private readonly TaskCompletionSource<OwnedProcessExit> _completion =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly BoundedProcessOutputPipeline _output = new(
-            new ProcessOutputIdentity(
-                Guid.NewGuid(),
-                42,
-                null,
-                null,
-                null,
-                null,
-                null));
+        private readonly BoundedProcessOutputPipeline _output;
+
+        public IncompleteSupervisedProcess()
+        {
+            _output = new BoundedProcessOutputPipeline(
+                new ProcessOutputIdentity(
+                    OwnershipId,
+                    RootProcessId,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null));
+        }
 
         public Guid OwnershipId { get; } = Guid.NewGuid();
 
