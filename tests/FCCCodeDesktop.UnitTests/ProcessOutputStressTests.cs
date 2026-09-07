@@ -100,12 +100,11 @@ public sealed class ProcessOutputStressTests
             snapshot.Statistics.RetainedUtf8Bytes,
             1,
             policy.MaximumRetainedUtf8Bytes);
-        Assert.Contains(
-            snapshot.Entries,
-            static entry => entry.Source == ProcessOutputSource.StandardOutput);
-        Assert.Contains(
-            snapshot.Entries,
-            static entry => entry.Source == ProcessOutputSource.StandardError);
+        // The bounded newest-history slice may contain only one source because independent pipe
+        // readers can drain in bursts. Exact total acceptance plus both completed source states
+        // proves all 5,000 stdout and 5,000 stderr lines drained without asserting scheduler order.
+        Assert.Equal(ProcessOutputStreamState.Completed, snapshot.Statistics.StandardOutputState);
+        Assert.Equal(ProcessOutputStreamState.Completed, snapshot.Statistics.StandardErrorState);
         Assert.True(snapshot.Statistics.EvictedEntries > 0);
         Assert.Empty(supervisor.GetActiveProcesses());
     }

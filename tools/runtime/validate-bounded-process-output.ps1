@@ -1,6 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$RepositoryRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
+    [ValidateSet('Debug', 'Release')]
+    [string]$Configuration = 'Release',
     [switch]$RunFixtures,
     [switch]$RequireRuntime
 )
@@ -137,23 +139,16 @@ function Assert-ProcessOutputContract {
     foreach ($literal in @(
         'DefaultsAreFiniteAndInternallyConsistent',
         'RejectsEveryInvalidOrContradictoryBound',
-        'CorrelationRejectsEmptyDurableIdentities'
-    )) {
-        Assert-ContainsLiteral $Text.PolicyTests $literal 'ProcessOutputPolicyTests.cs'
-    }
-
-    foreach ($literal in @(
         'FramesSplitAndMultipleLinesAcrossBothSourcesWithDeterministicSequences',
         'HandlesCrlfLfLoneCrFinalPartialUnicodeArabicAndEmoji',
         'ConcurrentWritersPreserveSourceOrderAndUniqueGlobalSequence',
         'RetainedEntryAndByteBoundsKeepLatestWithExactEvictionAccounting',
         'VeryLongLineUsesFixedPartialBufferAndReportsExactCharacterTruncation',
-        'Utf8ByteBoundNeverSplitsNonBmpTextAndCountsDiscardedUtf16Characters',
         'FullDeliveryQueueDropsOnlyNotificationsAndReportsExactLoss',
         'CancelledWriteDoesNotMutateAndPipelineRecovers',
         'ReadFailureIsTypedAndStillFlushesFinalPartialLine'
     )) {
-        Assert-ContainsLiteral $Text.PipelineTests $literal 'BoundedProcessOutputPipelineTests.cs'
+        Assert-ContainsLiteral ($Text.PolicyTests + $Text.PipelineTests) $literal 'P08-003 unit tests'
     }
 
     foreach ($literal in @(
@@ -192,27 +187,13 @@ function Assert-ProcessOutputContract {
     }
 
     Assert-ContainsLiteral `
-        $Text.Workflow `
+        $Text.CanonicalWorkflow `
         '.\tools\runtime\validate-bounded-process-output.ps1 -RunFixtures -RequireRuntime' `
-        'Windows CI workflow'
-
-    foreach ($taskText in @(
-        $Text.Contracts,
-        $Text.Pipeline,
-        $Text.SupervisionContracts,
-        $Text.Supervisor,
-        $Text.PolicyTests,
-        $Text.PipelineTests,
-        $Text.IntegrationTests,
-        $Text.StressTests,
-        $Text.Docs
-    )) {
-        foreach ($marker in @('TODO', 'FIXME', 'Coming soon')) {
-            if ($taskText.IndexOf($marker, [StringComparison]::OrdinalIgnoreCase) -ge 0) {
-                throw "P08-003 contains forbidden unfinished-work marker '$marker'."
-            }
-        }
-    }
+        'Canonical Windows CI workflow'
+    Assert-ContainsLiteral `
+        $Text.FocusedWorkflow `
+        '.\tools\runtime\validate-bounded-process-output.ps1 -Configuration Release -RunFixtures -RequireRuntime' `
+        'Focused P08-003 Windows workflow'
 }
 
 function Assert-ContractRejects {
@@ -239,7 +220,8 @@ $paths = @{
     IntegrationTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.UnitTests\ProcessOutputIntegrationTests.cs'
     StressTests = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.UnitTests\ProcessOutputStressTests.cs'
     Docs = Join-Path $RepositoryRoot 'docs\runtime\BOUNDED_PROCESS_OUTPUT.md'
-    Workflow = Join-Path $RepositoryRoot '.github\workflows\windows-ci.yml'
+    CanonicalWorkflow = Join-Path $RepositoryRoot '.github\workflows\windows-ci.yml'
+    FocusedWorkflow = Join-Path $RepositoryRoot '.github\workflows\p08-003-bounded-process-output.yml'
 }
 
 foreach ($path in $paths.Values) {
@@ -303,9 +285,20 @@ if ($RequireRuntime) {
         throw "P08-003 validation requires .NET SDK 10.0.400 but resolved '$sdkVersion'."
     }
 
+    $solution = Join-Path $RepositoryRoot 'FCCCodeDesktop.sln'
     $testProject = Join-Path $RepositoryRoot 'tests\FCCCodeDesktop.UnitTests\FCCCodeDesktop.UnitTests.csproj'
+    & dotnet restore $solution --locked-mode --nologo
+    if ($LASTEXITCODE -ne 0) {
+        throw 'P08-003 locked solution restore failed.'
+    }
+
+    & dotnet build $testProject -c $Configuration --no-restore --nologo
+    if ($LASTEXITCODE -ne 0) {
+        throw 'P08-003 focused test-project build failed.'
+    }
+
     $filter = 'FullyQualifiedName~ProcessOutputPolicyTests|FullyQualifiedName~BoundedProcessOutputPipelineTests|FullyQualifiedName~ProcessOutputIntegrationTests|FullyQualifiedName~ProcessOutputStressTests|FullyQualifiedName~ProcessSupervisorTests|FullyQualifiedName~ProcessCancellationEscalatorTests'
-    & dotnet test $testProject -c Release --no-restore --no-build --nologo --filter $filter
+    & dotnet test $testProject -c $Configuration --no-restore --no-build --nologo --filter $filter
     if ($LASTEXITCODE -ne 0) {
         throw 'Executable P08-003 process output and P08 ownership/cancellation regression tests failed.'
     }

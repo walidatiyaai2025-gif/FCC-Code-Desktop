@@ -1,0 +1,57 @@
+name: P08-003 Bounded Process Output
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/FCCCodeDesktop.Runtime/BoundedProcessOutputPipeline.cs'
+      - 'src/FCCCodeDesktop.Runtime/ProcessOutputContracts.cs'
+      - 'src/FCCCodeDesktop.Runtime/ProcessSupervisionContracts.cs'
+      - 'src/FCCCodeDesktop.Runtime/ProcessSupervisor.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/BoundedProcessOutputPipelineTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessCancellationEscalatorTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessOutputIntegrationTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessOutputPolicyTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessOutputStressTests.cs'
+      - 'tools/runtime/validate-bounded-process-output.ps1'
+      - '.github/workflows/p08-003-bounded-process-output.yml'
+      - 'docs/runtime/BOUNDED_PROCESS_OUTPUT.md'
+      - 'docs/DECISIONS.md'
+  push:
+    branches: [main]
+    paths:
+      - 'src/FCCCodeDesktop.Runtime/BoundedProcessOutputPipeline.cs'
+      - 'src/FCCCodeDesktop.Runtime/ProcessOutputContracts.cs'
+      - 'src/FCCCodeDesktop.Runtime/ProcessSupervisionContracts.cs'
+      - 'src/FCCCodeDesktop.Runtime/ProcessSupervisor.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/BoundedProcessOutputPipelineTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessCancellationEscalatorTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessOutputIntegrationTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessOutputPolicyTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProcessOutputStressTests.cs'
+      - 'tools/runtime/validate-bounded-process-output.ps1'
+      - '.github/workflows/p08-003-bounded-process-output.yml'
+      - 'docs/runtime/BOUNDED_PROCESS_OUTPUT.md'
+      - 'docs/DECISIONS.md'
+
+permissions:
+  contents: read
+
+jobs:
+  bounded-process-output:
+    name: Bounded Process Output Validation
+    runs-on: windows-2025
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+          cache: false
+
+      - name: Validate P08-003 bounded process output
+        shell: pwsh
+        run: .\tools\runtime\validate-bounded-process-output.ps1 -Configuration Release -RunFixtures -RequireRuntime
