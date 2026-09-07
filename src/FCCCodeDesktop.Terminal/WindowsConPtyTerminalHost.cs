@@ -71,7 +71,6 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
         IntPtr hostOutputRead = IntPtr.Zero;
         IntPtr pseudoOutputWrite = IntPtr.Zero;
         IntPtr attributeList = IntPtr.Zero;
-        IntPtr pseudoConsoleValue = IntPtr.Zero;
         IntPtr commandLineBuffer = IntPtr.Zero;
         SafePseudoConsoleHandle? pseudoConsole = null;
         SafeKernelHandle? jobHandle = null;
@@ -123,14 +122,12 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
                     ref attributeListSize),
                 "InitializeProcThreadAttributeList");
 
-            pseudoConsoleValue = Marshal.AllocHGlobal(IntPtr.Size);
-            Marshal.WriteIntPtr(pseudoConsoleValue, pseudoConsole.DangerousGetHandle());
             EnsureWin32(
                 NativeMethods.UpdateProcThreadAttribute(
                     attributeList,
                     0,
                     ProcThreadAttributePseudoConsole,
-                    pseudoConsoleValue,
+                    pseudoConsole.DangerousGetHandle(),
                     (nuint)IntPtr.Size,
                     IntPtr.Zero,
                     IntPtr.Zero),
@@ -242,11 +239,6 @@ public sealed partial class WindowsConPtyTerminalHost : IConPtyTerminalHost
             {
                 NativeMethods.DeleteProcThreadAttributeList(attributeList);
                 Marshal.FreeHGlobal(attributeList);
-            }
-
-            if (pseudoConsoleValue != IntPtr.Zero)
-            {
-                Marshal.FreeHGlobal(pseudoConsoleValue);
             }
 
             if (commandLineBuffer != IntPtr.Zero)
