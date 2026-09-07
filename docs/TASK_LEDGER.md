@@ -226,7 +226,7 @@ P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16
 
 | ID | Task | State |
 |---|---|---|
-| FCCD-P08-001 | Process supervisor with owned process-tree tracking | PENDING |
+| FCCD-P08-001 | Process supervisor with owned process-tree tracking | CLOSED |
 | FCCD-P08-002 | Graceful→forced cancellation escalation | PENDING |
 | FCCD-P08-003 | Bounded streaming log pipeline | PENDING |
 | FCCD-P08-004 | ConPTY terminal host | PENDING |
@@ -234,6 +234,8 @@ P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16
 | FCCD-P08-006 | Optional Git Bash/WSL detection | PENDING |
 | FCCD-P08-007 | Interactive terminal UX | PENDING |
 | FCCD-P08-008 | Process/terminal safety tests | PENDING |
+
+`FCCD-P08-001` is CLOSED from the owned process-tree supervisor integrated in PR #189 and the mandatory post-merge lifecycle-race repair integrated in PR #190. Exact implementation candidate `5915ce7f21d8b487346acf7334b34bd4523a215a` passed Windows CI `34072739503` / #438, Workspace Search `34072739496` / #167, and Large Workspace Safeguards `34072739498` / #151. Initial normal merge `d0df56e60ec62e05db793184c5bc0d53b7c65d9b` exposed the Completion/active-registry race (including Workspace Search `34073251587` / #168 FAILURE), so no closure was claimed. Repair candidate `e3d6ecdc14f01be5460ca1656d6f6ba2b6535460` passed Windows CI `34074218833` / #446, Workspace Search `34074218827` / #175, and Large Workspace Safeguards `34074218830` / #159; PR #190 normally merged as accepted main `ac54e739019e7264db5de3f9b26b700735924bc1`, which then passed exact-main Windows CI `34074668199` / #447, Workspace Search `34074668196` / #176, and Large Workspace Safeguards `34074668191` / #160. Task evidence: `evidence/phases/P08/P08_001_INTEGRATED_RECONCILIATION_2026-09-07.md`. P08 remains IN_PROGRESS; P08-002..008 remain PENDING; no P09/P13 implementation or new owner-only obligation is claimed.
 
 ## P09 — External Tool Gateway
 
@@ -424,8 +426,8 @@ P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16
 
 ## Current next action
 
-`CURRENT_PHASE = P07` is now a **CLOSED closure checkpoint** with `PHASE_EXIT_GATE=PASS`. All `FCCD-P07-001` through `FCCD-P07-011` rows are CLOSED, exact immutable candidate `7561dd88b16531403a9f8f5667db17801105687f` was green on the permanent pre-closure runs, and dedicated phase-exit run `34068796895` / job `101582228434` passed the full Windows baseline plus explicit P07 Git acceptance and clean exact-SHA checks.
+`CURRENT_PHASE = P08` is `IN_PROGRESS`. `FCCD-P08-001 — Process supervisor with owned process-tree tracking` is CLOSED and exact accepted-main green on `ac54e739019e7264db5de3f9b26b700735924bc1` after the post-merge lifecycle-race repair. `FCCD-P08-002` through `FCCD-P08-008` remain PENDING and `PHASE_EXIT_GATE=NOT_RUN`.
 
 P04 remains acceptance-unresolved through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. P05 cloud implementation remains integrated, but its standalone exit observation remains queued as `OWNER-P05-EXIT-REAL-TARGET`. Their gates remain `P04=NOT_RUN;P05=NOT_RUN`; owner-last scheduling does not waive either obligation or permit release.
 
-The next legal action after this P07 closure is normally merged and the resulting exact canonical `main` remains green is a **separate governance transition activating P08**. Do not implement P08 inside the closure change, do not skip to P13 or any later phase, and do not fabricate owner/manual evidence.
+The next legal cloud action is to re-read live claims and recover any legitimate integration-pending P08 work first; otherwise select the highest-value dependency-valid unclaimed P08 task, nominally `FCCD-P08-002 — Graceful→forced cancellation escalation` if it remains unclaimed. Do not skip to P09, P13, or any later phase and do not fabricate owner/manual evidence.
