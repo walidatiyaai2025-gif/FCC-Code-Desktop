@@ -97,13 +97,19 @@ try {
     }
 
     $initialSize = [Activator]::CreateInstance($sizeType, @([int]80, [int]25))
-    $request = [Activator]::CreateInstance(
-        $requestType,
-        @($comSpec, [string[]]@('/d', '/q'), $fixtureRoot, $initialSize))
+    $launchArguments = [string[]]@('/d', '/q')
+    $requestArguments = [object[]]::new(4)
+    $requestArguments[0] = $comSpec
+    $requestArguments[1] = $launchArguments
+    $requestArguments[2] = $fixtureRoot
+    $requestArguments[3] = $initialSize
+    $request = [Activator]::CreateInstance($requestType, $requestArguments)
+
     $host = [Activator]::CreateInstance($hostType)
-    $startTask = $hostType.GetMethod('StartAsync').Invoke(
-        $host,
-        @($request, [Threading.CancellationToken]::None))
+    $startArguments = [object[]]::new(2)
+    $startArguments[0] = $request
+    $startArguments[1] = [Threading.CancellationToken]::None
+    $startTask = $hostType.GetMethod('StartAsync').Invoke($host, $startArguments)
     $session = $startTask.GetAwaiter().GetResult()
 
     if ($session.ProcessId -le 0) {
