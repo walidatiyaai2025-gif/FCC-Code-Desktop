@@ -30,7 +30,10 @@ jobs:
 
       - name: Prepare P08-004 canonical reconciliation
         shell: bash
-        run: python tools/temp/reconcile_p08_004.py
+        run: |
+          set -euo pipefail
+          python tools/temp/reconcile_p08_004.py
+          sed -i 's/[[:blank:]]*$//' evidence/phases/P08/P08_004_INTEGRATED_RECONCILIATION_2026-09-07.md
 
       - name: Remove temporary reconciliation machinery
         shell: bash
