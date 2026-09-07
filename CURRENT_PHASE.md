@@ -81,7 +81,7 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 ## P08 cloud task inventory
 
 - `FCCD-P08-001` — Process supervisor with owned process-tree tracking — CLOSED.
-- `FCCD-P08-002` — Graceful→forced cancellation escalation — PENDING.
+- `FCCD-P08-002` — Graceful→forced cancellation escalation — CLOSED.
 - `FCCD-P08-003` — Bounded streaming log pipeline — PENDING.
 - `FCCD-P08-004` — ConPTY terminal host — PENDING.
 - `FCCD-P08-005` — PowerShell/CMD profiles — PENDING.
@@ -121,6 +121,28 @@ The owner-last policy permits sequential cloud advancement despite those two ear
 - Exact accepted-main P06-008 Large Workspace Safeguards: run `34074668191` / #160 — SUCCESS.
 - Integrated evidence: `evidence/phases/P08/P08_001_INTEGRATED_RECONCILIATION_2026-09-07.md`.
 - Evidence is cloud/Windows-CI process-supervision evidence only. No owner-only evidence is added, P08 remains IN_PROGRESS, P08-002..008 remain PENDING, P09+ remain prohibited, and `VERIFIED_FINAL_COMPLETE` remains false.
+
+## P08-002 integration provenance
+
+- Task: `FCCD-P08-002 — Graceful→forced cancellation escalation` — CLOSED.
+- Implementation PR: #192 (`worker/fccd-p08-002-cancellation-escalation`).
+- Exact implementation candidate: `978d71baa75a21cb55a8c2ef4db546097e44b6c4`.
+- Exact implementation-head Windows CI: run `34077180195` / #450 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34077180198` / #179 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34077180215` / #163 — SUCCESS.
+- Initial normal implementation merge: `3055b9f27baa047b3217b3256f2b229f78e53981`.
+- Post-merge convergence correctly remained open because Windows CI #451 exposed a real P05-005 hosted-Windows settlement-deadline regression after the full Release build/tests had passed; no task closure was claimed on that regressed main.
+- Recovery PR: #193 (`repair/p08-002-p05-005-settlement-fixture`) fixed only the bounded P05-005 settlement fixture/tolerance and diagnostics; it did not change P08 production cancellation semantics or weaken the settlement assertion.
+- Exact recovery candidate: `636b4df95d4fdd74fb8fb0cb6f9e1dd84f5940ce`.
+- Exact recovery-head Windows CI: run `34078491329` / #452 — SUCCESS.
+- Exact recovery-head P06-007 Workspace Search: run `34078491330` / #181 — SUCCESS.
+- Exact recovery-head P06-008 Large Workspace Safeguards: run `34078491338` / #165 — SUCCESS.
+- Recovery normal merge / accepted main: `4f80433830684966405c7d76aea50583ae4df75b`.
+- Exact accepted-main Windows CI: run `34079056645` / #453 — SUCCESS, including the previously failing P05-005 executable settlement validator.
+- Exact accepted-main P06-007 Workspace Search: run `34079056639` / #182 — SUCCESS.
+- Exact accepted-main P06-008 Large Workspace Safeguards: run `34079056670` / #166 — SUCCESS.
+- Integrated evidence: `evidence/phases/P08/P08_002_INTEGRATED_RECONCILIATION_2026-09-07.md`.
+- Evidence is cloud/Windows-CI process-supervision evidence only. No owner-only evidence is added; P08 remains IN_PROGRESS, P08-003..008 remain PENDING, P09+ remain prohibited, and `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## P07 cloud task inventory
 
