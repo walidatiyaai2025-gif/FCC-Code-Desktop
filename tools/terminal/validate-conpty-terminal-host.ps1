@@ -145,10 +145,27 @@ try {
         throw 'ConPTY resize did not update the observable terminal size.'
     }
 
+    if ($session.Completion.IsCompleted) {
+        $resizeExitCode = $session.Completion.GetAwaiter().GetResult()
+        $resizeOutput = $reader.ReadToEnd()
+        throw "ConPTY fixture shell exited immediately after resize with code $resizeExitCode. Output: $resizeOutput"
+    }
+
     $readTask = $reader.ReadToEndAsync()
     $commandBytes = [Text.Encoding]::UTF8.GetBytes("if exist marker.txt echo P08_004_CONPTY_OK`r`nexit /b 0`r`n")
-    $session.Input.Write($commandBytes, 0, $commandBytes.Length)
-    $session.Input.Flush()
+    try {
+        $session.Input.Write($commandBytes, 0, $commandBytes.Length)
+        $session.Input.Flush()
+    }
+    catch {
+        $writeState = if ($session.Completion.IsCompleted) {
+            "completed(exit=$($session.Completion.GetAwaiter().GetResult()))"
+        }
+        else {
+            'not-completed'
+        }
+        throw "ConPTY input write failed while root completion was $writeState. $($_.Exception.Message)"
+    }
 
     $exitCode = $session.Completion.WaitAsync([TimeSpan]::FromSeconds(20)).GetAwaiter().GetResult()
     $output = $readTask.WaitAsync([TimeSpan]::FromSeconds(20)).GetAwaiter().GetResult()
@@ -172,7 +189,7 @@ finally {
         $reader.Dispose()
     }
     if ($session) {
-        $session.DisposeAsync().AsTask().GetAwaiter().GetResult()
+        $null = $session.DisposeAsync().AsTask().GetAwaiter().GetResult()
     }
     if (Test-Path -LiteralPath $fixtureRoot) {
         Remove-Item -LiteralPath $fixtureRoot -Recurse -Force
