@@ -27,11 +27,11 @@ The owner supervises outcomes. AI workers research, choose, implement, verify an
 PROJECT_STATE: SPECIFICATION_AND_CONTROL_BASELINE
 RELEASE_STATE: NOT_RELEASED
 TARGET_VERSION: 1.0.0
-CURRENT_PHASE: P08
-CURRENT_PHASE_NAME: Terminal/process supervision
-CURRENT_PHASE_STATE: CLOSED
-NEXT_PHASE: P09
-PHASE_EXIT_GATE: PASS
+CURRENT_PHASE: P09
+CURRENT_PHASE_NAME: External Tool Gateway
+CURRENT_PHASE_STATE: IN_PROGRESS
+NEXT_PHASE: P10
+PHASE_EXIT_GATE: NOT_RUN
 KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
 OWNER_LAST_MODE: ACTIVE
@@ -52,7 +52,7 @@ P06 is canonically CLOSED: `FCCD-P06-001` through `FCCD-P06-008` are CLOSED, ded
 
 P07 — Change review + Git — is canonically CLOSED: `FCCD-P07-001` through `FCCD-P07-011` are CLOSED after exact PR-head validation, normal merge integration, exact post-merge canonical-main validation, and durable task reconciliation. Exact immutable phase candidate `7561dd88b16531403a9f8f5667db17801105687f` passed pre-closure Windows CI `34068325212` / #431, Workspace Search `34068325218` / #160, and Large Workspace Safeguards `34068325246` / #144; dedicated P07 phase-exit run `34068796895` / job `101582228434` completed SUCCESS; closure PR #187 was normally merged as `e94f241b75ab7119bbb45f48872d24b78c5f9007`; and exact post-closure Windows CI `34069973813` / #433, Workspace Search `34069973830` / #162, and Large Workspace Safeguards `34069973823` / #146 all completed SUCCESS. Closure evidence is `evidence/phases/P07/CLOSURE.md`.
 
-P08 — Terminal/process supervision — is canonically CLOSED in this closure state. `FCCD-P08-001` through `FCCD-P08-008` are CLOSED after implementation, focused validation, normal integration, exact post-merge verification, and durable task reconciliation. Exact immutable phase candidate `bb372da0a4506b3edc508156f06fc60ced8cc3d4` passed pre-closure Windows CI `34164500457` / #560, Workspace Search `34164500513` / #289, and Large Workspace Safeguards `34164500496` / #273; dedicated P08 phase-exit run `34165022901` / job `101874255929` completed SUCCESS with the full Windows baseline, interactive terminal UX runtime validation, process/terminal safety validation, and exact-SHA/clean-worktree guards. Closure evidence is `evidence/phases/P08/CLOSURE.md`. `CURRENT_PHASE` deliberately remains P08 until this closure change is normally integrated and the resulting exact canonical `main` remains green; only then may a separate governance transition activate P09. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item, P05 remains `PASS_INTEGRATED`, `P04=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all mandatory owner and release acceptance requirements pass.
+P08 — Terminal/process supervision — is canonically CLOSED. `FCCD-P08-001` through `FCCD-P08-008` are CLOSED after implementation, focused validation, normal integration, exact post-merge verification, and durable task reconciliation. Exact immutable phase candidate `bb372da0a4506b3edc508156f06fc60ced8cc3d4` passed pre-closure Windows CI `34164500457` / #560, Workspace Search `34164500513` / #289, and Large Workspace Safeguards `34164500496` / #273; dedicated P08 phase-exit run `34165022901` / job `101874255929` completed SUCCESS; closure PR #211 was normally merged as `e28e32b0b3fb1c5305d12ec0ebbf021c51fd75e5`; and exact post-closure Windows CI `34166334093` / #567, Workspace Search `34166334113` / #296, and Large Workspace Safeguards `34166334110` / #280 all completed SUCCESS. Closure evidence is `evidence/phases/P08/CLOSURE.md`. P09 — External Tool Gateway — is now the single active cloud implementation/convergence phase; all eight mandatory P09 ledger tasks remain PENDING at activation. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item, P05 remains `PASS_INTEGRATED`, `P04=NOT_RUN`, and `VERIFIED_FINAL_COMPLETE=false`. P22 and `VERIFIED_FINAL_COMPLETE=true` remain impossible until all mandatory owner and release acceptance requirements pass.
 
 ---
 
