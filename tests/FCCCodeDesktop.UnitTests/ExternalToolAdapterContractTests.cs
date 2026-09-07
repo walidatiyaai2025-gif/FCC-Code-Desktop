@@ -23,7 +23,8 @@ public sealed class ExternalToolAdapterContractTests
     public void ProjectContextRequiresIdentityAndFullyQualifiedRootWithoutTouchingDisk()
     {
         var projectId = Guid.NewGuid();
-        var rootPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "fccd-tool-contract", "مساحة project"));
+        var rootPath = Path.GetFullPath(
+            Path.Combine(Path.GetTempPath(), $"fccd-tool-contract-{Guid.NewGuid():N}", "مساحة project"));
 
         var context = new ProjectContext(projectId, rootPath);
 
