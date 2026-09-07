@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "evidenceClassification": "REAL_TARGET",
+  "sourceRequirement": "P05_EXIT_GATE",
+  "testedRepoSha": "60b6ef491e9dde3ca195b377a2ce07442452a6ce",
+  "overallStatus": "PASS",
+  "generatedUtc": "2026-09-07T08:17:00Z",
+  "sanitized": true,
+  "captureMethod": "OWNER_MANUAL_OBSERVATION_WITH_EXACT_SHA_CONFIRMED",
+  "observations": {
+    "realProviderTaskCompleted": true,
+    "structuredExecutionObserved": true,
+    "stopRetryObserved": true,
+    "appClosedAndReopened": true,
+    "sessionResumedWithDurableState": true
+  },
+  "provenance": {
+    "ownerConfirmedTestedRepoSha": true,
+    "testedTreeSha": "221ebaf238346bdcc91cdc2fe2a1524637e312f1",
+    "exactMainWindowsCiRun": 34092682076,
+    "exactMainWorkspaceSearchRun": 34092682081,
+    "exactMainLargeWorkspaceRun": 34092682122,
+    "exactMainCiConclusion": "SUCCESS"
+  },
+  "note": "No prompt text, provider response content, credentials, environment variables, or user project contents are recorded. The owner confirmed the exact local checkout SHA after completing the real provider-backed interaction scenario."
+}
