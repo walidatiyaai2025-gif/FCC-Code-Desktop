@@ -147,9 +147,10 @@ try {
         throw "ConPTY fixture shell exited before interaction with code $prematureExitCode. Output: $prematureOutput"
     }
 
-    # Prove stdin remains writable before resize. This catches bootstrap/lifetime
-    # regressions independently from ResizePseudoConsole behavior.
-    $preResizeBytes = [Text.Encoding]::UTF8.GetBytes("echo P08_004_CONPTY_INPUT_OK`r`n")
+    # This is terminal keyboard input, not a text-file line ending. In the normal
+    # VT input mode the Enter key is CR (0x0D); injecting CRLF synthesizes an extra
+    # control character that a terminal UI would not emit for one Enter press.
+    $preResizeBytes = [Text.Encoding]::UTF8.GetBytes("echo P08_004_CONPTY_INPUT_OK`r")
     try {
         $session.Input.Write($preResizeBytes, 0, $preResizeBytes.Length)
         $session.Input.Flush()
@@ -177,7 +178,7 @@ try {
     }
 
     $readTask = $reader.ReadToEndAsync()
-    $commandBytes = [Text.Encoding]::UTF8.GetBytes("if exist marker.txt echo P08_004_CONPTY_OK`r`nexit /b 0`r`n")
+    $commandBytes = [Text.Encoding]::UTF8.GetBytes("if exist marker.txt echo P08_004_CONPTY_OK`rexit /b 0`r")
     try {
         $session.Input.Write($commandBytes, 0, $commandBytes.Length)
         $session.Input.Flush()
