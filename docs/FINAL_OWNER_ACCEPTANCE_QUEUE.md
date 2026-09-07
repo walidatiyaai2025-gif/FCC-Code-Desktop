@@ -25,11 +25,11 @@
 
 The genuine run must be performed only when the final-owner lane is intentionally executed. If it exposes a product defect, the source work is repaired and rerun; the queue item remains unresolved until real PASS evidence is integrated.
 
-### OWNER-P05-EXIT-REAL-TARGET
+### OWNER-P05-EXIT-REAL-TARGET — PASS_INTEGRATED
 
-The P05 mandatory implementation tasks are all integrated and `CLOSED`, and exact canonical-main Windows CI is green. The P05 **phase exit gate** nevertheless requires a user to issue a real provider-backed task through FCC Code Desktop, observe structured execution, exercise stop/retry, close/reopen the application, and resume durable state. GitHub-hosted CI cannot truthfully provide that owner Windows/FCC/provider interaction.
+The owner completed the P05 real-target phase-exit interaction on exact repository SHA `60b6ef491e9dde3ca195b377a2ce07442452a6ce`: a provider-backed task executed in the conversation surface, structured runtime activity was observed, Stop and Retry succeeded, the application closed/reopened, and the same session resumed with durable prior state. Sanitized machine-readable evidence is stored at `evidence/phases/P05/owner/P05_PHASE_EXIT_REAL_TARGET.json` and reconciliation review is stored at `evidence/phases/P05/owner/P05_EXIT_OWNER_RECONCILIATION_2026-09-07.md`.
 
-This is a phase-gate obligation, not a hidden ninth P05 task. `P05` therefore remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. The tracked owner runner performs deterministic prerequisites first, then launches the real application twice and records only sanitized boolean observations/provenance. A failed observation remains a product/recovery blocker and never becomes a waiver.
+The tested SHA passed exact-main Windows CI `34092682076`, Workspace Search `34092682081`, and Large Workspace Safeguards `34092682122`. Later history-only repository commits before reconciliation retained the same Git tree `221ebaf238346bdcc91cdc2fe2a1524637e312f1`, so no source/configuration/packaging bytes changed. The P05 queue item is therefore reconciled as `PASS_INTEGRATED`; it is no longer an unresolved release blocker. P04 remains unresolved and release-blocking.
 
 <!-- OWNER_ACCEPTANCE_QUEUE_JSON_BEGIN -->
 ```json
@@ -65,7 +65,7 @@ This is a phase-gate obligation, not a hidden ninth P05 task. `P05` therefore re
       "sourceRequirement": "P05_EXIT_GATE",
       "sourcePhase": "P05",
       "classification": "REAL_TARGET",
-      "state": "QUEUED",
+      "state": "PASS_INTEGRATED",
       "whyOwnerOnly": "The P05 exit criterion requires genuine interactive execution in the owner's Windows FCC Code Desktop with the installed fcc-claude/FCC/provider environment, followed by close/reopen and durable session resume; cloud CI can prove deterministic mechanics only.",
       "cloudEvidence": "evidence/phases/P05/P05_PHASE_EXIT_CLOUD_COMPLETE_OWNER_TARGET_REQUIRED_2026-09-05.md",
       "command": ".\\tools\\ui\\run-p05-phase-exit-owner-validation.ps1",
@@ -81,7 +81,8 @@ This is a phase-gate obligation, not a hidden ninth P05 task. `P05` therefore re
       "expectedEvidencePath": "evidence/phases/P05/owner/P05_PHASE_EXIT_REAL_TARGET.json",
       "passCriteria": "Evidence is genuine REAL_TARGET for exact HEAD; overallStatus=PASS; a provider-backed task completes in the conversation surface; streamed output and structured activity are observed; stop then retry succeeds; the application closes and reopens; the same session resumes with prior durable conversation/task state intact; evidence is sanitized and records no prompt/provider content or credentials.",
       "reconciliationRule": "Review and integrate the genuine exact-head evidence, then reconcile the P05 exit gate. Any failed observation is product/recovery work. The runner never marks P05 CLOSED, never changes PHASE_EXIT_GATE, and never changes queue state.",
-      "releaseBlocking": true
+      "releaseBlocking": true,
+      "integratedEvidence": "evidence/phases/P05/owner/P05_EXIT_OWNER_RECONCILIATION_2026-09-07.md"
     }
   ]
 }
