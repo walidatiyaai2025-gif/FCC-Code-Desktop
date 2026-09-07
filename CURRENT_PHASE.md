@@ -34,7 +34,7 @@ P05 is canonically closed at the phase level. `FCCD-P05-001` through `FCCD-P05-0
 
 This is **not** a P04 closure and does not weaken P04 acceptance. `FCCD-P04-008 — Runtime contract suite` remains unresolved in `docs/TASK_LEDGER.md`; the P04 exit gate remains `NOT_RUN`; no P04 `CLOSURE.md` PASS is claimed by this scheduling transition. Its fresh owner-Windows/provider `REAL_TARGET` obligation is durably queued as `OWNER-P04-008-REAL-TARGET`, remains `releaseBlocking=true`, and must later be genuinely executed, reviewed, integrated, and reconciled.
 
-The owner-last policy permits sequential cloud advancement despite those two earlier environment-bound obligations only because their cloud preparation is complete and they are represented one-to-one in the canonical release-blocking owner queue. All P04/P05 functional and acceptance requirements remain unchanged.
+The owner-last policy continues to permit sequential cloud advancement despite the remaining P04 environment-bound obligation because its cloud preparation is complete and it remains represented one-to-one in the canonical release-blocking owner queue. The former P05 owner obligation has passed and is integrated; P04 requirements remain unchanged.
 
 ## Owner-last invariants
 
