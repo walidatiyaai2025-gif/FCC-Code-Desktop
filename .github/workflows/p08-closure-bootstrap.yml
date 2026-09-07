@@ -1,0 +1,35 @@
+name: P08 Closure Bootstrap
+
+on:
+  push:
+    branches:
+      - closure/p08-phase-exit
+
+permissions:
+  contents: write
+
+jobs:
+  close:
+    runs-on: ubuntu-24.04
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - name: Checkout closure branch
+        uses: actions/checkout@v7
+        with:
+          ref: closure/p08-phase-exit
+          fetch-depth: 0
+
+      - name: Apply guarded P08 phase closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/reconciliation/close-p08-phase.py
+          git rm tools/reconciliation/close-p08-phase.py .github/workflows/p08-closure-bootstrap.yml
+          git diff --check
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P08/CLOSURE.md
+          git diff --cached --check
+          git commit -m 'docs: close P08 terminal process supervision phase'
+          git push origin HEAD:closure/p08-phase-exit
