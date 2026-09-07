@@ -92,7 +92,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P08-005` — PowerShell/CMD profiles — CLOSED.
 - `FCCD-P08-006` — Optional Git Bash/WSL detection — CLOSED.
 - `FCCD-P08-007` — Interactive terminal UX — CLOSED.
-- `FCCD-P08-008` — Process/terminal safety tests — PENDING.
+- `FCCD-P08-008` — Process/terminal safety tests — CLOSED.
 
 ## P08 cloud activation provenance
 
@@ -657,3 +657,16 @@ Normally merge this P07 closure state/evidence and require the resulting exact c
 ## P05 owner real-target recovery on current main
 
 PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged from canonical main and became non-mergeable. This recovery reapplies only that P05 evidence/reconciliation on exact recovery base `c9e396e5788ac4ab2d4e98106529ea6d1ea50679` while preserving all later P08-004 canonical provenance. Compare review from tested SHA `60b6ef491e9dde3ca195b377a2ce07442452a6ce` to the recovery base shows no changes to P05 conversation/session/task implementation, persistence, runtime integration, application wiring, configuration, or packaging; the only product-source additions are the later P08-004 ConPTY terminal contract/host surface and its dedicated tests/docs. Under the affected-evidence rule, the historical P05 exit observation remains applicable to the P05 phase gate. P08 remains the sole current cloud implementation phase; P04 remains the only unresolved owner-last release blocker; `VERIFIED_FINAL_COMPLETE=false`.
+
+<!-- FCCD-P08-008-FINAL-CLOSURE-PROVENANCE -->
+## FCCD-P08-008 final canonical closure provenance
+
+- Task: `FCCD-P08-008 — Process/terminal safety tests` — `CLOSED` in this reconciliation candidate.
+- Recovery/integration PR: #208 (`recovery/fccd-p08-008-main-integration`); exact candidate `8de5f4722b1eeba03966494738f9738bcc106adc`; normal merge `7aac8a426031358954ba754a3c98ed1b458f1279`.
+- Exact implementation-head gates: Windows CI `34160742045` / #549, Workspace Search `34160742043` / #278, Large Workspace Safeguards `34160742035` / #262, and P08-008 Process Terminal Safety `34160742072` / #4 — all `SUCCESS`.
+- Exact implementation-merge gates on `7aac8a426031358954ba754a3c98ed1b458f1279`: Windows CI `34161388230` / #553, Workspace Search `34161388136` / #282, Large Workspace Safeguards `34161388091` / #266, and P08-008 Process Terminal Safety `34161388100` / #5 — all `SUCCESS`.
+- Pre-reconciliation canonical main `072b6470bef7bb7a540098e338050cb299d1ac2f` is a descendant of the accepted P08-008 merge. The intervening compare modifies P08-007 terminal UX/composition/governance only and no path selected by the P08-008 safety workflow.
+- Exact pre-reconciliation canonical-main regression gates: Windows CI `34163272333` / #558, Workspace Search `34163272378` / #287, Large Workspace Safeguards `34163272414` / #271, and P08-007 Interactive Terminal UX `34163272377` / #6 — all `SUCCESS`.
+- Integrated evidence: `evidence/phases/P08/P08_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; P05 remains `PASS_INTEGRATED`; `VERIFIED_FINAL_COMPLETE=false`.
+- P08 remains `IN_PROGRESS` and `PHASE_EXIT_GATE=NOT_RUN`. With P08-001 through P08-008 CLOSED in this candidate, the only legal next action after normal integration and exact-main verification is P08 phase-exit convergence. P09 and later implementation remain prohibited until P08 itself is canonically CLOSED with gate PASS.
