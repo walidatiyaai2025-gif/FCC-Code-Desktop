@@ -227,7 +227,7 @@ P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16
 | ID | Task | State |
 |---|---|---|
 | FCCD-P08-001 | Process supervisor with owned process-tree tracking | CLOSED |
-| FCCD-P08-002 | Graceful→forced cancellation escalation | PENDING |
+| FCCD-P08-002 | Graceful→forced cancellation escalation | CLOSED |
 | FCCD-P08-003 | Bounded streaming log pipeline | PENDING |
 | FCCD-P08-004 | ConPTY terminal host | PENDING |
 | FCCD-P08-005 | PowerShell/CMD profiles | PENDING |
@@ -426,8 +426,8 @@ P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16
 
 ## Current next action
 
-`CURRENT_PHASE = P08` is `IN_PROGRESS`. `FCCD-P08-001 — Process supervisor with owned process-tree tracking` is CLOSED and exact accepted-main green on `ac54e739019e7264db5de3f9b26b700735924bc1` after the post-merge lifecycle-race repair. `FCCD-P08-002` through `FCCD-P08-008` remain PENDING and `PHASE_EXIT_GATE=NOT_RUN`.
+`CURRENT_PHASE = P08` is `IN_PROGRESS`. `FCCD-P08-001 — Process supervisor with owned process-tree tracking` and `FCCD-P08-002 — Graceful→forced cancellation escalation` are CLOSED. P08-002 is accepted only after implementation PR #192, discovery of the post-merge P05-005 settlement regression, recovery PR #193, and exact accepted-main Windows CI `34079056645`, Workspace Search `34079056639`, and Large Workspace Safeguards `34079056670` all completed SUCCESS on `4f80433830684966405c7d76aea50583ae4df75b`. `FCCD-P08-003` through `FCCD-P08-008` remain PENDING and `PHASE_EXIT_GATE=NOT_RUN`.
 
 P04 remains acceptance-unresolved through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. P05 cloud implementation remains integrated, but its standalone exit observation remains queued as `OWNER-P05-EXIT-REAL-TARGET`. Their gates remain `P04=NOT_RUN;P05=NOT_RUN`; owner-last scheduling does not waive either obligation or permit release.
 
-The next legal cloud action is to re-read live claims and recover any legitimate integration-pending P08 work first; otherwise select the highest-value dependency-valid unclaimed P08 task, nominally `FCCD-P08-002 — Graceful→forced cancellation escalation` if it remains unclaimed. Do not skip to P09, P13, or any later phase and do not fabricate owner/manual evidence.
+The next legal cloud action is to re-read live claims and recover any legitimate integration-pending P08 work first; otherwise select the highest-value dependency-valid unclaimed P08 task, nominally `FCCD-P08-003 — Bounded streaming log pipeline` if it remains unclaimed. Do not skip to P09, P14, or any later phase and do not fabricate owner/manual evidence.
