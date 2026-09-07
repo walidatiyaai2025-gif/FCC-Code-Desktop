@@ -220,6 +220,8 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 
 `FCCD-P07-011` is CLOSED from the final real disposable-Git integration/conflict acceptance suite integrated in PR #185. Exact implementation candidate `391f9caf8cd53cc810ca02012def35d7815b937a` passed Windows CI `34066314053` / #428, P06-007 Workspace Search `34066314086` / #157, and P06-008 Large Workspace Safeguards `34066314047` / #141. PR #185 was normally merged as `f889b901ebc9fda362813c18827585551775e877`; that exact canonical main passed Windows CI `34066787222` / #429, P06-007 Workspace Search `34066787177` / #158, and P06-008 Large Workspace Safeguards `34066787145` / #142. Coverage includes clean pull→stage→commit→push flow, dirty checkout refusal preserving exact owner bytes and pre-existing-change provenance, a genuine disposable merge conflict with typed visibility and fail-closed destructive-command policy, and diverged pull/push refusal preserving both local and remote heads. Task evidence: `evidence/phases/P07/P07_011_INTEGRATED_RECONCILIATION_2026-09-07.md`. No P08/P12 implementation, new owner-only obligation, P07 phase-gate PASS, release eligibility, or `VERIFIED_FINAL_COMPLETE=true` is claimed.
 
+P07 is canonically CLOSED at the phase level on immutable candidate `7561dd88b16531403a9f8f5667db17801105687f`. Dedicated exact-candidate exit-gate run `34068796895` / job `101582228434` completed SUCCESS after pre-closure guards, the complete Windows baseline, explicit P07 Git acceptance tests, and exact-SHA/clean-worktree verification. Canonical evidence is `evidence/phases/P07/CLOSURE.md`. P08 is only the authorized next phase and is not active until a separate governance transition is normally integrated and exact-main verified.
+
 ## P08 — Terminal/process supervision
 
 | ID | Task | State |
@@ -422,10 +424,8 @@ P04 remains acceptance-unresolved with `PHASE_EXIT_GATE=NOT_RUN`; `FCCD-P04-008`
 
 ## Current next action
 
-`CURRENT_PHASE = P07` and P07 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`. `FCCD-P07-001` through `FCCD-P07-011` are CLOSED after exact PR-head validation, normal merge integration, exact post-merge canonical-main validation, and durable task reconciliation evidence.
+`CURRENT_PHASE = P07` is now a **CLOSED closure checkpoint** with `PHASE_EXIT_GATE=PASS`. All `FCCD-P07-001` through `FCCD-P07-011` rows are CLOSED, exact immutable candidate `7561dd88b16531403a9f8f5667db17801105687f` was green on the permanent pre-closure runs, and dedicated phase-exit run `34068796895` / job `101582228434` passed the full Windows baseline plus explicit P07 Git acceptance and clean exact-SHA checks.
 
 P04 remains acceptance-unresolved through `FCCD-P04-008` and its one-to-one queued `OWNER-P04-008-REAL-TARGET` obligation. P05 cloud implementation remains integrated, but its standalone exit observation remains queued as `OWNER-P05-EXIT-REAL-TARGET`. Their gates remain `P04=NOT_RUN;P05=NOT_RUN`; owner-last scheduling does not waive either obligation or permit release.
 
-The next legal P07 action is phase-exit convergence: validate the canonical P07 exit criterion on an exact candidate, repair any cloud-actionable defect, integrate truthful `evidence/phases/P07/CLOSURE.md` only if the gate passes, and only then activate P08 if governance permits. Do not skip directly to P08/P12 and do not fabricate owner/manual evidence.
-
-P06 is canonically CLOSED with `PHASE_EXIT_GATE=PASS`; closure evidence remains `evidence/phases/P06/CLOSURE.md`.
+The next legal action after this P07 closure is normally merged and the resulting exact canonical `main` remains green is a **separate governance transition activating P08**. Do not implement P08 inside the closure change, do not skip to P13 or any later phase, and do not fabricate owner/manual evidence.
