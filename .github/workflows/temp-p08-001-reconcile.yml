@@ -1,0 +1,69 @@
+name: TEMP P08-001 Reconciliation
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p08-001-integrated-closure
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Guard exact canonical base
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --no-tags
+          test "$(git rev-parse origin/main)" = "ac54e739019e7264db5de3f9b26b700735924bc1"
+          git merge-base --is-ancestor ac54e739019e7264db5de3f9b26b700735924bc1 HEAD
+
+      - name: Apply guarded reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python .github/temp/p08-001-reconcile.py
+
+      - name: Verify durable scope and self-delete orchestration
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/temp/p08-001-reconcile.py
+          rm .github/workflows/temp-p08-001-reconcile.yml
+          mapfile -t changed < <(git diff --name-only ac54e739019e7264db5de3f9b26b700735924bc1 -- | sort)
+          printf '%s\n' "${changed[@]}"
+          expected=(
+            "CURRENT_PHASE.md"
+            "PROJECT_CONTROL.md"
+            "docs/TASK_LEDGER.md"
+            "evidence/phases/P08/P08_001_INTEGRATED_RECONCILIATION_2026-09-07.md"
+          )
+          mapfile -t expected_sorted < <(printf '%s\n' "${expected[@]}" | sort)
+          test "${#changed[@]}" -eq "${#expected_sorted[@]}"
+          for i in "${!expected_sorted[@]}"; do
+            test "${changed[$i]}" = "${expected_sorted[$i]}"
+          done
+          grep -Fq 'CURRENT_PHASE: P08' CURRENT_PHASE.md
+          grep -Fq 'CURRENT_PHASE_STATE: IN_PROGRESS' CURRENT_PHASE.md
+          grep -Fq 'PHASE_EXIT_GATE: NOT_RUN' CURRENT_PHASE.md
+          grep -Fq 'FCCD-P08-001` — Process supervisor with owned process-tree tracking — CLOSED.' CURRENT_PHASE.md
+          grep -Fq '| FCCD-P08-001 | Process supervisor with owned process-tree tracking | CLOSED |' docs/TASK_LEDGER.md
+          grep -Fq 'OWNER-P04-008-REAL-TARGET;OWNER-P05-EXIT-REAL-TARGET' CURRENT_PHASE.md
+          grep -Fq 'VERIFIED_FINAL_COMPLETE: false' CURRENT_PHASE.md
+
+      - name: Commit canonical reconciliation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CURRENT_PHASE.md PROJECT_CONTROL.md docs/TASK_LEDGER.md evidence/phases/P08/P08_001_INTEGRATED_RECONCILIATION_2026-09-07.md
+          git add -u .github/temp/p08-001-reconcile.py .github/workflows/temp-p08-001-reconcile.yml
+          git commit -m "P08-001: reconcile integrated process supervisor closure"
+          git push origin HEAD:reconcile/fccd-p08-001-integrated-closure
