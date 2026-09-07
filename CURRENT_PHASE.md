@@ -5,11 +5,11 @@ This file is the fastest canonical resume checkpoint. It must be updated only wh
 ```text
 PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
-CURRENT_PHASE: P08
-CURRENT_PHASE_NAME: Terminal/process supervision
-CURRENT_PHASE_STATE: CLOSED
-NEXT_PHASE: P09
-PHASE_EXIT_GATE: PASS
+CURRENT_PHASE: P09
+CURRENT_PHASE_NAME: External Tool Gateway
+CURRENT_PHASE_STATE: IN_PROGRESS
+NEXT_PHASE: P10
+PHASE_EXIT_GATE: NOT_RUN
 KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
@@ -30,7 +30,7 @@ P07 is canonically CLOSED. `FCCD-P07-001` through `FCCD-P07-011` are normally in
 
 P08 — Terminal/process supervision — is canonically CLOSED in this closure state. `FCCD-P08-001` through `FCCD-P08-008` are normally integrated and exact-main verified. Immutable phase candidate `bb372da0a4506b3edc508156f06fc60ced8cc3d4` passed pre-closure Windows CI `34164500457` / #560, Workspace Search `34164500513` / #289, and Large Workspace Safeguards `34164500496` / #273; dedicated exact-candidate P08 phase-exit run `34165022901` / job `101874255929` completed SUCCESS with the full Windows baseline, interactive terminal UX runtime acceptance, process/terminal safety acceptance, exact-SHA guards, and a clean worktree. Canonical closure evidence is `evidence/phases/P08/CLOSURE.md`.
 
-`CURRENT_PHASE` deliberately remains `P08` after closure. P09 is not active yet. A separate governance transition may activate `CURRENT_PHASE=P09` only after this closure state is normally merged and the resulting exact canonical `main` remains green. No P09 or later implementation is authorized inside this closure state.
+P09 — External Tool Gateway — is now the sole legal cloud implementation/convergence phase. Only dependency-valid, unclaimed P09 work may begin. P10 and later implementation remain prohibited until P09 is truthfully closed with its exit gate resolved under canonical governance.
 
 P05 is canonically closed at the phase level. `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified, and the owner completed the required genuine Windows/FCC/provider interaction on exact tested SHA `60b6ef491e9dde3ca195b377a2ce07442452a6ce`. Provider-backed conversation execution, structured activity, Stop/Retry, close/reopen, and durable session resume all passed. `OWNER-P05-EXIT-REAL-TARGET` is reconciled as `PASS_INTEGRATED`, the P05 exit gate is `PASS`, and canonical closure evidence is `evidence/phases/P05/CLOSURE.md`.
 
@@ -40,7 +40,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 
 ## Owner-last invariants
 
-- P08 is CLOSED and retained as the current closure checkpoint until a separate, validated transition activates P09; no later-phase implementation is authorized yet.
+- Exactly one cloud implementation/convergence phase is active: P09.
 - Earlier unresolved task work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
 - A phase-exit requirement may be queued only when all cloud-actionable implementation/tests/CI are complete, the remaining evidence is genuinely environment-bound, and the phase gate remains truthfully unresolved rather than being represented as PASS.
 - Code defects, failed CI, missing tests/implementation, security/data-integrity defects, and repairable repository problems are never deferrable.
@@ -85,6 +85,29 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Canonical phase closure: `evidence/phases/P05/CLOSURE.md`.
 - Queue state: `PASS_INTEGRATED`.
 - Release status: this P05 obligation is resolved; `OWNER-P04-008-REAL-TARGET` remains release-blocking.
+## P09 cloud task inventory
+
+- `FCCD-P09-001` — `IExternalToolAdapter` contract — PENDING.
+- `FCCD-P09-002` — Tool discovery/capability registry — PENDING.
+- `FCCD-P09-003` — Structured invocation/result contracts — PENDING.
+- `FCCD-P09-004` — Tool resource locking — PENDING.
+- `FCCD-P09-005` — Artifact manifest/validation framework — PENDING.
+- `FCCD-P09-006` — Tool diagnostics/health framework — PENDING.
+- `FCCD-P09-007` — CLI/process generic adapter primitives — PENDING.
+- `FCCD-P09-008` — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling — PENDING.
+
+## P09 cloud activation provenance
+
+- Source closed-phase canonical main: `e28e32b0b3fb1c5305d12ec0ebbf021c51fd75e5`.
+- P08 closure integration: PR #211, normal merge.
+- Dedicated P08 exact-candidate phase-exit gate: run `34165022901` / job `101874255929` — SUCCESS on immutable candidate `bb372da0a4506b3edc508156f06fc60ced8cc3d4`.
+- Exact post-closure main Windows CI: run `34166334093` / #567 — SUCCESS.
+- Exact post-closure main P06-007 Workspace Search: run `34166334113` / #296 — SUCCESS.
+- Exact post-closure main P06-008 Large Workspace Safeguards: run `34166334110` / #280 — SUCCESS.
+- Pre-activation live claim scan: no open PR and no P09 branch/claim was present.
+- `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; P05 remains `PASS_INTEGRATED`; `P04=NOT_RUN`.
+- `VERIFIED_FINAL_COMPLETE` remains `false`; P22 remains prohibited while any required owner queue item is unresolved.
+- This is scheduling/governance activation only; no P09 product implementation is included.
 ## P08 cloud task inventory
 
 - `FCCD-P08-001` — Process supervisor with owned process-tree tracking — CLOSED.
