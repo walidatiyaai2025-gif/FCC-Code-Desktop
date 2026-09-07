@@ -18,71 +18,24 @@ jobs:
         with:
           ref: repair/p08-001-post-merge-workspace-lock
           fetch-depth: 0
-      - name: Apply guarded lifecycle ordering repair
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("src/FCCCodeDesktop.Runtime/ProcessSupervisor.cs")
-          text = path.read_text(encoding="utf-8")
-          old = '''                _completion.TrySetResult(
-                    new OwnedProcessExit(
-                        OwnershipId,
-                        RootProcessId,
-                        rootExitCode,
-                        StartedUtc,
-                        DateTimeOffset.UtcNow,
-                        Volatile.Read(ref _forcedTerminationRequested) != 0));
-            }
-            catch (Exception exception)
-            {
-                _completion.TrySetException(exception);
-            }
-            finally
-            {
-                _removeActive(OwnershipId);
-            }
-'''
-          new = '''                var exit = new OwnedProcessExit(
-                    OwnershipId,
-                    RootProcessId,
-                    rootExitCode,
-                    StartedUtc,
-                    DateTimeOffset.UtcNow,
-                    Volatile.Read(ref _forcedTerminationRequested) != 0);
-
-                _removeActive(OwnershipId);
-                _completion.TrySetResult(exit);
-            }
-            catch (Exception exception)
-            {
-                _removeActive(OwnershipId);
-                _completion.TrySetException(exception);
-            }
-'''
-          count = text.count(old)
-          if count != 1:
-              raise SystemExit(f"expected exactly one lifecycle block; found {count}")
-          path.write_text(text.replace(old, new), encoding="utf-8", newline="\n")
-          Path(".github/workflows/temp-p08-001-lifecycle-repair.yml").unlink()
-          PY
+      - name: Apply guarded repair
+        run: python .github/temp/p08-001-lifecycle-repair.py
       - name: Verify durable scope
         shell: bash
         run: |
           set -euo pipefail
           mapfile -t changed < <(git status --short | sed -E 's/^.. //')
           printf '%s\n' "${changed[@]}"
-          test "${#changed[@]}" -eq 2
+          test "${#changed[@]}" -eq 3
           printf '%s\n' "${changed[@]}" | grep -Fx 'src/FCCCodeDesktop.Runtime/ProcessSupervisor.cs'
           printf '%s\n' "${changed[@]}" | grep -Fx '.github/workflows/temp-p08-001-lifecycle-repair.yml'
-      - name: Commit repair and self-delete helper
+          printf '%s\n' "${changed[@]}" | grep -Fx '.github/temp/p08-001-lifecycle-repair.py'
+      - name: Commit repair and self-delete helpers
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/FCCCodeDesktop.Runtime/ProcessSupervisor.cs .github/workflows/temp-p08-001-lifecycle-repair.yml
+          git add -A src/FCCCodeDesktop.Runtime/ProcessSupervisor.cs .github/workflows/temp-p08-001-lifecycle-repair.yml .github/temp/p08-001-lifecycle-repair.py
           git commit -m 'P08-001: make completion include active-registry cleanup'
           git push origin HEAD:repair/p08-001-post-merge-workspace-lock
