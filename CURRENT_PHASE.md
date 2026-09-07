@@ -671,7 +671,7 @@ PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged fr
 - Exact pre-reconciliation canonical-main regression gates: Windows CI `34163272333` / #558, Workspace Search `34163272378` / #287, Large Workspace Safeguards `34163272414` / #271, and P08-007 Interactive Terminal UX `34163272377` / #6 — all `SUCCESS`.
 - Integrated evidence: `evidence/phases/P08/P08_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - No owner-only evidence is required or added. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; P05 remains `PASS_INTEGRATED`; `VERIFIED_FINAL_COMPLETE=false`.
-- P08 remains `IN_PROGRESS` and `PHASE_EXIT_GATE=NOT_RUN`. With P08-001 through P08-008 CLOSED in this candidate, the only legal next action after normal integration and exact-main verification is P08 phase-exit convergence. P09 and later implementation remain prohibited until P08 itself is canonically CLOSED with gate PASS.
+- At the P08-008 task-reconciliation checkpoint, P08 remained `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN` while all eight task rows were CLOSED. That historical checkpoint is superseded by the P08 phase-exit closure provenance below; P09 remains inactive until a separate post-closure governance transition is integrated and exact-main verified.
 
 <!-- P08-PHASE-EXIT-CLOSURE -->
 ## P08 phase-exit provenance
