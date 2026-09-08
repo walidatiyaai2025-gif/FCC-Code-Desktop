@@ -16,199 +16,62 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: worker/fccd-p10-005-integrated-reconciliation
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Reconcile P10-005 durable state and self-remove bootstrap
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $expectedBase = 'af7f79ed81ca57b5412bba4dbb2cd11c2cd100c9'
-          $actualParent = (git rev-parse HEAD^).Trim()
-          if ($actualParent -ne $expectedBase) {
-            throw "Unexpected reconciliation base. Expected $expectedBase, got $actualParent."
+          git merge-base --is-ancestor $expectedBase HEAD
+          if ($LASTEXITCODE -ne 0) { throw "Expected base $expectedBase is not an ancestor of branch HEAD." }
+          $bootstrapPath = '.github/workflows/fccd-p10-005-reconciliation-bootstrap.yml'
+          $unexpected = @(git diff --name-only $expectedBase HEAD | Where-Object { $_ -ne $bootstrapPath })
+          if ($unexpected.Count -ne 0) { throw "Unexpected pre-reconciliation branch changes: $($unexpected -join ', ')" }
+
+          function Decode-Utf8([string]$value) {
+            return [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($value))
           }
+
+          $provenanceB64 = 'IyMgUDEwLTAwNSBpbnRlZ3JhdGlvbiBwcm92ZW5hbmNlCgotIFRhc2s6IGBGQ0NELVAxMC0wMDUg4oCUIERlZGljYXRlZCBVbml0eSBsb2cgY2FwdHVyZS9wYXJzZXJgIOKAlCBgQ0xPU0VEYCBpbiB0aGlzIHJlY29uY2lsaWF0aW9uIGNhbmRpZGF0ZS4KLSBTZWxlY3Rpb24gYm91bmRhcnk6IHNjaGVkdWxpbmcgaGludCBgRkNDRC1QMjAtMDAxYCB3YXMgZnV0dXJlIHdvcmsgd2hpbGUgY2Fub25pY2FsIGBDVVJSRU5UX1BIQVNFPVAxMGA7IGxpdmUgcmVjb3ZlcnkgZm91bmQgZXhpc3RpbmcgbGVnaXRpbWF0ZSBQUiAjMjQzLCBzbyBpdCB3YXMgcmVjb3ZlcmVkIGFuZCBpbnRlZ3JhdGVkIGluc3RlYWQgb2Ygc3RhcnRpbmcgZHVwbGljYXRlIG9yIGZ1dHVyZS1waGFzZSB3b3JrLgotIEltcGxlbWVudGF0aW9uIFBSOiAjMjQzIChgd29ya2VyL2ZjY2QtcDEwLTAwNS11bml0eS1sb2ctY2FwdHVyZS1wYXJzZXJgKS4KLSBFeGFjdCBhY2NlcHRlZCBpbXBsZW1lbnRhdGlvbiBjYW5kaWRhdGU6IGBmN2I5ZGQ3NjYzNTQ2ZDIzM2M2MTQwYzZhYThjNjkxMWVlODYzNTEyYC4KLSBFeGFjdCBjYW5kaWRhdGUgUDEwLTAwNSBVbml0eSBMb2cgQ2FwdHVyZSBQYXJzZXI6IHJ1biBgMzQyMjQ0MTIxNjlgIOKAlCBTVUNDRVNTLgotIEV4YWN0IGNhbmRpZGF0ZSBXaW5kb3dzIENJOiBydW4gYDM0MjI0NDExOTczYCDigJQgU1VDQ0VTUy4KLSBFeGFjdCBjYW5kaWRhdGUgV29ya3NwYWNlIFNlYXJjaCBWYWxpZGF0aW9uOiBydW4gYDM0MjI0NDExOTcwYCDigJQgU1VDQ0VTUy4KLSBFeGFjdCBjYW5kaWRhdGUgTGFyZ2UgV29ya3NwYWNlIFNhZmVndWFyZHM6IHJ1biBgMzQyMjQ0MTE5NzVgIOKAlCBTVUNDRVNTLgotIE5vcm1hbCBpbXBsZW1lbnRhdGlvbiBtZXJnZSAvIGFjY2VwdGVkIGltcGxlbWVudGF0aW9uIG1haW46IGBhZjdmNzllZDgxY2E1N2I1NDEyYmJhNGRiYjJjZDExYzJjZDEwMGM5YC4KLSBFeGFjdCBpbXBsZW1lbnRhdGlvbi1tYWluIFAxMC0wMDUgVW5pdHkgTG9nIENhcHR1cmUgUGFyc2VyOiBydW4gYDM0MjI1MzI3MzAwYCDigJQgU1VDQ0VTUy4KLSBFeGFjdCBpbXBsZW1lbnRhdGlvbi1tYWluIFdpbmRvd3MgQ0k6IHJ1biBgMzQyMjUzMjc0ODJgIOKAlCBTVUNDRVNTLgotIEV4YWN0IGltcGxlbWVudGF0aW9uLW1haW4gV29ya3NwYWNlIFNlYXJjaCBWYWxpZGF0aW9uOiBydW4gYDM0MjI1MzI3MjkwYCDigJQgU1VDQ0VTUy4KLSBFeGFjdCBpbXBsZW1lbnRhdGlvbi1tYWluIExhcmdlIFdvcmtzcGFjZSBTYWZlZ3VhcmRzOiBydW4gYDM0MjI1MzI3MjkxYCDigJQgU1VDQ0VTUy4KLSBJbml0aWFsIGltcGxlbWVudGF0aW9uIHZhbGlkYXRpb24gZXhwb3NlZCBhbmFseXplciBgQ0ExNTEyYDsgZ3VhcmRzIHdlcmUgcmVwYWlyZWQgd2l0aCBmcmFtZXdvcmsgdGhyb3cgaGVscGVycyB3aXRob3V0IHN1cHByZXNzaW9uIG9yIHdhcm5pbmcgZGVtb3Rpb24uIEEgc3Vic2VxdWVudCBydW50aW1lIGZpeHR1cmUgZXhwb3NlZCBVVEYtOCBCT00gY29uc3VtaW5nIHRoZSBib3VuZGVkIGxpbmUtY29udGVudCBidWRnZXQ7IHRoZSBwcm9kdWN0aW9uIHJlYWRlciB3YXMgcmVwYWlyZWQgc28gQk9NIHRyYW5zcG9ydCBieXRlcyBkbyBub3QgY29uc3VtZSBjb250ZW50IGNhcGFjaXR5LCB3aXRob3V0IHdlYWtlbmluZyB0aGUgYXNzZXJ0aW9uLgotIEltcGxlbWVudGF0aW9uIHByb3ZpZGVzIGJvdW5kZWQgaW5jcmVtZW50YWwgYC1sb2dGaWxlYCBjYXB0dXJlLCBpbW11dGFibGUgY29udGludWF0aW9uIHN0YXRlLCBwYXJ0aWFsIFVURi04L0FyYWJpYyBwcmVzZXJ2YXRpb24sIG1hbGZvcm1lZCBVVEYtOCBkaWFnbm9zdGljcywgZmlsZSB0cnVuY2F0aW9uIGdlbmVyYXRpb24gaGFuZGxpbmcsIGZpbmFsIHBhcnRpYWwtbGluZSBmbHVzaCwgYW5kIHN0cnVjdHVyZWQgSW5mby9XYXJuaW5nL0Vycm9yL0V4Y2VwdGlvbi9Bc3NlcnQgY2xhc3NpZmljYXRpb24gd2hpbGUgaW50ZW50aW9uYWxseSBsZWF2aW5nIGNvbXBpbGUvdGVzdC9idWlsZCBvdXRjb21lIHNlbWFudGljcyB0byBsYXRlciBQMTAgdGFza3MuCi0gTm8gb3duZXItb25seSBldmlkZW5jZSBpcyByZXF1aXJlZCBvciBhZGRlZCBmb3IgUDEwLTAwNS4gYE9XTkVSLVAwNC0wMDgtUkVBTC1UQVJHRVRgIHJlbWFpbnMgdGhlIHNvbGUgdW5yZXNvbHZlZCByZWxlYXNlLWJsb2NraW5nIG93bmVyIGl0ZW0uCi0gUDEwIHJlbWFpbnMgYElOX1BST0dSRVNTYDsgYEZDQ0QtUDEwLTAwNmAgdGhyb3VnaCBgRkNDRC1QMTAtMDEzYCByZW1haW4gYFBFTkRJTkdgOyBgUEhBU0VfRVhJVF9HQVRFPU5PVF9SVU5gOyBQMTErIGltcGxlbWVudGF0aW9uIHJlbWFpbnMgcHJvaGliaXRlZDsgYFZFUklGSUVEX0ZJTkFMX0NPTVBMRVRFPWZhbHNlYC4K'
+          $nextActionB64 = 'IyMgQ3VycmVudCBuZXh0IGFjdGlvbgoKYENVUlJFTlRfUEhBU0UgPSBQMTBgIHJlbWFpbnMgdGhlIHNvbGUgYWN0aXZlIGNsb3VkIGltcGxlbWVudGF0aW9uL2NvbnZlcmdlbmNlIHBoYXNlLiBgRkNDRC1QMTAtMDAxYCB0aHJvdWdoIGBGQ0NELVAxMC0wMDVgIGFyZSBDTE9TRUQgYWZ0ZXIgbm9ybWFsIGltcGxlbWVudGF0aW9uIGludGVncmF0aW9uLCBleGFjdCBpbXBsZW1lbnRhdGlvbi1tYWluIHZhbGlkYXRpb24sIGFuZCBkdXJhYmxlIHRhc2sgcmVjb25jaWxpYXRpb247IGBGQ0NELVAxMC0wMDZgIHRocm91Z2ggYEZDQ0QtUDEwLTAxM2AgcmVtYWluIFBFTkRJTkcuIEFmdGVyIHRoaXMgUDEwLTAwNSByZWNvbmNpbGlhdGlvbiBpdHNlbGYgcGFzc2VzIGV4YWN0LWhlYWQgQ0ksIG5vcm1hbCBtZXJnZSwgYW5kIGV4YWN0LW1haW4gdmVyaWZpY2F0aW9uLCB0aGUgbmV4dCBsZWdhbCBjbG91ZCBhY3Rpb24gaXMgYSBmcmVzaCBsaXZlIGNsYWltL2NvbmN1cnJlbmN5IHN3ZWVwIGFuZCB0aGVuIGBGQ0NELVAxMC0wMDYg4oCUIENvbXBpbGUgdmFsaWRhdGlvbmAgb25seSBpZiBpdCByZW1haW5zIHVuY2xhaW1lZCBhbmQgZGVwZW5kZW5jeS12YWxpZC4gUDExIGFuZCBsYXRlciBpbXBsZW1lbnRhdGlvbiByZW1haW4gcHJvaGliaXRlZCB1bnRpbCBQMTAgaXMgdHJ1dGhmdWxseSBjbG9zZWQgdW5kZXIgY2Fub25pY2FsIGdvdmVybmFuY2UuIFByZXNlcnZlIGBPV05FUi1QMDQtMDA4LVJFQUwtVEFSR0VUYCBhcyB0aGUgc29sZSB1bnJlc29sdmVkIHJlbGVhc2UtYmxvY2tpbmcgb3duZXIgaXRlbSwga2VlcCBgUDA0PU5PVF9SVU5gLCBhbmQga2VlcCBgVkVSSUZJRURfRklOQUxfQ09NUExFVEU9ZmFsc2VgLgo='
+          $evidenceB64 = 'IyBGQ0NELVAxMC0wMDUg4oCUIERlZGljYXRlZCBVbml0eSBsb2cgY2FwdHVyZS9wYXJzZXIKCkRhdGU6IDIwMjYtMDktMDgKUGhhc2U6IFAxMCDigJQgVW5pdHkgZmlyc3QtY2xhc3MgYWRhcHRlcgpUYXNrOiBgRkNDRC1QMTAtMDA1IOKAlCBEZWRpY2F0ZWQgVW5pdHkgbG9nIGNhcHR1cmUvcGFyc2VyYApFdmlkZW5jZSBjbGFzc2lmaWNhdGlvbjogQ0xPVURfQUNDRVBURUQgLyBJTlRFR1JBVEVECgojIyBMaXZlLXN0YXRlIHJlY292ZXJ5IHNlbGVjdGlvbgoKLSBTY2hlZHVsaW5nIGhpbnQgYEZDQ0QtUDIwLTAwMSDigJQgQWxsIG5vbi1lbnZpcm9ubWVudCBhdXRvbWF0ZWQgc3VpdGVzIGdyZWVuYCB3YXMgZnV0dXJlIHdvcmsgYW5kIHdhcyBub3QgZXhlY3V0ZWQgYmVjYXVzZSBjYW5vbmljYWwgYENVUlJFTlRfUEhBU0U9UDEwYC4KLSBFeGFjdCBzb3VyY2UgbWFpbiBhdCByZWNvdmVyeSBzZWxlY3Rpb24gd2FzIGBjODk3NTliNjcyNmQ4NmZlMDViN2RiYjQyZTE1ZTlmMGY3YmY3YzMyYC4KLSBUaGUgbGl2ZSBzd2VlcCBmb3VuZCBvbmUgbGVnaXRpbWF0ZSBpbnRlZ3JhdGlvbi1wZW5kaW5nIGN1cnJlbnQtcGhhc2UgUFI6ICMyNDMgb24gYHdvcmtlci9mY2NkLXAxMC0wMDUtdW5pdHktbG9nLWNhcHR1cmUtcGFyc2VyYC4KLSBSZWNvdmVyeSBvZiB0aGF0IFBSIHRoZXJlZm9yZSB0b29rIHByaW9yaXR5IG92ZXIgYW55IG5ldyBQMTAgY2xhaW0gb3IgZnV0dXJlIFAyMCB3b3JrLgoKIyMgSW1wbGVtZW50YXRpb24gYm91bmRhcnkKClAxMC0wMDUgYWRkcyBhIGRlZGljYXRlZCBib3VuZGVkIFVuaXR5IGAtbG9nRmlsZWAgY2FwdHVyZS9wYXJzZXIgbGF5ZXIuIEl0IG93bnMgaW5jcmVtZW50YWwgbG9nLWZpbGUgcmVhZGluZyBhbmQgc3RydWN0dXJhbCBsaW5lIGNsYXNzaWZpY2F0aW9uIG9ubHk7IGl0IGRvZXMgbm90IGNsYWltIGxhdGVyIFAxMCBjb21waWxlLCBFZGl0TW9kZSwgUGxheU1vZGUsIEVkaXRvciBhdXRvbWF0aW9uLCBidWlsZCwgc3RydWN0dXJlZCBVSS1ldmVudCwgb3IgY2FuY2VsbGF0aW9uL3JlY292ZXJ5IG91dGNvbWUgc2VtYW50aWNzLgoKVGhlIGltcGxlbWVudGF0aW9uIHByb3ZpZGVzOgoKLSBhbiBpbW11dGFibGUgY29udGludWF0aW9uIGN1cnNvciB3aXRoIGJ5dGUgb2Zmc2V0LCBtb25vdG9uaWMgc2VxdWVuY2UgYW5kIGxvZyBnZW5lcmF0aW9uOwotIGJvdW5kZWQgbGluZSBzaXplLCBiYXRjaCBzaXplIGFuZCByZWFkIGJ1ZmZlciBjb25maWd1cmF0aW9uOwotIHJlYWRpbmcgd2hpbGUgVW5pdHkgbWF5IHN0aWxsIGhvbGQgdGhlIGZpbGUgb3BlbiB2aWEgcmVhZC93cml0ZS9kZWxldGUgc2hhcmluZzsKLSBwYXJ0aWFsIGxpbmUgcHJlc2VydmF0aW9uIGFjcm9zcyBwb2xsaW5nIGJvdW5kYXJpZXMsIGluY2x1ZGluZyBzcGxpdCBVVEYtOC9BcmFiaWMgY29udGVudDsKLSBVVEYtOCBCT00gaGFuZGxpbmcgdGhhdCBkb2VzIG5vdCBjb25zdW1lIHRoZSBjb25maWd1cmVkIGNvbnRlbnQtYnl0ZSBidWRnZXQ7Ci0gc3RyaWN0IFVURi04IGRlY29kaW5nIHdpdGggcmVwbGFjZW1lbnQtZGVjb2RlZCBkaWFnbm9zdGljIHRleHQgcGx1cyBleHBsaWNpdCBlbmNvZGluZy1lcnJvciBtZXRhZGF0YTsKLSBkZXRlcm1pbmlzdGljIHJlc2V0L2dlbmVyYXRpb24gaGFuZGxpbmcgd2hlbiB0aGUgbG9nIGlzIHRydW5jYXRlZCBiZWxvdyB0aGUgY3Vyc29yOwotIGNhbGxlci1jb250cm9sbGVkIGZsdXNoIG9mIGEgZmluYWwgdW50ZXJtaW5hdGVkIGxpbmUgYWZ0ZXIgVW5pdHkgdGVybWluYXRpb247Ci0gc3RydWN0dXJhbCBgSW5mb2AsIGBXYXJuaW5nYCwgYEVycm9yYCwgYEV4Y2VwdGlvbmAsIGFuZCBgQXNzZXJ0YCBjbGFzc2lmaWNhdGlvbiwgaW5jbHVkaW5nIGNvbXBpbGVyLWxvb2tpbmcgbG9nIGxpbmVzLCB3aXRob3V0IHRyZWF0aW5nIHRob3NlIGNsYXNzaWZpY2F0aW9ucyBhcyBjb21waWxlL3Rlc3QvYnVpbGQgc3VjY2VzcyBvciBmYWlsdXJlIGRlY2lzaW9ucy4KClRoZSBpbXBsZW1lbnRhdGlvbiB1c2VzIG9ubHkgYW4gZXhwbGljaXQgZnVsbHktcXVhbGlmaWVkIGxvZyBwYXRoIGFuZCBkb2VzIG5vdCBhZGQgc2VjcmV0L3Byb3ZpZGVyIGhhbmRsaW5nIG9yIG93bmVyLWVudmlyb25tZW50IGFzc3VtcHRpb25zLgoKIyMgRGV0ZXJtaW5pc3RpYyBhY2NlcHRhbmNlIGNvdmVyYWdlCgpgdGVzdHMvRkNDQ29kZURlc2t0b3AuVW5pdHlMb2dDYXB0dXJlRml4dHVyZWAgYW5kIGB0b29scy91bml0eS92YWxpZGF0ZS11bml0eS1sb2ctY2FwdHVyZS5wczFgIGNvdmVyOgoKLSBwYXJzZXIgY2xhc3NpZmljYXRpb24gYW5kIHJlY29nbml6ZWQgdGltZXN0YW1wIGhhbmRsaW5nOwotIG5vbi10aW1lc3RhbXAgYnJhY2tldCBwcmVmaXhlcyByZW1haW5pbmcgaW50YWN0OwotIG9wdGlvbi9wYXRoIHZhbGlkYXRpb24gYW5kIG1pc3NpbmctZmlsZSBiZWhhdmlvcjsKLSBpbmNyZW1lbnRhbCBjb21wbGV0ZS1saW5lIGVtaXNzaW9uIHdpdGggcGFydGlhbCBVVEYtOC9BcmFiaWMgcHJlc2VydmF0aW9uOwotIGRldGVybWluaXN0aWMgbW9ub3RvbmljIHNlcXVlbmNlIGJlaGF2aW9yOwotIGxvZyB0cnVuY2F0aW9uL3Jlc2V0IGdlbmVyYXRpb24gYmVoYXZpb3I7Ci0gYm91bmRlZCBiYXRjaCBjb250aW51YXRpb24gd2l0aG91dCBkdXBsaWNhdGUvbG9zdCBsaW5lczsKLSBvdmVyc2l6ZWQtbGluZSBib3VuZGluZyB3aXRoIGV4YWN0IGRyb3BwZWQtYnl0ZSBhY2NvdW50aW5nOwotIG1hbGZvcm1lZCBVVEYtOCBzdXJmYWNlZCBzdHJ1Y3R1cmFsbHkgaW5zdGVhZCBvZiBjcmFzaGluZzsKLSBmaW5hbC1saW5lIGZsdXNoIGJlaGF2aW9yOwotIGNhbmNlbGxhdGlvbiBwcm9wYWdhdGlvbi4KClBlcm1hbmVudCB2YWxpZGF0aW9uIGlzIGAuZ2l0aHViL3dvcmtmbG93cy9wMTAtMDA1LXVuaXR5LWxvZy1jYXB0dXJlLnltbGAgb24gaG9zdGVkIFdpbmRvd3Mgd2l0aCBleGFjdCAuTkVUIFNESyBgMTAuMC40MDBgLCBsb2NrZWQgcmVzdG9yZSwgUmVsZWFzZSB3YXJuaW5ncy1hcy1lcnJvcnMgYnVpbGQsIGFuZCBkZXRlcm1pbmlzdGljIGZpeHR1cmUgZXhlY3V0aW9uLgoKIyMgRGVmZWN0cyBleHBvc2VkIGFuZCByZXBhaXJlZCBiZWZvcmUgYWNjZXB0YW5jZQoKVGhlIGZpcnN0IGltcGxlbWVudGF0aW9uIHZhbGlkYXRpb24gZXhwb3NlZCBmaXZlIGFuYWx5emVyIGBDQTE1MTJgIGVycm9ycyBpbiBndWFyZCBjb2RlLiBUaGV5IHdlcmUgcmVwYWlyZWQgd2l0aCB0aGUgZnJhbWV3b3JrIGBBcmd1bWVudE91dE9mUmFuZ2VFeGNlcHRpb24uVGhyb3dJZipgIGhlbHBlcnMuIE5vIGFuYWx5emVyIHN1cHByZXNzaW9uLCB3YXJuaW5nIGRlbW90aW9uLCB0ZXN0IHJlbW92YWwsIG9yIHNhZmV0eSB3ZWFrZW5pbmcgd2FzIHVzZWQuCgpUaGUgcmVwYWlyZWQgYnVpbGQgdGhlbiByZWFjaGVkIHRoZSBydW50aW1lIGZpeHR1cmUsIHdoaWNoIGV4cG9zZWQgYSBzZWNvbmQgZ2VudWluZSBkZWZlY3Q6IGEgVVRGLTggQk9NIGF0IHRoZSBzdGFydCBvZiBhIGdlbmVyYXRlZCBsb2cgY29uc3VtZWQgdGhyZWUgYnl0ZXMgb2YgdGhlIGJvdW5kZWQgbGluZS1jb250ZW50IGJ1ZGdldCwgY2F1c2luZyBpbmNvcnJlY3QgcmV0YWluZWQgbGVuZ3RoIGFuZCBkcm9wcGVkLWJ5dGUgYWNjb3VudGluZy4gVGhlIHByb2R1Y3Rpb24gcmVhZGVyIHdhcyByZXBhaXJlZCBzbyBCT00gdHJhbnNwb3J0IGJ5dGVzIGFyZSBleGNsdWRlZCBmcm9tIGNvbnRlbnQtYnVkZ2V0IGFjY291bnRpbmcuIFRoZSBmaXh0dXJlIGFzc2VydGlvbnMgd2VyZSByZXRhaW5lZCB1bmNoYW5nZWQgYW5kIHN1YnNlcXVlbnRseSBwYXNzZWQuCgojIyBFeGFjdCBhY2NlcHRlZCBpbXBsZW1lbnRhdGlvbi1jYW5kaWRhdGUgdmFsaWRhdGlvbgoKQWxsIGFwcGxpY2FibGUgY2hlY2tzIG9uIGV4YWN0IGNhbmRpZGF0ZSBgZjdiOWRkNzY2MzU0NmQyMzNjNjE0MGM2YWE4YzY5MTFlZTg2MzUxMmAgY29tcGxldGVkIFNVQ0NFU1M6CgotIFAxMC0wMDUgVW5pdHkgTG9nIENhcHR1cmUgUGFyc2VyOiBydW4gYDM0MjI0NDEyMTY5YCDigJQgU1VDQ0VTUy4KLSBXaW5kb3dzIENJOiBydW4gYDM0MjI0NDExOTczYCDigJQgU1VDQ0VTUy4KLSBXb3Jrc3BhY2UgU2VhcmNoIFZhbGlkYXRpb246IHJ1biBgMzQyMjQ0MTE5NzBgIOKAlCBTVUNDRVNTLgotIExhcmdlIFdvcmtzcGFjZSBTYWZlZ3VhcmQgVmFsaWRhdGlvbjogcnVuIGAzNDIyNDQxMTk3NWAg4oCUIFNVQ0NFU1MuCgpQUiAjMjQzIHdhcyB0aGVuIG1hcmtlZCByZWFkeSBhbmQgbm9ybWFsbHkgbWVyZ2VkIHVzaW5nIG1lcmdlLWNvbW1pdCBmbG93LCBndWFyZGVkIGJ5IHRoZSBleGFjdCBhY2NlcHRlZCBoZWFkIFNIQS4gTm8gZm9yY2UtcHVzaCwgc3F1YXNoLCByZWJhc2UsIHdhaXZlciwgb3Igc2FmZXR5LWNoZWNrIHdlYWtlbmluZyB3YXMgdXNlZC4KCiMjIEV4YWN0IGltcGxlbWVudGF0aW9uLW1haW4gdmFsaWRhdGlvbgoKTm9ybWFsIGltcGxlbWVudGF0aW9uIG1lcmdlIC8gZXhhY3QgYWNjZXB0ZWQgaW1wbGVtZW50YXRpb24gbWFpbjoKCmBhZjdmNzllZDgxY2E1N2I1NDEyYmJhNGRiYjJjZDExYzJjZDEwMGM5YAoKQWxsIGFwcGxpY2FibGUgcHVzaCBjaGVja3Mgb24gdGhhdCBleGFjdCBtYWluIGNvbXBsZXRlZCBTVUNDRVNTOgoKLSBQMTAtMDA1IFVuaXR5IExvZyBDYXB0dXJlIFBhcnNlcjogcnVuIGAzNDIyNTMyNzMwMGAg4oCUIFNVQ0NFU1MuCi0gV2luZG93cyBDSTogcnVuIGAzNDIyNTMyNzQ4MmAg4oCUIFNVQ0NFU1MuCi0gV29ya3NwYWNlIFNlYXJjaCBWYWxpZGF0aW9uOiBydW4gYDM0MjI1MzI3MjkwYCDigJQgU1VDQ0VTUy4KLSBMYXJnZSBXb3Jrc3BhY2UgU2FmZWd1YXJkIFZhbGlkYXRpb246IHJ1biBgMzQyMjUzMjcyOTFgIOKAlCBTVUNDRVNTLgoKVGhlIGV4YWN0LW1haW4gV2luZG93cyBydW4gY29tcGxldGVkIHRoZSBjb21wbGV0ZSBwZXJtYW5lbnQgV2luZG93cyBSZWxlYXNlIGJhc2VsaW5lIHBsdXMgYWxsIGN1cnJlbnQgUDA1L1AwNiB2YWxpZGF0aW9uIHN0ZXBzLiBObyBwb3N0LW1lcmdlIHByb2R1Y3QgcmVncmVzc2lvbiB3YXMgZm91bmQuCgojIyBPd25lci1sYXN0IC8gdGFyZ2V0IGJvdW5kYXJ5CgpObyBvd25lci1vbmx5IGV2aWRlbmNlIGlzIHJlcXVpcmVkIGZvciBQMTAtMDA1LiBJdHMgY2FwdHVyZS9wYXJzZXIgY29udHJhY3QgaXMgZnVsbHkgY2xvdWQtdmVyaWZpYWJsZSB3aXRoIGRldGVybWluaXN0aWMgaG9zdGVkLVdpbmRvd3MgZmlsZSBmaXh0dXJlcyBhbmQgZG9lcyBub3QgcmVxdWlyZSBhbiBpbnN0YWxsZWQgVW5pdHkgZWRpdG9yIHRvIHByb3ZlIHRoZSBvd25lZCBwYXJzaW5nIHNlbWFudGljcy4KCk5vIFVuaXR5LXJ1bnRpbWUsIEZDQy9wcm92aWRlciwgbWFudWFsIFdpbmRvd3MsIG9yIHBoeXNpY2FsLXRhcmdldCByZXN1bHQgaXMgZmFicmljYXRlZC4gYE9XTkVSLVAwNC0wMDgtUkVBTC1UQVJHRVRgIHJlbWFpbnMgdGhlIHNvbGUgdW5yZXNvbHZlZCByZWxlYXNlLWJsb2NraW5nIG93bmVyIHF1ZXVlIGl0ZW0gYW5kIGlzIG5laXRoZXIgbW9kaWZpZWQgbm9yIGR1cGxpY2F0ZWQuCgojIyBDYW5vbmljYWwgcmVjb25jaWxpYXRpb24gc2NvcGUKClRoaXMgcmVjb25jaWxpYXRpb24gY2hhbmdlcyBvbmx5IGNhbm9uaWNhbCBzdGF0ZS9ldmlkZW5jZSBmb3IgdGhlIGFscmVhZHktaW50ZWdyYXRlZCBhbmQgZXhhY3QtbWFpbi1ncmVlbiBQMTAtMDA1IGltcGxlbWVudGF0aW9uOgoKLSBgQ1VSUkVOVF9QSEFTRS5tZGA6IFAxMC0wMDUgaW52ZW50b3J5IGBQRU5ESU5HYCDihpIgYENMT1NFRGAgcGx1cyBpbnRlZ3JhdGlvbiBwcm92ZW5hbmNlOwotIGBkb2NzL1RBU0tfTEVER0VSLm1kYDogUDEwLTAwNSBgUEVORElOR2Ag4oaSIGBDTE9TRURgIGFuZCB0aGUgbmV4dC1hY3Rpb24gcG9pbnRlciBtb3ZlcyB0byBhIGZyZXNoIGxpdmUgc3dlZXAgYmVmb3JlIFAxMC0wMDY7Ci0gdGhpcyBldmlkZW5jZSBmaWxlLgoKTm8gcHJvZHVjdCBjb2RlLCBvd25lciBxdWV1ZSBzdGF0ZSwgUDEwLTAwNisgaW1wbGVtZW50YXRpb24sIHBoYXNlLWV4aXQgc3RhdGUsIG9yIGxhdGVyLXBoYXNlIGF1dGhvcml0eSBjaGFuZ2VzIGhlcmUuIFAxMCByZW1haW5zIGBJTl9QUk9HUkVTU2A7IFAxMC0wMDYgdGhyb3VnaCBQMTAtMDEzIHJlbWFpbiBgUEVORElOR2A7IGBQSEFTRV9FWElUX0dBVEU9Tk9UX1JVTmA7IFAxMSsgaW1wbGVtZW50YXRpb24gcmVtYWlucyBwcm9oaWJpdGVkOyBgVkVSSUZJRURfRklOQUxfQ09NUExFVEU9ZmFsc2VgLgo='
 
           $currentPath = 'CURRENT_PHASE.md'
           $current = Get-Content -LiteralPath $currentPath -Raw
           $oldCurrentRow = '- `FCCD-P10-005` — Dedicated Unity log capture/parser — PENDING.'
           $newCurrentRow = '- `FCCD-P10-005` — Dedicated Unity log capture/parser — CLOSED.'
-          if (([regex]::Matches($current, [regex]::Escape($oldCurrentRow))).Count -ne 1) {
-            throw 'Expected exactly one P10-005 PENDING inventory row in CURRENT_PHASE.md.'
-          }
-          if ($current.Contains($newCurrentRow)) {
-            throw 'CURRENT_PHASE.md already contains a P10-005 CLOSED row unexpectedly.'
-          }
+          if (([regex]::Matches($current, [regex]::Escape($oldCurrentRow))).Count -ne 1) { throw 'Expected exactly one P10-005 PENDING inventory row in CURRENT_PHASE.md.' }
+          if ($current.Contains($newCurrentRow)) { throw 'CURRENT_PHASE.md already contains P10-005 CLOSED unexpectedly.' }
           $current = $current.Replace($oldCurrentRow, $newCurrentRow)
-
-          $provenanceHeader = '## P10-005 integration provenance'
-          if ($current.Contains($provenanceHeader)) {
-            throw 'P10-005 provenance already exists unexpectedly.'
-          }
-          $provenance = @'
-
-## P10-005 integration provenance
-
-- Task: `FCCD-P10-005 — Dedicated Unity log capture/parser` — `CLOSED` in this reconciliation candidate.
-- Selection boundary: scheduling hint `FCCD-P20-001` was future work while canonical `CURRENT_PHASE=P10`; live recovery found existing legitimate PR #243, so it was recovered and integrated instead of starting duplicate or future-phase work.
-- Implementation PR: #243 (`worker/fccd-p10-005-unity-log-capture-parser`).
-- Exact accepted implementation candidate: `f7b9dd7663546d233c6140c6aa8c6911ee863512`.
-- Exact candidate P10-005 Unity Log Capture Parser: run `34224412169` — SUCCESS.
-- Exact candidate Windows CI: run `34224411973` — SUCCESS.
-- Exact candidate Workspace Search Validation: run `34224411970` — SUCCESS.
-- Exact candidate Large Workspace Safeguards: run `34224411975` — SUCCESS.
-- Normal implementation merge / accepted implementation main: `af7f79ed81ca57b5412bba4dbb2cd11c2cd100c9`.
-- Exact implementation-main P10-005 Unity Log Capture Parser: run `34225327300` — SUCCESS.
-- Exact implementation-main Windows CI: run `34225327482` — SUCCESS.
-- Exact implementation-main Workspace Search Validation: run `34225327290` — SUCCESS.
-- Exact implementation-main Large Workspace Safeguards: run `34225327291` — SUCCESS.
-- Initial implementation validation exposed analyzer `CA1512`; guards were repaired with framework throw helpers without suppression or warning demotion. A subsequent runtime fixture exposed UTF-8 BOM consuming the bounded line-content budget; the production reader was repaired so BOM transport bytes do not consume content capacity, without weakening the assertion.
-- Implementation provides bounded incremental `-logFile` capture, immutable continuation state, partial UTF-8/Arabic preservation, malformed UTF-8 diagnostics, file truncation generation handling, final partial-line flush, and structured Info/Warning/Error/Exception/Assert classification while intentionally leaving compile/test/build outcome semantics to later P10 tasks.
-- No owner-only evidence is required or added for P10-005. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.
-- P10 remains `IN_PROGRESS`; `FCCD-P10-006` through `FCCD-P10-013` remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
-'@
-          $current = $current.TrimEnd() + "`r`n" + $provenance.TrimStart() + "`r`n"
-          Set-Content -LiteralPath $currentPath -Value $current -Encoding utf8NoBOM
+          if ($current.Contains('## P10-005 integration provenance')) { throw 'P10-005 provenance already exists unexpectedly.' }
+          $current = $current.TrimEnd() + "`r`n`r`n" + (Decode-Utf8 $provenanceB64).TrimEnd() + "`r`n"
+          [IO.File]::WriteAllText((Join-Path $PWD $currentPath), $current, [Text.UTF8Encoding]::new($false))
 
           $ledgerPath = 'docs/TASK_LEDGER.md'
           $ledger = Get-Content -LiteralPath $ledgerPath -Raw
           $oldLedgerRow = '| FCCD-P10-005 | Dedicated Unity log capture/parser | PENDING |'
           $newLedgerRow = '| FCCD-P10-005 | Dedicated Unity log capture/parser | CLOSED |'
-          if (([regex]::Matches($ledger, [regex]::Escape($oldLedgerRow))).Count -ne 1) {
-            throw 'Expected exactly one P10-005 PENDING ledger row.'
-          }
-          if ($ledger.Contains($newLedgerRow)) {
-            throw 'TASK_LEDGER.md already contains a P10-005 CLOSED row unexpectedly.'
-          }
+          if (([regex]::Matches($ledger, [regex]::Escape($oldLedgerRow))).Count -ne 1) { throw 'Expected exactly one P10-005 PENDING ledger row.' }
+          if ($ledger.Contains($newLedgerRow)) { throw 'TASK_LEDGER.md already contains P10-005 CLOSED unexpectedly.' }
           $ledger = $ledger.Replace($oldLedgerRow, $newLedgerRow)
-
           $nextActionPattern = '(?s)## Current next action\r?\n.*?(?=\r?\n<!-- FCCD-P08-004-FINAL-CLOSURE-PROVENANCE -->)'
-          $nextActionMatches = [regex]::Matches($ledger, $nextActionPattern)
-          if ($nextActionMatches.Count -ne 1) {
-            throw "Expected exactly one Current next action section; found $($nextActionMatches.Count)."
-          }
-          $nextAction = @'
-## Current next action
-
-`CURRENT_PHASE = P10` remains the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-005` are CLOSED after normal implementation integration, exact implementation-main validation, and durable task reconciliation; `FCCD-P10-006` through `FCCD-P10-013` remain PENDING. After this P10-005 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-006 — Compile validation` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.
-'@
-          $ledger = [regex]::Replace($ledger, $nextActionPattern, $nextAction.TrimEnd())
-          Set-Content -LiteralPath $ledgerPath -Value $ledger -Encoding utf8NoBOM
+          if ([regex]::Matches($ledger, $nextActionPattern).Count -ne 1) { throw 'Expected exactly one Current next action section.' }
+          $ledger = [regex]::Replace($ledger, $nextActionPattern, (Decode-Utf8 $nextActionB64).TrimEnd())
+          [IO.File]::WriteAllText((Join-Path $PWD $ledgerPath), $ledger, [Text.UTF8Encoding]::new($false))
 
           $evidencePath = 'evidence/phases/P10/P10_005_INTEGRATED_RECONCILIATION_2026-09-08.md'
-          if (Test-Path -LiteralPath $evidencePath) {
-            throw "$evidencePath already exists unexpectedly."
-          }
-          $evidence = @'
-# FCCD-P10-005 — Dedicated Unity log capture/parser
+          if (Test-Path -LiteralPath $evidencePath) { throw "$evidencePath already exists unexpectedly." }
+          [IO.File]::WriteAllText((Join-Path $PWD $evidencePath), (Decode-Utf8 $evidenceB64), [Text.UTF8Encoding]::new($false))
 
-Date: 2026-09-08
-Phase: P10 — Unity first-class adapter
-Task: `FCCD-P10-005 — Dedicated Unity log capture/parser`
-Evidence classification: CLOUD_ACCEPTED / INTEGRATED
-
-## Live-state recovery selection
-
-- Scheduling hint `FCCD-P20-001 — All non-environment automated suites green` was future work and was not executed because canonical `CURRENT_PHASE=P10`.
-- Exact source main at recovery selection was `c89759b6726d86fe05b7dbb42e15e9f0f7bf7c32`.
-- The live sweep found one legitimate integration-pending current-phase PR: #243 on `worker/fccd-p10-005-unity-log-capture-parser`.
-- Recovery of that PR therefore took priority over any new P10 claim or future P20 work.
-
-## Implementation boundary
-
-P10-005 adds a dedicated bounded Unity `-logFile` capture/parser layer. It owns incremental log-file reading and structural line classification only; it does not claim later P10 compile, EditMode, PlayMode, Editor automation, build, structured UI-event, or cancellation/recovery outcome semantics.
-
-The implementation provides:
-
-- an immutable continuation cursor with byte offset, monotonic sequence and log generation;
-- bounded line size, batch size and read buffer configuration;
-- reading while Unity may still hold the file open via read/write/delete sharing;
-- partial line preservation across polling boundaries, including split UTF-8/Arabic content;
-- UTF-8 BOM handling that does not consume the configured content-byte budget;
-- strict UTF-8 decoding with replacement-decoded diagnostic text plus explicit encoding-error metadata;
-- deterministic reset/generation handling when the log is truncated below the cursor;
-- caller-controlled flush of a final unterminated line after Unity termination;
-- structural `Info`, `Warning`, `Error`, `Exception`, and `Assert` classification, including compiler-looking log lines, without treating those classifications as compile/test/build success or failure decisions.
-
-The implementation uses only an explicit fully-qualified log path and does not add secret/provider handling or owner-environment assumptions.
-
-## Deterministic acceptance coverage
-
-`tests/FCCCodeDesktop.UnityLogCaptureFixture` and `tools/unity/validate-unity-log-capture.ps1` cover:
-
-- parser classification and recognized timestamp handling;
-- non-timestamp bracket prefixes remaining intact;
-- option/path validation and missing-file behavior;
-- incremental complete-line emission with partial UTF-8/Arabic preservation;
-- deterministic monotonic sequence behavior;
-- log truncation/reset generation behavior;
-- bounded batch continuation without duplicate/lost lines;
-- oversized-line bounding with exact dropped-byte accounting;
-- malformed UTF-8 surfaced structurally instead of crashing;
-- final-line flush behavior;
-- cancellation propagation.
-
-Permanent validation is `.github/workflows/p10-005-unity-log-capture.yml` on hosted Windows with exact .NET SDK `10.0.400`, locked restore, Release warnings-as-errors build, and deterministic fixture execution.
-
-## Defects exposed and repaired before acceptance
-
-The first implementation validation exposed five analyzer `CA1512` errors in guard code. They were repaired with the framework `ArgumentOutOfRangeException.ThrowIf*` helpers. No analyzer suppression, warning demotion, test removal, or safety weakening was used.
-
-The repaired build then reached the runtime fixture, which exposed a second genuine defect: a UTF-8 BOM at the start of a generated log consumed three bytes of the bounded line-content budget, causing incorrect retained length and dropped-byte accounting. The production reader was repaired so BOM transport bytes are excluded from content-budget accounting. The fixture assertions were retained unchanged and subsequently passed.
-
-## Exact accepted implementation-candidate validation
-
-All applicable checks on exact candidate `f7b9dd7663546d233c6140c6aa8c6911ee863512` completed SUCCESS:
-
-- P10-005 Unity Log Capture Parser: run `34224412169` — SUCCESS.
-- Windows CI: run `34224411973` — SUCCESS.
-- Workspace Search Validation: run `34224411970` — SUCCESS.
-- Large Workspace Safeguard Validation: run `34224411975` — SUCCESS.
-
-PR #243 was then marked ready and normally merged using merge-commit flow, guarded by the exact accepted head SHA. No force-push, squash, rebase, waiver, or safety-check weakening was used.
-
-## Exact implementation-main validation
-
-Normal implementation merge / exact accepted implementation main:
-
-`af7f79ed81ca57b5412bba4dbb2cd11c2cd100c9`
-
-All applicable push checks on that exact main completed SUCCESS:
-
-- P10-005 Unity Log Capture Parser: run `34225327300` — SUCCESS.
-- Windows CI: run `34225327482` — SUCCESS.
-- Workspace Search Validation: run `34225327290` — SUCCESS.
-- Large Workspace Safeguard Validation: run `34225327291` — SUCCESS.
-
-The exact-main Windows run completed the complete permanent Windows Release baseline plus all current P05/P06 validation steps. No post-merge product regression was found.
-
-## Owner-last / target boundary
-
-No owner-only evidence is required for P10-005. Its capture/parser contract is fully cloud-verifiable with deterministic hosted-Windows file fixtures and does not require an installed Unity editor to prove the owned parsing semantics.
-
-No Unity-runtime, FCC/provider, manual Windows, or physical-target result is fabricated. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner queue item and is neither modified nor duplicated.
-
-## Canonical reconciliation scope
-
-This reconciliation changes only canonical state/evidence for the already-integrated and exact-main-green P10-005 implementation:
-
-- `CURRENT_PHASE.md`: P10-005 inventory `PENDING` → `CLOSED` plus integration provenance;
-- `docs/TASK_LEDGER.md`: P10-005 `PENDING` → `CLOSED` and the next-action pointer moves to a fresh live sweep before P10-006;
-- this evidence file.
-
-No product code, owner queue state, P10-006+ implementation, phase-exit state, or later-phase authority changes here. P10 remains `IN_PROGRESS`; P10-006 through P10-013 remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
-'@
-          New-Item -ItemType Directory -Path (Split-Path -Parent $evidencePath) -Force | Out-Null
-          Set-Content -LiteralPath $evidencePath -Value $evidence -Encoding utf8NoBOM
-
-          Remove-Item -LiteralPath '.github/workflows/fccd-p10-005-reconciliation-bootstrap.yml'
-
+          Remove-Item -LiteralPath $bootstrapPath
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- CURRENT_PHASE.md docs/TASK_LEDGER.md $evidencePath .github/workflows/fccd-p10-005-reconciliation-bootstrap.yml
+          git add -- CURRENT_PHASE.md docs/TASK_LEDGER.md $evidencePath $bootstrapPath
           $status = git status --short
-          if (-not $status) {
-            throw 'Reconciliation produced no durable changes.'
-          }
+          if (-not $status) { throw 'Reconciliation produced no durable changes.' }
           Write-Host $status
           git commit -m 'docs(P10-005): reconcile integrated closure'
+          if ($LASTEXITCODE -ne 0) { throw 'Reconciliation commit failed.' }
           git push origin HEAD:worker/fccd-p10-005-integrated-reconciliation
+          if ($LASTEXITCODE -ne 0) { throw 'Reconciliation push failed.' }
