@@ -11,8 +11,8 @@ public sealed class FccEnvironmentDiscoveryService
     private const int MinimumTcpPort = 1;
     private const int MaximumTcpPort = 65535;
     private const int MaximumVersionTextLength = 4096;
-    private const string CommandProcessorVersionWrapper =
-        "call \"%FCCD_DISCOVERY_EXECUTABLE%\" \"%FCCD_DISCOVERY_ARGUMENT%\"";
+    private const string CommandProcessorArguments =
+        "/D /S /C \"\"%FCCD_DISCOVERY_EXECUTABLE%\" \"%FCCD_DISCOVERY_ARGUMENT%\"\"";
 
     private static readonly string[] VersionArguments = ["--version", "version", "-V"];
 
@@ -164,12 +164,8 @@ public sealed class FccEnvironmentDiscoveryService
         if (extension.Equals(".cmd", StringComparison.OrdinalIgnoreCase) ||
             extension.Equals(".bat", StringComparison.OrdinalIgnoreCase))
         {
-            var commandProcessorPath = GetWindowsCommandProcessorPath();
-            var startInfo = CreateBaseStartInfo(commandProcessorPath);
-            startInfo.ArgumentList.Add("/D");
-            startInfo.ArgumentList.Add("/S");
-            startInfo.ArgumentList.Add("/C");
-            startInfo.ArgumentList.Add(CommandProcessorVersionWrapper);
+            var startInfo = CreateBaseStartInfo(GetWindowsCommandProcessorPath());
+            startInfo.Arguments = CommandProcessorArguments;
             startInfo.Environment["FCCD_DISCOVERY_EXECUTABLE"] = executablePath;
             startInfo.Environment["FCCD_DISCOVERY_ARGUMENT"] = argument;
             return startInfo;
