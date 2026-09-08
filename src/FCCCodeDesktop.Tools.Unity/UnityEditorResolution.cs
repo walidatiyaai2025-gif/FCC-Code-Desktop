@@ -152,7 +152,7 @@ public sealed class UnityEditorResolver : IUnityEditorResolver
 
     private static void AddSearchRoot(
         ICollection<SearchRoot> roots,
-        ISet<string> seen,
+        HashSet<string> seen,
         string path,
         UnityEditorInstallationSource source)
     {
