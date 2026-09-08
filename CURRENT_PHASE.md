@@ -89,7 +89,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 
 - `FCCD-P09-001` — `IExternalToolAdapter` contract — CLOSED.
 - `FCCD-P09-002` — Tool discovery/capability registry — CLOSED.
-- `FCCD-P09-003` — Structured invocation/result contracts — PENDING.
+- `FCCD-P09-003` — Structured invocation/result contracts — CLOSED.
 - `FCCD-P09-004` — Tool resource locking — PENDING.
 - `FCCD-P09-005` — Artifact manifest/validation framework — PENDING.
 - `FCCD-P09-006` — Tool diagnostics/health framework — PENDING.
@@ -138,6 +138,25 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Exact implementation-main P06-008 Large Workspace Safeguards: run `34172697421` — SUCCESS.
 - Integrated evidence: `evidence/phases/P09/P09_002_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-003` through `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+
+## P09-003 integration provenance
+
+- Task: `FCCD-P09-003 — Structured invocation/result contracts` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #218 (`worker/fccd-p09-003-structured-invocation-result-contracts`).
+- Exact accepted implementation candidate: `f50233efb761e9144d5e229a9aeab1710852a532`.
+- Exact implementation-head Windows CI: run `34176981924` — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34176981927` — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34176981931` — SUCCESS.
+- Normal implementation merge / accepted implementation main: `0db4d89ecec7ab6a489f7af1ba51634815987997`.
+- Exact implementation-main Windows CI: run `34177513172` — SUCCESS.
+- Exact implementation-main P06-007 Workspace Search: run `34177513192` — SUCCESS.
+- Exact implementation-main P06-008 Large Workspace Safeguards: run `34177513156` — SUCCESS.
+- Pre-reconciliation canonical main: `3c0bf0520a78df54c9fcb62cf44199615d0ee5ec`; its Git tree `6959578bf463877f42ccf54e8118fdfa52466d02` is byte-identical to the accepted implementation merge after immediate repair/removal of a transient reconciliation-bootstrap artifact.
+- Exact pre-reconciliation current-main Windows CI: run `34178135579` — SUCCESS.
+- Exact pre-reconciliation current-main P06-007 Workspace Search: run `34178135582` — SUCCESS.
+- Exact pre-reconciliation current-main P06-008 Large Workspace Safeguards: run `34178135615` — SUCCESS.
+- Integrated evidence: `evidence/phases/P09/P09_003_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-004` through `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P08 cloud task inventory
 
