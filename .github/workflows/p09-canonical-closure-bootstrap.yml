@@ -20,6 +20,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 2
+
       - name: Wait for exact-main P09 gates
         shell: bash
         run: |
@@ -39,6 +40,7 @@ jobs:
             sleep 15
           done
           test "$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')" = "$CANDIDATE"
+
       - name: Guard canonical pre-closure state
         shell: bash
         run: |
@@ -50,6 +52,7 @@ jobs:
           test "$(grep -E '^\| FCCD-P09-00[1-8] .*\| CLOSED \|$' docs/TASK_LEDGER.md | wc -l)" -eq 8
           test ! -e evidence/phases/P09/CLOSURE.md
           grep -F 'OWNER-P04-008-REAL-TARGET' docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md
+
       - name: Write canonical P09 closure
         shell: bash
         run: |
@@ -61,60 +64,96 @@ jobs:
 
           cp = Path("CURRENT_PHASE.md")
           text = cp.read_text(encoding="utf-8")
-          if text.count("CURRENT_PHASE_STATE: IN_PROGRESS") < 1 or text.count("PHASE_EXIT_GATE: NOT_RUN") < 1:
-              raise SystemExit("CURRENT_PHASE state guard failed")
+          for required in (
+              "CURRENT_PHASE: P09",
+              "CURRENT_PHASE_STATE: IN_PROGRESS",
+              "NEXT_PHASE: P10",
+              "PHASE_EXIT_GATE: NOT_RUN",
+          ):
+              if required not in text:
+                  raise SystemExit(f"CURRENT_PHASE guard missing: {required}")
           text = text.replace("CURRENT_PHASE_STATE: IN_PROGRESS", "CURRENT_PHASE_STATE: CLOSED", 1)
           text = text.replace("PHASE_EXIT_GATE: NOT_RUN", "PHASE_EXIT_GATE: PASS", 1)
-          lines = text.splitlines(keepends=True)
-          out = []
-          replaced_active = False
-          replaced_invariant = False
-          for line in lines:
-              if line.startswith("P09 ") and "sole legal cloud implementation/convergence phase" in line:
-                  out.append("P09 - External Tool Gateway - is canonically CLOSED in this closure state. All eight mandatory P09 tasks are normally integrated and exact-main verified on candidate `" + candidate + "`; dedicated P09 exit run `34195027724` passed on that exact candidate. Canonical closure evidence is `evidence/phases/P09/CLOSURE.md`.\n")
-                  replaced_active = True
-              elif line.strip() == "- Exactly one cloud implementation/convergence phase is active: P09.":
-                  out.append("- P09 is CLOSED and retained as the current closure checkpoint until a separate validated transition activates P10; no P10 or later implementation is authorized yet.\n")
-                  replaced_invariant = True
-              else:
-                  out.append(line)
-          if not replaced_active or not replaced_invariant:
-              raise SystemExit("CURRENT_PHASE narrative guard failed")
-          text = "".join(out)
+
+          active = "P09 — External Tool Gateway — is now the sole legal cloud implementation/convergence phase. Only dependency-valid, unclaimed P09 work may begin. P10 and later implementation remain prohibited until P09 is truthfully closed with its exit gate resolved under canonical governance."
+          closed = (
+              "P09 — External Tool Gateway — is canonically CLOSED in this closure state. "
+              f"All eight mandatory P09 tasks are normally integrated and exact-main verified on candidate `{candidate}`; "
+              "dedicated P09 exit run `34195027724` passed on that exact candidate. Canonical closure evidence is "
+              "`evidence/phases/P09/CLOSURE.md`. P10 is the authorized next phase but remains inactive until a separate "
+              "governance transition is normally integrated and exact-main verified."
+          )
+          if active not in text:
+              raise SystemExit("CURRENT_PHASE active-phase narrative guard missing")
+          text = text.replace(active, closed, 1)
+
+          invariant = "- Exactly one cloud implementation/convergence phase is active: P09."
+          replacement = "- P09 is CLOSED and retained as the current closure checkpoint until a separate validated transition activates P10; no P10 or later implementation is authorized yet."
+          if invariant not in text:
+              raise SystemExit("CURRENT_PHASE owner-last invariant guard missing")
+          text = text.replace(invariant, replacement, 1)
+
           marker = "<!-- P09-PHASE-EXIT-CLOSURE -->"
           if marker not in text:
               anchor = "## P08 cloud task inventory"
-              block = f"""{marker}\n## P09 phase-exit provenance\n\n- Exact pre-closure canonical candidate: `{candidate}`.\n- All eight mandatory P09 task rows were CLOSED before the gate.\n- Exact candidate Windows CI: run `34195027792` / #635 - SUCCESS.\n- Exact candidate P06-007 Workspace Search: run `34195027743` / #364 - SUCCESS.\n- Exact candidate P06-008 Large Workspace Safeguards: run `34195027756` / #348 - SUCCESS.\n- Dedicated P09 External Tool Gateway Exit: run `34195027724` / job `101960766198` - SUCCESS.\n- Canonical closure evidence: `evidence/phases/P09/CLOSURE.md`.\n- P09 phase state: `CLOSED`; `PHASE_EXIT_GATE=PASS`; phase-local blockers/regressions: none.\n- `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.\n- P10 is only the authorized next phase and is not active until a separate governance transition is normally integrated and exact-main verified.\n\n"""
               if anchor not in text:
                   raise SystemExit("CURRENT_PHASE provenance anchor missing")
+              block = f"""{marker}\n## P09 phase-exit provenance\n\n- Exact pre-closure canonical candidate: `{candidate}`.\n- All eight mandatory P09 task rows were CLOSED before the gate.\n- Exact candidate Windows CI: run `34195027792` / #635 — SUCCESS.\n- Exact candidate P06-007 Workspace Search: run `34195027743` / #364 — SUCCESS.\n- Exact candidate P06-008 Large Workspace Safeguards: run `34195027756` / #348 — SUCCESS.\n- Dedicated P09 External Tool Gateway Exit: run `34195027724` / job `101960766198` — SUCCESS.\n- Canonical closure evidence: `evidence/phases/P09/CLOSURE.md`.\n- P09 phase state: `CLOSED`; `PHASE_EXIT_GATE=PASS`; phase-local blockers/regressions: none.\n- `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.\n- P10 is only the authorized next phase and is not active until a separate governance transition is normally integrated and exact-main verified.\n\n"""
               text = text.replace(anchor, block + anchor, 1)
           cp.write_text(text, encoding="utf-8")
 
           pc = Path("PROJECT_CONTROL.md")
           text = pc.read_text(encoding="utf-8")
-          if text.count("CURRENT_PHASE_STATE: IN_PROGRESS") < 1 or text.count("PHASE_EXIT_GATE: NOT_RUN") < 1:
-              raise SystemExit("PROJECT_CONTROL state guard failed")
+          for required in (
+              "CURRENT_PHASE: P09",
+              "CURRENT_PHASE_STATE: IN_PROGRESS",
+              "NEXT_PHASE: P10",
+              "PHASE_EXIT_GATE: NOT_RUN",
+          ):
+              if required not in text:
+                  raise SystemExit(f"PROJECT_CONTROL guard missing: {required}")
           text = text.replace("CURRENT_PHASE_STATE: IN_PROGRESS", "CURRENT_PHASE_STATE: CLOSED", 1)
           text = text.replace("PHASE_EXIT_GATE: NOT_RUN", "PHASE_EXIT_GATE: PASS", 1)
-          closure_line = f"P09 - External Tool Gateway - is canonically CLOSED on exact candidate `{candidate}` after all eight tasks were integrated/reconciled and exact candidate Windows CI `34195027792`, Workspace Search `34195027743`, Large Workspace Safeguards `34195027756`, and dedicated P09 exit run `34195027724` completed SUCCESS. `CURRENT_PHASE` deliberately remains P09 until a separate post-closure transition activates P10. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release blocker and `VERIFIED_FINAL_COMPLETE=false`.\n\n"
+          closure_line = (
+              f"P09 — External Tool Gateway — is canonically CLOSED on exact candidate `{candidate}` after all eight tasks were integrated/reconciled and exact candidate Windows CI `34195027792`, Workspace Search `34195027743`, Large Workspace Safeguards `34195027756`, and dedicated P09 exit run `34195027724` completed SUCCESS. `CURRENT_PHASE` deliberately remains P09 until a separate post-closure transition activates P10. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release blocker and `VERIFIED_FINAL_COMPLETE=false`.\n\n"
+          )
+          anchor = "---\n\n## 3. Complete v1.0.0 boundary"
+          if anchor not in text:
+              raise SystemExit("PROJECT_CONTROL insertion anchor missing")
           if closure_line not in text:
-              anchor = "---\n\n## 3. Complete v1.0.0 boundary"
-              if anchor not in text:
-                  raise SystemExit("PROJECT_CONTROL insertion anchor missing")
               text = text.replace(anchor, closure_line + anchor, 1)
           pc.write_text(text, encoding="utf-8")
 
           ledger = Path("docs/TASK_LEDGER.md")
           text = ledger.read_text(encoding="utf-8")
-          old = "All eight mandatory P09 task rows are CLOSED in this reconciliation candidate. P09 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; P10 remains prohibited until the dedicated P09 exit gate and canonical phase closure complete."
-          new = f"All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure candidate `{candidate}` passed Windows CI `34195027792`, Workspace Search `34195027743`, Large Workspace Safeguards `34195027756`, and dedicated P09 exit run `34195027724`; canonical phase closure is `evidence/phases/P09/CLOSURE.md`. P09 is `CLOSED` with `PHASE_EXIT_GATE=PASS`; P10 remains inactive until a separate governance transition is integrated and exact-main verified."
-          if old not in text:
-              raise SystemExit("TASK_LEDGER phase note guard missing")
-          text = text.replace(old, new, 1)
+          p09_rows = [
+              line for line in text.splitlines()
+              if line.startswith("| FCCD-P09-00") and line.endswith("| CLOSED |")
+          ]
+          if len(p09_rows) != 8:
+              raise SystemExit(f"TASK_LEDGER expected 8 CLOSED P09 rows, found {len(p09_rows)}")
+
+          closure_marker = "<!-- P09-CANONICAL-PHASE-CLOSURE -->"
+          if closure_marker not in text:
+              row = "| FCCD-P09-008 | Optional protocol adapter seam (DAP/MCP/etc.) without core coupling | CLOSED |"
+              if row not in text:
+                  raise SystemExit("TASK_LEDGER P09-008 closure row missing")
+              phase_note = f"""\n{closure_marker}\nAll eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure candidate `{candidate}` passed Windows CI `34195027792`, Workspace Search `34195027743`, Large Workspace Safeguards `34195027756`, and dedicated P09 exit run `34195027724`; canonical phase closure is `evidence/phases/P09/CLOSURE.md`. P09 is `CLOSED` with `PHASE_EXIT_GATE=PASS`; P10 remains inactive until a separate governance transition is integrated and exact-main verified.\n"""
+              text = text.replace(row, row + phase_note, 1)
+
+          next_header = "## Current next action"
+          next_end_marker = "<!-- FCCD-P08-004-FINAL-CLOSURE-PROVENANCE -->"
+          if next_header not in text or next_end_marker not in text:
+              raise SystemExit("TASK_LEDGER current-next-action anchors missing")
+          start = text.index(next_header)
+          end = text.index(next_end_marker, start)
+          replacement = f"""## Current next action\n\n`CURRENT_PHASE = P09` is canonically `CLOSED` in this closure state. `FCCD-P09-001` through `FCCD-P09-008` are CLOSED, exact candidate Windows CI `34195027792`, Workspace Search `34195027743`, Large Workspace Safeguards `34195027756`, and dedicated P09 exit run `34195027724` are `SUCCESS`, and `PHASE_EXIT_GATE=PASS`. Canonical phase evidence is `evidence/phases/P09/CLOSURE.md`.\n\nNormally merge this P09 closure state/evidence and require the resulting exact canonical `main` to remain green. Only then may a separate governance transition activate `CURRENT_PHASE=P10`. Do not implement P10 or any later phase inside this closure change. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep P05 `PASS_INTEGRATED`, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.\n"""
+          text = text[:start] + replacement + text[end:]
           ledger.write_text(text, encoding="utf-8")
           PY
+
           cat > evidence/phases/P09/CLOSURE.md <<'EOF'
-          # P09 Phase Closure - External Tool Gateway
+          # P09 Phase Closure — External Tool Gateway
 
           ```text
           PHASE: P09
@@ -124,34 +163,78 @@ jobs:
           EXIT_GATE: PASS
           KNOWN_BLOCKERS: 0
           KNOWN_REGRESSIONS: 0
-          MANDATORY_TASKS: 8/8 CLOSED
-          EXACT_GATE_RUN: 34195027724
-          EXACT_GATE_JOB: 101960766198
-          PRE_CLOSURE_MAIN_WINDOWS_CI_RUN: 34195027792
-          PRE_CLOSURE_WORKSPACE_SEARCH_RUN: 34195027743
-          PRE_CLOSURE_LARGE_WORKSPACE_RUN: 34195027756
-          OWNER_PENDING_P09: NONE
-          GLOBAL_RELEASE_BLOCKERS: 1
-          VERIFIED_FINAL_COMPLETE: false
           ```
 
-          ## Mandatory task reconciliation
+          ## 1. Mandatory task reconciliation
 
-          All eight mandatory P09 tasks were canonically CLOSED before this phase decision. The integrated gateway includes the external-tool adapter contract, discovery/capability registry, structured invocation/results, resource locking, artifact validation, diagnostics/health, generic CLI/process primitives, and the optional provider-neutral protocol seam.
+          | Task ID | Final state | Evidence |
+          |---|---|---|
+          | FCCD-P09-001 | CLOSED | `evidence/phases/P09/P09_001_INTEGRATED_RECONCILIATION_2026-09-08.md` |
+          | FCCD-P09-002 | CLOSED | `evidence/phases/P09/P09_002_INTEGRATED_RECONCILIATION_2026-09-08.md` |
+          | FCCD-P09-003 | CLOSED | `evidence/phases/P09/P09_003_INTEGRATED_RECONCILIATION_2026-09-08.md` |
+          | FCCD-P09-004 | CLOSED | `evidence/phases/P09/P09_004_INTEGRATED_RECONCILIATION_2026-09-08.md` |
+          | FCCD-P09-005 | CLOSED | `evidence/phases/P09/P09_005_INTEGRATED_RECONCILIATION_2026-09-08.md` |
+          | FCCD-P09-006 | CLOSED | `evidence/phases/P09/P09_006_INTEGRATED_RECONCILIATION_2026-09-08.md` |
+          | FCCD-P09-007 | CLOSED | `evidence/phases/P09/P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md` |
+          | FCCD-P09-008 | CLOSED | `evidence/phases/P09/P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md` |
 
-          ## Exact-candidate verification
+          All mandatory P09 tasks were CLOSED before the phase-exit decision.
 
-          Exact canonical candidate `499b042f93efe764465aa1d2ea0f2d0c62188a4b` passed Windows CI `34195027792` / #635, P06-007 Workspace Search `34195027743` / #364, P06-008 Large Workspace Safeguards `34195027756` / #348, and dedicated P09 External Tool Gateway Exit run `34195027724` / job `101960766198`. The dedicated gate checked out the exact candidate, required a clean source tree, executed the complete Windows Release baseline, ran the focused `ExternalToolGatewayPhaseExitTests`, and verified the source remained clean afterward.
+          ## 2. Commands / automated verification
 
-          ## Exit criterion
+          Exact canonical candidate `499b042f93efe764465aa1d2ea0f2d0c62188a4b` passed:
 
-          The gateway contract is provider-neutral and project-owned. Tool discovery, structured invocation/result transport, locking, artifacts, diagnostics, process execution/cancellation, and optional protocol composition are covered without introducing transport SDK coupling into core orchestration or a second process owner.
+          ```text
+          .\tools\ci\run-windows-ci.ps1
+          RESULT: PASS — Windows CI run 34195027792 / #635
 
-          ## Owner-last classification
+          dotnet test .\tests\FCCCodeDesktop.UnitTests\FCCCodeDesktop.UnitTests.csproj -c Release --no-restore --no-build --filter FullyQualifiedName~ExternalToolGatewayPhaseExitTests --logger "console;verbosity=normal"
+          RESULT: PASS — P09 External Tool Gateway Exit run 34195027724 / job 101960766198
 
-          No P09 phase-exit requirement is genuinely owner-only. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `P04=NOT_RUN`; `KNOWN_RELEASE_BLOCKERS=1`; `VERIFIED_FINAL_COMPLETE=false`.
+          P06-007 Workspace Search
+          RESULT: PASS — run 34195027743 / #364
 
-          ## Exit decision
+          P06-008 Large Workspace Safeguards
+          RESULT: PASS — run 34195027756 / #348
+          ```
+
+          The dedicated P09 workflow checked out the exact candidate SHA, required a clean source tree, ran the full Windows Release baseline, ran the focused P09 fixture acceptance, and verified the source tree remained clean afterward.
+
+          ## 3. Runtime/environment verification
+
+          P09's exit contract is provider-neutral and does not require a real FCC/provider, Unity, Blender, or owner-machine observation. The deterministic Windows fixture exercises the exact project-owned gateway contracts that later first-class adapters consume. No P09 owner-only acceptance item is required.
+
+          ## 4. Negative/error-path verification
+
+          The focused phase-exit fixture verifies that a second contender cannot acquire the same tool resource lock while the first lease is held. The waiting contender is cancelled and must surface `OperationCanceledException` rather than bypassing the lock. The adapter contract also rejects unsupported fixture invocation types/operations rather than reporting false success. Artifact acceptance requires a non-empty expected file plus a SHA-256 digest.
+
+          ## 5. Cancellation/recovery verification
+
+          `FixtureAdapterCancellationPropagatesWithoutProducingTerminalSuccess` starts a blocking adapter operation, waits until execution has actually started, cancels it, requires cancellation to propagate, and verifies no success artifact is produced. Lock acquisition cancellation is separately exercised while a conflicting lease is held.
+
+          ## 6. UI/UX verification
+
+          P09 is an infrastructure gateway phase; it introduces no phase-specific user-visible surface that requires visual/DPI acceptance. Structured result, artifact-validation, diagnostic, and health events are emitted through typed tool-event contracts for later UI presentation phases.
+
+          ## 7. Data/safety verification
+
+          The exact gate verifies a clean worktree before and after validation. Resource locking prevents unsafe concurrent operations on the same fixture target. Artifact validation is explicit rather than trusting process completion alone. No owner repositories, external tools, provider content, or secrets are required by the deterministic fixture.
+
+          ## 8. Known defects
+
+          ```text
+          KNOWN_PHASE_LOCAL_DEFECTS: NONE
+          ```
+
+          ## 9. Regression status
+
+          ```text
+          EARLIER_PHASE_REGRESSIONS: NONE
+          ```
+
+          Exact candidate Windows CI, Workspace Search, and Large Workspace Safeguards all completed SUCCESS on the same SHA before closure.
+
+          ## 10. Exit decision
 
           ```text
           ALL_P09_MANDATORY_TASKS_CLOSED: true
@@ -163,13 +246,16 @@ jobs:
           P09_PHASE_STATE: CLOSED
           AUTHORIZED_NEXT_PHASE: P10
           P10_IMPLEMENTATION_IN_THIS_CLOSURE: NONE
+          OWNER_PENDING_P09: NONE
+          GLOBAL_RELEASE_BLOCKERS: 1
           VERIFIED_FINAL_COMPLETE: false
           ```
 
-          P09 is truthfully closed on exact candidate `499b042f93efe764465aa1d2ea0f2d0c62188a4b`. This closure does not activate P10. A separate governance transition may activate P10 only after this closure state is normally merged and exact canonical `main` remains green.
+          `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item. P09 closure does not activate P10; a separate governance transition is allowed only after this closure is normally merged and exact canonical `main` remains green.
           EOF
           sed -i 's/^          //' evidence/phases/P09/CLOSURE.md
           git diff --check
+
       - name: Commit durable closure only
         shell: bash
         run: |
