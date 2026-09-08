@@ -1,0 +1,71 @@
+name: P09-007 CI Diagnostic
+
+on:
+  push:
+    branches:
+      - diagnostic/p09-007-ci
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  diagnose:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Diagnose first baseline failure
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+
+          function Publish-Failure {
+              param(
+                  [string]$Stage,
+                  [int]$ExitCode,
+                  [string[]]$Output
+              )
+
+              $tail = $Output | Select-Object -Last 140
+              $rendered = ($tail -join "`n")
+              $body = @"
+          P09-007 diagnostic on `$env:GITHUB_SHA` failed at **$Stage** (exit `$ExitCode`).
+
+          ``````text
+          $rendered
+          ``````
+          "@
+              gh api "repos/$env:GITHUB_REPOSITORY/issues/227/comments" --method POST --raw-field body="$body" | Out-Null
+              exit $ExitCode
+          }
+
+          function Invoke-Stage {
+              param(
+                  [string]$Name,
+                  [scriptblock]$Action
+              )
+
+              $output = @(& $Action 2>&1 | ForEach-Object { $_.ToString() })
+              $code = $LASTEXITCODE
+              if ($code -ne 0) {
+                  Publish-Failure -Stage $Name -ExitCode $code -Output $output
+              }
+          }
+
+          Invoke-Stage 'locked restore' { dotnet restore .\FCCCodeDesktop.sln --locked-mode --nologo }
+          Invoke-Stage 'format verification' { dotnet format .\FCCCodeDesktop.sln --verify-no-changes --no-restore }
+          Invoke-Stage 'Release build' { dotnet build .\FCCCodeDesktop.sln -c Release --no-restore --nologo }
+          Invoke-Stage 'unit/integration tests' { pwsh -NoProfile -File .\tools\testing\run-tests.ps1 -Suite all -Configuration Release -NoRestore -NoBuild }
+
+          $body = "P09-007 diagnostic on ``$env:GITHUB_SHA`` passed restore, format, Release build, and unit/integration tests."
+          gh api "repos/$env:GITHUB_REPOSITORY/issues/227/comments" --method POST --raw-field body="$body" | Out-Null
