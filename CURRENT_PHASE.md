@@ -93,7 +93,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-002` — Unity install/Hub editor resolver — CLOSED.
 - `FCCD-P10-003` — Strongly typed Unity CLI command builder — CLOSED.
 - `FCCD-P10-004` — Unity process/project resource locking — CLOSED.
-- `FCCD-P10-005` — Dedicated Unity log capture/parser — PENDING.
+- `FCCD-P10-005` — Dedicated Unity log capture/parser — CLOSED.
 - `FCCD-P10-006` — Compile validation — PENDING.
 - `FCCD-P10-007` — EditMode test integration — PENDING.
 - `FCCD-P10-008` — PlayMode test integration — PENDING.
@@ -931,3 +931,23 @@ PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged fr
 - Integrated evidence: `evidence/phases/P10/P10_003_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - Reconciliation was refreshed onto exact verified main `ad2395e23d1bf6c3bbf664dedda4b464408cb675`, preserving canonical P10-002 closure.
 - No owner-only evidence is required or added. P10 remains `IN_PROGRESS`; all other unresolved P10 task rows retain their canonical states; `PHASE_EXIT_GATE=NOT_RUN`; P11 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+
+## P10-005 integration provenance
+
+- Task: `FCCD-P10-005 — Dedicated Unity log capture/parser` — `CLOSED` in this reconciliation candidate.
+- Selection boundary: scheduling hint `FCCD-P20-001` was future work while canonical `CURRENT_PHASE=P10`; live recovery found existing legitimate PR #243, so it was recovered and integrated instead of starting duplicate or future-phase work.
+- Implementation PR: #243 (`worker/fccd-p10-005-unity-log-capture-parser`).
+- Exact accepted implementation candidate: `f7b9dd7663546d233c6140c6aa8c6911ee863512`.
+- Exact candidate P10-005 Unity Log Capture Parser: run `34224412169` — SUCCESS.
+- Exact candidate Windows CI: run `34224411973` — SUCCESS.
+- Exact candidate Workspace Search Validation: run `34224411970` — SUCCESS.
+- Exact candidate Large Workspace Safeguards: run `34224411975` — SUCCESS.
+- Normal implementation merge / accepted implementation main: `af7f79ed81ca57b5412bba4dbb2cd11c2cd100c9`.
+- Exact implementation-main P10-005 Unity Log Capture Parser: run `34225327300` — SUCCESS.
+- Exact implementation-main Windows CI: run `34225327482` — SUCCESS.
+- Exact implementation-main Workspace Search Validation: run `34225327290` — SUCCESS.
+- Exact implementation-main Large Workspace Safeguards: run `34225327291` — SUCCESS.
+- Initial implementation validation exposed analyzer `CA1512`; guards were repaired with framework throw helpers without suppression or warning demotion. A subsequent runtime fixture exposed UTF-8 BOM consuming the bounded line-content budget; the production reader was repaired so BOM transport bytes do not consume content capacity, without weakening the assertion.
+- Implementation provides bounded incremental `-logFile` capture, immutable continuation state, partial UTF-8/Arabic preservation, malformed UTF-8 diagnostics, file truncation generation handling, final partial-line flush, and structured Info/Warning/Error/Exception/Assert classification while intentionally leaving compile/test/build outcome semantics to later P10 tasks.
+- No owner-only evidence is required or added for P10-005. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.
+- P10 remains `IN_PROGRESS`; `FCCD-P10-006` through `FCCD-P10-013` remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
