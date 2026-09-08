@@ -256,7 +256,7 @@ P08 is canonically CLOSED at the phase level on immutable candidate `bb372da0a45
 | ID | Task | State |
 |---|---|---|
 | FCCD-P09-001 | `IExternalToolAdapter` contract | CLOSED |
-| FCCD-P09-002 | Tool discovery/capability registry | PENDING |
+| FCCD-P09-002 | Tool discovery/capability registry | CLOSED |
 | FCCD-P09-003 | Structured invocation/result contracts | PENDING |
 | FCCD-P09-004 | Tool resource locking | PENDING |
 | FCCD-P09-005 | Artifact manifest/validation framework | PENDING |
@@ -265,6 +265,8 @@ P08 is canonically CLOSED at the phase level on immutable candidate `bb372da0a45
 | FCCD-P09-008 | Optional protocol adapter seam (DAP/MCP/etc.) without core coupling | PENDING |
 
 `FCCD-P09-001` is CLOSED from the project-owned external-tool adapter contract integrated in PR #214. Exact accepted implementation candidate `1f33b646deecdb471741ddc406e998c8a5f97da5` passed Windows CI `34169157466`, P06-007 Workspace Search `34169157495`, and P06-008 Large Workspace Safeguards `34169157524`. PR #214 was normally merged as `44dbee3107d4fd3a410629fb72fec5978440683b`; exact implementation-main Windows CI `34169744778`, Workspace Search `34169744791`, and Large Workspace Safeguards `34169744771` all completed SUCCESS. Task evidence: `evidence/phases/P09/P09_001_INTEGRATED_RECONCILIATION_2026-09-08.md`. The contract owns adapter identity, project context, discovery/capability/streamed execution seams, and cancellation propagation only; it does not take P09-002 through P09-008 ownership. No owner-only evidence is required. P09 remains `IN_PROGRESS`, `PHASE_EXIT_GATE=NOT_RUN`, P10 and later implementation remain prohibited, `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item, and `VERIFIED_FINAL_COMPLETE=false`.
+
+`FCCD-P09-002` is CLOSED from the immutable external-tool discovery/capability registry integrated in PR #216. Exact accepted implementation candidate `41f8ee42248693c0c3313c317412027647224910` passed Windows CI `34172177780`, P06-007 Workspace Search `34172177761`, and P06-008 Large Workspace Safeguards `34172177767`. PR #216 was normally merged as `5eaaede19e79fdcfe86115bf6e3e94f68002fa7f`; exact implementation-main Windows CI `34172697454`, Workspace Search `34172697426`, and Large Workspace Safeguards `34172697421` all completed SUCCESS. Task evidence: `evidence/phases/P09/P09_002_INTEGRATED_RECONCILIATION_2026-09-08.md`. The registry owns deterministic adapter registration/lookup plus project-scoped discovery/capability routing, cancellation, optional-tool absence, and fail-closed contract handling only; it does not take P09-003 through P09-008 ownership. No owner-only evidence is required. P09 remains `IN_PROGRESS`, `PHASE_EXIT_GATE=NOT_RUN`, P10 and later implementation remain prohibited, `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item, and `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P10 — Unity first-class adapter
 
