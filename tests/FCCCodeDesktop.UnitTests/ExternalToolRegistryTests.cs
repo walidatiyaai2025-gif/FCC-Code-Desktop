@@ -56,6 +56,17 @@ public sealed class ExternalToolRegistryTests
     }
 
     [Fact]
+    public async Task EmptyRegistryStillHonorsCancellation()
+    {
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        var registry = new ExternalToolRegistry(Array.Empty<IExternalToolAdapter>());
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => registry.DiscoverAllAsync(CreateProjectContext(), cancellation.Token));
+    }
+
+    [Fact]
     public async Task DiscoverAllRoutesProjectContextInDeterministicOrderAndRetainsUnavailableAdapters()
     {
         var alpha = new FixtureAdapter("alpha.tool", isAvailable: true);
@@ -159,6 +170,22 @@ public sealed class ExternalToolRegistryTests
             () => registry.GetCapabilitiesAsync("fixture.tool", project));
     }
 
+    [Fact]
+    public async Task RegistryFailsClosedWhenAnAdapterReturnsNullTasks()
+    {
+        var adapter = new FixtureAdapter(
+            "fixture.tool",
+            returnNullDiscoveryTask: true,
+            returnNullCapabilityTask: true);
+        var registry = new ExternalToolRegistry(new IExternalToolAdapter[] { adapter });
+        var project = CreateProjectContext();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => registry.DiscoverAsync("fixture.tool", project));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => registry.GetCapabilitiesAsync("fixture.tool", project));
+    }
+
     private static ProjectContext CreateProjectContext()
     {
         return new ProjectContext(
@@ -171,13 +198,17 @@ public sealed class ExternalToolRegistryTests
         private readonly Action? _onDiscover;
         private readonly bool _returnNullDiscovery;
         private readonly bool _returnNullCapabilities;
+        private readonly bool _returnNullDiscoveryTask;
+        private readonly bool _returnNullCapabilityTask;
 
         public FixtureAdapter(
             string id,
             bool isAvailable = true,
             Action? onDiscover = null,
             bool returnNullDiscovery = false,
-            bool returnNullCapabilities = false)
+            bool returnNullCapabilities = false,
+            bool returnNullDiscoveryTask = false,
+            bool returnNullCapabilityTask = false)
         {
             Identity = new ToolIdentity(id, $"{id} display");
             DiscoveryResult = new FixtureDiscoveryResult(isAvailable, id);
@@ -185,13 +216,15 @@ public sealed class ExternalToolRegistryTests
             _onDiscover = onDiscover;
             _returnNullDiscovery = returnNullDiscovery;
             _returnNullCapabilities = returnNullCapabilities;
+            _returnNullDiscoveryTask = returnNullDiscoveryTask;
+            _returnNullCapabilityTask = returnNullCapabilityTask;
         }
 
         public ToolIdentity Identity { get; }
 
-        public ToolDiscoveryResult DiscoveryResult { get; }
+        public FixtureDiscoveryResult DiscoveryResult { get; }
 
-        public ToolCapabilitySet CapabilitySet { get; }
+        public FixtureCapabilitySet CapabilitySet { get; }
 
         public int DiscoveryCalls { get; private set; }
 
@@ -210,7 +243,12 @@ public sealed class ExternalToolRegistryTests
             DiscoveryCalls++;
             LastDiscoveryProject = project;
             _onDiscover?.Invoke();
-            return Task.FromResult(_returnNullDiscovery ? null! : DiscoveryResult);
+            if (_returnNullDiscoveryTask)
+            {
+                return null!;
+            }
+
+            return Task.FromResult<ToolDiscoveryResult>(_returnNullDiscovery ? null! : DiscoveryResult);
         }
 
         public Task<ToolCapabilitySet> GetCapabilitiesAsync(
@@ -221,7 +259,12 @@ public sealed class ExternalToolRegistryTests
             cancellationToken.ThrowIfCancellationRequested();
             CapabilityCalls++;
             LastCapabilityProject = project;
-            return Task.FromResult(_returnNullCapabilities ? null! : CapabilitySet);
+            if (_returnNullCapabilityTask)
+            {
+                return null!;
+            }
+
+            return Task.FromResult<ToolCapabilitySet>(_returnNullCapabilities ? null! : CapabilitySet);
         }
 
         public async IAsyncEnumerable<ToolEvent> ExecuteAsync(
