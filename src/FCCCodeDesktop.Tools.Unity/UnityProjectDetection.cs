@@ -78,6 +78,7 @@ public sealed class UnityProjectDetector : IUnityProjectDetector
     private const string ProjectVersionFileName = "ProjectVersion.txt";
     private const string EditorVersionPrefix = "m_EditorVersion:";
     private const string EditorVersionWithRevisionPrefix = "m_EditorVersionWithRevision:";
+    private static readonly char[] LineSeparators = ['\r', '\n'];
 
     public async Task<UnityProjectDetectionResult> DetectAsync(
         string projectRoot,
@@ -186,7 +187,7 @@ public sealed class UnityProjectDetector : IUnityProjectDetector
         string? versionFromRevisionLine = null;
         string? revision = null;
 
-        foreach (var rawLine in text.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+        foreach (var rawLine in text.Split(LineSeparators, StringSplitOptions.RemoveEmptyEntries))
         {
             var line = rawLine.Trim();
             if (line.StartsWith(EditorVersionPrefix, StringComparison.Ordinal))
