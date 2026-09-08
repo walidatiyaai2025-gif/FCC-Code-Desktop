@@ -38,7 +38,7 @@ public sealed record ToolProtocolIdentity
 /// </summary>
 public sealed record ToolProtocolBinding
 {
-    private readonly IReadOnlyDictionary<string, string> _options;
+    private readonly ReadOnlyDictionary<string, string> _options;
 
     public ToolProtocolBinding(
         ToolIdentity tool,
@@ -56,7 +56,7 @@ public sealed record ToolProtocolBinding
 
     public IReadOnlyDictionary<string, string> Options => _options;
 
-    private static IReadOnlyDictionary<string, string> SnapshotOptions(
+    private static ReadOnlyDictionary<string, string> SnapshotOptions(
         IEnumerable<KeyValuePair<string, string>>? options)
     {
         var snapshot = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -123,8 +123,8 @@ public interface IExternalToolProtocolAdapterFactory
 /// </summary>
 public sealed class ExternalToolProtocolRegistry
 {
-    private readonly IReadOnlyDictionary<string, IExternalToolProtocolAdapterFactory> _factories;
-    private readonly IReadOnlyList<ToolProtocolIdentity> _protocols;
+    private readonly ReadOnlyDictionary<string, IExternalToolProtocolAdapterFactory> _factories;
+    private readonly ReadOnlyCollection<ToolProtocolIdentity> _protocols;
 
     public ExternalToolProtocolRegistry(
         IEnumerable<IExternalToolProtocolAdapterFactory>? factories = null)
