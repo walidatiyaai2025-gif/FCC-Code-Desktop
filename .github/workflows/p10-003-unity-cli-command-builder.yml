@@ -1,0 +1,45 @@
+name: P10-003 Unity CLI Command Builder
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityCliCommandBuilder.cs'
+      - 'tests/FCCCodeDesktop.UnityCliCommandFixture/**'
+      - 'tools/unity/validate-unity-cli-command-builder.ps1'
+      - '.github/workflows/p10-003-unity-cli-command-builder.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityCliCommandBuilder.cs'
+      - 'tests/FCCCodeDesktop.UnityCliCommandFixture/**'
+      - 'tools/unity/validate-unity-cli-command-builder.ps1'
+      - '.github/workflows/p10-003-unity-cli-command-builder.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p10-003-unity-cli-command-builder-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Unity CLI Command Builder Validation
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate typed Unity CLI command builder
+        shell: pwsh
+        run: .\tools\unity\validate-unity-cli-command-builder.ps1
