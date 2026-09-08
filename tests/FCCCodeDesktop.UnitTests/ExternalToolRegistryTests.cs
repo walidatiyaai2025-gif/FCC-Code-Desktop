@@ -16,9 +16,10 @@ public sealed class ExternalToolRegistryTests
         var registry = new ExternalToolRegistry(source);
         source.Clear();
 
-        Assert.Equal(
-            new[] { "alpha.tool", "zeta.tool" },
-            registry.RegisteredTools.Select(static identity => identity.Id));
+        Assert.Collection(
+            registry.RegisteredTools,
+            identity => Assert.Equal("alpha.tool", identity.Id),
+            identity => Assert.Equal("zeta.tool", identity.Id));
         Assert.Same(alpha, registry.GetRequiredAdapter("ALPHA.TOOL"));
         Assert.True(registry.TryGetAdapter("zeta.tool", out var resolved));
         Assert.Same(zeta, resolved);
