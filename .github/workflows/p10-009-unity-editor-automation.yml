@@ -1,0 +1,55 @@
+name: P10-009 Unity Editor Automation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationInvocation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationValidation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityCliCommandBuilder.cs'
+      - 'src/FCCCodeDesktop.Tools/ToolArtifactValidation.cs'
+      - 'src/FCCCodeDesktop.Tools/CliProcessPrimitives.cs'
+      - 'src/FCCCodeDesktop.Tools/ExternalToolContracts.cs'
+      - 'tests/FCCCodeDesktop.UnityEditorAutomationFixture/**'
+      - 'tools/unity/validate-unity-editor-automation.ps1'
+      - '.github/workflows/p10-009-unity-editor-automation.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationInvocation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationValidation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityCliCommandBuilder.cs'
+      - 'src/FCCCodeDesktop.Tools/ToolArtifactValidation.cs'
+      - 'src/FCCCodeDesktop.Tools/CliProcessPrimitives.cs'
+      - 'src/FCCCodeDesktop.Tools/ExternalToolContracts.cs'
+      - 'tests/FCCCodeDesktop.UnityEditorAutomationFixture/**'
+      - 'tools/unity/validate-unity-editor-automation.ps1'
+      - '.github/workflows/p10-009-unity-editor-automation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p10-009-unity-editor-automation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Unity Editor Automation
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate Unity Editor automation
+        shell: pwsh
+        run: .\tools\unity\validate-unity-editor-automation.ps1
