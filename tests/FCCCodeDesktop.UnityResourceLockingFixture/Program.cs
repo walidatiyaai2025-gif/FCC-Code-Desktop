@@ -73,9 +73,8 @@ internal static class UnityResourceLockingFixture
               !string.Equals(firstProject.Value, independentProject.Value, StringComparison.Ordinal),
             "Independent Unity projects must not share process or project locks.");
 
-        IExternalToolResourceLockProvider genericProvider = provider;
         ExpectThrows<ArgumentException>(
-            () => genericProvider.GetResourceLockKeys(new ForeignInvocation(first.Project)),
+            () => ((IExternalToolResourceLockProvider)provider).GetResourceLockKeys(new ForeignInvocation(first.Project)),
             failures,
             "Unity lock provider must reject non-Unity invocations.");
 
@@ -175,7 +174,7 @@ internal static class UnityResourceLockingFixture
 
     private static void ExpectThrows<TException>(
         Action action,
-        ICollection<string> failures,
+        List<string> failures,
         string message)
         where TException : Exception
     {
@@ -191,7 +190,7 @@ internal static class UnityResourceLockingFixture
 
     private static async Task ExpectCancelledAsync(
         Task<ToolResourceLockLease> task,
-        ICollection<string> failures,
+        List<string> failures,
         string message)
     {
         try
