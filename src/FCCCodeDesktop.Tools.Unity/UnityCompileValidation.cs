@@ -399,7 +399,7 @@ public sealed class UnityCompileValidator : IUnityCompileValidator
                 char.IsAsciiDigit(text[digitsStart + 3]) &&
                 (digitsStart + 4 == text.Length || !char.IsAsciiDigit(text[digitsStart + 4])))
             {
-                return "CS" + text.Substring(digitsStart, 4);
+                return string.Concat("CS".AsSpan(), text.AsSpan(digitsStart, 4));
             }
 
             searchIndex = markerIndex + token.Length;
