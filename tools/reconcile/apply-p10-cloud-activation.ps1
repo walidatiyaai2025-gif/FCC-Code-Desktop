@@ -29,7 +29,7 @@ foreach ($required in @(
 
 $p10Region = [regex]::Match($ledger, '(?s)## P10 — Unity first-class adapter.*?(?=## P11 — Blender first-class adapter)')
 if (-not $p10Region.Success) { throw 'P10 ledger region missing.' }
-$p10Rows = [regex]::Matches($p10Region.Value, '(?m)^\| FCCD-P10-\d{3} \| .*? \| (PENDING|CLAIMED|IN_PROGRESS|BLOCKED|IMPLEMENTED|VERIFIED|CLOSED) \|$')
+$p10Rows = [regex]::Matches($p10Region.Value, '(?m)^\| FCCD-P10-\d{3} \| .*? \| (PENDING|CLAIMED|IN_PROGRESS|BLOCKED|IMPLEMENTED|VERIFIED|CLOSED) \|[ \t]*\r?$')
 if ($p10Rows.Count -ne 13) { throw "Expected exactly 13 P10 rows, found $($p10Rows.Count)." }
 $nonPending = @($p10Rows | Where-Object { $_.Groups[1].Value -ne 'PENDING' })
 if ($nonPending.Count -ne 0) { throw 'P10 activation requires all 13 task rows to remain PENDING.' }
