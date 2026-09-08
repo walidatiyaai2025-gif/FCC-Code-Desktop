@@ -56,12 +56,13 @@ static async Task ValidateConfiguredRootPrecedenceAsync(string sandbox)
         programFilesDirectoryOverride: programFiles);
 
     var result = await resolver.ResolveAsync(requiredVersion);
+    var installation = result.Installation
+        ?? throw new InvalidOperationException("Configured resolution must include installation metadata.");
 
     Assert(result.IsResolved, "Configured exact editor should resolve.");
     Assert(result.Status == UnityEditorResolutionStatus.ExactMatch, "Configured resolution status must be ExactMatch.");
-    Assert(result.Installation is not null, "Configured resolution must include installation metadata.");
-    Assert(result.Installation.Source == UnityEditorInstallationSource.ConfiguredRoot, "Configured root must win over the default Hub root.");
-    AssertPathEqual(configuredExecutable, result.Installation.EditorExecutablePath, "Configured editor executable path mismatch.");
+    Assert(installation.Source == UnityEditorInstallationSource.ConfiguredRoot, "Configured root must win over the default Hub root.");
+    AssertPathEqual(configuredExecutable, installation.EditorExecutablePath, "Configured editor executable path mismatch.");
     Assert(result.SearchRoots.Count == 2, "Configured plus default Hub roots should both be recorded.");
 }
 
@@ -79,11 +80,12 @@ static async Task ValidateDefaultHubFallbackAsync(string sandbox)
         programFilesDirectoryOverride: programFiles);
 
     var result = await resolver.ResolveAsync(requiredVersion);
+    var installation = result.Installation
+        ?? throw new InvalidOperationException("Default Hub resolution must include installation metadata.");
 
     Assert(result.IsResolved, "Default Unity Hub editor should resolve when configured roots do not match.");
-    Assert(result.Installation is not null, "Default Hub resolution must include installation metadata.");
-    Assert(result.Installation.Source == UnityEditorInstallationSource.UnityHubDefault, "Fallback must report UnityHubDefault provenance.");
-    AssertPathEqual(expectedExecutable, result.Installation.EditorExecutablePath, "Default Hub executable path mismatch.");
+    Assert(installation.Source == UnityEditorInstallationSource.UnityHubDefault, "Fallback must report UnityHubDefault provenance.");
+    AssertPathEqual(expectedExecutable, installation.EditorExecutablePath, "Default Hub executable path mismatch.");
 }
 
 static async Task ValidateDirectInstallationRootAsync(string sandbox)
@@ -97,11 +99,12 @@ static async Task ValidateDirectInstallationRootAsync(string sandbox)
 
     var resolver = new UnityEditorResolver([versionRoot], includeDefaultHubRoot: false);
     var result = await resolver.ResolveAsync(requiredVersion);
+    var installation = result.Installation
+        ?? throw new InvalidOperationException("Direct-root resolution must include installation metadata.");
 
     Assert(result.IsResolved, "A configured root that points directly at the requested version must resolve.");
-    Assert(result.Installation is not null, "Direct-root resolution must include installation metadata.");
-    AssertPathEqual(versionRoot, result.Installation.InstallationRoot, "Direct installation root mismatch.");
-    AssertPathEqual(expectedExecutable, result.Installation.EditorExecutablePath, "Direct editor executable path mismatch.");
+    AssertPathEqual(versionRoot, installation.InstallationRoot, "Direct installation root mismatch.");
+    AssertPathEqual(expectedExecutable, installation.EditorExecutablePath, "Direct editor executable path mismatch.");
 }
 
 static async Task ValidateMissingExecutableAsync(string sandbox)
