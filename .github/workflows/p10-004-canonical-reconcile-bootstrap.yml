@@ -1,0 +1,39 @@
+name: P10-004 Canonical Reconcile Bootstrap
+
+on:
+  push:
+    branches:
+      - worker/fccd-p10-004-unity-resource-locking
+    paths:
+      - 'tools/governance/reconcile-p10-004.ps1'
+      - '.github/workflows/p10-004-canonical-reconcile-bootstrap.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Apply fail-closed P10-004 canonical reconciliation
+        shell: pwsh
+        run: .\tools\governance\reconcile-p10-004.ps1
+
+      - name: Remove bootstrap files and commit durable reconciliation
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -- .github/workflows/p10-004-canonical-reconcile-bootstrap.yml tools/governance/reconcile-p10-004.ps1
+          git add CURRENT_PHASE.md docs/TASK_LEDGER.md
+          git diff --cached --check
+          git commit -m "P10-004: reconcile canonical closure"
+          git push origin "HEAD:${{ github.ref_name }}"
