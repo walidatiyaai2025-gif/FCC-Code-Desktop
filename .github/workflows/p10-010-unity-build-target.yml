@@ -1,0 +1,55 @@
+name: P10-010 Unity Build Target Validation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityBuildTargetInvocation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityBuildTargetValidation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationInvocation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationValidation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityCliCommandBuilder.cs'
+      - 'src/FCCCodeDesktop.Tools/ToolArtifactValidation.cs'
+      - 'tests/FCCCodeDesktop.UnityBuildTargetFixture/**'
+      - 'tools/unity/validate-unity-build-target.ps1'
+      - '.github/workflows/p10-010-unity-build-target.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityBuildTargetInvocation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityBuildTargetValidation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationInvocation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationValidation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityCliCommandBuilder.cs'
+      - 'src/FCCCodeDesktop.Tools/ToolArtifactValidation.cs'
+      - 'tests/FCCCodeDesktop.UnityBuildTargetFixture/**'
+      - 'tools/unity/validate-unity-build-target.ps1'
+      - '.github/workflows/p10-010-unity-build-target.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p10-010-unity-build-target-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Unity Build Target Validation
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate Unity build target execution and artifacts
+        shell: pwsh
+        run: .\tools\unity\validate-unity-build-target.ps1
