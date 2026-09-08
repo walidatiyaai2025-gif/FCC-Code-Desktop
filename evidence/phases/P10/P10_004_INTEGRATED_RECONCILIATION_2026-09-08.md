@@ -65,6 +65,15 @@ All applicable checks on exact repaired candidate `5956e00286fdaff230c2b13f0e191
 
 No failed product check is deferred. The initial `CA1859` failure is retained here as repair provenance rather than hidden.
 
+## Exact implementation-main validation
+
+PR #239 was normally merged as `d38cc605e604e4c3e91d866b96bc470642c0144b`. All applicable push checks on that exact implementation main completed SUCCESS:
+
+- P10-004 Unity Resource Locking: run `34214831778` — SUCCESS.
+- Windows CI: run `34214831699` — SUCCESS.
+- Workspace Search Validation: run `34214831670` — SUCCESS.
+- Large Workspace Safeguard Validation: run `34214831640` — SUCCESS.
+
 ## Owner-last / target boundary
 
 No owner-only evidence is required for P10-004. Its resource-key derivation, lock contention, cancellation, cleanup, and concurrency semantics are fully exercised on hosted Windows without launching Unity.
@@ -75,4 +84,4 @@ No Unity runtime result, provider result, manual Windows result, or physical tar
 
 This reconciliation may change only P10-004 from `PENDING` to `CLOSED` after the exact accepted candidate is green. P10 remains `IN_PROGRESS`; P10-005 through P10-013 remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
 
-Normal PR merge and exact-main validation are still required after this evidence is integrated. They are intentionally not predeclared as PASS in this candidate evidence.
+Normal reconciliation PR merge and exact resulting-main validation are still required after this evidence is integrated. They are intentionally not predeclared as PASS in this candidate evidence.
