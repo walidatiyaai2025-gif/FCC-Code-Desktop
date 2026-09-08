@@ -93,8 +93,8 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P09-004` — Tool resource locking — CLOSED.
 - `FCCD-P09-005` — Artifact manifest/validation framework — CLOSED.
 - `FCCD-P09-006` — Tool diagnostics/health framework — CLOSED.
-- `FCCD-P09-007` — CLI/process generic adapter primitives — PENDING.
-- `FCCD-P09-008` — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling — PENDING.
+- `FCCD-P09-007` — CLI/process generic adapter primitives — CLOSED.
+- `FCCD-P09-008` — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling — CLOSED.
 
 ## P09 cloud activation provenance
 
