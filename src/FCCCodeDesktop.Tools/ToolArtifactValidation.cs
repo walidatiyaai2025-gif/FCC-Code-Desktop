@@ -247,6 +247,9 @@ public interface IToolArtifactValidator
 /// </summary>
 public sealed class ToolArtifactValidator : IToolArtifactValidator
 {
+    private static readonly char[] PathSeparators =
+        [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
+
     public async Task<ToolArtifactValidationReport> ValidateAsync(
         ToolArtifactManifest manifest,
         CancellationToken cancellationToken = default)
@@ -288,16 +291,16 @@ public sealed class ToolArtifactValidator : IToolArtifactValidator
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            if (ContainsReparsePoint(manifest.RootPath, fullPath))
+            {
+                return Create(definition, ToolArtifactValidationStatus.UnsafePath, fullPath, diagnostic: "Artifact path contains a reparse point.");
+            }
+
             var fileExists = File.Exists(fullPath);
             var directoryExists = Directory.Exists(fullPath);
             if (!fileExists && !directoryExists)
             {
                 return Create(definition, ToolArtifactValidationStatus.Missing, fullPath, diagnostic: "Declared artifact does not exist.");
-            }
-
-            if (ContainsReparsePoint(manifest.RootPath, fullPath))
-            {
-                return Create(definition, ToolArtifactValidationStatus.UnsafePath, fullPath, diagnostic: "Artifact path contains a reparse point.");
             }
 
             if (definition.Kind == ToolArtifactKind.File && !fileExists ||
@@ -383,25 +386,24 @@ public sealed class ToolArtifactValidator : IToolArtifactValidator
     private static bool ContainsReparsePoint(string rootPath, string fullPath)
     {
         var current = Path.GetFullPath(rootPath);
-        if (Exists(current) && IsReparsePoint(current))
+        if (TryGetAttributes(current, out var rootAttributes) &&
+            (rootAttributes & FileAttributes.ReparsePoint) != 0)
         {
             return true;
         }
 
         var relative = Path.GetRelativePath(current, fullPath);
-        var segments = relative.Split(
-            new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar },
-            StringSplitOptions.RemoveEmptyEntries);
+        var segments = relative.Split(PathSeparators, StringSplitOptions.RemoveEmptyEntries);
 
         foreach (var segment in segments)
         {
             current = Path.Combine(current, segment);
-            if (!Exists(current))
+            if (!TryGetAttributes(current, out var attributes))
             {
                 break;
             }
 
-            if (IsReparsePoint(current))
+            if ((attributes & FileAttributes.ReparsePoint) != 0)
             {
                 return true;
             }
@@ -410,10 +412,24 @@ public sealed class ToolArtifactValidator : IToolArtifactValidator
         return false;
     }
 
-    private static bool Exists(string path) => File.Exists(path) || Directory.Exists(path);
-
-    private static bool IsReparsePoint(string path) =>
-        (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0;
+    private static bool TryGetAttributes(string path, out FileAttributes attributes)
+    {
+        try
+        {
+            attributes = File.GetAttributes(path);
+            return true;
+        }
+        catch (FileNotFoundException)
+        {
+            attributes = default;
+            return false;
+        }
+        catch (DirectoryNotFoundException)
+        {
+            attributes = default;
+            return false;
+        }
+    }
 
     private static ToolArtifactValidationEntry Create(
         ToolArtifactDefinition definition,
