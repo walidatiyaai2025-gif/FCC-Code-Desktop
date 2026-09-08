@@ -1,0 +1,47 @@
+name: P10-004 Unity Resource Locking
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityResourceLocking.cs'
+      - 'src/FCCCodeDesktop.Tools/ToolResourceLocking.cs'
+      - 'tests/FCCCodeDesktop.UnityResourceLockingFixture/**'
+      - 'tools/unity/validate-unity-resource-locking.ps1'
+      - '.github/workflows/p10-004-unity-resource-locking.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityResourceLocking.cs'
+      - 'src/FCCCodeDesktop.Tools/ToolResourceLocking.cs'
+      - 'tests/FCCCodeDesktop.UnityResourceLockingFixture/**'
+      - 'tools/unity/validate-unity-resource-locking.ps1'
+      - '.github/workflows/p10-004-unity-resource-locking.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p10-004-unity-resource-locking-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Unity Resource Locking Validation
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate Unity process/project resource locking
+        shell: pwsh
+        run: .\tools\unity\validate-unity-resource-locking.ps1
