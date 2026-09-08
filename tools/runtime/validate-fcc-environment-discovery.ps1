@@ -28,6 +28,9 @@ function Assert-DiscoveryContract {
         'ResolveExecutable("fcc-claude"',
         'ResolveExecutable("fcc-server"',
         'VersionArguments = ["--version", "version", "-V"]',
+        'CommandProcessorArguments',
+        'GetWindowsCommandProcessorPath',
+        'startInfo.Arguments = CommandProcessorArguments',
         'FCCD_DISCOVERY_EXECUTABLE',
         'FCCD_DISCOVERY_ARGUMENT',
         'ArgumentList.Add',
@@ -72,6 +75,20 @@ function Assert-DiscoveryContract {
         if ($ServiceText.Contains($forbidden)) {
             throw "P04-001 crossed into prompt/runtime execution scope: $forbidden"
         }
+    }
+
+    foreach ($forbidden in @(
+        'EncodedPowerShellVersionWrapper',
+        '-EncodedCommand',
+        'powershell.exe'
+    )) {
+        if ($ServiceText.Contains($forbidden)) {
+            throw "P04-001 batch version discovery regressed to a heavyweight PowerShell wrapper: $forbidden"
+        }
+    }
+
+    if ($ServiceText.Contains('startInfo.Arguments = $')) {
+        throw 'P04-001 command-processor arguments must remain a fixed constant; dynamic shell interpolation is forbidden.'
     }
 
     foreach ($literal in @(
@@ -178,7 +195,7 @@ internal static class Program
                         PathValue = fakeBin,
                         PathExtensions = ".CMD;.EXE",
                         HealthUri = new Uri($"http://127.0.0.1:{port}/health"),
-                        ProcessTimeout = TimeSpan.FromSeconds(30),
+                        ProcessTimeout = TimeSpan.FromSeconds(5),
                         HealthTimeout = TimeSpan.FromSeconds(2)
                     });
 
@@ -186,7 +203,9 @@ internal static class Program
                 await responseTask;
 
                 Assert(snapshot.FccClaude.IsFound, "PATH fcc-claude discovery");
-                Assert(snapshot.FccClaude.IsVersionKnown, "version parsed");
+                Assert(
+                    snapshot.FccClaude.IsVersionKnown,
+                    $"version parsed; failure={snapshot.FccClaude.ProbeFailure ?? "none"}; text={snapshot.FccClaude.VersionText ?? "none"}");
                 Assert(snapshot.FccClaude.ParsedVersion == new Version(2, 1, 251), "version value");
                 Assert(snapshot.FccClaude.VersionText?.Contains("Claude Code", StringComparison.Ordinal) == true, "version text");
                 Assert(snapshot.FccServer.IsFound, "PATH fcc-server discovery");
@@ -220,11 +239,15 @@ internal static class Program
                         FccClaudeExecutablePath = claudePath,
                         FccServerExecutablePath = serverPath,
                         PathValue = emptyBin,
-                        HealthUri = new Uri($"http://127.0.0.1:{port}/health")
+                        HealthUri = new Uri($"http://127.0.0.1:{port}/health"),
+                        ProcessTimeout = TimeSpan.FromSeconds(5)
                     });
                 var explicitSnapshot = await explicitService.DiscoverAsync(CancellationToken.None);
                 await responseTask;
                 Assert(explicitSnapshot.FccClaude.IsFound, "explicit fcc-claude path override");
+                Assert(
+                    explicitSnapshot.FccClaude.IsVersionKnown,
+                    $"explicit path version parsed; failure={explicitSnapshot.FccClaude.ProbeFailure ?? "none"}; text={explicitSnapshot.FccClaude.VersionText ?? "none"}");
                 Assert(explicitSnapshot.FccServer.IsFound, "explicit fcc-server path override");
             }
 
@@ -342,6 +365,10 @@ if ($RunFixtures) {
     Assert-ContractRejects {
         Assert-DiscoveryContract ($serviceText.Replace('VersionArguments = ["--version", "version", "-V"]', 'VersionArguments = ["--version"]')) $optionsText $snapshotText $documentationText
     } 'version fallback probes removed'
+
+    Assert-ContractRejects {
+        Assert-DiscoveryContract ($serviceText.Replace('GetWindowsCommandProcessorPath', 'GetWindowsPowerShellPath')) $optionsText $snapshotText $documentationText
+    } 'PowerShell batch-version wrapper reintroduced'
 
     Assert-ContractRejects {
         Assert-DiscoveryContract ($serviceText + "`n// --print") $optionsText $snapshotText $documentationText

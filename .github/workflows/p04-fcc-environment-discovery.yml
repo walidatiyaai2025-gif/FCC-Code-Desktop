@@ -1,0 +1,49 @@
+name: P04 FCC Environment Discovery
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Fcc/FccEnvironmentDiscoveryService.cs'
+      - 'src/FCCCodeDesktop.Fcc/FccEnvironmentDiscoveryOptions.cs'
+      - 'src/FCCCodeDesktop.Fcc/FccEnvironmentSnapshot.cs'
+      - 'tools/runtime/validate-fcc-environment-discovery.ps1'
+      - 'docs/runtime/FCC_ENVIRONMENT_DISCOVERY.md'
+      - '.github/workflows/p04-fcc-environment-discovery.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Fcc/FccEnvironmentDiscoveryService.cs'
+      - 'src/FCCCodeDesktop.Fcc/FccEnvironmentDiscoveryOptions.cs'
+      - 'src/FCCCodeDesktop.Fcc/FccEnvironmentSnapshot.cs'
+      - 'tools/runtime/validate-fcc-environment-discovery.ps1'
+      - 'docs/runtime/FCC_ENVIRONMENT_DISCOVERY.md'
+      - '.github/workflows/p04-fcc-environment-discovery.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p04-fcc-discovery-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: FCC Environment Discovery
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate FCC environment discovery
+        shell: pwsh
+        run: .\tools\runtime\validate-fcc-environment-discovery.ps1 -RunFixtures -RequireRuntime
