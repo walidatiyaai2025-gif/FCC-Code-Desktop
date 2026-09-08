@@ -5,11 +5,11 @@ This file is the fastest canonical resume checkpoint. It must be updated only wh
 ```text
 PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
-CURRENT_PHASE: P09
-CURRENT_PHASE_NAME: External Tool Gateway
-CURRENT_PHASE_STATE: CLOSED
-NEXT_PHASE: P10
-PHASE_EXIT_GATE: PASS
+CURRENT_PHASE: P10
+CURRENT_PHASE_NAME: Unity first-class adapter
+CURRENT_PHASE_STATE: IN_PROGRESS
+NEXT_PHASE: P11
+PHASE_EXIT_GATE: NOT_RUN
 KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
@@ -30,7 +30,9 @@ P07 is canonically CLOSED. `FCCD-P07-001` through `FCCD-P07-011` are normally in
 
 P08 — Terminal/process supervision — is canonically CLOSED in this closure state. `FCCD-P08-001` through `FCCD-P08-008` are normally integrated and exact-main verified. Immutable phase candidate `bb372da0a4506b3edc508156f06fc60ced8cc3d4` passed pre-closure Windows CI `34164500457` / #560, Workspace Search `34164500513` / #289, and Large Workspace Safeguards `34164500496` / #273; dedicated exact-candidate P08 phase-exit run `34165022901` / job `101874255929` completed SUCCESS with the full Windows baseline, interactive terminal UX runtime acceptance, process/terminal safety acceptance, exact-SHA guards, and a clean worktree. Canonical closure evidence is `evidence/phases/P08/CLOSURE.md`.
 
-P09 — External Tool Gateway — is canonically CLOSED in this closure state. All eight mandatory P09 tasks are normally integrated and exact-main verified on candidate `499b042f93efe764465aa1d2ea0f2d0c62188a4b`; dedicated P09 exit run `34195027724` passed on that exact candidate. Canonical closure evidence is `evidence/phases/P09/CLOSURE.md`. P10 is the authorized next phase but remains inactive until a separate governance transition is normally integrated and exact-main verified.
+P09 — External Tool Gateway — is canonically CLOSED. All eight mandatory P09 tasks are normally integrated and reconciled; closure PR #230 was normally merged as `aa9f7fbb7fbdc1921d73fa71111fc10911313c94`, whose exact post-closure Windows CI `34197103477` / #637, Workspace Search `34197103520` / #366, Large Workspace Safeguards `34197103493` / #350, and P09 External Tool Gateway Exit `34197103570` / #6 all completed SUCCESS. Canonical closure evidence is `evidence/phases/P09/CLOSURE.md`.
+
+P10 — Unity first-class adapter — is now the sole legal cloud implementation/convergence phase. Only dependency-valid, unclaimed P10 work may begin. P11 and later implementation remain prohibited until P10 is truthfully closed with its exit gate resolved under canonical governance.
 
 P05 is canonically closed at the phase level. `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified, and the owner completed the required genuine Windows/FCC/provider interaction on exact tested SHA `60b6ef491e9dde3ca195b377a2ce07442452a6ce`. Provider-backed conversation execution, structured activity, Stop/Retry, close/reopen, and durable session resume all passed. `OWNER-P05-EXIT-REAL-TARGET` is reconciled as `PASS_INTEGRATED`, the P05 exit gate is `PASS`, and canonical closure evidence is `evidence/phases/P05/CLOSURE.md`.
 
@@ -40,7 +42,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 
 ## Owner-last invariants
 
-- P09 is CLOSED and retained as the current closure checkpoint until a separate validated transition activates P10; no P10 or later implementation is authorized yet.
+- Exactly one cloud implementation/convergence phase is active: P10.
 - Earlier unresolved task work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
 - A phase-exit requirement may be queued only when all cloud-actionable implementation/tests/CI are complete, the remaining evidence is genuinely environment-bound, and the phase gate remains truthfully unresolved rather than being represented as PASS.
 - Code defects, failed CI, missing tests/implementation, security/data-integrity defects, and repairable repository problems are never deferrable.
@@ -85,6 +87,35 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Canonical phase closure: `evidence/phases/P05/CLOSURE.md`.
 - Queue state: `PASS_INTEGRATED`.
 - Release status: this P05 obligation is resolved; `OWNER-P04-008-REAL-TARGET` remains release-blocking.
+## P10 cloud task inventory
+
+- `FCCD-P10-001` — Unity project/version detector — PENDING.
+- `FCCD-P10-002` — Unity install/Hub editor resolver — PENDING.
+- `FCCD-P10-003` — Strongly typed Unity CLI command builder — PENDING.
+- `FCCD-P10-004` — Unity process/project resource locking — PENDING.
+- `FCCD-P10-005` — Dedicated Unity log capture/parser — PENDING.
+- `FCCD-P10-006` — Compile validation — PENDING.
+- `FCCD-P10-007` — EditMode test integration — PENDING.
+- `FCCD-P10-008` — PlayMode test integration — PENDING.
+- `FCCD-P10-009` — Project-owned Editor automation invocation — PENDING.
+- `FCCD-P10-010` — Build target execution/artifact validation — PENDING.
+- `FCCD-P10-011` — Unity structured UI events — PENDING.
+- `FCCD-P10-012` — Unity cancellation/recovery — PENDING.
+- `FCCD-P10-013` — Unity contract fixture/suite — PENDING.
+
+## P10 cloud activation provenance
+
+- Source closed-phase canonical main: `aa9f7fbb7fbdc1921d73fa71111fc10911313c94`.
+- P09 closure integration: PR #230, normal merge.
+- Exact post-closure main Windows CI: run `34197103477` / #637 — SUCCESS.
+- Exact post-closure main P06-007 Workspace Search: run `34197103520` / #366 — SUCCESS.
+- Exact post-closure main P06-008 Large Workspace Safeguards: run `34197103493` / #350 — SUCCESS.
+- Exact post-closure main P09 External Tool Gateway Exit: run `34197103570` / #6 — SUCCESS.
+- Pre-activation live claim scan: no open PR and no P10 branch/claim was present.
+- `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; P05 remains `PASS_INTEGRATED`; `P04=NOT_RUN`.
+- `VERIFIED_FINAL_COMPLETE` remains `false`; P22 remains prohibited while any required owner queue item is unresolved.
+- This is scheduling/governance activation only; no P10 product implementation and no P10 ledger-state change is included.
+
 ## P09 cloud task inventory
 
 - `FCCD-P09-001` — `IExternalToolAdapter` contract — CLOSED.
