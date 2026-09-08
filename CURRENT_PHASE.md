@@ -94,7 +94,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-003` — Strongly typed Unity CLI command builder — CLOSED.
 - `FCCD-P10-004` — Unity process/project resource locking — CLOSED.
 - `FCCD-P10-005` — Dedicated Unity log capture/parser — CLOSED.
-- `FCCD-P10-006` — Compile validation — PENDING.
+- `FCCD-P10-006` — Compile validation — CLOSED.
 - `FCCD-P10-007` — EditMode test integration — PENDING.
 - `FCCD-P10-008` — PlayMode test integration — PENDING.
 - `FCCD-P10-009` — Project-owned Editor automation invocation — PENDING.
@@ -951,3 +951,25 @@ PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged fr
 - Implementation provides bounded incremental `-logFile` capture, immutable continuation state, partial UTF-8/Arabic preservation, malformed UTF-8 diagnostics, file truncation generation handling, final partial-line flush, and structured Info/Warning/Error/Exception/Assert classification while intentionally leaving compile/test/build outcome semantics to later P10 tasks.
 - No owner-only evidence is required or added for P10-005. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.
 - P10 remains `IN_PROGRESS`; `FCCD-P10-006` through `FCCD-P10-013` remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
+
+
+## P10-006 integration provenance
+
+- Task: `FCCD-P10-006 — Compile validation` — `CLOSED` in this reconciliation candidate.
+- Recovery boundary: scheduling hint `FCCD-P20-004 — Blender contract suite green` was future work while canonical `CURRENT_PHASE=P10`; the live repository instead had P10-006 implementation normally merged but canonical state still `PENDING`, so integration reconciliation took priority.
+- Implementation PR: #245 (`worker/fccd-p10-006-unity-compile-validation`).
+- Initial implementation candidate: `6f5dae574a8de4963a3bc46fd8e6aabecd9d496d`; dedicated validation exposed analyzer `CA1845` in compiler-code extraction and failed before runtime acceptance.
+- Repaired exact accepted implementation candidate: `d6eceee3f9cb3c1b0ea282febb24abf5c1728ac5`; the analyzer defect was repaired with span-based concatenation without suppression, warning demotion, test removal, or safety weakening.
+- Exact repaired candidate Unity Compile Validation: run `34230767921` — SUCCESS.
+- Exact repaired candidate Windows CI: run `34230767619` — SUCCESS.
+- Exact repaired candidate Workspace Search Validation: run `34230767687` — SUCCESS.
+- Exact repaired candidate Large Workspace Safeguards: run `34230767648` — SUCCESS.
+- Normal implementation merge / accepted implementation main: `3be87a5657bf0326d025425b8a59a6a3d8a9f77e`.
+- Exact implementation-main Unity Compile Validation: run `34231807438` — SUCCESS.
+- Exact implementation-main Windows CI: run `34231807447` — SUCCESS.
+- Exact implementation-main Workspace Search Validation: run `34231807449` — SUCCESS.
+- Exact implementation-main Large Workspace Safeguards: run `34231807641` — SUCCESS.
+- Implementation validates Unity compile outcomes from the controlled `unity.open-project` process plus invocation-scoped Unity log evidence; exit code zero alone cannot pass. C# `error CS####` diagnostics and explicit Unity compilation-failure markers fail closed, cancellation remains distinct, and missing/incomplete/reset/truncated/encoding-corrupt evidence remains `INDETERMINATE` rather than being guessed PASS.
+- Deterministic fixture acceptance covers success/warnings, exit-zero compiler failure, explicit failure markers, process/launch/cancellation/forced-termination outcomes, missing/empty/non-finalized/gapped/reset/truncated/invalid-UTF8 evidence, bounded diagnostics, snapshot immutability, and operation guards.
+- No owner-only evidence is required or added for P10-006. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.
+- P10 remains `IN_PROGRESS`; `FCCD-P10-007` through `FCCD-P10-013` remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
