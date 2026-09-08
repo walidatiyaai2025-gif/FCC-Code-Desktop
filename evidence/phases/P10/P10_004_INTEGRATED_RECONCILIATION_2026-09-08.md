@@ -3,7 +3,7 @@
 Date: 2026-09-08
 Phase: P10 — Unity first-class adapter
 Task: `FCCD-P10-004 — Unity process/project resource locking`
-Evidence classification: CLOUD_ACCEPTED / INTEGRATION_PENDING
+Evidence classification: CLOUD_ACCEPTED / REPAIR_INTEGRATION_PENDING
 
 ## Live-state selection
 
@@ -74,6 +74,35 @@ PR #239 was normally merged as `d38cc605e604e4c3e91d866b96bc470642c0144b`. All a
 - Workspace Search Validation: run `34214831670` — SUCCESS.
 - Large Workspace Safeguard Validation: run `34214831640` — SUCCESS.
 
+## Canonical reconciliation and exact-main regression recovery
+
+PR #240 normally merged the P10-004 canonical reconciliation as `15c92bf8957a8dbdfd172db4687903f5984445d5`. The task row became canonically `CLOSED`, but the required exact-main verification exposed a real CI regression and therefore recovery retained priority over any new P10 work.
+
+On exact main `15c92bf8957a8dbdfd172db4687903f5984445d5`:
+
+- Workspace Search Validation: run `34216772265` — SUCCESS.
+- Large Workspace Safeguard Validation: run `34216772279` — SUCCESS.
+- P09 External Tool Gateway Exit: run `34216772157` — SUCCESS.
+- Windows CI: run `34216772167` — FAILURE at `Validate P05-005 task state machine` after the full Windows Release baseline had completed SUCCESS.
+
+The failing P05-005 runtime fixture timed out on its 30-second settlement wait while its final diagnostic already observed `State=Succeeded`, `IsActive=False`, `CanStop=False`, `CanRetry=False`, and no previously observed settling rejection. Earlier exact implementation-main Windows CI `34214831699` had passed the same P05-005 fixture. The failure was not deferred or reclassified as owner-only.
+
+Recovery PR #241 uses branch `recovery/p10-004-p05-005-settlement-flake`. The durable repair changes only `tools/ui/validate-task-state-machine.ps1`; production runtime behavior and P10 implementation are unchanged. The fixture repair:
+
+- replaces wall-clock `DateTimeOffset.UtcNow` polling with monotonic `Stopwatch` elapsed time;
+- keeps `ValidateCanStart()` as the fail-closed definition of fully settled state;
+- retains the most recent genuine settling rejection for diagnostics;
+- performs one final settlement probe after the monotonic deadline to eliminate the observed terminal-transition/deadline race;
+- keeps a finite hosted-Windows settlement bound, widened from 30 seconds to 60 seconds rather than allowing an unbounded wait.
+
+Exact repair candidate `8928b803f304d5c783abf2219f77520726d3fa71` passed every applicable PR-head check:
+
+- Windows CI: run `34218416456` — SUCCESS. Its dedicated P05-005 task-state step completed SUCCESS, followed by all remaining Windows validation steps.
+- Workspace Search Validation: run `34218416472` — SUCCESS.
+- Large Workspace Safeguard Validation: run `34218416357` — SUCCESS.
+
+The prior exact-main failure remains recorded here as repair provenance; no failing check is hidden, waived, or converted into manual evidence.
+
 ## Owner-last / target boundary
 
 No owner-only evidence is required for P10-004. Its resource-key derivation, lock contention, cancellation, cleanup, and concurrency semantics are fully exercised on hosted Windows without launching Unity.
@@ -82,6 +111,6 @@ No Unity runtime result, provider result, manual Windows result, or physical tar
 
 ## Canonical reconciliation scope
 
-This reconciliation may change only P10-004 from `PENDING` to `CLOSED` after the exact accepted candidate is green. P10 remains `IN_PROGRESS`; P10-005 through P10-013 remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
+P10-004 remains canonically `CLOSED`; P10 remains `IN_PROGRESS`; P10-005 through P10-013 remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
 
-Normal reconciliation PR merge and exact resulting-main validation are still required after this evidence is integrated. They are intentionally not predeclared as PASS in this candidate evidence.
+Normal merge of recovery PR #241 and exact resulting-main validation are still required. They are intentionally not predeclared as PASS in this repair candidate evidence.
