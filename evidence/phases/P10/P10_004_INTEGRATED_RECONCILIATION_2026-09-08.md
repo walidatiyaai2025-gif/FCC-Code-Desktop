@@ -3,7 +3,7 @@
 Date: 2026-09-08
 Phase: P10 — Unity first-class adapter
 Task: `FCCD-P10-004 — Unity process/project resource locking`
-Evidence classification: CLOUD_ACCEPTED / REPAIR_INTEGRATION_PENDING
+Evidence classification: CLOUD_ACCEPTED / INTEGRATED
 
 ## Live-state selection
 
@@ -87,7 +87,7 @@ On exact main `15c92bf8957a8dbdfd172db4687903f5984445d5`:
 
 The failing P05-005 runtime fixture timed out on its 30-second settlement wait while its final diagnostic already observed `State=Succeeded`, `IsActive=False`, `CanStop=False`, `CanRetry=False`, and no previously observed settling rejection. Earlier exact implementation-main Windows CI `34214831699` had passed the same P05-005 fixture. The failure was not deferred or reclassified as owner-only.
 
-Recovery PR #241 uses branch `recovery/p10-004-p05-005-settlement-flake`. The durable repair changes only `tools/ui/validate-task-state-machine.ps1`; production runtime behavior and P10 implementation are unchanged. The fixture repair:
+Recovery PR #241 used branch `recovery/p10-004-p05-005-settlement-flake`. The durable repair changes only `tools/ui/validate-task-state-machine.ps1`; production runtime behavior and P10 implementation are unchanged. The fixture repair:
 
 - replaces wall-clock `DateTimeOffset.UtcNow` polling with monotonic `Stopwatch` elapsed time;
 - keeps `ValidateCanStart()` as the fail-closed definition of fully settled state;
@@ -103,6 +103,24 @@ Exact repair candidate `8928b803f304d5c783abf2219f77520726d3fa71` passed every a
 
 The prior exact-main failure remains recorded here as repair provenance; no failing check is hidden, waived, or converted into manual evidence.
 
+## Final recovery integration and exact-main validation
+
+The final recovery PR candidate `de80d63130d2d18c6698d543a07a3ef665acd55d` added this repair provenance while retaining the same bounded validator repair. All applicable final-head checks completed SUCCESS:
+
+- Windows CI: run `34219391553` — SUCCESS, including the dedicated P05-005 task-state step and all remaining P05/P06 validation steps.
+- Workspace Search Validation: run `34219391367` — SUCCESS.
+- Large Workspace Safeguard Validation: run `34219391485` — SUCCESS.
+
+PR #241 was then normally merged, without squash, rebase, force-push, or safety-check weakening, as exact main `7b0bb6ccbaee00186d1f16967b3310bd81a85006`.
+
+All applicable checks on that exact resulting main completed SUCCESS:
+
+- Windows CI: run `34220329698` — SUCCESS. The full Windows Release baseline and the dedicated P05-005 task-state step both completed SUCCESS, followed by every remaining Windows validation step.
+- Workspace Search Validation: run `34220329664` — SUCCESS.
+- Large Workspace Safeguard Validation: run `34220329682` — SUCCESS.
+
+This closes the discovered exact-main regression with real hosted-Windows evidence on the merged recovery commit. No product failure is deferred and no manual or owner-only result is fabricated.
+
 ## Owner-last / target boundary
 
 No owner-only evidence is required for P10-004. Its resource-key derivation, lock contention, cancellation, cleanup, and concurrency semantics are fully exercised on hosted Windows without launching Unity.
@@ -111,6 +129,6 @@ No Unity runtime result, provider result, manual Windows result, or physical tar
 
 ## Canonical reconciliation scope
 
-P10-004 remains canonically `CLOSED`; P10 remains `IN_PROGRESS`; P10-005 through P10-013 remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
+P10-004 is durably `CLOSED` with its implementation, canonical reconciliation, exact-main regression repair, normal recovery integration, and exact resulting-main verification all recorded above. P10 remains `IN_PROGRESS`; P10-005 through P10-013 remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
 
-Normal merge of recovery PR #241 and exact resulting-main validation are still required. They are intentionally not predeclared as PASS in this repair candidate evidence.
+This evidence-only provenance finalization changes no product code, task state, owner queue state, phase state, or future-phase authority.
