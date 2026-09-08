@@ -51,6 +51,7 @@ public sealed class ExternalToolProcessRunner : IExternalToolProcessRunner
             process.RootProcessId,
             process.StartedUtc);
 
+        var reachedTerminalCompletion = false;
         try
         {
             await foreach (var entry in process.Output
@@ -72,19 +73,22 @@ public sealed class ExternalToolProcessRunner : IExternalToolProcessRunner
                 .WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
             var statistics = process.Output.GetSnapshot().Statistics;
+            reachedTerminalCompletion = true;
             yield return new ToolResultEvent(
                 CreateExitResult(request, exit, statistics));
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        finally
         {
-            await process
-                .TerminateOwnedTreeAsync(CancellationToken.None)
-                .ConfigureAwait(false);
-            throw;
+            if (!reachedTerminalCompletion)
+            {
+                await process
+                    .TerminateOwnedTreeAsync(CancellationToken.None)
+                    .ConfigureAwait(false);
+            }
         }
     }
 
-    private static IReadOnlyDictionary<string, string?>? SnapshotEnvironment(
+    private static Dictionary<string, string?>? SnapshotEnvironment(
         IReadOnlyDictionary<string, string> environment)
     {
         if (environment.Count == 0)
