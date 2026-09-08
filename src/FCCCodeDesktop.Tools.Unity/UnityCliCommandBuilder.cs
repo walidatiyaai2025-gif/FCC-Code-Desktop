@@ -298,7 +298,7 @@ public sealed record UnityCliInvocation : StructuredToolInvocation
             operation,
             arguments,
             workingDirectory: project.RootPath,
-            environment)
+            environment: environment)
     {
     }
 }
