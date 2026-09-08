@@ -115,7 +115,7 @@ public abstract record StructuredToolInvocation : ToolInvocation
                 nameof(operation));
         }
 
-        if (operation.Contains('\0', StringComparison.Ordinal))
+        if (operation.Contains('\0'))
         {
             throw new ArgumentException("Tool operation must not contain NUL characters.", nameof(operation));
         }
@@ -154,7 +154,7 @@ public abstract record StructuredToolInvocation : ToolInvocation
                 throw new ArgumentException("Tool arguments must not contain null values.", nameof(arguments));
             }
 
-            if (argument.Contains('\0', StringComparison.Ordinal))
+            if (argument.Contains('\0'))
             {
                 throw new ArgumentException("Tool arguments must not contain NUL characters.", nameof(arguments));
             }
@@ -179,8 +179,7 @@ public abstract record StructuredToolInvocation : ToolInvocation
                     nameof(environment));
             }
 
-            if (pair.Key.Contains('=', StringComparison.Ordinal) ||
-                pair.Key.Contains('\0', StringComparison.Ordinal))
+            if (pair.Key.Contains('=') || pair.Key.Contains('\0'))
             {
                 throw new ArgumentException(
                     "Environment variable names must not contain '=' or NUL characters.",
@@ -194,7 +193,7 @@ public abstract record StructuredToolInvocation : ToolInvocation
                     nameof(environment));
             }
 
-            if (pair.Value.Contains('\0', StringComparison.Ordinal))
+            if (pair.Value.Contains('\0'))
             {
                 throw new ArgumentException(
                     "Environment variable values must not contain NUL characters.",
