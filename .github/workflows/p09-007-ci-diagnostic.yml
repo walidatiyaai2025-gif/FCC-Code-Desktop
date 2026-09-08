@@ -6,48 +6,30 @@ on:
       - diagnostic/p09-007-ci
 
 permissions:
-  contents: read
-  issues: write
+  contents: write
 
 jobs:
   diagnose:
+    if: github.event.head_commit.message != 'ci(p09-007): capture diagnosis'
     runs-on: windows-2025
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: diagnostic/p09-007-ci
 
       - name: Setup exact .NET SDK
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.400
 
-      - name: Diagnose first baseline failure
+      - name: Capture first baseline failure
         shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Continue'
-
-          function Publish-Failure {
-              param(
-                  [string]$Stage,
-                  [int]$ExitCode,
-                  [string[]]$Output
-              )
-
-              $tail = $Output | Select-Object -Last 140
-              $rendered = ($tail -join "`n")
-              $body = @"
-          P09-007 diagnostic on `$env:GITHUB_SHA` failed at **$Stage** (exit `$ExitCode`).
-
-          ``````text
-          $rendered
-          ``````
-          "@
-              gh api "repos/$env:GITHUB_REPOSITORY/issues/227/comments" --method POST --raw-field body="$body" | Out-Null
-              exit $ExitCode
-          }
+          $resultPath = 'evidence/diagnostics/P09_007_CI_DIAGNOSIS.txt'
+          New-Item -ItemType Directory -Force (Split-Path $resultPath) | Out-Null
 
           function Invoke-Stage {
               param(
@@ -58,14 +40,37 @@ jobs:
               $output = @(& $Action 2>&1 | ForEach-Object { $_.ToString() })
               $code = $LASTEXITCODE
               if ($code -ne 0) {
-                  Publish-Failure -Stage $Name -ExitCode $code -Output $output
+                  $tail = $output | Select-Object -Last 180
+                  @(
+                      "SOURCE_SHA=$env:GITHUB_SHA",
+                      "FAILED_STAGE=$Name",
+                      "EXIT_CODE=$code",
+                      '--- OUTPUT TAIL ---'
+                  ) + $tail | Set-Content -LiteralPath $resultPath -Encoding utf8
+                  return $false
               }
+
+              return $true
           }
 
-          Invoke-Stage 'locked restore' { dotnet restore .\FCCCodeDesktop.sln --locked-mode --nologo }
-          Invoke-Stage 'format verification' { dotnet format .\FCCCodeDesktop.sln --verify-no-changes --no-restore }
-          Invoke-Stage 'Release build' { dotnet build .\FCCCodeDesktop.sln -c Release --no-restore --nologo }
-          Invoke-Stage 'unit/integration tests' { pwsh -NoProfile -File .\tools\testing\run-tests.ps1 -Suite all -Configuration Release -NoRestore -NoBuild }
+          $ok = Invoke-Stage 'locked restore' { dotnet restore .\FCCCodeDesktop.sln --locked-mode --nologo }
+          if ($ok) { $ok = Invoke-Stage 'format verification' { dotnet format .\FCCCodeDesktop.sln --verify-no-changes --no-restore } }
+          if ($ok) { $ok = Invoke-Stage 'Release build' { dotnet build .\FCCCodeDesktop.sln -c Release --no-restore --nologo } }
+          if ($ok) { $ok = Invoke-Stage 'unit/integration tests' { pwsh -NoProfile -File .\tools\testing\run-tests.ps1 -Suite all -Configuration Release -NoRestore -NoBuild } }
 
-          $body = "P09-007 diagnostic on ``$env:GITHUB_SHA`` passed restore, format, Release build, and unit/integration tests."
-          gh api "repos/$env:GITHUB_REPOSITORY/issues/227/comments" --method POST --raw-field body="$body" | Out-Null
+          if ($ok) {
+              @(
+                  "SOURCE_SHA=$env:GITHUB_SHA",
+                  'RESULT=PASS',
+                  'RESTORE=PASS',
+                  'FORMAT=PASS',
+                  'RELEASE_BUILD=PASS',
+                  'TESTS=PASS'
+              ) | Set-Content -LiteralPath $resultPath -Encoding utf8
+          }
+
+          git config user.name 'fccd-ci-diagnostic'
+          git config user.email 'actions@users.noreply.github.com'
+          git add -- $resultPath
+          git commit -m 'ci(p09-007): capture diagnosis'
+          git push origin HEAD:diagnostic/p09-007-ci
