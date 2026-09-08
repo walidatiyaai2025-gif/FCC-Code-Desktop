@@ -19,9 +19,9 @@ For `fcc-claude`, discovery tries the bounded version-only forms observed/probed
 2. `version`
 3. `-V`
 
-Direct executables are invoked with `ProcessStartInfo.ArgumentList`. Windows `.cmd`/`.bat` shims use the built-in Windows PowerShell executable with a constant encoded wrapper; the executable path and fixed version argument are passed through child-process environment variables rather than interpolated into a shell command string.
+Direct executables are invoked with `ProcessStartInfo.ArgumentList`. Windows `.cmd`/`.bat` shims are invoked through the built-in Windows command processor using fixed `/D`, `/S`, and `/C` arguments plus a constant wrapper. The executable path and fixed version argument are passed through child-process environment variables and quoted by that constant wrapper rather than interpolated into a dynamically constructed command string. This avoids a separate Windows PowerShell cold start for every version candidate while preserving the no-user-command-concatenation boundary.
 
-Version probes default to a bounded 15-second timeout and kill only the process tree created by that discovery probe if the probe exceeds its timeout or the caller cancels it. The hosted-Windows validation fixture gives its disposable `.cmd` shim a 30-second probe budget so transient runner scheduling or cold Windows PowerShell startup does not masquerade as an FCC version-parsing defect; the fixture remains bounded and the production options still reject process timeouts above one minute. This is discovery cleanup only; the richer agent-run ownership/supervision contract remains owned by later P04 work.
+Version probes default to a bounded 15-second timeout and kill only the process tree created by that discovery probe if the probe exceeds its timeout or the caller cancels it. The hosted-Windows validation fixture gives its disposable `.cmd` shim a 5-second probe budget and verifies both PATH and explicit-path version parsing, which protects exact-main CI against regressions back to heavyweight shell startup while remaining comfortably above normal `cmd.exe` launch latency. The production options still reject process timeouts above one minute. This is discovery cleanup only; the richer agent-run ownership/supervision contract remains owned by later P04 work.
 
 ## FCC loopback health
 
@@ -60,4 +60,4 @@ The P00 compatibility baseline remains the authoritative external-contract input
 
 ## Validation
 
-`tools/runtime/validate-fcc-environment-discovery.ps1` provides static contract checks, negative/recovery fixtures, and a Windows/.NET runtime fixture using disposable fake `fcc-claude.cmd` / `fcc-server.cmd` shims plus a local one-shot loopback HTTP server. The fixture exercises successful PATH discovery/version parsing/health, missing-runtime behavior, explicit-path override, loopback-only validation, invalid port rejection, and bounded shim startup under hosted-runner load without contacting a provider.
+`tools/runtime/validate-fcc-environment-discovery.ps1` provides static contract checks, negative/recovery fixtures, and a Windows/.NET runtime fixture using disposable fake `fcc-claude.cmd` / `fcc-server.cmd` shims plus a local one-shot loopback HTTP server. The fixture exercises successful PATH discovery/version parsing/health, missing-runtime behavior, explicit-path override with independent version parsing, loopback-only validation, invalid port rejection, rejection of a PowerShell batch-wrapper regression, and bounded shim startup without contacting a provider.
