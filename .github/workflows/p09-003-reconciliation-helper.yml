@@ -1,0 +1,50 @@
+name: P09-003 One-Shot Reconciliation Helper
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p09-003-integrated
+    paths:
+      - .github/workflows/p09-003-reconciliation-helper.yml
+      - tools/reconciliation/reconcile-p09-003-integrated.py
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact reconciliation branch
+        uses: actions/checkout@v4
+        with:
+          ref: reconcile/fccd-p09-003-integrated
+          fetch-depth: 0
+      - name: Apply guarded canonical reconciliation
+        shell: bash
+        run: python tools/reconciliation/reconcile-p09-003-integrated.py
+      - name: Validate final diff scope
+        shell: bash
+        run: |
+          git diff --check
+          git status --short
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "CURRENT_PHASE.md .github/workflows/p09-003-reconciliation-helper.yml docs/TASK_LEDGER.md tools/reconciliation/reconcile-p09-003-integrated.py " || {
+            echo "Unexpected tracked diff scope" >&2
+            git diff --name-only >&2
+            exit 1
+          }
+          test -f evidence/phases/P09/P09_003_INTEGRATED_RECONCILIATION_2026-09-08.md
+          grep -Fq -- '- `FCCD-P09-003` — Structured invocation/result contracts — CLOSED.' CURRENT_PHASE.md
+          grep -Fq -- '| FCCD-P09-003 | Structured invocation/result contracts | CLOSED |' docs/TASK_LEDGER.md
+          grep -Fq -- '| FCCD-P09-004 | Tool resource locking | PENDING |' docs/TASK_LEDGER.md
+          test ! -e tools/reconciliation/reconcile-p09-003-integrated.py
+          test ! -e .github/workflows/p09-003-reconciliation-helper.yml
+      - name: Commit reconciliation candidate
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A CURRENT_PHASE.md docs/TASK_LEDGER.md evidence/phases/P09/P09_003_INTEGRATED_RECONCILIATION_2026-09-08.md tools/reconciliation/reconcile-p09-003-integrated.py .github/workflows/p09-003-reconciliation-helper.yml
+          git diff --cached --check
+          git commit -m "Reconcile P09-003 integrated state"
+          git push origin HEAD:reconcile/fccd-p09-003-integrated
