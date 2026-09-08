@@ -1,53 +1,4 @@
-from pathlib import Path
-
-current = Path("CURRENT_PHASE.md")
-ledger = Path("docs/TASK_LEDGER.md")
-evidence = Path("evidence/phases/P09/P09_004_INTEGRATED_RECONCILIATION_2026-09-08.md")
-workflow = Path(".github/workflows/p09-004-reconcile-bootstrap.yml")
-helper = Path(".github/p09-004-reconcile-bootstrap.py")
-
-current_text = current.read_text(encoding="utf-8")
-ledger_text = ledger.read_text(encoding="utf-8")
-
-current_old = "- `FCCD-P09-004` — Tool resource locking — PENDING."
-current_new = "- `FCCD-P09-004` — Tool resource locking — CLOSED."
-ledger_old = "| FCCD-P09-004 | Tool resource locking | PENDING |"
-ledger_new = "| FCCD-P09-004 | Tool resource locking | CLOSED |"
-marker = "<!-- FCCD-P09-004-INTEGRATED-CLOSURE -->"
-
-if current_text.count(current_old) != 1:
-    raise SystemExit(f"Expected exactly one CURRENT_PHASE P09-004 PENDING row, found {current_text.count(current_old)}")
-if ledger_text.count(ledger_old) != 1:
-    raise SystemExit(f"Expected exactly one TASK_LEDGER P09-004 PENDING row, found {ledger_text.count(ledger_old)}")
-if marker in current_text:
-    raise SystemExit("P09-004 provenance marker already exists; refusing duplicate reconciliation")
-if evidence.exists():
-    raise SystemExit("P09-004 evidence file already exists; refusing overwrite")
-
-current_text = current_text.replace(current_old, current_new, 1)
-ledger_text = ledger_text.replace(ledger_old, ledger_new, 1)
-
-provenance = """
-
-<!-- FCCD-P09-004-INTEGRATED-CLOSURE -->
-## P09-004 integration provenance
-
-- Task: `FCCD-P09-004 — Tool resource locking` — `CLOSED` in this reconciliation candidate.
-- Implementation PR: #220 (`worker/fccd-p09-004-tool-resource-locking`).
-- Exact accepted implementation candidate: `c9c9b2af6df94ce9de897fdbcd7b9340821e5c00`.
-- Exact implementation-head Windows CI: run `34181523680` / #602 — SUCCESS.
-- Exact implementation-head P06-007 Workspace Search: run `34181523686` / #331 — SUCCESS.
-- Exact implementation-head P06-008 Large Workspace Safeguards: run `34181523684` / #315 — SUCCESS.
-- Normal implementation merge / accepted implementation main: `c0958e04c363cec3fa389baaabb9d3ddc4c8b49a`.
-- Accepted implementation head and normal merge have the same Git tree `ab6987d6051c20ed1b69149346991d5e7999010d`.
-- Exact implementation-main Windows CI: run `34182264507` / #603 — SUCCESS.
-- Exact implementation-main P06-007 Workspace Search: run `34182264471` / #332 — SUCCESS.
-- Exact implementation-main P06-008 Large Workspace Safeguards: run `34182264516` / #316 — SUCCESS.
-- Integrated evidence: `evidence/phases/P09/P09_004_INTEGRATED_RECONCILIATION_2026-09-08.md`.
-- No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-005` through `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
-"""
-
-evidence_text = """# FCCD-P09-004 — Integrated Reconciliation Evidence
+# FCCD-P09-004 — Integrated Reconciliation Evidence
 
 Date: 2026-09-08
 Task: `FCCD-P09-004 — Tool resource locking`
@@ -107,11 +58,3 @@ P09-004 has no genuine owner-machine/manual/provider/Unity/Blender acceptance re
 This reconciliation closes only `FCCD-P09-004`. P09 remains `IN_PROGRESS`; P09-005 through P09-008 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later phases remain prohibited until sequential P09 convergence completes; `VERIFIED_FINAL_COMPLETE=false`.
 
 The reconciliation PR itself must pass exact-head CI, be normally merged, and the resulting exact canonical main must remain green before this task closure is treated as the durable endpoint.
-"""
-
-current.write_text(current_text.rstrip("\n") + provenance.rstrip("\n") + "\n", encoding="utf-8", newline="\n")
-ledger.write_text(ledger_text, encoding="utf-8", newline="\n")
-evidence.parent.mkdir(parents=True, exist_ok=True)
-evidence.write_text(evidence_text, encoding="utf-8", newline="\n")
-workflow.unlink()
-helper.unlink()
