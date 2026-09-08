@@ -91,7 +91,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 
 - `FCCD-P10-001` — Unity project/version detector — PENDING.
 - `FCCD-P10-002` — Unity install/Hub editor resolver — CLOSED.
-- `FCCD-P10-003` — Strongly typed Unity CLI command builder — PENDING.
+- `FCCD-P10-003` — Strongly typed Unity CLI command builder — CLOSED.
 - `FCCD-P10-004` — Unity process/project resource locking — PENDING.
 - `FCCD-P10-005` — Dedicated Unity log capture/parser — PENDING.
 - `FCCD-P10-006` — Compile validation — PENDING.
@@ -874,3 +874,21 @@ PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged fr
 - Exact implementation-main P06-008 Large Workspace Safeguards: run `34188169513` / #326 — SUCCESS.
 - Integrated evidence: `evidence/phases/P09/P09_006_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-007` and `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+<!-- FCCD-P10-003-INTEGRATED-CLOSURE -->
+## P10-003 integration provenance
+
+- Task: `FCCD-P10-003 — Strongly typed Unity CLI command builder` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #233 (`worker/fccd-p10-003-unity-cli-command-builder`).
+- Exact accepted implementation candidate: `cbe73e901443a7847e4fae3f3da1e582fad93be4`.
+- Exact implementation-head P10-003 Unity CLI Command Builder: run `34202055613` / #2 — SUCCESS.
+- Exact implementation-head Windows CI: run `34202055606` / #644 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34202055667` / #373 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34202055612` / #357 — SUCCESS.
+- Normal implementation merge / accepted implementation main: `165708a542faee753149fedc19c787297a75f38d`.
+- Exact implementation-main P10-003 Unity CLI Command Builder: run `34202965959` / #3 — SUCCESS.
+- Exact implementation-main Windows CI: run `34202965960` / #645 — SUCCESS.
+- Exact implementation-main P06-007 Workspace Search: run `34202965953` / #374 — SUCCESS.
+- Exact implementation-main P06-008 Large Workspace Safeguards: run `34202965909` / #358 — SUCCESS.
+- Integrated evidence: `evidence/phases/P10/P10_003_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- Reconciliation was refreshed onto exact verified main `ad2395e23d1bf6c3bbf664dedda4b464408cb675`, preserving canonical P10-002 closure.
+- No owner-only evidence is required or added. P10 remains `IN_PROGRESS`; all other unresolved P10 task rows retain their canonical states; `PHASE_EXIT_GATE=NOT_RUN`; P11 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
