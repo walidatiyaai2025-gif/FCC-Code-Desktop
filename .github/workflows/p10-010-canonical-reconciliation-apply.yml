@@ -1,0 +1,84 @@
+name: P10-010 Canonical Reconciliation Apply
+
+on:
+  push:
+    branches:
+      - worker/fccd-p10-010-reconciliation
+    paths:
+      - '.github/workflows/p10-010-canonical-reconciliation-apply.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: worker/fccd-p10-010-reconciliation
+          fetch-depth: 1
+
+      - name: Apply exact canonical reconciliation
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          current = Path('CURRENT_PHASE.md')
+          ledger = Path('docs/TASK_LEDGER.md')
+
+          c = current.read_text(encoding='utf-8')
+          old_inventory = '- `FCCD-P10-010` — Build target execution/artifact validation — PENDING.'
+          new_inventory = '- `FCCD-P10-010` — Build target execution/artifact validation — CLOSED.'
+          if c.count(old_inventory) != 1:
+              raise SystemExit(f'CURRENT_PHASE expected exactly one P10-010 PENDING inventory row, found {c.count(old_inventory)}')
+          if '## P10-010 integration provenance' in c:
+              raise SystemExit('CURRENT_PHASE already contains P10-010 provenance')
+          c = c.replace(old_inventory, new_inventory, 1)
+          current_anchor = '\n## P10-004 integration provenance\n'
+          if c.count(current_anchor) != 1:
+              raise SystemExit(f'CURRENT_PHASE expected one P10-004 provenance anchor, found {c.count(current_anchor)}')
+          current_block = '''\n## P10-010 integration provenance\n\n- Task: `FCCD-P10-010 — Build target execution/artifact validation` — `CLOSED` in this reconciliation candidate.\n- Implementation PR: #254 (`worker/fccd-p10-010-unity-build-validation`).\n- Exact accepted implementation candidate: `61fab6d08bd8f1f8434a6547e47a76e6a9d086fa`.\n- Exact candidate P10-010 Unity Build Target Validation `34263247624`, Windows Release `34263246859`, Workspace Search `34263246885`, and Large Workspace Safeguards `34263246808` — SUCCESS.\n- Normal implementation merge / accepted implementation main: `d192df0a08535638a441ca20f91c44d0ae9615ba`.\n- Exact implementation-main P10-010 Unity Build Target Validation `34264340408`, Windows Release `34264340428`, Workspace Search `34264340320`, and Large Workspace Safeguards `34264340352` — SUCCESS.\n- Integrated cloud evidence: `evidence/phases/P10/P10_010_INTEGRATED_RECONCILIATION_2026-09-08.md`.\n- No new owner-only evidence is required or added. P10 remains `IN_PROGRESS`; P10-011 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.\n'''
+          c = c.replace(current_anchor, current_block + current_anchor, 1)
+          current.write_text(c, encoding='utf-8', newline='')
+
+          l = ledger.read_text(encoding='utf-8')
+          old_row = '| FCCD-P10-010 | Build target execution/artifact validation | PENDING |'
+          new_row = '| FCCD-P10-010 | Build target execution/artifact validation | CLOSED |'
+          if l.count(old_row) != 1:
+              raise SystemExit(f'TASK_LEDGER expected exactly one P10-010 PENDING row, found {l.count(old_row)}')
+          if '## FCCD-P10-010 canonical closure provenance' in l:
+              raise SystemExit('TASK_LEDGER already contains P10-010 closure provenance')
+          l = l.replace(old_row, new_row, 1)
+          ledger_anchor = '\n---\n\n## Current next action\n'
+          if l.count(ledger_anchor) != 1:
+              raise SystemExit(f'TASK_LEDGER expected one current-next-action anchor, found {l.count(ledger_anchor)}')
+          ledger_block = '''\n## FCCD-P10-010 canonical closure provenance\n\n- Task: `FCCD-P10-010 — Build target execution/artifact validation` — `CLOSED` in this reconciliation candidate.\n- Implementation PR: #254; exact accepted implementation candidate `61fab6d08bd8f1f8434a6547e47a76e6a9d086fa`; normal implementation merge `d192df0a08535638a441ca20f91c44d0ae9615ba`.\n- Exact-head P10-010 `34263247624`, Windows Release `34263246859`, Workspace Search `34263246885`, Large Workspace Safeguards `34263246808` — SUCCESS.\n- Exact implementation-main P10-010 `34264340408`, Windows Release `34264340428`, Workspace Search `34264340320`, Large Workspace Safeguards `34264340352` — SUCCESS.\n- Evidence: `evidence/phases/P10/P10_010_INTEGRATED_RECONCILIATION_2026-09-08.md`. No new owner-only evidence is required.\n\n'''
+          l = l.replace(ledger_anchor, '\n---\n\n' + ledger_block + '## Current next action\n', 1)
+
+          start = l.find('## Current next action\n\n')
+          end_marker = '\n\n<!-- FCCD-P08-004-FINAL-CLOSURE-PROVENANCE -->'
+          end = l.find(end_marker, start)
+          if start < 0 or end < 0:
+              raise SystemExit('TASK_LEDGER current-next-action bounds not found')
+          prefix = l[:start] + '## Current next action\n\n'
+          suffix = l[end:]
+          next_action = ('`CURRENT_PHASE = P10` remains the sole active cloud implementation/convergence phase. '
+                         '`FCCD-P10-001` through `FCCD-P10-010` are CLOSED after normal implementation integration, exact-head/exact-main validation, required repair where applicable, and durable task reconciliation; '
+                         '`FCCD-P10-011` through `FCCD-P10-013` remain PENDING. After this P10-010 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-011 — Unity structured UI events` only if it remains unclaimed and dependency-valid. '
+                         'P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.')
+          l = prefix + next_action + suffix
+          ledger.write_text(l, encoding='utf-8', newline='')
+          PY
+
+          git diff --check
+          git diff -- CURRENT_PHASE.md docs/TASK_LEDGER.md
+          test "$(git diff --numstat -- CURRENT_PHASE.md docs/TASK_LEDGER.md | wc -l)" -eq 2
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add CURRENT_PHASE.md docs/TASK_LEDGER.md
+          git rm .github/workflows/p10-010-canonical-reconciliation-apply.yml
+          git commit -m 'P10-010: reconcile canonical task state'
+          git push origin HEAD:worker/fccd-p10-010-reconciliation
