@@ -1,8 +1,7 @@
 using System.Runtime.CompilerServices;
 using FCCCodeDesktop.Runtime;
-using FCCCodeDesktop.Tools;
 
-namespace FCCCodeDesktop.Application;
+namespace FCCCodeDesktop.Tools;
 
 /// <summary>
 /// Application-owned orchestration that executes provider-neutral tool-process contracts
