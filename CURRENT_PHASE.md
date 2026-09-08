@@ -91,7 +91,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P09-002` — Tool discovery/capability registry — CLOSED.
 - `FCCD-P09-003` — Structured invocation/result contracts — CLOSED.
 - `FCCD-P09-004` — Tool resource locking — CLOSED.
-- `FCCD-P09-005` — Artifact manifest/validation framework — PENDING.
+- `FCCD-P09-005` — Artifact manifest/validation framework — CLOSED.
 - `FCCD-P09-006` — Tool diagnostics/health framework — PENDING.
 - `FCCD-P09-007` — CLI/process generic adapter primitives — PENDING.
 - `FCCD-P09-008` — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling — PENDING.
@@ -776,3 +776,21 @@ PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged fr
 - Exact implementation-main P06-008 Large Workspace Safeguards: run `34182264516` / #316 — SUCCESS.
 - Integrated evidence: `evidence/phases/P09/P09_004_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-005` through `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+
+
+<!-- FCCD-P09-005-INTEGRATED-CLOSURE -->
+## P09-005 integration provenance
+
+- Task: `FCCD-P09-005 — Artifact manifest/validation framework` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #222 (`worker/fccd-p09-005-artifact-manifest-validation`).
+- Exact accepted implementation candidate: `b0381ad11381a958eb6ef588fde057630e246be5`.
+- Exact implementation-head Windows CI: run `34184899985` / #608 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34184899988` / #337 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34184900036` / #321 — SUCCESS.
+- Normal implementation merge / accepted implementation main: `82a251d9c957e418818a2b85755905410a0a5eab`.
+- Accepted implementation head and normal merge have the same Git tree `5d1ce66c1f476a894dc33c26780ea2d397fed0ba`.
+- Exact implementation-main Windows CI: run `34185404436` / #609 — SUCCESS.
+- Exact implementation-main P06-007 Workspace Search: run `34185404429` / #338 — SUCCESS.
+- Exact implementation-main P06-008 Large Workspace Safeguards: run `34185404427` / #322 — SUCCESS.
+- Integrated evidence: `evidence/phases/P09/P09_005_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-006` through `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
