@@ -195,9 +195,9 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Post-merge convergence correctly remained open because Windows CI #451 exposed a real P05-005 hosted-Windows settlement-deadline regression after the full Release build/tests had passed; no task closure was claimed on that regressed main.
 - Recovery PR: #193 (`repair/p08-002-p05-005-settlement-fixture`) fixed only the bounded P05-005 settlement fixture/tolerance and diagnostics; it did not change P08 production cancellation semantics or weaken the settlement assertion.
 - Exact recovery candidate: `636b4df95d4fdd74fb8fb0cb6f9e1dd84f5940ce`.
-- PR #193 exact-head Windows CI: run `34078491329` / #452 — SUCCESS.
-- PR #193 exact-head P06-007 Workspace Search: run `34078491330` / #181 — SUCCESS.
-- PR #193 exact-head P06-008 Large Workspace Safeguards: run `34078491338` / #165 — SUCCESS.
+- Exact recovery-head Windows CI: run `34078491329` / #452 — SUCCESS.
+- Exact recovery-head P06-007 Workspace Search: run `34078491330` / #181 — SUCCESS.
+- Exact recovery-head P06-008 Large Workspace Safeguards: run `34078491338` / #165 — SUCCESS.
 - Recovery normal merge / accepted main: `4f80433830684966405c7d76aea50583ae4df75b`.
 - Exact accepted-main Windows CI: run `34079056645` / #453 — SUCCESS, including the previously failing P05-005 executable settlement validator.
 - Exact accepted-main P06-007 Workspace Search: run `34079056639` / #182 — SUCCESS.
@@ -241,7 +241,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Exact current-main P06-007 Workspace Search: run `34120686443` / #266 — SUCCESS.
 - Exact current-main P06-008 Large Workspace Safeguards: run `34120686425` / #250 — SUCCESS.
 - Integrated evidence: `evidence/phases/P08/P08_004_INTEGRATED_RECONCILIATION_2026-09-07.md`.
-- Evidence is cloud/hosted-Windows ConPTY evidence only. No owner-only evidence is added; P08 remains `IN_PROGRESS`, P08-007 and P08-008 remain PENDING, P09/P15 and later phases remain prohibited, and `VERIFIED_FINAL_COMPLETE=false`.
+- Evidence is cloud/hosted-Windows ConPTY evidence only. No owner-only evidence is added; P08 remains `IN_PROGRESS`, P08-007 and P08-008 remain PENDING, P09/P15 and later phases remain prohibited, and `VERIFIED_FINAL_COMPLETE` remains false.
 
 ## P08-005 integration provenance
 
@@ -290,7 +290,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Exact accepted-main P06-008 Large Workspace Safeguards: run `34161963867` / #268 — SUCCESS.
 - Exact accepted-main P08-007 Interactive Terminal UX: run `34161963864` / #4 — SUCCESS.
 - Integrated evidence: `evidence/phases/P08/P08_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
-- Coverage includes Bottom Tool Panel composition without weakening the P02 shell contract, typed ConPTY shell launch, UTF-8 input/output, Ctrl+C copy-versus-interrupt semantics, Ctrl+V paste and navigation sequences, debounced resize, bounded/coalesced high-output presentation, ANSI SGR color rendering, and safe async window-close disposal. No owner-only evidence is required or added.
+- Coverage includes Bottom Tool Panel composition without weakening the P02 shell contract, typed ConPTY shell launch, UTF-8 input/output, Ctrl+C copy-versus-interrupt semantics, Ctrl+V paste and navigation sequences, debounced resize work, bounded/coalesced high-output presentation, ANSI SGR color rendering, and safe async window-close disposal. No owner-only evidence is required or added.
 - P08 remains `IN_PROGRESS`; only `FCCD-P08-008` remains PENDING. `PHASE_EXIT_GATE=NOT_RUN`, P09 and later phases remain prohibited, and `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P07 cloud task inventory
