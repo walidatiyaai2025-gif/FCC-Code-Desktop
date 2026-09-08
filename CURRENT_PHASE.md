@@ -176,7 +176,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - PR #190 exact-head Windows CI: run `34074218833` / #446 — SUCCESS.
 - PR #190 exact-head P06-007 Workspace Search: run `34074218827` / #175 — SUCCESS.
 - PR #190 exact-head P06-008 Large Workspace Safeguards: run `34074218830` / #159 — SUCCESS.
-- Repair normal merge / accepted main: `ac54e739019e7264db5de3f9b26b700735924bc1`.
+- Repair normal merge / accepted canonical implementation: `ac54e739019e7264db5de3f9b26b700735924bc1`.
 - Exact accepted-main Windows CI: run `34074668199` / #447 — SUCCESS.
 - Exact accepted-main P06-007 Workspace Search: run `34074668196` / #176 — SUCCESS.
 - Exact accepted-main P06-008 Large Workspace Safeguards: run `34074668191` / #160 — SUCCESS.
@@ -195,9 +195,9 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Post-merge convergence correctly remained open because Windows CI #451 exposed a real P05-005 hosted-Windows settlement-deadline regression after the full Release build/tests had passed; no task closure was claimed on that regressed main.
 - Recovery PR: #193 (`repair/p08-002-p05-005-settlement-fixture`) fixed only the bounded P05-005 settlement fixture/tolerance and diagnostics; it did not change P08 production cancellation semantics or weaken the settlement assertion.
 - Exact recovery candidate: `636b4df95d4fdd74fb8fb0cb6f9e1dd84f5940ce`.
-- Exact recovery-head Windows CI: run `34078491329` / #452 — SUCCESS.
-- Exact recovery-head P06-007 Workspace Search: run `34078491330` / #181 — SUCCESS.
-- Exact recovery-head P06-008 Large Workspace Safeguards: run `34078491338` / #165 — SUCCESS.
+- PR #193 exact-head Windows CI: run `34078491329` / #452 — SUCCESS.
+- PR #193 exact-head P06-007 Workspace Search: run `34078491330` / #181 — SUCCESS.
+- PR #193 exact-head P06-008 Large Workspace Safeguards: run `34078491338` / #165 — SUCCESS.
 - Recovery normal merge / accepted main: `4f80433830684966405c7d76aea50583ae4df75b`.
 - Exact accepted-main Windows CI: run `34079056645` / #453 — SUCCESS, including the previously failing P05-005 executable settlement validator.
 - Exact accepted-main P06-007 Workspace Search: run `34079056639` / #182 — SUCCESS.
@@ -241,7 +241,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Exact current-main P06-007 Workspace Search: run `34120686443` / #266 — SUCCESS.
 - Exact current-main P06-008 Large Workspace Safeguards: run `34120686425` / #250 — SUCCESS.
 - Integrated evidence: `evidence/phases/P08/P08_004_INTEGRATED_RECONCILIATION_2026-09-07.md`.
-- Evidence is cloud/hosted-Windows ConPTY evidence only. No owner-only evidence is added; P08 remains `IN_PROGRESS`, P08-007 and P08-008 remain PENDING, P09/P15 and later phases remain prohibited, and `VERIFIED_FINAL_COMPLETE` remains false.
+- Evidence is cloud/hosted-Windows ConPTY evidence only. No owner-only evidence is added; P08 remains `IN_PROGRESS`, P08-007 and P08-008 remain PENDING, P09/P15 and later phases remain prohibited, and `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P08-005 integration provenance
 
@@ -507,7 +507,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Normal merge commit: `76d1debe6c0effcf59a423caa2e0fe5ff62cd1be`.
 - Exact post-merge canonical-main Windows CI: run `34015519686` / run #271 — SUCCESS.
 - Integrated evidence: `evidence/phases/P06/P06_004_INTEGRATED_RECONCILIATION_2026-09-06.md`.
-- Evidence class remains cloud/self-test for bounded conflict-aware project text-file I/O and atomic/version-aware save mechanics; no new owner-only evidence, P06 phase closure, P07 authorization, or release eligibility is implied.
+- Evidence class remains cloud/self-test for bounded conflict-aware project text-file I/O and atomic/version-aware save mechanics; no new owner-only evidence, P05 exit-gate PASS, P06 phase closure, or release eligibility is implied.
 
 ## P06-005 integration provenance
 
