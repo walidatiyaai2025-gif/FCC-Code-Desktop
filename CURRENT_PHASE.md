@@ -90,7 +90,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 ## P10 cloud task inventory
 
 - `FCCD-P10-001` — Unity project/version detector — PENDING.
-- `FCCD-P10-002` — Unity install/Hub editor resolver — PENDING.
+- `FCCD-P10-002` — Unity install/Hub editor resolver — CLOSED.
 - `FCCD-P10-003` — Strongly typed Unity CLI command builder — PENDING.
 - `FCCD-P10-004` — Unity process/project resource locking — PENDING.
 - `FCCD-P10-005` — Dedicated Unity log capture/parser — PENDING.
@@ -102,6 +102,25 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-011` — Unity structured UI events — PENDING.
 - `FCCD-P10-012` — Unity cancellation/recovery — PENDING.
 - `FCCD-P10-013` — Unity contract fixture/suite — PENDING.
+
+## P10-002 integration provenance
+
+- Task: `FCCD-P10-002 — Unity install/Hub editor resolver` — `CLOSED` in this reconciliation candidate.
+- Recovery boundary: the scheduling hint was future P18-005 while canonical `CURRENT_PHASE=P10`; P10-002 implementation was already integrated but its canonical row remained PENDING, so reconciliation took priority over new work.
+- Concurrent P10-003 implementation was normally merged as `165708a542faee753149fedc19c787297a75f38d`; its canonical row remains PENDING and is not modified here. P10-001 also remains independently owned/PENDING.
+- Implementation PR: #232 (`worker/fccd-p10-002-unity-editor-resolver`).
+- Exact accepted implementation candidate: `0d411d877f3e56a7cde08aef3f0c50ff65997733`.
+- Exact implementation-head P10-002 Unity Editor Resolution: run `34201337027` / #2 — SUCCESS.
+- Exact implementation-head Windows CI: run `34201337061` / #641 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34201336981` / #370 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34201337068` / #354 — SUCCESS.
+- Normal implementation merge / accepted implementation main: `844edc01c9073048d800a59cafa78d59a78b2668`.
+- Exact implementation-main P10-002 Unity Editor Resolution: run `34202036522` / #3 — SUCCESS.
+- Exact implementation-main Windows CI: run `34202036486` / #643 — SUCCESS.
+- Exact implementation-main P06-007 Workspace Search: run `34202036528` / #372 — SUCCESS.
+- Exact implementation-main P06-008 Large Workspace Safeguards: run `34202036385` / #356 — SUCCESS.
+- Integrated evidence: `evidence/phases/P10/P10_002_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added. P10 remains `IN_PROGRESS`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P10 cloud activation provenance
 
