@@ -19,12 +19,8 @@ public sealed class ExternalToolGatewayPhaseExitTests
             var adapter = new FixtureGatewayAdapter();
             var registry = new ExternalToolRegistry(new[] { adapter });
 
-            var discovery = await registry
-                .DiscoverAsync(adapter.Identity.Id, project)
-                .ConfigureAwait(false);
-            var capabilities = await registry
-                .GetCapabilitiesAsync(adapter.Identity.Id, project)
-                .ConfigureAwait(false);
+            var discovery = await registry.DiscoverAsync(adapter.Identity.Id, project);
+            var capabilities = await registry.GetCapabilitiesAsync(adapter.Identity.Id, project);
 
             Assert.True(discovery.IsAvailable);
             Assert.IsType<FixtureCapabilities>(capabilities);
@@ -33,9 +29,7 @@ public sealed class ExternalToolGatewayPhaseExitTests
             var invocation = new FixtureInvocation(project, "fixture.produce");
             var lockCoordinator = new ExternalToolResourceLockCoordinator(new ToolResourceLockManager());
 
-            await using (var lease = await lockCoordinator
-                .AcquireAsync(adapter, invocation)
-                .ConfigureAwait(false))
+            await using (var lease = await lockCoordinator.AcquireAsync(adapter, invocation))
             {
                 Assert.Collection(
                     lease.Keys,
@@ -49,9 +43,9 @@ public sealed class ExternalToolGatewayPhaseExitTests
                 Assert.False(contender.IsCompleted);
                 contenderCancellation.Cancel();
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(
-                    async () => await contender.ConfigureAwait(false));
+                    async () => await contender);
 
-                var events = await CollectAsync(adapter.ExecuteAsync(invocation)).ConfigureAwait(false);
+                var events = await CollectAsync(adapter.ExecuteAsync(invocation));
                 var resultEvent = Assert.IsType<ToolResultEvent>(Assert.Single(events));
                 var result = Assert.IsType<FixtureResult>(resultEvent.Result);
                 Assert.Equal(ToolResultStatus.Succeeded, result.Status);
@@ -68,9 +62,7 @@ public sealed class ExternalToolGatewayPhaseExitTests
                         ToolArtifactKind.File,
                         requireNonEmpty: true),
                 });
-            var artifactReport = await new ToolArtifactValidator()
-                .ValidateAsync(manifest)
-                .ConfigureAwait(false);
+            var artifactReport = await new ToolArtifactValidator().ValidateAsync(manifest);
 
             Assert.True(artifactReport.Succeeded);
             var artifact = Assert.Single(artifactReport.Entries);
@@ -80,8 +72,7 @@ public sealed class ExternalToolGatewayPhaseExitTests
             Assert.IsAssignableFrom<ToolEvent>(new ToolArtifactValidationEvent(artifactReport));
 
             var health = await new ExternalToolHealthService(registry)
-                .CheckAsync(adapter.Identity.Id, project)
-                .ConfigureAwait(false);
+                .CheckAsync(adapter.Identity.Id, project);
 
             Assert.Equal(ToolHealthStatus.Healthy, health.Status);
             Assert.Equal(adapter.Identity, health.Identity);
@@ -117,17 +108,14 @@ public sealed class ExternalToolGatewayPhaseExitTests
             var invocation = new FixtureInvocation(project, "fixture.block");
             var lockCoordinator = new ExternalToolResourceLockCoordinator(new ToolResourceLockManager());
 
-            await using var lease = await lockCoordinator
-                .AcquireAsync(adapter, invocation)
-                .ConfigureAwait(false);
+            await using var lease = await lockCoordinator.AcquireAsync(adapter, invocation);
             using var cancellation = new CancellationTokenSource();
 
             var collection = CollectAsync(adapter.ExecuteAsync(invocation, cancellation.Token));
-            await adapter.ExecutionStarted.Task.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            await adapter.ExecutionStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
             cancellation.Cancel();
 
-            await Assert.ThrowsAnyAsync<OperationCanceledException>(
-                async () => await collection.ConfigureAwait(false));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await collection);
             Assert.False(File.Exists(Path.Combine(root, "artifacts", "result.txt")));
         }
         finally
@@ -139,7 +127,7 @@ public sealed class ExternalToolGatewayPhaseExitTests
     private static async Task<List<ToolEvent>> CollectAsync(IAsyncEnumerable<ToolEvent> source)
     {
         var events = new List<ToolEvent>();
-        await foreach (var item in source.ConfigureAwait(false))
+        await foreach (var item in source)
         {
             events.Add(item);
         }
@@ -220,7 +208,7 @@ public sealed class ExternalToolGatewayPhaseExitTests
             if (fixture.Operation == "fixture.block")
             {
                 ExecutionStarted.TrySetResult();
-                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
                 yield break;
             }
 
@@ -232,10 +220,9 @@ public sealed class ExternalToolGatewayPhaseExitTests
             var artifactDirectory = Path.Combine(fixture.Project.RootPath, "artifacts");
             Directory.CreateDirectory(artifactDirectory);
             await File.WriteAllTextAsync(
-                    Path.Combine(artifactDirectory, "result.txt"),
-                    "validated fixture artifact",
-                    cancellationToken)
-                .ConfigureAwait(false);
+                Path.Combine(artifactDirectory, "result.txt"),
+                "validated fixture artifact",
+                cancellationToken);
 
             yield return new ToolResultEvent(
                 new FixtureResult(ToolResultStatus.Succeeded, "Fixture artifact created."));
