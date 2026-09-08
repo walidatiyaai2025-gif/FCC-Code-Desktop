@@ -45,6 +45,12 @@ On exact canonical main `165708a542faee753149fedc19c787297a75f38d`:
 - P06-007 Workspace Search `34202965953` / #374 — SUCCESS.
 - P06-008 Large Workspace Safeguards `34202965909` / #358 — SUCCESS.
 
+## Concurrency recovery after P10-002 reconciliation
+
+Before final integration, PR #234 normally merged the independent P10-002 canonical reconciliation and advanced exact canonical `main` to `ad2395e23d1bf6c3bbf664dedda4b464408cb675`. That made existing PR #235 temporarily non-mergeable because both reconciliation candidates touched `CURRENT_PHASE.md` and `docs/TASK_LEDGER.md`.
+
+Recovery reused PR #235 and its already-green P10-003 reconciliation history rather than creating duplicate work. Exact current main was merged into the same branch without force-push, preserving P10-002 as `CLOSED` while applying P10-003 `CLOSED`. Temporary recovery workflows were removed again before the final candidate. Relative to exact recovery main, the durable diff is restricted to `CURRENT_PHASE.md`, `docs/TASK_LEDGER.md`, and this P10-003 evidence file. No P10 product implementation, P10-001 state, owner evidence, later-phase work, or release-complete claim is introduced by the recovery.
+
 ## Owner-last classification
 
 P10-003 has no genuine owner-machine/manual/provider/Unity-runtime acceptance requirement. Its command-construction semantics are fully deterministic and hosted-Windows verifiable. No owner queue item is added. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.
