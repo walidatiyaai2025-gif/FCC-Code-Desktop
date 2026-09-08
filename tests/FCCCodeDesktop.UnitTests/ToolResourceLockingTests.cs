@@ -82,7 +82,10 @@ public sealed class ToolResourceLockingTests
         Assert.False(waiting.IsCompleted);
 
         cancellation.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await waiting);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        {
+            await waiting;
+        });
         first.Dispose();
 
         await using var recovered = await manager.AcquireAsync(new[] { key }).AsTask()
@@ -108,7 +111,10 @@ public sealed class ToolResourceLockingTests
         Assert.False(alphaWaiter.IsCompleted);
 
         cancellation.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await partial);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        {
+            await partial;
+        });
 
         await using var alphaLease = await alphaWaiter.WaitAsync(TimeSpan.FromSeconds(5));
         betaOwner.Dispose();
@@ -124,7 +130,9 @@ public sealed class ToolResourceLockingTests
 
         var missingDeclaration = new FixtureAdapter();
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
-            await coordinator.AcquireAsync(missingDeclaration, invocation));
+        {
+            await coordinator.AcquireAsync(missingDeclaration, invocation);
+        });
 
         var declared = new LockingFixtureAdapter(new ToolResourceLockKey("project:fixture"));
         await using var first = await coordinator.AcquireAsync(declared, invocation);
@@ -148,7 +156,9 @@ public sealed class ToolResourceLockingTests
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
-            await manager.AcquireAsync(Array.Empty<ToolResourceLockKey>(), cancellation.Token));
+        {
+            await manager.AcquireAsync(Array.Empty<ToolResourceLockKey>(), cancellation.Token);
+        });
     }
 
     private static ProjectContext CreateProjectContext()
