@@ -97,7 +97,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-006` — Compile validation — CLOSED.
 - `FCCD-P10-007` — EditMode test integration — CLOSED.
 - `FCCD-P10-008` — PlayMode test integration — CLOSED.
-- `FCCD-P10-009` — Project-owned Editor automation invocation — PENDING.
+- `FCCD-P10-009` — Project-owned Editor automation invocation — CLOSED.
 - `FCCD-P10-010` — Build target execution/artifact validation — PENDING.
 - `FCCD-P10-011` — Unity structured UI events — PENDING.
 - `FCCD-P10-012` — Unity cancellation/recovery — PENDING.
@@ -114,6 +114,19 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Regression repair PR #250 was normally merged; current exact main `c49b4f6480c1daac5cde8c30c90c69ce368a1f9b` passed FCC Environment Discovery `34251804819`, Windows Release `34251804798`, Workspace Search `34251804735`, and Large Workspace Safeguards `34251804754`.
 - Integrated cloud evidence: `evidence/phases/P10/P10_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - No owner-only evidence is required or added. P10 remains `IN_PROGRESS`; P10-009 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+
+## P10-009 integration provenance
+
+- Task: `FCCD-P10-009 — Project-owned Editor automation invocation` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #252 (`worker/fccd-p10-009-unity-editor-automation`).
+- Exact accepted implementation candidate: `ce8486cdee218f243fc74f6aa066ffd426a9834d`.
+- Initial candidate `96f6cb254ead1623b6aedc596f65b40f6ff728bd` exposed a fixture-only C# declaration-order defect in P10-009 run `34256931168`; it was repaired on the same branch without suppressions or safety weakening.
+- Exact repaired candidate P10-009 Unity Editor Automation `34257173874`, Windows Release `34257173863`, Workspace Search `34257173895`, and Large Workspace Safeguards `34257173880` — SUCCESS.
+- Normal implementation merge / accepted implementation main: `0bf49f7ec10212253de1dda3e76970cb76523792`.
+- Exact implementation-main P10-009 Unity Editor Automation `34258387291`, Windows Release `34258387311`, Workspace Search `34258387200`, and Large Workspace Safeguards `34258387225` — SUCCESS.
+- The integrated boundary uses typed `unity.execute-method` invocation, product-owned operation/result correlation, bounded fresh structured JSON evidence, and fail-closed validation for stale/missing/malformed/oversized/mismatched/project/process/cancellation outcomes; process exit code alone cannot establish success.
+- Integrated cloud evidence: `evidence/phases/P10/P10_009_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No new owner-only evidence is required or added. P10 remains `IN_PROGRESS`; P10-010 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P10-004 integration provenance
 

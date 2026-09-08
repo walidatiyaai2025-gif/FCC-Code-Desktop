@@ -283,7 +283,7 @@ All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure cand
 | FCCD-P10-006 | Compile validation | CLOSED |
 | FCCD-P10-007 | EditMode test integration | CLOSED |
 | FCCD-P10-008 | PlayMode test integration | CLOSED |
-| FCCD-P10-009 | Project-owned Editor automation invocation | PENDING |
+| FCCD-P10-009 | Project-owned Editor automation invocation | CLOSED |
 | FCCD-P10-010 | Build target execution/artifact validation | PENDING |
 | FCCD-P10-011 | Unity structured UI events | PENDING |
 | FCCD-P10-012 | Unity cancellation/recovery | PENDING |
@@ -454,9 +454,21 @@ All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure cand
 
 ---
 
+## FCCD-P10-009 canonical closure provenance
+
+- Task: `FCCD-P10-009 — Project-owned Editor automation invocation` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #252; exact accepted implementation candidate `ce8486cdee218f243fc74f6aa066ffd426a9834d`; normal implementation merge `0bf49f7ec10212253de1dda3e76970cb76523792`.
+- Repaired exact-head P10-009 `34257173874`, Windows Release `34257173863`, Workspace Search `34257173895`, Large Workspace Safeguards `34257173880` — SUCCESS.
+- Exact implementation-main P10-009 `34258387291`, Windows Release `34258387311`, Workspace Search `34258387200`, Large Workspace Safeguards `34258387225` — SUCCESS.
+- Initial fixture-only compile failure `34256931168` was repaired without suppression or safety weakening.
+- Evidence: `evidence/phases/P10/P10_009_INTEGRATED_RECONCILIATION_2026-09-08.md`. No new owner-only evidence is required.
+
+---
+
 ## Current next action
 
-`CURRENT_PHASE = P10` remains the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-008` are CLOSED after normal implementation integration, exact-head/exact-main validation, repair of the intervening FCC discovery regression, and durable task reconciliation; `FCCD-P10-009` through `FCCD-P10-013` remain PENDING. After this P10-008 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-009 — Project-owned Editor automation invocation` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.
+`CURRENT_PHASE = P10` remains the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-009` are CLOSED after normal implementation integration, exact-head/exact-main validation, required repair, and durable task reconciliation; `FCCD-P10-010` through `FCCD-P10-013` remain PENDING. After this P10-009 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-010 — Build target execution/artifact validation` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.
+
 <!-- FCCD-P08-004-FINAL-CLOSURE-PROVENANCE -->
 ## FCCD-P08-004 final canonical closure provenance
 
