@@ -1,0 +1,102 @@
+name: Temporary P10-004 Reconciliation Repair
+
+on:
+  push:
+    branches:
+      - worker/fccd-p10-004-unity-resource-locking
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Repair canonical reconciliation and self-remove
+        shell: bash
+        env:
+          EXPECTED_PARENT: e1bbf30c21ca94b4d67b93d68ce1644f224356af
+        run: |
+          set -euo pipefail
+          actual_parent="$(git rev-parse HEAD^)"
+          if [ "$actual_parent" != "$EXPECTED_PARENT" ]; then
+            echo "Refusing stale repair: expected parent $EXPECTED_PARENT, got $actual_parent" >&2
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          merge_sha = "d38cc605e604e4c3e91d866b96bc470642c0144b"
+
+          current = Path("CURRENT_PHASE.md")
+          text = current.read_text(encoding="utf-8")
+          marker = "- Exact candidate Large Workspace Safeguards: run `34213834412` — SUCCESS.\n"
+          addition = marker + f"- Normal implementation merge / accepted implementation main: `{merge_sha}`.\n- Exact implementation-main P10-004 Unity Resource Locking: run `34214831778` — SUCCESS.\n- Exact implementation-main Windows CI: run `34214831699` — SUCCESS.\n- Exact implementation-main Workspace Search: run `34214831670` — SUCCESS.\n- Exact implementation-main Large Workspace Safeguards: run `34214831640` — SUCCESS.\n"
+          if text.count(marker) != 1:
+              raise SystemExit(f"CURRENT_PHASE provenance marker count={text.count(marker)}")
+          text = text.replace(marker, addition, 1)
+          old = "- No owner-only evidence is required or added. P10 remains `IN_PROGRESS`; P10-004 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`."
+          new = "- No owner-only evidence is required or added. At the P10-001 reconciliation checkpoint, P10-004 through P10-013 remained PENDING; subsequent canonical reconciliation closes P10-004, so P10-005 through P10-013 remain PENDING. P10 remains `IN_PROGRESS`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`."
+          if text.count(old) != 1:
+              raise SystemExit(f"CURRENT_PHASE historical marker count={text.count(old)}")
+          text = text.replace(old, new, 1)
+          current.write_text(text, encoding="utf-8", newline="\n")
+
+          ledger = Path("docs/TASK_LEDGER.md")
+          text = ledger.read_text(encoding="utf-8")
+          old_p10_004 = "`FCCD-P10-004` is CLOSED from Unity process/project resource locking implemented in PR #239. Exact accepted cloud candidate `5956e00286fdaff230c2b13f0e1919c208da60ed` passed P10-004 Unity Resource Locking `34213834311`, Windows CI `34213834508`, Workspace Search `34213834319`, and Large Workspace Safeguards `34213834412`. The implementation reuses the P09 lock manager, declares a logical Unity process lock plus a SHA-256-fingerprinted canonical physical-project lock, prevents duplicate logical or physical project execution, preserves cancellation/partial-acquisition cleanup and lease release, permits unrelated-project concurrency, and does not disclose raw project paths."
+          new_p10_004 = old_p10_004[:-1] + f" PR #239 was normally merged as `{merge_sha}`; that exact implementation main passed P10-004 Unity Resource Locking `34214831778`, Windows CI `34214831699`, Workspace Search `34214831670`, and Large Workspace Safeguards `34214831640`."
+          if text.count(old_p10_004) != 1:
+              raise SystemExit(f"TASK_LEDGER P10-004 marker count={text.count(old_p10_004)}")
+          text = text.replace(old_p10_004, new_p10_004, 1)
+
+          old_next = "`CURRENT_PHASE = P10` is the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-003` are CLOSED after normal implementation integration, exact implementation-main validation, and durable task reconciliation; `FCCD-P10-004` through `FCCD-P10-013` remain PENDING. After this P10-001 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-004 — Unity process/project resource locking` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`."
+          new_next = "`CURRENT_PHASE = P10` is the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-004` are CLOSED after normal implementation integration, exact implementation-main validation, and durable task reconciliation; `FCCD-P10-005` through `FCCD-P10-013` remain PENDING. After this P10-004 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-005 — Dedicated Unity log capture/parser` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`."
+          if text.count(old_next) != 1:
+              raise SystemExit(f"TASK_LEDGER next-action marker count={text.count(old_next)}")
+          text = text.replace(old_next, new_next, 1)
+
+          old_hist1 = "No owner-only evidence is required or queued. P10 remains `IN_PROGRESS`; P10-004 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`."
+          new_hist1 = "No owner-only evidence is required or queued. At the P10-001 reconciliation checkpoint, P10-004 through P10-013 remained PENDING; subsequent canonical reconciliation closes P10-004, so P10-005 through P10-013 remain PENDING. P10 remains `IN_PROGRESS`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`."
+          if text.count(old_hist1) != 1:
+              raise SystemExit(f"TASK_LEDGER P10-001 historical marker count={text.count(old_hist1)}")
+          text = text.replace(old_hist1, new_hist1, 1)
+
+          old_hist2 = "No owner-only evidence is required. P10 remains `IN_PROGRESS`; P10-004 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `VERIFIED_FINAL_COMPLETE=false`."
+          new_hist2 = "No owner-only evidence is required. At the P10-002 reconciliation checkpoint, P10-004 through P10-013 remained PENDING; subsequent canonical reconciliation closes P10-004, so P10-005 through P10-013 remain PENDING. P10 remains `IN_PROGRESS`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `VERIFIED_FINAL_COMPLETE=false`."
+          if text.count(old_hist2) != 1:
+              raise SystemExit(f"TASK_LEDGER P10-002 historical marker count={text.count(old_hist2)}")
+          text = text.replace(old_hist2, new_hist2, 1)
+          ledger.write_text(text, encoding="utf-8", newline="\n")
+
+          evidence = Path("evidence/phases/P10/P10_004_INTEGRATED_RECONCILIATION_2026-09-08.md")
+          text = evidence.read_text(encoding="utf-8")
+          marker = "No failed product check is deferred. The initial `CA1859` failure is retained here as repair provenance rather than hidden.\n\n"
+          addition = marker + f"## Exact implementation-main validation\n\nPR #239 was normally merged as `{merge_sha}`. All applicable push checks on that exact implementation main completed SUCCESS:\n\n- P10-004 Unity Resource Locking: run `34214831778` — SUCCESS.\n- Windows CI: run `34214831699` — SUCCESS.\n- Workspace Search Validation: run `34214831670` — SUCCESS.\n- Large Workspace Safeguard Validation: run `34214831640` — SUCCESS.\n\n"
+          if text.count(marker) != 1:
+              raise SystemExit(f"evidence exact-main insertion marker count={text.count(marker)}")
+          text = text.replace(marker, addition, 1)
+          old_tail = "Normal PR merge and exact-main validation are still required after this evidence is integrated. They are intentionally not predeclared as PASS in this candidate evidence."
+          new_tail = "Normal reconciliation PR merge and exact resulting-main validation are still required after this evidence is integrated. They are intentionally not predeclared as PASS in this candidate evidence."
+          if text.count(old_tail) != 1:
+              raise SystemExit(f"evidence tail marker count={text.count(old_tail)}")
+          text = text.replace(old_tail, new_tail, 1)
+          evidence.write_text(text, encoding="utf-8", newline="\n")
+          PY
+
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/tmp-p10-004-reconciliation-repair.yml
+          git add CURRENT_PHASE.md docs/TASK_LEDGER.md evidence/phases/P10/P10_004_INTEGRATED_RECONCILIATION_2026-09-08.md
+          git diff --cached --check
+          git commit -m "P10-004: repair reconciliation provenance and next action"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
