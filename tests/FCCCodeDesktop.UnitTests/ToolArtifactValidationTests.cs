@@ -80,13 +80,13 @@ public sealed class ToolArtifactValidationTests
             Assert.True(report.Succeeded);
             Assert.Equal(2, report.Entries.Count);
 
-            var file = Assert.Single(report.Entries.Where(entry => entry.Definition.Id == "file"));
+            var file = Assert.Single(report.Entries, entry => entry.Definition.Id == "file");
             Assert.Equal(ToolArtifactValidationStatus.Valid, file.Status);
             Assert.Equal(bytes.LongLength, file.Length);
             Assert.Equal(expectedHash, file.Sha256);
             Assert.Null(file.Diagnostic);
 
-            var directory = Assert.Single(report.Entries.Where(entry => entry.Definition.Id == "directory"));
+            var directory = Assert.Single(report.Entries, entry => entry.Definition.Id == "directory");
             Assert.Equal(ToolArtifactValidationStatus.Valid, directory.Status);
             Assert.Null(directory.Length);
             Assert.Null(directory.Sha256);
@@ -129,7 +129,7 @@ public sealed class ToolArtifactValidationTests
             Assert.Equal(ToolArtifactValidationStatus.TypeMismatch, GetStatus(report, "type"));
             Assert.Equal(ToolArtifactValidationStatus.HashMismatch, GetStatus(report, "hash"));
 
-            var hashEntry = Assert.Single(report.Entries.Where(entry => entry.Definition.Id == "hash"));
+            var hashEntry = Assert.Single(report.Entries, entry => entry.Definition.Id == "hash");
             Assert.NotNull(hashEntry.Sha256);
             Assert.Equal(64, hashEntry.Sha256!.Length);
         }
@@ -171,7 +171,7 @@ public sealed class ToolArtifactValidationTests
     }
 
     private static ToolArtifactValidationStatus GetStatus(ToolArtifactValidationReport report, string id) =>
-        Assert.Single(report.Entries.Where(entry => entry.Definition.Id == id)).Status;
+        Assert.Single(report.Entries, entry => entry.Definition.Id == id).Status;
 
     private static string CreateTemporaryRoot()
     {
