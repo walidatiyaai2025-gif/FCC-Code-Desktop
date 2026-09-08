@@ -5,6 +5,8 @@ namespace FCCCodeDesktop.UnitTests;
 
 public sealed class ToolResourceLockingTests
 {
+    private static readonly string[] ExpectedOrderedKeys = ["editor:shared", "project:alpha"];
+
     [Fact]
     public void LockKeyRejectsAmbiguousValues()
     {
@@ -57,7 +59,7 @@ public sealed class ToolResourceLockingTests
         var beta = new ToolResourceLockKey("editor:shared");
 
         var first = await manager.AcquireAsync(new[] { beta, alpha, alpha });
-        Assert.Equal(new[] { "editor:shared", "project:alpha" }, first.Keys.Select(key => key.Value));
+        Assert.Equal(ExpectedOrderedKeys, first.Keys.Select(key => key.Value));
 
         var waiting = manager.AcquireAsync(new[] { alpha, beta }).AsTask();
         await Task.Yield();
@@ -66,7 +68,7 @@ public sealed class ToolResourceLockingTests
         first.Dispose();
 
         await using var second = await waiting.WaitAsync(TimeSpan.FromSeconds(5));
-        Assert.Equal(new[] { "editor:shared", "project:alpha" }, second.Keys.Select(key => key.Value));
+        Assert.Equal(ExpectedOrderedKeys, second.Keys.Select(key => key.Value));
     }
 
     [Fact]
