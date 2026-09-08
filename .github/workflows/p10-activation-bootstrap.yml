@@ -1,0 +1,58 @@
+name: P10 Activation Bootstrap
+
+on:
+  push:
+    branches:
+      - governance/p10-cloud-activation
+    paths:
+      - 'tools/reconcile/apply-p10-cloud-activation.ps1'
+      - '.github/workflows/p10-activation-bootstrap.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  activate:
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - name: Checkout activation branch
+        uses: actions/checkout@v7
+        with:
+          ref: governance/p10-cloud-activation
+          fetch-depth: 0
+
+      - name: Apply guarded P10 activation
+        shell: pwsh
+        run: .\tools\reconcile\apply-p10-cloud-activation.ps1
+
+      - name: Remove temporary activation orchestration
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath '.\tools\reconcile\apply-p10-cloud-activation.ps1' -Force
+          Remove-Item -LiteralPath '.\.github\workflows\p10-activation-bootstrap.yml' -Force
+
+      - name: Validate durable diff and push activation
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git diff --check
+          if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed.' }
+          $changed = @(git status --porcelain=v1)
+          if ($changed.Count -eq 0) { throw 'Activation produced no durable change.' }
+          $allowed = @(
+            'CURRENT_PHASE.md',
+            'PROJECT_CONTROL.md',
+            'evidence/governance/OWNER_LAST_P10_CLOUD_ACTIVATION_2026-09-08.md',
+            'tools/reconcile/apply-p10-cloud-activation.ps1',
+            '.github/workflows/p10-activation-bootstrap.yml'
+          )
+          foreach ($entry in $changed) {
+            $path = $entry.Substring(3).Replace('\','/')
+            if ($allowed -notcontains $path) { throw "Unexpected activation path: $path" }
+          }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'governance: activate P10 Unity first-class adapter'
+          git push origin HEAD:governance/p10-cloud-activation
