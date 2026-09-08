@@ -1,0 +1,88 @@
+name: P10-006 Integrated Reconciliation Bootstrap
+
+on:
+  push:
+    branches:
+      - recovery/fccd-p10-006-integrated-reconciliation
+    paths:
+      - '.github/workflows/reconcile-p10-006-bootstrap.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout reconciliation branch
+        uses: actions/checkout@v7
+        with:
+          ref: recovery/fccd-p10-006-integrated-reconciliation
+          fetch-depth: 0
+
+      - name: Reconcile canonical P10-006 closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='3be87a5657bf0326d025425b8a59a6a3d8a9f77e'
+          git merge-base --is-ancestor "$BASE" HEAD
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          current_path = Path('CURRENT_PHASE.md')
+          current = current_path.read_text(encoding='utf-8')
+          old_current = '- `FCCD-P10-006` — Compile validation — PENDING.'
+          new_current = '- `FCCD-P10-006` — Compile validation — CLOSED.'
+          if current.count(old_current) != 1:
+              raise SystemExit(f'Expected exactly one CURRENT_PHASE P10-006 pending row; found {current.count(old_current)}')
+          if '## P10-006 integration provenance' in current:
+              raise SystemExit('P10-006 provenance already exists; refusing duplicate reconciliation.')
+          current = current.replace(old_current, new_current, 1)
+          current += '''\n\n## P10-006 integration provenance\n\n- Task: `FCCD-P10-006 — Compile validation` — `CLOSED` in this reconciliation candidate.\n- Recovery boundary: scheduling hint `FCCD-P20-004 — Blender contract suite green` was future work while canonical `CURRENT_PHASE=P10`; the live repository instead had P10-006 implementation normally merged but canonical state still `PENDING`, so integration reconciliation took priority.\n- Implementation PR: #245 (`worker/fccd-p10-006-unity-compile-validation`).\n- Initial implementation candidate: `6f5dae574a8de4963a3bc46fd8e6aabecd9d496d`; dedicated validation exposed analyzer `CA1845` in compiler-code extraction and failed before runtime acceptance.\n- Repaired exact accepted implementation candidate: `d6eceee3f9cb3c1b0ea282febb24abf5c1728ac5`; the analyzer defect was repaired with span-based concatenation without suppression, warning demotion, test removal, or safety weakening.\n- Exact repaired candidate Unity Compile Validation: run `34230767921` — SUCCESS.\n- Exact repaired candidate Windows CI: run `34230767619` — SUCCESS.\n- Exact repaired candidate Workspace Search Validation: run `34230767687` — SUCCESS.\n- Exact repaired candidate Large Workspace Safeguards: run `34230767648` — SUCCESS.\n- Normal implementation merge / accepted implementation main: `3be87a5657bf0326d025425b8a59a6a3d8a9f77e`.\n- Exact implementation-main Unity Compile Validation: run `34231807438` — SUCCESS.\n- Exact implementation-main Windows CI: run `34231807447` — SUCCESS.\n- Exact implementation-main Workspace Search Validation: run `34231807449` — SUCCESS.\n- Exact implementation-main Large Workspace Safeguards: run `34231807641` — SUCCESS.\n- Implementation validates Unity compile outcomes from the controlled `unity.open-project` process plus invocation-scoped Unity log evidence; exit code zero alone cannot pass. C# `error CS####` diagnostics and explicit Unity compilation-failure markers fail closed, cancellation remains distinct, and missing/incomplete/reset/truncated/encoding-corrupt evidence remains `INDETERMINATE` rather than being guessed PASS.\n- Deterministic fixture acceptance covers success/warnings, exit-zero compiler failure, explicit failure markers, process/launch/cancellation/forced-termination outcomes, missing/empty/non-finalized/gapped/reset/truncated/invalid-UTF8 evidence, bounded diagnostics, snapshot immutability, and operation guards.\n- No owner-only evidence is required or added for P10-006. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.\n- P10 remains `IN_PROGRESS`; `FCCD-P10-007` through `FCCD-P10-013` remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.\n'''
+          current_path.write_text(current, encoding='utf-8')
+
+          ledger_path = Path('docs/TASK_LEDGER.md')
+          ledger = ledger_path.read_text(encoding='utf-8')
+          old_row = '| FCCD-P10-006 | Compile validation | PENDING |'
+          new_row = '| FCCD-P10-006 | Compile validation | CLOSED |'
+          if ledger.count(old_row) != 1:
+              raise SystemExit(f'Expected exactly one ledger P10-006 pending row; found {ledger.count(old_row)}')
+          ledger = ledger.replace(old_row, new_row, 1)
+          old_next = '`CURRENT_PHASE = P10` remains the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-005` are CLOSED after normal implementation integration, exact implementation-main validation, and durable task reconciliation; `FCCD-P10-006` through `FCCD-P10-013` remain PENDING. After this P10-005 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-006 — Compile validation` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.'
+          new_next = '`CURRENT_PHASE = P10` remains the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-006` are CLOSED after normal implementation integration, exact implementation-main validation, and durable task reconciliation; `FCCD-P10-007` through `FCCD-P10-013` remain PENDING. After this P10-006 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-007 — EditMode test integration` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.'
+          if ledger.count(old_next) != 1:
+              raise SystemExit(f'Expected exactly one stale Current next action paragraph; found {ledger.count(old_next)}')
+          ledger = ledger.replace(old_next, new_next, 1)
+          ledger_path.write_text(ledger, encoding='utf-8')
+
+          evidence_path = Path('evidence/phases/P10/P10_006_INTEGRATED_RECONCILIATION_2026-09-08.md')
+          if evidence_path.exists():
+              raise SystemExit('P10-006 evidence already exists; refusing duplicate.')
+          evidence_path.parent.mkdir(parents=True, exist_ok=True)
+          evidence_path.write_text('''# FCCD-P10-006 — Compile validation\n\nDate: 2026-09-08\nPhase: P10 — Unity first-class adapter\nTask: `FCCD-P10-006 — Compile validation`\nEvidence classification: CLOUD_ACCEPTED / INTEGRATED\n\n## Live-state recovery selection\n\n- Scheduling hint `FCCD-P20-004 — Blender contract suite green` was future work and was not executed because canonical `CURRENT_PHASE=P10`.\n- Exact source main at recovery selection was `3be87a5657bf0326d025425b8a59a6a3d8a9f77e`.\n- No open pull request existed. P10-006 product implementation had already been normally merged by PR #245, while both `CURRENT_PHASE.md` and `docs/TASK_LEDGER.md` still recorded P10-006 as `PENDING`.\n- Recovery/reconciliation of that already-integrated work therefore took priority over P10-007 or any future P20 work.\n\n## Implementation boundary\n\nP10-006 adds typed, fail-closed Unity compile outcome validation over the existing P09 process-result contract and P10-005 invocation-scoped Unity log evidence. It intentionally does not take ownership of P10-007+ EditMode, PlayMode, Editor automation, build-artifact, structured UI-event, or cancellation/recovery integration.\n\nThe implementation requires a successful controlled `unity.open-project` process plus observed, finalized, complete, contiguous, non-reset, non-corrupt log evidence. A zero exit code alone can never establish compile success. C# `error CS####` diagnostics and explicit Unity compilation-failure markers fail even when Unity exits zero. Cancellation is distinct; launch/process failures fail; missing/incomplete/reset/truncated/encoding-corrupt evidence remains `INDETERMINATE` instead of being guessed PASS. Compiler diagnostics are bounded while total error counts and sequence/compiler-code correlation are retained.\n\n## Deterministic acceptance coverage\n\n`tests/FCCCodeDesktop.UnityCompileValidationFixture` and `tools/unity/validate-unity-compile.ps1` cover success/warnings, exit-zero compiler failure, explicit failure markers, process/launch/cancellation/forced-termination outcomes, missing/empty/non-finalized/gapped/reset/truncated/invalid-UTF8 evidence, bounded diagnostics, snapshot immutability, and operation guards. Permanent validation is `.github/workflows/p10-006-unity-compile-validation.yml` using hosted Windows, exact .NET SDK `10.0.400`, locked restore, Release warnings-as-errors, and deterministic fixture execution.\n\n## Defect exposed and repaired before acceptance\n\nInitial implementation candidate `6f5dae574a8de4963a3bc46fd8e6aabecd9d496d` failed the dedicated gate because analyzer `CA1845` rejected `Substring`-based compiler-code extraction. The same branch was repaired to use span-based concatenation in `d6eceee3f9cb3c1b0ea282febb24abf5c1728ac5`. No analyzer suppression, warning demotion, test deletion, force-push, or safety weakening was used.\n\n## Exact accepted implementation-candidate validation\n\nAll applicable checks on exact repaired candidate `d6eceee3f9cb3c1b0ea282febb24abf5c1728ac5` completed SUCCESS:\n\n- P10-006 Unity Compile Validation: run `34230767921` — SUCCESS.\n- Windows CI: run `34230767619` — SUCCESS.\n- Workspace Search Validation: run `34230767687` — SUCCESS.\n- Large Workspace Safeguard Validation: run `34230767648` — SUCCESS.\n\nPR #245 was marked ready and normally merged using merge-commit flow guarded by the exact accepted head SHA.\n\n## Exact implementation-main validation\n\nNormal implementation merge / exact accepted implementation main:\n\n`3be87a5657bf0326d025425b8a59a6a3d8a9f77e`\n\nAll applicable push checks on that exact main completed SUCCESS:\n\n- P10-006 Unity Compile Validation: run `34231807438` — SUCCESS.\n- Windows CI: run `34231807447` — SUCCESS.\n- Workspace Search Validation: run `34231807449` — SUCCESS.\n- Large Workspace Safeguard Validation: run `34231807641` — SUCCESS.\n\nThe Windows run completed the permanent Windows Release baseline and all current P05/P06 tail validators with no post-merge regression.\n\n## Owner-last / target boundary\n\nNo new owner-only evidence is required for P10-006. The owned compile-outcome semantics are fully cloud-verifiable with deterministic hosted-Windows fixtures. No installed-Unity runtime result, FCC/provider result, or manual target evidence is fabricated. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner queue item and is neither modified nor duplicated.\n\n## Canonical reconciliation scope\n\nThis reconciliation changes only canonical state/evidence for the already-integrated and exact-main-green P10-006 implementation:\n\n- `CURRENT_PHASE.md`: P10-006 inventory `PENDING` → `CLOSED` plus integration provenance;\n- `docs/TASK_LEDGER.md`: P10-006 `PENDING` → `CLOSED` and next-action pointer advances to a fresh live sweep before P10-007;\n- this evidence file.\n\nNo product code, owner queue state, P10-007+ implementation, phase-exit state, or later-phase authority changes here. P10 remains `IN_PROGRESS`; P10-007 through P10-013 remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.\n''', encoding='utf-8')
+          PY
+
+          git rm .github/workflows/reconcile-p10-006-bootstrap.yml
+          git add CURRENT_PHASE.md docs/TASK_LEDGER.md evidence/phases/P10/P10_006_INTEGRATED_RECONCILIATION_2026-09-08.md
+
+          mapfile -t changed < <(git diff --cached --name-only | sort)
+          expected=(
+            '.github/workflows/reconcile-p10-006-bootstrap.yml'
+            'CURRENT_PHASE.md'
+            'docs/TASK_LEDGER.md'
+            'evidence/phases/P10/P10_006_INTEGRATED_RECONCILIATION_2026-09-08.md'
+          )
+          mapfile -t expected_sorted < <(printf '%s\n' "${expected[@]}" | sort)
+          if [[ "$(printf '%s\n' "${changed[@]}")" != "$(printf '%s\n' "${expected_sorted[@]}")" ]]; then
+            printf 'Unexpected staged paths:\n%s\n' "$(printf '%s\n' "${changed[@]}")"
+            exit 1
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Reconcile integrated P10-006 closure'
+          git push origin HEAD:recovery/fccd-p10-006-integrated-reconciliation
