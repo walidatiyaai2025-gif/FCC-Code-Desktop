@@ -90,7 +90,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P09-001` — `IExternalToolAdapter` contract — CLOSED.
 - `FCCD-P09-002` — Tool discovery/capability registry — CLOSED.
 - `FCCD-P09-003` — Structured invocation/result contracts — CLOSED.
-- `FCCD-P09-004` — Tool resource locking — PENDING.
+- `FCCD-P09-004` — Tool resource locking — CLOSED.
 - `FCCD-P09-005` — Artifact manifest/validation framework — PENDING.
 - `FCCD-P09-006` — Tool diagnostics/health framework — PENDING.
 - `FCCD-P09-007` — CLI/process generic adapter primitives — PENDING.
@@ -759,3 +759,20 @@ PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged fr
 - P08 phase state: `CLOSED`; `PHASE_EXIT_GATE=PASS`; phase-local blockers/regressions: none.
 - No P08 owner-only acceptance item was created. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; P05 remains `PASS_INTEGRATED`; `VERIFIED_FINAL_COMPLETE=false`.
 - P09 is only the authorized next phase and is not active until a separate governance transition is normally integrated and exact-main verified.
+
+<!-- FCCD-P09-004-INTEGRATED-CLOSURE -->
+## P09-004 integration provenance
+
+- Task: `FCCD-P09-004 — Tool resource locking` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #220 (`worker/fccd-p09-004-tool-resource-locking`).
+- Exact accepted implementation candidate: `c9c9b2af6df94ce9de897fdbcd7b9340821e5c00`.
+- Exact implementation-head Windows CI: run `34181523680` / #602 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34181523686` / #331 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34181523684` / #315 — SUCCESS.
+- Normal implementation merge / accepted implementation main: `c0958e04c363cec3fa389baaabb9d3ddc4c8b49a`.
+- Accepted implementation head and normal merge have the same Git tree `ab6987d6051c20ed1b69149346991d5e7999010d`.
+- Exact implementation-main Windows CI: run `34182264507` / #603 — SUCCESS.
+- Exact implementation-main P06-007 Workspace Search: run `34182264471` / #332 — SUCCESS.
+- Exact implementation-main P06-008 Large Workspace Safeguards: run `34182264516` / #316 — SUCCESS.
+- Integrated evidence: `evidence/phases/P09/P09_004_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-005` through `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
