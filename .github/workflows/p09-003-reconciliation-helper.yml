@@ -28,15 +28,26 @@ jobs:
         run: |
           git diff --check
           git status --short
-          test "$(git diff --name-only | sort | tr '\n' ' ')" = "CURRENT_PHASE.md .github/workflows/p09-003-reconciliation-helper.yml docs/TASK_LEDGER.md tools/reconciliation/reconcile-p09-003-integrated.py " || {
-            echo "Unexpected tracked diff scope" >&2
-            git diff --name-only >&2
-            exit 1
-          }
+          {
+            git diff --name-only
+            git ls-files --others --exclude-standard
+          } | sort -u > /tmp/actual-changed-paths
+          printf '%s\n' \
+            .github/workflows/p09-003-reconciliation-helper.yml \
+            CURRENT_PHASE.md \
+            docs/TASK_LEDGER.md \
+            evidence/phases/P09/P09_003_INTEGRATED_RECONCILIATION_2026-09-08.md \
+            tools/reconciliation/reconcile-p09-003-integrated.py \
+            | sort -u > /tmp/allowed-changed-paths
+          diff -u /tmp/allowed-changed-paths /tmp/actual-changed-paths
           test -f evidence/phases/P09/P09_003_INTEGRATED_RECONCILIATION_2026-09-08.md
           grep -Fq -- '- `FCCD-P09-003` — Structured invocation/result contracts — CLOSED.' CURRENT_PHASE.md
           grep -Fq -- '| FCCD-P09-003 | Structured invocation/result contracts | CLOSED |' docs/TASK_LEDGER.md
           grep -Fq -- '| FCCD-P09-004 | Tool resource locking | PENDING |' docs/TASK_LEDGER.md
+          grep -Fq -- '| FCCD-P09-005 | Artifact manifest/validation framework | PENDING |' docs/TASK_LEDGER.md
+          grep -Fq -- '| FCCD-P09-006 | Tool diagnostics/health framework | PENDING |' docs/TASK_LEDGER.md
+          grep -Fq -- '| FCCD-P09-007 | CLI/process generic adapter primitives | PENDING |' docs/TASK_LEDGER.md
+          grep -Fq -- '| FCCD-P09-008 | Optional protocol adapter seam (DAP/MCP/etc.) without core coupling | PENDING |' docs/TASK_LEDGER.md
           test ! -e tools/reconciliation/reconcile-p09-003-integrated.py
           test ! -e .github/workflows/p09-003-reconciliation-helper.yml
       - name: Commit reconciliation candidate
