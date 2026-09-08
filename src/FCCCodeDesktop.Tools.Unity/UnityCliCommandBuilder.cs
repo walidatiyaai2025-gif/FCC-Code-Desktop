@@ -361,7 +361,7 @@ public sealed class UnityCliCommandBuilder : IUnityCliCommandBuilder
     }
 
     private static string AppendActionArguments(
-        ICollection<string> arguments,
+        List<string> arguments,
         UnityCliAction action)
     {
         switch (action)
