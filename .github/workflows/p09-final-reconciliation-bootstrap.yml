@@ -25,50 +25,174 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Wait for exact implementation-main permanent gates
+      - name: Guard accepted implementation main
         shell: bash
         run: |
           set -euo pipefail
-          runs=(34192825959 34192826049 34192825878)
-          for attempt in $(seq 1 40); do
-            all_done=1
-            all_success=1
-            for run in "${runs[@]}"; do
-              status=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}" --jq '.status')
-              conclusion=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}" --jq '.conclusion // ""')
-              echo "run=${run} status=${status} conclusion=${conclusion}"
-              if [[ "$status" != "completed" ]]; then all_done=0; fi
-              if [[ "$status" == "completed" && "$conclusion" != "success" ]]; then all_success=0; fi
-            done
-            if [[ "$all_done" == 1 ]]; then
-              if [[ "$all_success" != 1 ]]; then
-                echo "At least one exact implementation-main gate failed." >&2
-                exit 1
-              fi
-              break
-            fi
-            if [[ "$attempt" == 40 ]]; then
-              echo "Timed out waiting for exact implementation-main gates." >&2
-              exit 1
-            fi
-            sleep 15
+          for run in 34192825959 34192826049 34192825878; do
+            status=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}" --jq '.status')
+            conclusion=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}" --jq '.conclusion // ""')
+            echo "run=${run} status=${status} conclusion=${conclusion}"
+            test "$status" = "completed"
+            test "$conclusion" = "success"
           done
           main_sha=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')
-          if [[ "$main_sha" != "$CANDIDATE" ]]; then
-            echo "Canonical main moved: expected $CANDIDATE, got $main_sha" >&2
-            exit 1
-          fi
+          test "$main_sha" = "$CANDIDATE"
 
       - name: Reconcile final P09 task state and evidence
         shell: bash
         run: |
           set -euo pipefail
-          echo 'CmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aAoKY2FuZGlkYXRlID0gIjg2NGVkNzg0MmI5NDEyZjljYWZjY2Y4OWUxYjVhZTQyMGY1NTdiMTgiCmN1cnJlbnQgPSBQYXRoKCJDVVJSRU5UX1BIQVNFLm1kIikKbGVkZ2VyID0gUGF0aCgiZG9jcy9UQVNLX0xFREdFUi5tZCIpCmMgPSBjdXJyZW50LnJlYWRfdGV4dChlbmNvZGluZz0idXRmLTgiKQpsID0gbGVkZ2VyLnJlYWRfdGV4dChlbmNvZGluZz0idXRmLTgiKQoKcmVxdWlyZWQgPSBbCiAgICAiQ1VSUkVOVF9QSEFTRTogUDA5IiwKICAgICJDVVJSRU5UX1BIQVNFX1NUQVRFOiBJTl9QUk9HUkVTUyIsCiAgICAiTkVYVF9QSEFTRTogUDEwIiwKICAgICJQSEFTRV9FWElUX0dBVEU6IE5PVF9SVU4iLAogICAgIi0gYEZDQ0QtUDA5LTAwN2Ag4oCUIENMSS9wcm9jZXNzIGdlbmVyaWMgYWRhcHRlciBwcmltaXRpdmVzIOKAlCBQRU5ESU5HLiIsCiAgICAiLSBgRkNDRC1QMDktMDA4YCDigJQgT3B0aW9uYWwgcHJvdG9jb2wgYWRhcHRlciBzZWFtIChEQVAvTUNQL2V0Yy4pIHdpdGhvdXQgY29yZSBjb3VwbGluZyDigJQgUEVORElORy4iLApdCmZvciBmcmFnbWVudCBpbiByZXF1aXJlZDoKICAgIGlmIGZyYWdtZW50IG5vdCBpbiBjOgogICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoZiJDVVJSRU5UX1BIQVNFIGd1YXJkIG1pc3Npbmc6IHtmcmFnbWVudH0iKQoKb2xkNyA9ICJ8IEZDQ0QtUDA5LTAwNyB8IENMSS9wcm9jZXNzIGdlbmVyaWMgYWRhcHRlciBwcmltaXRpdmVzIHwgUEVORElORyB8IgpvbGQ4ID0gInwgRkNDRC1QMDktMDA4IHwgT3B0aW9uYWwgcHJvdG9jb2wgYWRhcHRlciBzZWFtIChEQVAvTUNQL2V0Yy4pIHdpdGhvdXQgY29yZSBjb3VwbGluZyB8IFBFTkRJTkcgfCIKaWYgbC5jb3VudChvbGQ3KSAhPSAxIG9yIGwuY291bnQob2xkOCkgIT0gMToKICAgIHJhaXNlIFN5c3RlbUV4aXQoIlRBU0tfTEVER0VSIFAwOS0wMDcvUDA5LTAwOCBQRU5ESU5HIHJvdyBndWFyZHMgZmFpbGVkIikKCmMgPSBjLnJlcGxhY2UoCiAgICAiLSBgRkNDRC1QMDktMDA3YCDigJQgQ0xJL3Byb2Nlc3MgZ2VuZXJpYyBhZGFwdGVyIHByaW1pdGl2ZXMg4oCUIFBFTkRJTkcuIiwKICAgICItIGBGQ0NELVAwOS0wMDdgIOKAlCBDTEkvcHJvY2VzcyBnZW5lcmljIGFkYXB0ZXIgcHJpbWl0aXZlcyDigJQgQ0xPU0VELiIsCiAgICAxLAopLnJlcGxhY2UoCiAgICAiLSBgRkNDRC1QMDktMDA4YCDigJQgT3B0aW9uYWwgcHJvdG9jb2wgYWRhcHRlciBzZWFtIChEQVAvTUNQL2V0Yy4pIHdpdGhvdXQgY29yZSBjb3VwbGluZyDigJQgUEVORElORy4iLAogICAgIi0gYEZDQ0QtUDA5LTAwOGAg4oCUIE9wdGlvbmFsIHByb3RvY29sIGFkYXB0ZXIgc2VhbSAoREFQL01DUC9ldGMuKSB3aXRob3V0IGNvcmUgY291cGxpbmcg4oCUIENMT1NFRC4iLAogICAgMSwKKQpsID0gbC5yZXBsYWNlKG9sZDcsIG9sZDcucmVwbGFjZSgiUEVORElORyIsICJDTE9TRUQiKSwgMSkKbCA9IGwucmVwbGFjZShvbGQ4LCBvbGQ4LnJlcGxhY2UoIlBFTkRJTkciLCAiQ0xPU0VEIiksIDEpCgpjdXJyZW50X2FuY2hvciA9ICIjIyBQMDggY2xvdWQgdGFzayBpbnZlbnRvcnkiCmlmIGN1cnJlbnRfYW5jaG9yIG5vdCBpbiBjOgogICAgcmFpc2UgU3lzdGVtRXhpdCgiQ1VSUkVOVF9QSEFTRSBpbnNlcnRpb24gYW5jaG9yIG1pc3NpbmciKQpwcm92ZW5hbmNlID0gZiIiIiMjIFAwOS0wMDcgaW50ZWdyYXRpb24gcHJvdmVuYW5jZQoKLSBUYXNrOiBgRkNDRC1QMDktMDA3IOKAlCBDTEkvcHJvY2VzcyBnZW5lcmljIGFkYXB0ZXIgcHJpbWl0aXZlc2Ag4oCUIIBDTE9TRURgIGluIHRoaXMgcmVjb25jaWxpYXRpb24gY2FuZGlkYXRlLgotIEltcGxlbWVudGF0aW9uIFBSOiAjMjI3IChgd29ya2VyL2ZjY2QtcDA5LTAwNy1jbGktcHJvY2Vzcy1wcmltaXRpdmVzYCkuCi0gRXhhY3QgYWNjZXB0ZWQgaW1wbGVtZW50YXRpb24gY2FuZGlkYXRlOiBgNzE1MGVkMTFmMzljZDk4N2FkNmZkZDlhYTU1NDE1ZDdiYTNmOGI4NGAuCi0gRXhhY3QgaW1wbGVtZW50YXRpb24taGVhZCBXaW5kb3dzIENJOiBydW4gYDM0MTkxODU5OTIwYCAvICM2Mjgg4oCUIFNVQ0NFU1MuCi0gRXhhY3QgaW1wbGVtZW50YXRpb24taGVhZCBQMDYtMDA3IFdvcmtzcGFjZSBTZWFyY2g6IHJ1biBgMzQxOTE4NTk5MTJgIC8gIzM1NyDigJQgU1VDQ0VTUy4KLSBFeGFjdCBpbXBsZW1lbnRhdGlvbi1oZWFkIFAwNi0wMDggTGFyZ2UgV29ya3NwYWNlIFNhZmVndWFyZHM6IHJ1biBgMzQxOTE4NTk5MzlgIC8gIzM0MSDigJQgU1VDQ0VTUy4KLSBOb3JtYWwgaW1wbGVtZW50YXRpb24gbWVyZ2UgLyBmaW5hbCBjb21iaW5lZCBpbXBsZW1lbnRhdGlvbiBtYWluOiBge2NhbmRpZGF0ZX1gLgotIEV4YWN0IGltcGxlbWVudGF0aW9uLW1haW4gV2luZG93cyBDSTogcnVuIGAzNDE5MjgyNTk1OWAgLyAjNjMwIOKAlCBTVUNDRVNTLgotIEV4YWN0IGltcGxlbWVudGF0aW9uLW1haW4gUDA2LTAwNyBXb3Jrc3BhY2UgU2VhcmNoOiBydW4gYDM0MTkyODI2MDQ5YCAvICMzNTkg4oCUIFNVQ0NFU1MuCi0gRXhhY3QgaW1wbGVtZW50YXRpb24tbWFpbiBQMDYtMDA4IExhcmdlIFdvcmtzcGFjZSBTYWZlZ3VhcmRzOiBydW4gYDM0MTkyODI1ODc4YCAvICMzNDMg4oCUIFNVQ0NFU1MuCi0gVGhlIGFjY2VwdGVkIGRlc2lnbiBrZWVwcyBnZW5lcmljIHRvb2wgY29udHJhY3RzIGluIGBGQ0NDb2RlRGVza3RvcC5Ub29sc2Agd2hpbGUgdGhlIHJ1bnRpbWUtZGVwZW5kZW50IHJ1bm5lciBsaXZlcyBpbiBgRkNDQ29kZURlc2t0b3AuQXBwbGljYXRpb25gLCBjb21wb3NlcyB0aGUgUDA4LW93bmVkIGBJUHJvY2Vzc1N1cGVydmlzb3JgLCBwcmVzZXJ2ZXMgZGlzY3JldGUgYXJndi9lbnZpcm9ubWVudC93b3JraW5nLWRpcmVjdG9yeSBzZW1hbnRpY3MsIGVtaXRzIHN0cnVjdHVyZWQgcHJvY2VzcyBldmVudHMvcmVzdWx0cywgY2FycmllcyBkdXJhYmxlIGNvcnJlbGF0aW9uLCBzYW5pdGl6ZXMgbGF1bmNoIGZhaWx1cmVzLCBhbmQgdGVybWluYXRlcyBvbmx5IHRoZSBvd25lZCBwcm9jZXNzIHRyZWUgb24gY2FuY2VsbGF0aW9uL2Vhcmx5IGl0ZXJhdG9yIGRpc3Bvc2FsLgotIEludGVncmF0ZWQgZXZpZGVuY2U6IGBldmlkZW5jZS9waGFzZXMvUDA5L1AwOV8wMDdfSU5URUdSQVRFRF9SRUNPTkNJTElBVElPTl8yMDI2LTA5LTA4Lm1kYC4KLSBObyBvd25lci1vbmx5IGV2aWRlbmNlIGlzIHJlcXVpcmVkIG9yIGFkZGVkLgoKIyMgUDA5LTAwOCBpbnRlZ3JhdGlvbiBwcm92ZW5hbmNlCgotIFRhc2s6IGBGQ0NELVAwOS0wMDgg4oCUIE9wdGlvbmFsIHByb3RvY29sIGFkYXB0ZXIgc2VhbSAoREFQL01DUC9ldGMuKSB3aXRob3V0IGNvcmUgY291cGxpbmdgIOKAlCBgQ0xPU0VEYCBpbiB0aGlzIHJlY29uY2lsaWF0aW9uIGNhbmRpZGF0ZS4KLSBJbXBsZW1lbnRhdGlvbiBQUjogIzIyNiAoYHdvcmtlci9mY2NkLXAwOS0wMDgtb3B0aW9uYWwtcHJvdG9jb2wtc2VhbWApLgotIEV4YWN0IGFjY2VwdGVkIGltcGxlbWVudGF0aW9uIGNhbmRpZGF0ZTogYDRjMWE4ODUwNzc1ZGU1NjExNjc3NjVhMDZiODZiN2FjOTkwNDk1Y2AuCi0gRXhhY3QgaW1wbGVtZW50YXRpb24taGVhZCBXaW5kb3dzIENJOiBydW4gYDM0MTkxMDgwMTMxYCAvICM2MjAg4oCUIFNVQ0NFU1MuCi0gRXhhY3QgaW1wbGVtZW50YXRpb24taGVhZCBQMDYtMDA3IFdvcmtzcGFjZSBTZWFyY2g6IHJ1biBgMzQxOTEwODAwNzNgIC8gIzM0OSDigJQgU1VDQ0VTUy4KLSBFeGFjdCBpbXBsZW1lbnRhdGlvbi1oZWFkIFAwNi0wMDggTGFyZ2UgV29ya3NwYWNlIFNhZmVndWFyZHM6IHJ1biBgMzQxOTEwODAwMzhgIC8gIzMzMyDigJQgU1VDQ0VTUy4KLSBOb3JtYWwgaW1wbGVtZW50YXRpb24gbWVyZ2U6IGBlYWQyNjc2YWIxMDI3ZjI4Y2E3M2I4MzE4ZmRiNWRkMjhjMGNmOWE4YC4KLSBFeGFjdCBpbW1lZGlhdGUgaW1wbGVtZW50YXRpb24tbWFpbiBXaW5kb3dzIENJOiBydW4gYDM0MTkyMTYwOTA1YCAvICM2Mjkg4oCUIFNVQ0NFU1MuCi0gRXhhY3QgaW1tZWRpYXRlIGltcGxlbWVudGF0aW9uLW1haW4gUDA2LTAwNyBXb3Jrc3BhY2UgU2VhcmNoOiBydW4gYDM0MTkyMTYwODk1YCAvICMzNTgg4oCUIFNVQ0NFU1MuCi0gRXhhY3QgaW1tZWRpYXRlIGltcGxlbWVudGF0aW9uLW1haW4gUDA2LTAwOCBMYXJnZSBXb3Jrc3BhY2UgU2FmZWd1YXJkczogcnVuIGAzNDE5MjE2MDg1NmAgLyAjMzQyIOKAlCBTVUNDRVNTLgotIEZpbmFsIGNvbWJpbmVkIGltcGxlbWVudGF0aW9uIG1haW4gYHtjYW5kaWRhdGV9YCBhbHNvIHBhc3NlZCBXaW5kb3dzIENJIGAzNDE5MjgyNTk1OWAgLyAjNjMwLCBXb3Jrc3BhY2UgU2VhcmNoIGAzNDE5MjgyNjA0OWAgLyAjMzU5LCBhbmQgTGFyZ2UgV29ya3NwYWNlIFNhZmVndWFyZHMgYDM0MTkyODI1ODc4YCAvICMzNDMsIHByb3Zpbmcgbm9uLXJlZ3Jlc3Npb24gYWZ0ZXIgUDA5LTAwNyBpbnRlZ3JhdGlvbi4KLSBUaGUgc2VhbSByZW1haW5zIG9wdGlvbmFsL3Byb3ZpZGVyLW5ldXRyYWw6IHByb3RvY29sIGlkZW50aXR5L2JpbmRpbmcvZmFjdG9yeSBjb250cmFjdHMgYW5kIGFuIGltbXV0YWJsZSByZWdpc3RyeSByZXR1cm4gdGhlIGV4aXN0aW5nIGBJRXh0ZXJuYWxUb29sQWRhcHRlcmAgYm91bmRhcnkgd2l0aG91dCBpbXBvcnRpbmcgREFQL01DUC90cmFuc3BvcnQgU0RLIHR5cGVzIGludG8gY29yZSBvcmNoZXN0cmF0aW9uLgotIEludGVncmF0ZWQgZXZpZGVuY2U6IGBldmlkZW5jZS9waGFzZXMvUDA5L1AwOV8wMDhfSU5URUdSQVRFRF9SRUNPTkNJTElBVElPTl8yMDI2LTA5LTA4Lm1kYC4KLSBObyBvd25lci1vbmx5IGV2aWRlbmNlIGlzIHJlcXVpcmVkIG9yIGFkZGVkLgoKIiIiCmlmICIjIyBQMDktMDA3IGludGVncmF0aW9uIHByb3ZlbmFuY2UiIG5vdCBpbiBjOgogICAgYyA9IGMucmVwbGFjZShjdXJyZW50X2FuY2hvciwgcHJvdmVuYW5jZSArIGN1cnJlbnRfYW5jaG9yLCAxKQoKbGVkZ2VyX2FuY2hvciA9ICIjIyBQMTAg4oCUIFVuaXR5IGZpcnN0LWNsYXNzIGFkYXB0ZXIiCmlmIGxlZGdlcl9hbmNob3Igbm90IGluIGw6CiAgICByYWlzZSBTeXN0ZW1FeGl0KCJUQVNLX0xFREdFUiBpbnNlcnRpb24gYW5jaG9yIG1pc3NpbmciKQpsZWRnZXJfbm90ZSA9IGYiIiJgRkNDRC1QMDktMDA3YCBpcyBDTE9TRUQgZnJvbSB0aGUgZ2VuZXJpYyBDTEkvcHJvY2VzcyBnYXRld2F5IHByaW1pdGl2ZXMgaW50ZWdyYXRlZCBpbiBQUiAjMjI3LiBFeGFjdCBhY2NlcHRlZCBpbXBsZW1lbnRhdGlvbiBjYW5kaWRhdGUgYDcxNTBlZDExZjM5Y2Q5ODdhZDZmZGQ5YWE1NTQxNWQ3YmEzZjhiODRgIHBhc3NlZCBXaW5kb3dzIENJIGAzNDE5MTg1OTkyMGAgLyAjNjI4LCBXb3Jrc3BhY2UgU2VhcmNoIGAzNDE5MTg1OTkxMmAgLyAjMzU3LCBhbmQgTGFyZ2UgV29ya3NwYWNlIFNhZmVndWFyZHMgYDM0MTkxODU5OTM5YCAvICMzNDEuIFBSICMyMjcgd2FzIG5vcm1hbGx5IG1lcmdlZCBhcyBge2NhbmRpZGF0ZX1gOyB0aGF0IGV4YWN0IGNvbWJpbmVkIGltcGxlbWVudGF0aW9uIG1haW4gcGFzc2VkIFdpbmRvd3MgQ0kgYDM0MTkyODI1OTU5YCAvICM2MzAsIFdvcmtzcGFjZSBTZWFyY2ggYDM0MTkyODI2MDQ5YCAvICMzNTksIGFuZCBMYXJnZSBXb3Jrc3BhY2UgU2FmZWd1YXJkcyBgMzQxOTI4MjU4NzhgIC8gIzM0My4gVGhlIGFjY2VwdGVkIGxheWVyaW5nIGtlZXBzIHByb3ZpZGVyLW5ldXRyYWwgY29udHJhY3RzIGluIFRvb2xzIGFuZCB0aGUgcHJvY2Vzcy1zdXBlcnZpc29yIGNvbXBvc2l0aW9uIGluIEFwcGxpY2F0aW9uLCB3aXRoIGRpc2NyZXRlIGFyZ3YvZW52aXJvbm1lbnQgZm9yd2FyZGluZywgYm91bmRlZCBzdHJ1Y3R1cmVkIG91dHB1dCwgc2FuaXRpemVkIGZhaWx1cmVzLCBkdXJhYmxlIGNvcnJlbGF0aW9uLCBhbmQgb3duZWQtdHJlZS1vbmx5IGNhbmNlbGxhdGlvbi4gVGFzayBldmlkZW5jZTogYGV2aWRlbmNlL3BoYXNlcy9QMDkvUDA5XzAwN19JTlRFR1JBVEVEX1JFQ09OQ0lMSUFUSU9OXzIwMjYtMDktMDgubWRgLiBObyBvd25lci1vbmx5IGV2aWRlbmNlIGlzIHJlcXVpcmVkLgoKYFZDQ0QtUDA5LTAwOGAgaXMgQ0xPU0VEIGZyb20gdGhlIG9wdGlvbmFsIHByb3ZpZGVyLW5ldXRyYWwgcHJvdG9jb2wgYWRhcHRlciBzZWFtIGludGVncmF0ZWQgaW4gUFIgIzIyNi4gRXhhY3QgYWNjZXB0ZWQgaW1wbGVtZW50YXRpb24gY2FuZGlkYXRlIGA0YzFhODg1MDc3NWRlNTYxMTY3NzY1YTA2Yjg2YjdhYzk5MDQ5NWNgIHBhc3NlZCBXaW5kb3dzIENJIGAzNDE5MTA4MDEzMWAgLyAjNjIwLCBXb3Jrc3BhY2UgU2VhcmNoIGAzNDE5MTA4MDA3M2AgLyAjMzQ5LCBhbmQgTGFyZ2UgV29ya3NwYWNlIFNhZmVndWFyZHMgYDM0MTkxMDgwMDM4YCAvICMzMzMuIFBSICMyMjYgd2FzIG5vcm1hbGx5IG1lcmdlZCBhcyBgZWFkMjY3NmFiMTAyN2YyOGNhNzNiODMxOGZkYjVkZDI4YzBjZjlhOGA7IGV4YWN0IGltbWVkaWF0ZSBpbXBsZW1lbnRhdGlvbi1tYWluIFdpbmRvd3MgQ0kgYDM0MTkyMTYwOTA1YCAvICM2MjksIFdvcmtzcGFjZSBTZWFyY2ggYDM0MTkyMTYwODk1YCAvICMzNTgsIGFuZCBMYXJnZSBXb3Jrc3BhY2UgU2FmZWd1YXJkcyBgMzQxOTIxNjA4NTZgIC8gIzM0MiBwYXNzZWQsIGFuZCBmaW5hbCBjb21iaW5lZCBtYWluIGB7Y2FuZGlkYXRlfWAgYWxzbyBwYXNzZWQgdGhlICM2MzAvIzM1OS8jMzQzIHBlcm1hbmVudCBnYXRlcy4gVGFzayBldmlkZW5jZTogYGV2aWRlbmNlL3BoYXNlcy9QMDkvUDA5XzAwOF9JTlRFR1JBVEVEX1JFQ09OQ0lMSUFUSU9OXzIwMjYtMDktMDgubWRgLiBObyBvd25lci1vbmx5IGV2aWRlbmNlIGlzIHJlcXVpcmVkLgoKQWxsIGVpZ2h0IG1hbmRhdG9yeSBQMDkgdGFzayByb3dzIGFyZSBub3cgQ0xPU0VEIGluIHRoaXMgcmVjb25jaWxpYXRpb24gY2FuZGlkYXRlLiBQMDkgcmVtYWlucyBgSU5fUFJPR1JFU1NgIGFuZCBgUEhBU0VfRVhJVF9HQVRFPU5PVF9SVU5gOyB0aGUgb25seSBsZWdhbCBuZXh0IGFjdGlvbiBhZnRlciBub3JtYWwgcmVjb25jaWxpYXRpb24gaW50ZWdyYXRpb24gYW5kIGV4YWN0LW1haW4gdmVyaWZpY2F0aW9uIGlzIHRoZSBkZWRpY2F0ZWQgUDA5IHBoYXNlLWV4aXQgZ2F0ZS4gUDEwIGFuZCBsYXRlciBpbXBsZW1lbnRhdGlvbiByZW1haW4gcHJvaGliaXRlZCB1bnRpbCBjYW5vbmljYWwgUDA5IGNsb3N1cmUgYW5kIGEgc2VwYXJhdGUgUDEwIGFjdGl2YXRpb24gdHJhbnNpdGlvbi4KCiIiIgppZiAiYEZDQ0QtUDA5LTAwN2AgaXMgQ0xPU0VEIGZyb20gdGhlIGdlbmVyaWMgQ0xJL3Byb2Nlc3MgZ2F0ZXdheSBwcmltaXRpdmVzIiBub3QgaW4gbDoKICAgIGwgPSBsLnJlcGxhY2UobGVkZ2VyX2FuY2hvciwgbGVkZ2VyX25vdGUgKyBsZWRnZXJfYW5jaG9yLCAxKQoKY3VycmVudC53cml0ZV90ZXh0KGMsIGVuY29kaW5nPSJ1dGYtOCIpCmxlZGdlci53cml0ZV90ZXh0KGwsIGVuY29kaW5nPSJ1dGYtOCIpCgpldmlkZW5jZV9kaXIgPSBQYXRoKCJldmlkZW5jZS9waGFzZXMvUDA5IikKZXZpZGVuY2VfZGlyLm1rZGlyKHBhcmVudHM9VHJ1ZSwgZXhpc3Rfb2s9VHJ1ZSkKCmV2NyA9IGYiIiIjIEZDQ0QtUDA5LTAwNyDigJQgSW50ZWdyYXRlZCBSZWNvbmNpbGlhdGlvbiBFdmlkZW5jZQoKRGF0ZTogMjAyNi0wOS0wOApUYXNrOiBgRkNDRC1QMDktMDA3IOKAlCBDTEkvcHJvY2VzcyBnZW5lcmljIGFkYXB0ZXIgcHJpbWl0aXZlc2AKQ2Fub25pY2FsIHN0YXRlIGNsYWltZWQgYnkgdGhpcyByZWNvbmNpbGlhdGlvbjogYENMT1NFREAKCiMjIEltcGxlbWVudGF0aW9uIGFuZCBpbnRlZ3JhdGlvbgoKLSBJbXBsZW1lbnRhdGlvbiBQUjogIzIyNyAoYHdvcmtlci9mY2NkLXAwOS0wMDctY2xpLXByb2Nlc3MtcHJpbWl0aXZlc2ApLgotIEFjY2VwdGVkIGltcGxlbWVudGF0aW9uIGhlYWQ6IGA3MTUwZWQxMWYzOWNkOTg3YWQ2ZmRkOWFhNTU0MTVkN2JhM2Y4Yjg0YC4KLSBFeGFjdC1oZWFkIFdpbmRvd3MgQ0kgYDM0MTkxODU5OTIwYCAvICM2Mjgg4oCUIFNVQ0NFU1MuCi0gRXhhY3QtaGVhZCBXb3Jrc3BhY2UgU2VhcmNoIGAzNDE5MTg1OTkxMmAgLyAjMzU3IOKAlCBTVUNDRVNTLgotIEV4YWN0LWhlYWQgTGFyZ2UgV29ya3NwYWNlIFNhZmVndWFyZHMgYDM0MTkxODU5OTM5YCAvICMzNDEg4oCUIFNVQ0NFU1MuCi0gTm9ybWFsIG1lcmdlIC8gZmluYWwgY29tYmluZWQgaW1wbGVtZW50YXRpb24gbWFpbjoge2NhbmRpZGF0ZX1gLgotIEV4YWN0LW1haW4gV2luZG93cyBDSSBgMzQxOTI4MjU5NTlgIC8gIzYzMCDigJQgU1VDQ0VTUy4KLSBFeGFjdC1tYWluIFdvcmtzcGFjZSBTZWFyY2ggYDM0MTkyODI2MDQ5YCAvICMzNTkg4oCUIFNVQ0NFU1MuCi0gRXhhY3QtbWFpbiBMYXJnZSBXb3Jrc3BhY2UgU2FmZWd1YXJkcyBgMzQxOTI4MjU4NzhgIC8gIzM0MyDigJQgU1VDQ0VTUy4KCiMjIEFjY2VwdGVkIGJvdW5kYXJ5CgpUaGUgZmluYWwgaW1wbGVtZW50YXRpb24gY29tcG9zZXMgdGhlIGV4aXN0aW5nIFAwOCBgSVByb2Nlc3NTdXBlcnZpc29yYDsgaXQgZG9lcyBub3QgY3JlYXRlIGEgc2Vjb25kIHByb2Nlc3Mgb3duZXIuIFRvb2wtZmFjaW5nIGNvbnRyYWN0cyByZW1haW4gcHJvdmlkZXItbmV1dHJhbCwgd2hpbGUgdGhlIHJ1bnRpbWUtZGVwZW5kZW50IHJ1bm5lciBpcyBpbiBBcHBsaWNhdGlvbi4gU3RydWN0dXJlZCBhcmd2L2Vudmlyb25tZW50L3dvcmtpbmctZGlyZWN0b3J5IHZhbHVlcyBhcmUgZm9yd2FyZGVkIHdpdGhvdXQgc2hlbGwgY29uY2F0ZW5hdGlvbi4gU3RydWN0dXJlZCBzdGFydC9zdGRvdXQvc3RkZXJyL3Jlc3VsdCBldmVudHMgcHJlc2VydmUgYm91bmRlZCBvdXRwdXQgYW5kIGNvcnJlbGF0aW9uLiBMYXVuY2ggZmFpbHVyZXMgYXJlIHNhbml0aXplZC4gQ2FsbGVyIGNhbmNlbGxhdGlvbiBhbmQgZWFybHkgaXRlcmF0b3IgZGlzcG9zYWwgdGVybWluYXRlIG9ubHkgdGhlIG93bmVkIHByb2Nlc3MgdHJlZSBiZWZvcmUgcHJvcGFnYXRpb24vZGlzcG9zYWwuCgojIyBDbG9zdXJlIGJvdW5kYXJ5CgpObyBvd25lci1vbmx5IGV2aWRlbmNlIGlzIHJlcXVpcmVkLiBUaGlzIHRhc2sgY2xvc3VyZSBkb2VzIG5vdCBjbG9zZSBQMDkgYnkgaXRzZWxmLiBQMDkgcmVtYWlucyBgSU5fUFJPR1JFU1NgIHdpdGggYFBIQVNFX0VYSVRfR0FURT1OT1RfUlVOYCB1bnRpbCB0aGUgZGVkaWNhdGVkIHBoYXNlLWV4aXQgZ2F0ZSBwYXNzZXMgYW5kIGNhbm9uaWNhbCBwaGFzZSBjbG9zdXJlIGlzIGludGVncmF0ZWQuIFAxMCBhbmQgbGF0ZXIgaW1wbGVtZW50YXRpb24gcmVtYWluIHByb2hpYml0ZWQgdW50aWwgYSBzZXBhcmF0ZSBsZWdhbCBhY3RpdmF0aW9uIHRyYW5zaXRpb24uCiIiIgoKZXY4ID0gZiIiIiMgRkNDRC1QMDktMDA4IOKAlCBJbnRlZ3JhdGVkIFJlY29uY2lsaWF0aW9uIEV2aWRlbmNlCgpEYXRlOiAyMDI2LTA5LTA4ClRhc2s6IGBGQ0NELVAwOS0wMDgg4oCUIE9wdGlvbmFsIHByb3RvY29sIGFkYXB0ZXIgc2VhbSAoREFQL01DUC9ldGMuKSB3aXRob3V0IGNvcmUgY291cGxpbmdgCkNhbm9uaWNhbCBzdGF0ZSBjbGFpbWVkIGJ5IHRoaXMgcmVjb25jaWxpYXRpb246IGBDTE9TRURgCgojIyBJbXBsZW1lbnRhdGlvbiBhbmQgaW50ZWdyYXRpb24KCi0gSW1wbGVtZW50YXRpb24gUFI6ICMyMjYgKGB3b3JrZXIvZmNjZC1wMDktMDA4LW9wdGlvbmFsLXByb3RvY29sLXNlYW1gKS4KLSBBY2NlcHRlZCBpbXBsZW1lbnRhdGlvbiBoZWFkOiBgNGMxYTg4NTA3NzVkZTU2MTE2Nzc2NWEwNmI4NmI3YWM5OTA0OTVjYC4KLSBFeGFjdC1oZWFkIFdpbmRvd3MgQ0kgYDM0MTkxMDgwMTMxYCAvICM2MjAg4oCUIFNVQ0NFU1MuCi0gRXhhY3QtaGVhZCBXb3Jrc3BhY2UgU2VhcmNoIGAzNDE5MTA4MDA3M2AgLyAjMzQ5IOKAlCBTVUNDRVNTLgotIEV4YWN0LWhlYWQgTGFyZ2UgV29ya3NwYWNlIFNhZmVndWFyZHMgYDM0MTkxMDgwMDM4YCAvICMzMzMg4oCUIFNVQ0NFU1MuCi0gTm9ybWFsIG1lcmdlOiBgZWFkMjY3NmFiMTAyN2YyOGNhNzNiODMxOGZkYjVkZDI4YzBjZjlhOGAuCi0gRXhhY3QgaW1tZWRpYXRlIGltcGxlbWVudGF0aW9uLW1haW4gV2luZG93cyBDSSBgMzQxOTIxNjA5MDVgIC8gIzYyOSDigJQgU1VDQ0VTUy4KLSBFeGFjdCBpbW1lZGlhdGUgaW1wbGVtZW50YXRpb24tbWFpbiBXb3Jrc3BhY2UgU2VhcmNoIGAzNDE5MjE2MDg5NWAgLyAjMzU4IOKAlCBTVUNDRVNTLgotIEV4YWN0IGltbWVkaWF0ZSBpbXBsZW1lbnRhdGlvbi1tYWluIExhcmdlIFdvcmtzcGFjZSBTYWZlZ3VhcmRzIGAzNDE5MjE2MDg1NmAgLyAjMzQyIOKAlCBTVUNDRVNTLgotIEZpbmFsIGNvbWJpbmVkIGltcGxlbWVudGF0aW9uIG1haW4gYHtjYW5kaWRhdGV9YCBwYXNzZWQgV2luZG93cyBDSSBgMzQxOTI4MjU5NTlgIC8gIzYzMCwgV29ya3NwYWNlIFNlYXJjaCBgMzQxOTI4MjYwNDlgIC8gIzM1OSwgYW5kIExhcmdlIFdvcmtzcGFjZSBTYWZlZ3VhcmRzIGAzNDE5MjgyNTg3OGAgLyAjMzQzLgoKIyMgQWNjZXB0ZWQgYm91bmRhcnkKClRoZSBzZWFtIGV4cG9zZXMgcHJvdG9jb2wgaWRlbnRpdHksIGltbXV0YWJsZSBwcm9qZWN0LXNjb3BlZCBiaW5kaW5ncywgZmFjdG9yaWVzIHJldHVybmluZyB0aGUgZXhpc3RpbmcgYElFeHRlcm5hbFRvb2xBZGFwdGVyYCwgYW5kIGFuIG9wdGlvbmFsIGltbXV0YWJsZSByZWdpc3RyeS4gRW1wdHkgcmVnaXN0cnkgaXMgdmFsaWQuIFByb3RvY29sLXNwZWNpZmljIFNESywgdHJhbnNwb3J0IGFuZCBSUEMgdHlwZXMgKGluY2x1ZGluZyBEQVAvTUNQLXNwZWNpZmljIHR5cGVzKSByZW1haW4gb3V0c2lkZSBjb3JlIG9yY2hlc3RyYXRpb24uIENhc2UtaW5zZW5zaXRpdmUgcmVnaXN0cmF0aW9uL2xvb2t1cCBhbmQgZHVwbGljYXRlL2ludmFsaWQgaW5wdXQgaGFuZGxpbmcgYXJlIGNvdmVyZWQgYnkgZm9jdXNlZCB0ZXN0cy4KCiMjIENsb3N1cmUgYm91bmRhcnkKCk5vIG93bmVyLW9ubHkgZXZpZGVuY2UgaXMgcmVxdWlyZWQuIFRoaXMgdGFzayBjbG9zdXJlIGRvZXMgbm90IGNsb3NlIFAwOSBieSBpdHNlbGYuIFAwOSByZW1haW5zIGBJTl9QUk9HUkVTU2Agd2l0aCBgUEhBU0VfRVhJVF9HQVRFPU5PVF9SVU5gIHVudGlsIHRoZSBkZWRpY2F0ZWQgcGhhc2UtZXhpdCBnYXRlIHBhc3NlcyBhbmQgY2Fub25pY2FsIHBoYXNlIGNsb3N1cmUgaXMgaW50ZWdyYXRlZC4gUDEwIGFuZCBsYXRlciBpbXBsZW1lbnRhdGlvbiByZW1haW4gcHJvaGliaXRlZCB1bnRpbCBhIHNlcGFyYXRlIGxlZ2FsIGFjdGl2YXRpb24gdHJhbnNpdGlvbi4KIiIiCihldmlkZW5jZV9kaXIgLyAiUDA5XzAwN19JTlRFR1JBVEVEX1JFQ09OQ0lMSUFUSU9OXzIwMjYtMDktMDgubWQiKS53cml0ZV90ZXh0KGV2NywgZW5jb2Rpbmc9InV0Zi04IikKKGV2aWRlbmNlX2RpciAvICJQMDlfMDA4X0lOVEVHUkFURURfUkVDT05DSUxJQVRJT05fMjAyNi0wOS0wOC5tZCIpLndyaXRlX3RleHQoZXY4LCBlbmNvZGluZz0idXRmLTgiKQo=' | base64 -d > /tmp/reconcile_p09.py
+          cat > /tmp/reconcile_p09.py <<'PY'
+          # -*- coding: utf-8 -*-
+          from pathlib import Path
+
+          candidate = "864ed7842b9412f9cafccf89e1b5ae420f557b18"
+          current_path = Path("CURRENT_PHASE.md")
+          ledger_path = Path("docs/TASK_LEDGER.md")
+          current = current_path.read_text(encoding="utf-8")
+          ledger = ledger_path.read_text(encoding="utf-8")
+
+          for fragment in (
+              "CURRENT_PHASE: P09",
+              "CURRENT_PHASE_STATE: IN_PROGRESS",
+              "NEXT_PHASE: P10",
+              "PHASE_EXIT_GATE: NOT_RUN",
+          ):
+              if fragment not in current:
+                  raise SystemExit("CURRENT_PHASE guard missing: " + fragment)
+
+          def close_current_task(text, task_id):
+              lines = text.splitlines(keepends=True)
+              matches = 0
+              prefix = "- `" + task_id + "`"
+              for index, line in enumerate(lines):
+                  if line.startswith(prefix) and "PENDING." in line:
+                      lines[index] = line.replace("PENDING.", "CLOSED.", 1)
+                      matches += 1
+              if matches != 1:
+                  raise SystemExit(f"Expected one CURRENT_PHASE PENDING row for {task_id}, found {matches}")
+              return "".join(lines)
+
+          def close_ledger_task(text, task_id):
+              lines = text.splitlines(keepends=True)
+              matches = 0
+              prefix = "| " + task_id + " |"
+              for index, line in enumerate(lines):
+                  if line.startswith(prefix) and "| PENDING |" in line:
+                      lines[index] = line.replace("| PENDING |", "| CLOSED |", 1)
+                      matches += 1
+              if matches != 1:
+                  raise SystemExit(f"Expected one TASK_LEDGER PENDING row for {task_id}, found {matches}")
+              return "".join(lines)
+
+          current = close_current_task(current, "FCCD-P09-007")
+          current = close_current_task(current, "FCCD-P09-008")
+          ledger = close_ledger_task(ledger, "FCCD-P09-007")
+          ledger = close_ledger_task(ledger, "FCCD-P09-008")
+
+          current_anchor = "## P08 cloud task inventory"
+          if current_anchor not in current:
+              raise SystemExit("CURRENT_PHASE insertion anchor missing")
+          provenance = f"""## P09-007 integration provenance
+
+- Task: `FCCD-P09-007 - CLI/process generic adapter primitives` - `CLOSED` in this reconciliation candidate.
+- Implementation PR: #227 (`worker/fccd-p09-007-cli-process-primitives`).
+- Exact accepted implementation candidate: `7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84`.
+- Exact implementation-head Windows CI: run `34191859920` / #628 - SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34191859912` / #357 - SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34191859939` / #341 - SUCCESS.
+- Normal implementation merge / final combined implementation main: `{candidate}`.
+- Exact implementation-main Windows CI: run `34192825959` / #630 - SUCCESS.
+- Exact implementation-main P06-007 Workspace Search: run `34192826049` / #359 - SUCCESS.
+- Exact implementation-main P06-008 Large Workspace Safeguards: run `34192825878` / #343 - SUCCESS.
+- Accepted layering keeps provider-neutral tool contracts in `FCCCodeDesktop.Tools` while the process-supervisor composition remains in `FCCCodeDesktop.Application`; discrete argv/environment/working-directory semantics, bounded structured output, sanitized launch failures, durable correlation, and owned-tree-only cancellation are preserved.
+- Integrated evidence: `evidence/phases/P09/P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added.
+
+## P09-008 integration provenance
+
+- Task: `FCCD-P09-008 - Optional protocol adapter seam without core coupling` - `CLOSED` in this reconciliation candidate.
+- Implementation PR: #226 (`worker/fccd-p09-008-optional-protocol-seam`).
+- Exact accepted implementation candidate: `4c1a8850775de561167765a06b886b7ac990495c`.
+- Exact implementation-head Windows CI: run `34191080131` / #620 - SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34191080073` / #349 - SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34191080038` / #333 - SUCCESS.
+- Normal implementation merge: `ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8`.
+- Exact immediate implementation-main Windows CI: run `34192160905` / #629 - SUCCESS.
+- Exact immediate implementation-main P06-007 Workspace Search: run `34192160895` / #358 - SUCCESS.
+- Exact immediate implementation-main P06-008 Large Workspace Safeguards: run `34192160856` / #342 - SUCCESS.
+- Final combined implementation main `{candidate}` also passed Windows CI `34192825959` / #630, Workspace Search `34192826049` / #359, and Large Workspace Safeguards `34192825878` / #343.
+- The seam remains optional and provider-neutral; protocol-specific SDK, transport, and RPC types remain outside core orchestration.
+- Integrated evidence: `evidence/phases/P09/P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added.
+
+"""
+          if "## P09-007 integration provenance" not in current:
+              current = current.replace(current_anchor, provenance + current_anchor, 1)
+
+          p10_index = ledger.find("## P10")
+          if p10_index < 0:
+              raise SystemExit("TASK_LEDGER P10 insertion anchor missing")
+          ledger_note = f"""`FCCD-P09-007` is CLOSED from the generic CLI/process gateway primitives integrated in PR #227. Exact implementation head `7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84` passed Windows CI `34191859920`, Workspace Search `34191859912`, and Large Workspace Safeguards `34191859939`. PR #227 was normally merged as `{candidate}`; that exact combined implementation main passed Windows CI `34192825959`, Workspace Search `34192826049`, and Large Workspace Safeguards `34192825878`. Task evidence: `evidence/phases/P09/P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+
+`FCCD-P09-008` is CLOSED from the optional provider-neutral protocol adapter seam integrated in PR #226. Exact implementation head `4c1a8850775de561167765a06b886b7ac990495c` passed Windows CI `34191080131`, Workspace Search `34191080073`, and Large Workspace Safeguards `34191080038`. PR #226 was normally merged as `ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8`; exact immediate main #629/#358/#342 and final combined main #630/#359/#343 all passed. Task evidence: `evidence/phases/P09/P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+
+All eight mandatory P09 task rows are CLOSED in this reconciliation candidate. P09 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; P10 remains prohibited until the dedicated P09 exit gate and canonical phase closure complete.
+
+"""
+          if "`FCCD-P09-007` is CLOSED from the generic CLI/process gateway primitives" not in ledger:
+              ledger = ledger[:p10_index] + ledger_note + ledger[p10_index:]
+
+          current_path.write_text(current, encoding="utf-8")
+          ledger_path.write_text(ledger, encoding="utf-8")
+
+          evidence_dir = Path("evidence/phases/P09")
+          evidence_dir.mkdir(parents=True, exist_ok=True)
+          evidence7 = f"""# FCCD-P09-007 - Integrated Reconciliation Evidence
+
+Date: 2026-09-08
+Task: `FCCD-P09-007 - CLI/process generic adapter primitives`
+Canonical state claimed by this reconciliation: `CLOSED`
+
+## Verification
+
+- Implementation PR #227; exact head `7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84`.
+- Exact-head Windows `34191859920`, Workspace `34191859912`, Large `34191859939`: SUCCESS.
+- Normal merge / final combined implementation main `{candidate}`.
+- Exact-main Windows `34192825959`, Workspace `34192826049`, Large `34192825878`: SUCCESS.
+
+## Boundary
+
+The implementation reuses the P08 process supervisor rather than creating a second process owner. Tool-facing contracts remain provider-neutral. Arguments, environment, and working directory remain structured; output is bounded and structured; failures are sanitized; cancellation and early iterator disposal terminate only the owned process tree.
+
+No owner-only evidence is required. P09 itself remains IN_PROGRESS until its dedicated exit gate passes and canonical closure is integrated.
+"""
+          evidence8 = f"""# FCCD-P09-008 - Integrated Reconciliation Evidence
+
+Date: 2026-09-08
+Task: `FCCD-P09-008 - Optional protocol adapter seam without core coupling`
+Canonical state claimed by this reconciliation: `CLOSED`
+
+## Verification
+
+- Implementation PR #226; exact head `4c1a8850775de561167765a06b886b7ac990495c`.
+- Exact-head Windows `34191080131`, Workspace `34191080073`, Large `34191080038`: SUCCESS.
+- Normal merge `ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8`.
+- Exact immediate main Windows `34192160905`, Workspace `34192160895`, Large `34192160856`: SUCCESS.
+- Final combined implementation main `{candidate}` passed Windows `34192825959`, Workspace `34192826049`, Large `34192825878`: SUCCESS.
+
+## Boundary
+
+The seam is optional and provider-neutral. Protocol identity/binding/factory contracts return the existing `IExternalToolAdapter` boundary; protocol-specific SDK, transport, and RPC types remain outside core orchestration.
+
+No owner-only evidence is required. P09 itself remains IN_PROGRESS until its dedicated exit gate passes and canonical closure is integrated.
+"""
+          (evidence_dir / "P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md").write_text(evidence7, encoding="utf-8")
+          (evidence_dir / "P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md").write_text(evidence8, encoding="utf-8")
+          PY
           python /tmp/reconcile_p09.py
-          grep -F 'FCCD-P09-007` — CLI/process generic adapter primitives — CLOSED.' CURRENT_PHASE.md
-          grep -F 'FCCD-P09-008` — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling — CLOSED.' CURRENT_PHASE.md
-          grep -E '^\| FCCD-P09-00[1-8] .*\| CLOSED \|$' docs/TASK_LEDGER.md | tee /tmp/p09-closed.txt
-          test "$(wc -l < /tmp/p09-closed.txt)" -eq 8
+          test "$(grep -E '^\| FCCD-P09-00[1-8] .*\| CLOSED \|$' docs/TASK_LEDGER.md | wc -l)" -eq 8
           grep -F 'CURRENT_PHASE_STATE: IN_PROGRESS' CURRENT_PHASE.md
           grep -F 'PHASE_EXIT_GATE: NOT_RUN' CURRENT_PHASE.md
           git diff --check
