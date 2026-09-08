@@ -1,0 +1,51 @@
+name: P10-011 Unity Structured UI Events
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityStructuredUiEvents.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityLogCapture.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationValidation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityBuildTargetValidation.cs'
+      - 'tests/FCCCodeDesktop.UnityStructuredEventsFixture/**'
+      - 'tools/unity/validate-unity-structured-events.ps1'
+      - '.github/workflows/p10-011-unity-structured-events.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityStructuredUiEvents.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityLogCapture.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorAutomationValidation.cs'
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityBuildTargetValidation.cs'
+      - 'tests/FCCCodeDesktop.UnityStructuredEventsFixture/**'
+      - 'tools/unity/validate-unity-structured-events.ps1'
+      - '.github/workflows/p10-011-unity-structured-events.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p10-011-unity-structured-events-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Unity Structured UI Events
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate structured Unity UI event contract
+        shell: pwsh
+        run: .\tools\unity\validate-unity-structured-events.ps1
