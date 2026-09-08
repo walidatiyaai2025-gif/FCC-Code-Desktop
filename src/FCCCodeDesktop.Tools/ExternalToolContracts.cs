@@ -144,7 +144,7 @@ public abstract record StructuredToolInvocation : ToolInvocation
     /// </summary>
     public IReadOnlyDictionary<string, string> Environment => _environment;
 
-    private static IReadOnlyList<string> SnapshotArguments(IEnumerable<string>? arguments)
+    private static ReadOnlyCollection<string> SnapshotArguments(IEnumerable<string>? arguments)
     {
         var snapshot = new List<string>();
         foreach (var argument in arguments ?? Array.Empty<string>())
@@ -165,7 +165,7 @@ public abstract record StructuredToolInvocation : ToolInvocation
         return Array.AsReadOnly(snapshot.ToArray());
     }
 
-    private static IReadOnlyDictionary<string, string> SnapshotEnvironment(
+    private static ReadOnlyDictionary<string, string> SnapshotEnvironment(
         IEnumerable<KeyValuePair<string, string>>? environment)
     {
         var snapshot = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
