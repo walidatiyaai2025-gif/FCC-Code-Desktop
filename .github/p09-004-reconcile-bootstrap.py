@@ -109,7 +109,7 @@ This reconciliation closes only `FCCD-P09-004`. P09 remains `IN_PROGRESS`; P09-0
 The reconciliation PR itself must pass exact-head CI, be normally merged, and the resulting exact canonical main must remain green before this task closure is treated as the durable endpoint.
 """
 
-current.write_text(current_text.rstrip("\n") + provenance + "\n", encoding="utf-8", newline="\n")
+current.write_text(current_text.rstrip("\n") + provenance.rstrip("\n") + "\n", encoding="utf-8", newline="\n")
 ledger.write_text(ledger_text, encoding="utf-8", newline="\n")
 evidence.parent.mkdir(parents=True, exist_ok=True)
 evidence.write_text(evidence_text, encoding="utf-8", newline="\n")
