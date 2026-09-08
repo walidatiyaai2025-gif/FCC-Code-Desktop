@@ -17,11 +17,19 @@ Source canonical main: `24df5bd6e3fe40c892a34087729827360c061947`
 
 P09-007 composes the P08-owned `IProcessSupervisor` and bounded process-output contracts into a provider-neutral Tool Gateway primitive. It does not duplicate process ownership, Job Object lifecycle, bounded output capture, or arbitrary shell execution.
 
+Provider-neutral contracts remain in the `FCCCodeDesktop.Tools` assembly. Concrete process orchestration is compiled in `FCCCodeDesktop.Application`, which already depends on both `FCCCodeDesktop.Tools` and `FCCCodeDesktop.Runtime`; no new `Tools -> Runtime` dependency remains in the accepted architecture.
+
 The implementation preserves structured argv/environment/working-directory semantics, exposes typed start/output/result events, carries optional execution correlation, classifies launch and exit status, suppresses raw launch failure messages at the gateway boundary, and terminates only the owned process tree when caller cancellation is requested.
+
+## Repair history
+
+The first exact-head shared CI attempt on PR #227 failed consistently in the locked-restore stage. The direct `FCCCodeDesktop.Tools -> FCCCodeDesktop.Runtime` project reference changed the transitive NuGet lock graph and produced `NU1004` across downstream projects. This was treated as a product/build defect, not deferred.
+
+The repair restored the original Tools dependency boundary and moved only the concrete Runtime-composing runner into the Application assembly. This avoids broad lockfile churn and preserves the documented dependency direction while keeping the provider-neutral contracts in Tools.
 
 ## Validation plan
 
-Focused tests cover request validation, hostile/discrete argv, Unicode and environment forwarding, correlation propagation, stdout/stderr event mapping, success/nonzero exit classification, launch-failure secret suppression, cancellation cleanup, and pre-cancel no-launch behavior. The exact implementation candidate must also pass the repository's shared Windows CI, Workspace Search, and Large Workspace Safeguards before normal integration.
+Focused tests cover request validation, hostile/discrete argv, Unicode and environment forwarding, correlation propagation, stdout/stderr event mapping, success/nonzero exit classification, launch-failure secret suppression, cancellation cleanup, and pre-cancel no-launch behavior. The exact final implementation candidate must pass the repository's shared Windows CI, Workspace Search, and Large Workspace Safeguards before normal integration.
 
 ## Non-claims
 
