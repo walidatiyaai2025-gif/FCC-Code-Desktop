@@ -1,52 +1,4 @@
-from pathlib import Path
-import subprocess
-
-current_path = Path("CURRENT_PHASE.md")
-ledger_path = Path("docs/TASK_LEDGER.md")
-evidence_path = Path("evidence/phases/P09/P09_005_INTEGRATED_RECONCILIATION_2026-09-08.md")
-workflow_path = Path(".github/workflows/p09-005-reconcile-bootstrap.yml")
-helper_path = Path(".github/p09-005-reconcile.py")
-
-current = current_path.read_text(encoding="utf-8")
-old_current = "- `FCCD-P09-005` — Artifact manifest/validation framework — PENDING."
-new_current = "- `FCCD-P09-005` — Artifact manifest/validation framework — CLOSED."
-if current.count(old_current) != 1:
-    raise SystemExit(f"CURRENT_PHASE row count mismatch: {current.count(old_current)}")
-if "<!-- FCCD-P09-005-INTEGRATED-CLOSURE -->" in current:
-    raise SystemExit("P09-005 provenance already exists")
-current = current.replace(old_current, new_current, 1)
-current += """
-
-<!-- FCCD-P09-005-INTEGRATED-CLOSURE -->
-## P09-005 integration provenance
-
-- Task: `FCCD-P09-005 — Artifact manifest/validation framework` — `CLOSED` in this reconciliation candidate.
-- Implementation PR: #222 (`worker/fccd-p09-005-artifact-manifest-validation`).
-- Exact accepted implementation candidate: `b0381ad11381a958eb6ef588fde057630e246be5`.
-- Exact implementation-head Windows CI: run `34184899985` / #608 — SUCCESS.
-- Exact implementation-head P06-007 Workspace Search: run `34184899988` / #337 — SUCCESS.
-- Exact implementation-head P06-008 Large Workspace Safeguards: run `34184900036` / #321 — SUCCESS.
-- Normal implementation merge / accepted implementation main: `82a251d9c957e418818a2b85755905410a0a5eab`.
-- Accepted implementation head and normal merge have the same Git tree `5d1ce66c1f476a894dc33c26780ea2d397fed0ba`.
-- Exact implementation-main Windows CI: run `34185404436` / #609 — SUCCESS.
-- Exact implementation-main P06-007 Workspace Search: run `34185404429` / #338 — SUCCESS.
-- Exact implementation-main P06-008 Large Workspace Safeguards: run `34185404427` / #322 — SUCCESS.
-- Integrated evidence: `evidence/phases/P09/P09_005_INTEGRATED_RECONCILIATION_2026-09-08.md`.
-- No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-006` through `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
-"""
-current_path.write_text(current.rstrip("\n") + "\n", encoding="utf-8")
-
-ledger = ledger_path.read_text(encoding="utf-8")
-old_ledger = "| FCCD-P09-005 | Artifact manifest/validation framework | PENDING |"
-new_ledger = "| FCCD-P09-005 | Artifact manifest/validation framework | CLOSED |"
-if ledger.count(old_ledger) != 1:
-    raise SystemExit(f"TASK_LEDGER row count mismatch: {ledger.count(old_ledger)}")
-ledger_path.write_text(ledger.replace(old_ledger, new_ledger, 1), encoding="utf-8")
-
-if evidence_path.exists():
-    raise SystemExit("P09-005 evidence already exists")
-evidence_path.parent.mkdir(parents=True, exist_ok=True)
-evidence_path.write_text("""# FCCD-P09-005 — Integrated Reconciliation Evidence
+# FCCD-P09-005 — Integrated Reconciliation Evidence
 
 Date: 2026-09-08
 Task: `FCCD-P09-005 — Artifact manifest/validation framework`
@@ -103,19 +55,3 @@ P09-005 has no genuine owner-machine/manual/provider/Unity/Blender acceptance re
 This reconciliation closes only `FCCD-P09-005`. P09 remains `IN_PROGRESS`; P09-006 through P09-008 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later phases remain prohibited until sequential P09 convergence completes; `VERIFIED_FINAL_COMPLETE=false`.
 
 The reconciliation PR itself must pass exact-head CI, be normally merged, and the resulting exact canonical main must remain green before this task closure is treated as the durable endpoint.
-""", encoding="utf-8")
-
-workflow_path.unlink(missing_ok=False)
-helper_path.unlink(missing_ok=False)
-
-subprocess.run(["git", "diff", "--check"], check=True)
-changed = set(subprocess.check_output(["git", "diff", "--name-only"]).decode().splitlines())
-expected = {
-    "CURRENT_PHASE.md",
-    "docs/TASK_LEDGER.md",
-    "evidence/phases/P09/P09_005_INTEGRATED_RECONCILIATION_2026-09-08.md",
-    ".github/workflows/p09-005-reconcile-bootstrap.yml",
-    ".github/p09-005-reconcile.py",
-}
-if changed != expected:
-    raise SystemExit(f"unexpected working diff: {sorted(changed)}")

@@ -259,7 +259,7 @@ P08 is canonically CLOSED at the phase level on immutable candidate `bb372da0a45
 | FCCD-P09-002 | Tool discovery/capability registry | CLOSED |
 | FCCD-P09-003 | Structured invocation/result contracts | CLOSED |
 | FCCD-P09-004 | Tool resource locking | CLOSED |
-| FCCD-P09-005 | Artifact manifest/validation framework | PENDING |
+| FCCD-P09-005 | Artifact manifest/validation framework | CLOSED |
 | FCCD-P09-006 | Tool diagnostics/health framework | PENDING |
 | FCCD-P09-007 | CLI/process generic adapter primitives | PENDING |
 | FCCD-P09-008 | Optional protocol adapter seam (DAP/MCP/etc.) without core coupling | PENDING |
