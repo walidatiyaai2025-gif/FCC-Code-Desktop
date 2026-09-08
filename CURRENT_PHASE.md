@@ -96,12 +96,24 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-005` — Dedicated Unity log capture/parser — CLOSED.
 - `FCCD-P10-006` — Compile validation — CLOSED.
 - `FCCD-P10-007` — EditMode test integration — CLOSED.
-- `FCCD-P10-008` — PlayMode test integration — PENDING.
+- `FCCD-P10-008` — PlayMode test integration — CLOSED.
 - `FCCD-P10-009` — Project-owned Editor automation invocation — PENDING.
 - `FCCD-P10-010` — Build target execution/artifact validation — PENDING.
 - `FCCD-P10-011` — Unity structured UI events — PENDING.
 - `FCCD-P10-012` — Unity cancellation/recovery — PENDING.
 - `FCCD-P10-013` — Unity contract fixture/suite — PENDING.
+
+## P10-008 integration provenance
+
+- Task: `FCCD-P10-008 — PlayMode test integration` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #249 (`worker/fccd-p10-008-unity-playmode-tests`).
+- Exact accepted implementation candidate: `46ea2d04bdbba9db723ba7c0e2dd77e39e43afd2`.
+- Exact candidate Unity PlayMode Test Integration `34246224836`, Windows Release `34246224826`, Workspace Search `34246224742`, and Large Workspace Safeguards `34246224740` — SUCCESS.
+- Normal implementation merge: `14b8c01c8c80cfb773ebab2de98adff85a042439`.
+- Exact implementation-main Unity PlayMode Test Integration `34247250447`, Workspace Search `34247250486`, and Large Workspace Safeguards `34247250466` — SUCCESS. Windows Release `34247250499` exposed an unrelated FCC environment-discovery regression and was not waived.
+- Regression repair PR #250 was normally merged; current exact main `c49b4f6480c1daac5cde8c30c90c69ce368a1f9b` passed FCC Environment Discovery `34251804819`, Windows Release `34251804798`, Workspace Search `34251804735`, and Large Workspace Safeguards `34251804754`.
+- Integrated cloud evidence: `evidence/phases/P10/P10_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added. P10 remains `IN_PROGRESS`; P10-009 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P10-004 integration provenance
 
