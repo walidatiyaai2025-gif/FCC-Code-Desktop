@@ -294,10 +294,10 @@ internal static class UnityEditModeTestFixture
             "The full failed-test count must be preserved when retained details are bounded.");
         check(result.Failures.Count == 100 && result.FailuresTruncated,
             "Retained failed-test detail must be capped at 100 with explicit truncation metadata.");
-        check(result.Failures[0].Message?.Length == 4096 && result.Failures[0].MessageTruncated,
-            "Each retained failure message must be independently bounded.");
-        check(result.Failures[0].StackTrace?.Length == 8192 && result.Failures[0].StackTraceTruncated,
-            "Each retained failure stack trace must be independently bounded.");
+        check(result.Failures.Any(failure => failure.Message?.Length == 4096 && failure.MessageTruncated),
+            "Each retained failure message must be independently bounded without depending on XML node order.");
+        check(result.Failures.Any(failure => failure.StackTrace?.Length == 8192 && failure.StackTraceTruncated),
+            "Each retained failure stack trace must be independently bounded without depending on XML node order.");
     }
 
     private static string PassingXml() =>
