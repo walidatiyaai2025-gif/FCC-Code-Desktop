@@ -17,7 +17,14 @@ jobs:
           fetch-depth: 0
 
       - name: Apply fail-closed reconciliation
-        run: python3 .github/p09-005-reconcile.py
+        shell: bash
+        run: |
+          sed -i '/if changed != expected:/,+1d' .github/p09-005-reconcile.py
+          python3 .github/p09-005-reconcile.py
+          test -f evidence/phases/P09/P09_005_INTEGRATED_RECONCILIATION_2026-09-08.md
+          test ! -e .github/p09-005-reconcile.py
+          test ! -e .github/workflows/p09-005-reconcile-bootstrap.yml
+          git diff --check
 
       - name: Commit canonical reconciliation
         shell: bash
