@@ -26,24 +26,14 @@ public sealed record UnityLogEntry
         long truncatedUtf8Bytes,
         bool hadEncodingErrors)
     {
-        if (sequence <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(sequence), sequence, "Unity log sequence must be positive.");
-        }
-
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(sequence);
         if (!Enum.IsDefined(severity))
         {
             throw new ArgumentOutOfRangeException(nameof(severity), severity, "A concrete Unity log severity is required.");
         }
 
         ArgumentNullException.ThrowIfNull(text);
-        if (truncatedUtf8Bytes < 0)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(truncatedUtf8Bytes),
-                truncatedUtf8Bytes,
-                "Truncated UTF-8 byte count cannot be negative.");
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(truncatedUtf8Bytes);
 
         Sequence = sequence;
         Severity = severity;
@@ -82,26 +72,11 @@ public sealed class UnityLogCursor
         bool pendingWasTruncated,
         long pendingDroppedUtf8Bytes)
     {
-        if (byteOffset < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(byteOffset));
-        }
-
-        if (nextSequence <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(nextSequence));
-        }
-
-        if (generation < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(generation));
-        }
-
+        ArgumentOutOfRangeException.ThrowIfNegative(byteOffset);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(nextSequence);
+        ArgumentOutOfRangeException.ThrowIfNegative(generation);
         ArgumentNullException.ThrowIfNull(pendingLineBytes);
-        if (pendingDroppedUtf8Bytes < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(pendingDroppedUtf8Bytes));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(pendingDroppedUtf8Bytes);
 
         ByteOffset = byteOffset;
         NextSequence = nextSequence;
@@ -135,29 +110,12 @@ public sealed record UnityLogCaptureOptions
         int maxEntriesPerRead = 2_000,
         int readBufferBytes = 16 * 1024)
     {
-        if (maxLineUtf8Bytes < 256 || maxLineUtf8Bytes > 4 * 1024 * 1024)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(maxLineUtf8Bytes),
-                maxLineUtf8Bytes,
-                "Unity log line limit must be between 256 bytes and 4 MiB.");
-        }
-
-        if (maxEntriesPerRead < 1 || maxEntriesPerRead > 100_000)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(maxEntriesPerRead),
-                maxEntriesPerRead,
-                "Unity log batch entry limit must be between 1 and 100000.");
-        }
-
-        if (readBufferBytes < 256 || readBufferBytes > 1024 * 1024)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(readBufferBytes),
-                readBufferBytes,
-                "Unity log read buffer must be between 256 bytes and 1 MiB.");
-        }
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxLineUtf8Bytes, 256);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(maxLineUtf8Bytes, 4 * 1024 * 1024);
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxEntriesPerRead, 1);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(maxEntriesPerRead, 100_000);
+        ArgumentOutOfRangeException.ThrowIfLessThan(readBufferBytes, 256);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(readBufferBytes, 1024 * 1024);
 
         MaxLineUtf8Bytes = maxLineUtf8Bytes;
         MaxEntriesPerRead = maxEntriesPerRead;
@@ -185,10 +143,7 @@ public sealed record UnityLogReadBatch
     {
         ArgumentNullException.ThrowIfNull(entries);
         Cursor = cursor ?? throw new ArgumentNullException(nameof(cursor));
-        if (consumedUtf8Bytes < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(consumedUtf8Bytes));
-        }
+        ArgumentOutOfRangeException.ThrowIfNegative(consumedUtf8Bytes);
 
         _entries = Array.AsReadOnly(entries.ToArray());
         FileExists = fileExists;
@@ -317,7 +272,7 @@ public static class UnityLogParser
 
 /// <summary>
 /// Incrementally reads the Unity -logFile target while Unity may still hold it open.
-/// Complete lines are emitted once, partial UTF-8 lines survive polling boundaries, and truncation/rotation by length resets safely.
+/// Complete lines are emitted once, partial UTF-8 lines survive polling boundaries, and truncation by length resets safely.
 /// </summary>
 public sealed class UnityLogCaptureReader : IUnityLogCaptureReader
 {
@@ -363,13 +318,14 @@ public sealed class UnityLogCaptureReader : IUnityLogCaptureReader
         var byteOffset = wasReset ? 0 : current.ByteOffset;
         var generation = wasReset ? checked(current.Generation + 1) : current.Generation;
         var nextSequence = current.NextSequence;
-        var pending = new List<byte>(wasReset ? 0 : current.SnapshotPendingLineBytes().Length);
+        var pendingSnapshot = wasReset ? Array.Empty<byte>() : current.SnapshotPendingLineBytes();
+        var pending = new List<byte>(pendingSnapshot.Length);
         var pendingWasTruncated = false;
         var pendingDroppedUtf8Bytes = 0L;
 
         if (!wasReset)
         {
-            pending.AddRange(current.SnapshotPendingLineBytes());
+            pending.AddRange(pendingSnapshot);
             pendingWasTruncated = current.PendingWasTruncated;
             pendingDroppedUtf8Bytes = current.PendingDroppedUtf8Bytes;
         }
@@ -468,7 +424,13 @@ public sealed class UnityLogCaptureReader : IUnityLogCaptureReader
             count--;
         }
 
-        var bytes = pending.GetRange(0, count).ToArray();
+        var start = count >= 3 &&
+                    pending[0] == 0xEF &&
+                    pending[1] == 0xBB &&
+                    pending[2] == 0xBF
+            ? 3
+            : 0;
+        var bytes = pending.GetRange(start, count - start).ToArray();
         string text;
         var hadEncodingErrors = false;
         try
