@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 
 namespace FCCCodeDesktop.Tools;
@@ -54,9 +55,9 @@ public interface IExternalToolRegistry
 /// </summary>
 public sealed class ExternalToolRegistry : IExternalToolRegistry
 {
-    private readonly IReadOnlyList<AdapterRegistration> _registrations;
-    private readonly IReadOnlyDictionary<string, AdapterRegistration> _registrationsById;
-    private readonly IReadOnlyList<ToolIdentity> _registeredTools;
+    private readonly ReadOnlyCollection<AdapterRegistration> _registrations;
+    private readonly Dictionary<string, AdapterRegistration> _registrationsById;
+    private readonly ReadOnlyCollection<ToolIdentity> _registeredTools;
 
     public ExternalToolRegistry(IEnumerable<IExternalToolAdapter> adapters)
     {
