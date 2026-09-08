@@ -89,7 +89,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Release status: this P05 obligation is resolved; `OWNER-P04-008-REAL-TARGET` remains release-blocking.
 ## P10 cloud task inventory
 
-- `FCCD-P10-001` — Unity project/version detector — PENDING.
+- `FCCD-P10-001` — Unity project/version detector — CLOSED.
 - `FCCD-P10-002` — Unity install/Hub editor resolver — CLOSED.
 - `FCCD-P10-003` — Strongly typed Unity CLI command builder — CLOSED.
 - `FCCD-P10-004` — Unity process/project resource locking — PENDING.
@@ -103,11 +103,30 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-012` — Unity cancellation/recovery — PENDING.
 - `FCCD-P10-013` — Unity contract fixture/suite — PENDING.
 
+## P10-001 integration provenance
+
+- Task: `FCCD-P10-001 — Unity project/version detector` — `CLOSED` in this reconciliation candidate.
+- Recovery boundary: legitimate stale detector work predated integrated P10-002/P10-003; it was recovered onto exact then-current main rather than duplicated or force-pushed.
+- Implementation PR: #237 (`recovery/fccd-p10-001-unity-project-detector`).
+- Exact accepted implementation candidate: `4fb5fbbc0d106230a48d5f1d8922671ccc62bb9d`.
+- Exact implementation-head P10-001 Unity Project Detection: run `34208819369` — SUCCESS.
+- Exact implementation-head Windows CI: run `34208819312` — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34208819367` — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34208819342` — SUCCESS.
+- Normal implementation merge / accepted implementation main: `5dae18f48f7519a7d67fbdf56ccbdb3ef1a8ae9d`.
+- Exact implementation-main P10-001 Unity Project Detection: run `34209538818` — SUCCESS.
+- Exact implementation-main Windows CI: run `34209538838` — SUCCESS.
+- Exact implementation-main P06-007 Workspace Search: run `34209538858` — SUCCESS.
+- Exact implementation-main P06-008 Large Workspace Safeguards: run `34209538774` — SUCCESS.
+- Initial analyzer `CA1861` was repaired without suppression by reusing static line separators; all repaired exact-head and exact-main gates are green.
+- Integrated evidence: `evidence/phases/P10/P10_001_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added. P10 remains `IN_PROGRESS`; P10-004 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+
 ## P10-002 integration provenance
 
 - Task: `FCCD-P10-002 — Unity install/Hub editor resolver` — `CLOSED` in this reconciliation candidate.
 - Recovery boundary: the scheduling hint was future P18-005 while canonical `CURRENT_PHASE=P10`; P10-002 implementation was already integrated but its canonical row remained PENDING, so reconciliation took priority over new work.
-- Concurrent P10-003 implementation was normally merged as `165708a542faee753149fedc19c787297a75f38d`; its canonical row remains PENDING and is not modified here. P10-001 also remains independently owned/PENDING.
+- At the P10-002 reconciliation checkpoint, concurrent P10-003 implementation `165708a542faee753149fedc19c787297a75f38d` and P10-001 were still unreconciled. Subsequent canonical reconciliations closed P10-003 and P10-001; this sentence is retained as historical P10-002 provenance only.
 - Implementation PR: #232 (`worker/fccd-p10-002-unity-editor-resolver`).
 - Exact accepted implementation candidate: `0d411d877f3e56a7cde08aef3f0c50ff65997733`.
 - Exact implementation-head P10-002 Unity Editor Resolution: run `34201337027` / #2 — SUCCESS.
