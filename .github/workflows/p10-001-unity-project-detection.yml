@@ -1,0 +1,45 @@
+name: P10-001 Unity Project Detection
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityProjectDetection.cs'
+      - 'tests/FCCCodeDesktop.UnityProjectDetectionFixture/**'
+      - 'tools/unity/validate-unity-project-detection.ps1'
+      - '.github/workflows/p10-001-unity-project-detection.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityProjectDetection.cs'
+      - 'tests/FCCCodeDesktop.UnityProjectDetectionFixture/**'
+      - 'tools/unity/validate-unity-project-detection.ps1'
+      - '.github/workflows/p10-001-unity-project-detection.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p10-001-unity-project-detection-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Unity Project Detection Validation
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate Unity project/version detector
+        shell: pwsh
+        run: .\tools\unity\validate-unity-project-detection.ps1 -RunFixtures -RequireRuntime
