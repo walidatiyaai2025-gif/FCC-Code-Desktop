@@ -1,0 +1,97 @@
+name: P09 External Tool Gateway Exit
+
+on:
+  pull_request:
+    paths:
+      - 'CURRENT_PHASE.md'
+      - 'docs/TASK_LEDGER.md'
+      - 'docs/P09_007_CLI_PROCESS_PRIMITIVES.md'
+      - 'evidence/phases/P09/**'
+      - 'src/FCCCodeDesktop.Application/ExternalToolProcessRunner.cs'
+      - 'src/FCCCodeDesktop.Tools/**'
+      - 'tests/FCCCodeDesktop.UnitTests/ExternalToolAdapterContractTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ExternalToolRegistryTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/StructuredToolContractsTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ToolResourceLockingTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ToolArtifactValidationTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ToolDiagnosticsTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/CliProcessPrimitivesTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProtocolAdapterSeamTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ExternalToolGatewayPhaseExitTests.cs'
+      - '.github/workflows/p09-external-tool-gateway-exit.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'CURRENT_PHASE.md'
+      - 'docs/TASK_LEDGER.md'
+      - 'docs/P09_007_CLI_PROCESS_PRIMITIVES.md'
+      - 'evidence/phases/P09/**'
+      - 'src/FCCCodeDesktop.Application/ExternalToolProcessRunner.cs'
+      - 'src/FCCCodeDesktop.Tools/**'
+      - 'tests/FCCCodeDesktop.UnitTests/ExternalToolAdapterContractTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ExternalToolRegistryTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/StructuredToolContractsTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ToolResourceLockingTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ToolArtifactValidationTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ToolDiagnosticsTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/CliProcessPrimitivesTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ProtocolAdapterSeamTests.cs'
+      - 'tests/FCCCodeDesktop.UnitTests/ExternalToolGatewayPhaseExitTests.cs'
+      - '.github/workflows/p09-external-tool-gateway-exit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  external-tool-gateway-exit:
+    name: External Tool Gateway Exit Validation
+    runs-on: windows-2025
+    timeout-minutes: 35
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+          cache: false
+
+      - name: Verify exact SHA and clean source
+        shell: pwsh
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:EXPECTED_SHA) {
+            throw "P09 gate checkout mismatch. Expected $env:EXPECTED_SHA but found $actual."
+          }
+          $dirty = @(git status --porcelain)
+          if ($dirty.Count -ne 0) {
+            throw "P09 gate requires a clean source worktree before validation."
+          }
+          Write-Host "P09 exact candidate: $actual"
+
+      - name: Run Windows Release baseline
+        shell: pwsh
+        run: .\tools\ci\run-windows-ci.ps1
+
+      - name: Run P09 fixture exit acceptance
+        shell: pwsh
+        run: >-
+          dotnet test .\tests\FCCCodeDesktop.UnitTests\FCCCodeDesktop.UnitTests.csproj
+          -c Release --no-restore --no-build
+          --filter FullyQualifiedName~ExternalToolGatewayPhaseExitTests
+          --logger "console;verbosity=normal"
+
+      - name: Verify clean source after gate
+        shell: pwsh
+        run: |
+          $dirty = @(git status --porcelain)
+          if ($dirty.Count -ne 0) {
+            $dirty | ForEach-Object { Write-Host $_ }
+            throw "P09 gate mutated tracked or untracked source inputs."
+          }
