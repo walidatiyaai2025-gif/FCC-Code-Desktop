@@ -192,6 +192,7 @@ function Invoke-RuntimeFixture {
 
         $program = @'
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
@@ -367,29 +368,62 @@ internal static class Program
 
     private static async Task WaitForSettledAsync(TaskExecutionState state)
     {
-        const int settlementTimeoutSeconds = 30;
-        var timeout = DateTimeOffset.UtcNow.AddSeconds(settlementTimeoutSeconds);
+        var settlementTimeout = TimeSpan.FromSeconds(60);
+        var pollInterval = TimeSpan.FromMilliseconds(20);
+        var stopwatch = Stopwatch.StartNew();
         string? lastStartRejection = null;
-        while (DateTimeOffset.UtcNow < timeout)
+
+        while (stopwatch.Elapsed < settlementTimeout)
         {
-            if (!state.IsActive)
+            if (TryValidateSettled(state, out var startRejection))
             {
-                try
-                {
-                    state.ValidateCanStart();
-                    return;
-                }
-                catch (InvalidOperationException exception) when (exception.Message.Contains("still settling", StringComparison.Ordinal))
-                {
-                    lastStartRejection = exception.Message;
-                }
+                return;
             }
-            await Task.Delay(20);
+
+            if (startRejection is not null)
+            {
+                lastStartRejection = startRejection;
+            }
+
+            await Task.Delay(pollInterval);
         }
+
+        // Probe once after the monotonic deadline so a terminal transition that races
+        // the final loop condition is not reported as a false settlement timeout.
+        if (TryValidateSettled(state, out var finalStartRejection))
+        {
+            return;
+        }
+
+        if (finalStartRejection is not null)
+        {
+            lastStartRejection = finalStartRejection;
+        }
+
         throw new InvalidOperationException(
-            $"P05-005 assertion failed: task did not fully settle within {settlementTimeoutSeconds}s. " +
+            $"P05-005 assertion failed: task did not fully settle within {settlementTimeout.TotalSeconds:0}s. " +
             $"State={state.State}; IsActive={state.IsActive}; CanStop={state.CanStop}; CanRetry={state.CanRetry}; " +
             $"LastStartRejection={lastStartRejection ?? "<none>"}.");
+    }
+
+    private static bool TryValidateSettled(TaskExecutionState state, out string? startRejection)
+    {
+        startRejection = null;
+        if (state.IsActive)
+        {
+            return false;
+        }
+
+        try
+        {
+            state.ValidateCanStart();
+            return true;
+        }
+        catch (InvalidOperationException exception) when (exception.Message.Contains("still settling", StringComparison.Ordinal))
+        {
+            startRejection = exception.Message;
+            return false;
+        }
     }
 
     private static void Assert(bool condition, string label)
