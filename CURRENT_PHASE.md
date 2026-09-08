@@ -7,9 +7,9 @@ PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
 CURRENT_PHASE: P09
 CURRENT_PHASE_NAME: External Tool Gateway
-CURRENT_PHASE_STATE: IN_PROGRESS
+CURRENT_PHASE_STATE: CLOSED
 NEXT_PHASE: P10
-PHASE_EXIT_GATE: NOT_RUN
+PHASE_EXIT_GATE: PASS
 KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
@@ -30,7 +30,7 @@ P07 is canonically CLOSED. `FCCD-P07-001` through `FCCD-P07-011` are normally in
 
 P08 — Terminal/process supervision — is canonically CLOSED in this closure state. `FCCD-P08-001` through `FCCD-P08-008` are normally integrated and exact-main verified. Immutable phase candidate `bb372da0a4506b3edc508156f06fc60ced8cc3d4` passed pre-closure Windows CI `34164500457` / #560, Workspace Search `34164500513` / #289, and Large Workspace Safeguards `34164500496` / #273; dedicated exact-candidate P08 phase-exit run `34165022901` / job `101874255929` completed SUCCESS with the full Windows baseline, interactive terminal UX runtime acceptance, process/terminal safety acceptance, exact-SHA guards, and a clean worktree. Canonical closure evidence is `evidence/phases/P08/CLOSURE.md`.
 
-P09 — External Tool Gateway — is now the sole legal cloud implementation/convergence phase. Only dependency-valid, unclaimed P09 work may begin. P10 and later implementation remain prohibited until P09 is truthfully closed with its exit gate resolved under canonical governance.
+P09 — External Tool Gateway — is canonically CLOSED in this closure state. All eight mandatory P09 tasks are normally integrated and exact-main verified on candidate `499b042f93efe764465aa1d2ea0f2d0c62188a4b`; dedicated P09 exit run `34195027724` passed on that exact candidate. Canonical closure evidence is `evidence/phases/P09/CLOSURE.md`. P10 is the authorized next phase but remains inactive until a separate governance transition is normally integrated and exact-main verified.
 
 P05 is canonically closed at the phase level. `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified, and the owner completed the required genuine Windows/FCC/provider interaction on exact tested SHA `60b6ef491e9dde3ca195b377a2ce07442452a6ce`. Provider-backed conversation execution, structured activity, Stop/Retry, close/reopen, and durable session resume all passed. `OWNER-P05-EXIT-REAL-TARGET` is reconciled as `PASS_INTEGRATED`, the P05 exit gate is `PASS`, and canonical closure evidence is `evidence/phases/P05/CLOSURE.md`.
 
@@ -40,7 +40,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 
 ## Owner-last invariants
 
-- Exactly one cloud implementation/convergence phase is active: P09.
+- P09 is CLOSED and retained as the current closure checkpoint until a separate validated transition activates P10; no P10 or later implementation is authorized yet.
 - Earlier unresolved task work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
 - A phase-exit requirement may be queued only when all cloud-actionable implementation/tests/CI are complete, the remaining evidence is genuinely environment-bound, and the phase gate remains truthfully unresolved rather than being represented as PASS.
 - Code defects, failed CI, missing tests/implementation, security/data-integrity defects, and repairable repository problems are never deferrable.
@@ -157,6 +157,20 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Exact pre-reconciliation current-main P06-008 Large Workspace Safeguards: run `34178135615` — SUCCESS.
 - Integrated evidence: `evidence/phases/P09/P09_003_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - No owner-only evidence is required or added. P09 remains `IN_PROGRESS`; `FCCD-P09-004` through `FCCD-P09-008` remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P10 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+
+<!-- P09-PHASE-EXIT-CLOSURE -->
+## P09 phase-exit provenance
+
+- Exact pre-closure canonical candidate: `499b042f93efe764465aa1d2ea0f2d0c62188a4b`.
+- All eight mandatory P09 task rows were CLOSED before the gate.
+- Exact candidate Windows CI: run `34195027792` / #635 — SUCCESS.
+- Exact candidate P06-007 Workspace Search: run `34195027743` / #364 — SUCCESS.
+- Exact candidate P06-008 Large Workspace Safeguards: run `34195027756` / #348 — SUCCESS.
+- Dedicated P09 External Tool Gateway Exit: run `34195027724` / job `101960766198` — SUCCESS.
+- Canonical closure evidence: `evidence/phases/P09/CLOSURE.md`.
+- P09 phase state: `CLOSED`; `PHASE_EXIT_GATE=PASS`; phase-local blockers/regressions: none.
+- `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+- P10 is only the authorized next phase and is not active until a separate governance transition is normally integrated and exact-main verified.
 
 ## P08 cloud task inventory
 
