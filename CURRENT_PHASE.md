@@ -98,7 +98,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-007` — EditMode test integration — CLOSED.
 - `FCCD-P10-008` — PlayMode test integration — CLOSED.
 - `FCCD-P10-009` — Project-owned Editor automation invocation — CLOSED.
-- `FCCD-P10-010` — Build target execution/artifact validation — PENDING.
+- `FCCD-P10-010` — Build target execution/artifact validation — CLOSED.
 - `FCCD-P10-011` — Unity structured UI events — PENDING.
 - `FCCD-P10-012` — Unity cancellation/recovery — PENDING.
 - `FCCD-P10-013` — Unity contract fixture/suite — PENDING.
@@ -127,6 +127,17 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - The integrated boundary uses typed `unity.execute-method` invocation, product-owned operation/result correlation, bounded fresh structured JSON evidence, and fail-closed validation for stale/missing/malformed/oversized/mismatched/project/process/cancellation outcomes; process exit code alone cannot establish success.
 - Integrated cloud evidence: `evidence/phases/P10/P10_009_INTEGRATED_RECONCILIATION_2026-09-08.md`.
 - No new owner-only evidence is required or added. P10 remains `IN_PROGRESS`; P10-010 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+
+## P10-010 integration provenance
+
+- Task: `FCCD-P10-010 — Build target execution/artifact validation` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #254 (`worker/fccd-p10-010-unity-build-validation`).
+- Exact accepted implementation candidate: `61fab6d08bd8f1f8434a6547e47a76e6a9d086fa`.
+- Exact candidate P10-010 Unity Build Target Validation `34263247624`, Windows Release `34263246859`, Workspace Search `34263246885`, and Large Workspace Safeguards `34263246808` — SUCCESS.
+- Normal implementation merge / accepted implementation main: `d192df0a08535638a441ca20f91c44d0ae9615ba`.
+- Exact implementation-main P10-010 Unity Build Target Validation `34264340408`, Windows Release `34264340428`, Workspace Search `34264340320`, and Large Workspace Safeguards `34264340352` — SUCCESS.
+- Integrated cloud evidence: `evidence/phases/P10/P10_010_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No new owner-only evidence is required or added. P10 remains `IN_PROGRESS`; P10-011 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P10-004 integration provenance
 
