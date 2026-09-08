@@ -1,0 +1,52 @@
+name: Repair P10-007 fixture assertion
+
+on:
+  push:
+    branches:
+      - worker/fccd-p10-007-unity-editmode-tests
+    paths:
+      - '.github/workflows/repair-p10-007-fixture.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          ref: worker/fccd-p10-007-unity-editmode-tests
+          fetch-depth: 0
+      - name: Repair order-independent failure-bound assertions
+        shell: pwsh
+        run: |
+          $path = 'tests/FCCCodeDesktop.UnityEditModeTestFixture/Program.cs'
+          $text = Get-Content -LiteralPath $path -Raw
+          $old = @'
+        check(result.Failures[0].Message?.Length == 4096 && result.Failures[0].MessageTruncated,
+            "Each retained failure message must be independently bounded.");
+        check(result.Failures[0].StackTrace?.Length == 8192 && result.Failures[0].StackTraceTruncated,
+            "Each retained failure stack trace must be independently bounded.");
+'@
+          $new = @'
+        check(result.Failures.Any(failure => failure.Message?.Length == 4096 && failure.MessageTruncated),
+            "Each retained failure message must be independently bounded without depending on XML node order.");
+        check(result.Failures.Any(failure => failure.StackTrace?.Length == 8192 && failure.StackTraceTruncated),
+            "Each retained failure stack trace must be independently bounded without depending on XML node order.");
+'@
+          if (-not $text.Contains($old)) { throw 'Expected P10-007 fixture assertion block not found.' }
+          $text = $text.Replace($old, $new)
+          Set-Content -LiteralPath $path -Value $text -Encoding utf8NoBOM -NoNewline
+      - name: Commit repair and remove bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/repair-p10-007-fixture.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/FCCCodeDesktop.UnityEditModeTestFixture/Program.cs .github/workflows/repair-p10-007-fixture.yml
+          git diff --cached --check
+          git commit -m 'P10-007 repair order-independent failure bounds fixture'
+          git push origin HEAD:worker/fccd-p10-007-unity-editmode-tests
