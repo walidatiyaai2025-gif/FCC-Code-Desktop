@@ -28,11 +28,9 @@ function Assert-DiscoveryContract {
         'ResolveExecutable("fcc-claude"',
         'ResolveExecutable("fcc-server"',
         'VersionArguments = ["--version", "version", "-V"]',
-        'CommandProcessorVersionWrapper',
+        'CommandProcessorArguments',
         'GetWindowsCommandProcessorPath',
-        'startInfo.ArgumentList.Add("/D")',
-        'startInfo.ArgumentList.Add("/S")',
-        'startInfo.ArgumentList.Add("/C")',
+        'startInfo.Arguments = CommandProcessorArguments',
         'FCCD_DISCOVERY_EXECUTABLE',
         'FCCD_DISCOVERY_ARGUMENT',
         'ArgumentList.Add',
@@ -87,6 +85,10 @@ function Assert-DiscoveryContract {
         if ($ServiceText.Contains($forbidden)) {
             throw "P04-001 batch version discovery regressed to a heavyweight PowerShell wrapper: $forbidden"
         }
+    }
+
+    if ($ServiceText.Contains('startInfo.Arguments = $')) {
+        throw 'P04-001 command-processor arguments must remain a fixed constant; dynamic shell interpolation is forbidden.'
     }
 
     foreach ($literal in @(
@@ -201,7 +203,9 @@ internal static class Program
                 await responseTask;
 
                 Assert(snapshot.FccClaude.IsFound, "PATH fcc-claude discovery");
-                Assert(snapshot.FccClaude.IsVersionKnown, "version parsed");
+                Assert(
+                    snapshot.FccClaude.IsVersionKnown,
+                    $"version parsed; failure={snapshot.FccClaude.ProbeFailure ?? "none"}; text={snapshot.FccClaude.VersionText ?? "none"}");
                 Assert(snapshot.FccClaude.ParsedVersion == new Version(2, 1, 251), "version value");
                 Assert(snapshot.FccClaude.VersionText?.Contains("Claude Code", StringComparison.Ordinal) == true, "version text");
                 Assert(snapshot.FccServer.IsFound, "PATH fcc-server discovery");
@@ -241,7 +245,9 @@ internal static class Program
                 var explicitSnapshot = await explicitService.DiscoverAsync(CancellationToken.None);
                 await responseTask;
                 Assert(explicitSnapshot.FccClaude.IsFound, "explicit fcc-claude path override");
-                Assert(explicitSnapshot.FccClaude.IsVersionKnown, "explicit path version parsed");
+                Assert(
+                    explicitSnapshot.FccClaude.IsVersionKnown,
+                    $"explicit path version parsed; failure={explicitSnapshot.FccClaude.ProbeFailure ?? "none"}; text={explicitSnapshot.FccClaude.VersionText ?? "none"}");
                 Assert(explicitSnapshot.FccServer.IsFound, "explicit fcc-server path override");
             }
 
