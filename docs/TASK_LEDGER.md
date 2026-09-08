@@ -278,7 +278,7 @@ All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure cand
 | ID | Task | State |
 |---|---|---|
 | FCCD-P10-001 | Unity project/version detector | PENDING |
-| FCCD-P10-002 | Unity install/Hub editor resolver | PENDING |
+| FCCD-P10-002 | Unity install/Hub editor resolver | CLOSED |
 | FCCD-P10-003 | Strongly typed Unity CLI command builder | CLOSED |
 | FCCD-P10-004 | Unity process/project resource locking | PENDING |
 | FCCD-P10-005 | Dedicated Unity log capture/parser | PENDING |
@@ -290,6 +290,8 @@ All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure cand
 | FCCD-P10-011 | Unity structured UI events | PENDING |
 | FCCD-P10-012 | Unity cancellation/recovery | PENDING |
 | FCCD-P10-013 | Unity contract fixture/suite | PENDING |
+
+`FCCD-P10-002` is CLOSED from the exact-version Unity install/Hub editor resolver integrated in PR #232. Exact accepted implementation candidate `0d411d877f3e56a7cde08aef3f0c50ff65997733` passed P10-002 Unity Editor Resolution `34201337027` / #2, Windows CI `34201337061` / #641, P06-007 Workspace Search `34201336981` / #370, and P06-008 Large Workspace Safeguards `34201337068` / #354. PR #232 was normally merged as `844edc01c9073048d800a59cafa78d59a78b2668`; that exact implementation main passed P10-002 Unity Editor Resolution `34202036522` / #3, Windows CI `34202036486` / #643, Workspace Search `34202036528` / #372, and Large Workspace Safeguards `34202036385` / #356. Coverage includes exact requested-version resolution, configured-root precedence before the default Unity Hub editor root, Hub-collection and direct-install roots, mandatory `Editor/Unity.exe` existence, immutable source provenance, version/path validation, root normalization/de-duplication, China revision suffix support, missing-executable handling, and cancellation propagation. Initial analyzer CA1859 was repaired by tightening the internal helper to `HashSet<string>` rather than suppressing analyzers or weakening gates. Task evidence: `evidence/phases/P10/P10_002_INTEGRATED_RECONCILIATION_2026-09-08.md`. Concurrent P10-003 implementation merge `165708a542faee753149fedc19c787297a75f38d` is preserved with its canonical row still PENDING; P10-001 is likewise unchanged. No owner-only evidence is required. P10 remains `IN_PROGRESS`; P10-004 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P11 — Blender first-class adapter
 
