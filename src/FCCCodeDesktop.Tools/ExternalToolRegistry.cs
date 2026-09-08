@@ -144,9 +144,10 @@ public sealed class ExternalToolRegistry : IExternalToolRegistry
         cancellationToken.ThrowIfCancellationRequested();
 
         var registration = GetRequiredRegistration(toolId);
-        var capabilities = await registration.Adapter
-            .GetCapabilitiesAsync(project, cancellationToken)
-            .ConfigureAwait(false);
+        var capabilityTask = registration.Adapter.GetCapabilitiesAsync(project, cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"External tool adapter '{registration.Identity.Id}' returned a null capability task.");
+        var capabilities = await capabilityTask.ConfigureAwait(false);
 
         return capabilities
             ?? throw new InvalidOperationException(
@@ -158,6 +159,7 @@ public sealed class ExternalToolRegistry : IExternalToolRegistry
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(project);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var results = new RegisteredToolDiscovery[_registrations.Count];
         for (var index = 0; index < _registrations.Count; index++)
@@ -189,9 +191,10 @@ public sealed class ExternalToolRegistry : IExternalToolRegistry
         ProjectContext project,
         CancellationToken cancellationToken)
     {
-        var discovery = await registration.Adapter
-            .DiscoverAsync(project, cancellationToken)
-            .ConfigureAwait(false);
+        var discoveryTask = registration.Adapter.DiscoverAsync(project, cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"External tool adapter '{registration.Identity.Id}' returned a null discovery task.");
+        var discovery = await discoveryTask.ConfigureAwait(false);
 
         return discovery
             ?? throw new InvalidOperationException(
