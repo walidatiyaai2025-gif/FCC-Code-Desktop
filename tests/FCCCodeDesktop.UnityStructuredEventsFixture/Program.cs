@@ -47,8 +47,16 @@ ExpectThrows<ArgumentOutOfRangeException>(() =>
     UnityStructuredUiEventProjector.Progress(operationId, 11, "compile", 100.1, "bad"),
     "progress over 100 rejected");
 ExpectThrows<ArgumentException>(() =>
-    new UnityStructuredUiEvent(operationId, 12, UnityUiEventKind.Diagnostic, UnityUiEventSeverity.Info, "unity bad code", "bad"),
-    "unsafe event code rejected");
+{
+    var unexpected = new UnityStructuredUiEvent(
+        operationId,
+        12,
+        UnityUiEventKind.Diagnostic,
+        UnityUiEventSeverity.Info,
+        "unity bad code",
+        "bad");
+    GC.KeepAlive(unexpected);
+}, "unsafe event code rejected");
 
 var automationResult = CreateAutomationResult(
     UnityEditorAutomationValidationStatus.Cancelled,
