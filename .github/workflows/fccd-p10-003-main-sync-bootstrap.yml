@@ -1,0 +1,92 @@
+name: P10-003 Reconciliation Main Sync
+
+on:
+  push:
+    branches:
+      - worker/fccd-p10-003-integrated-reconciliation
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge verified main and preserve both closures
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $expectedMain = 'ad2395e23d1bf6c3bbf664dedda4b464408cb675'
+          git fetch origin main
+          $actualMain = (git rev-parse origin/main).Trim()
+          if ($actualMain -ne $expectedMain) {
+            throw "Canonical main moved: expected $expectedMain, got $actualMain"
+          }
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git merge --no-commit --no-ff origin/main 2>$null
+          if ($LASTEXITCODE -ne 0 -and -not (git diff --name-only --diff-filter=U)) {
+            throw 'Merge failed without resolvable conflicts.'
+          }
+
+          git checkout --theirs -- docs/TASK_LEDGER.md CURRENT_PHASE.md
+
+          $ledgerPath = 'docs/TASK_LEDGER.md'
+          $ledger = Get-Content -Raw -LiteralPath $ledgerPath
+          $ledgerOld = '| FCCD-P10-003 | Strongly typed Unity CLI command builder | PENDING |'
+          $ledgerNew = '| FCCD-P10-003 | Strongly typed Unity CLI command builder | CLOSED |'
+          if ([regex]::Matches($ledger, [regex]::Escape($ledgerOld)).Count -ne 1) {
+            throw 'Expected exactly one P10-003 PENDING ledger row on merged main.'
+          }
+          $ledger = $ledger.Replace($ledgerOld, $ledgerNew)
+          Set-Content -LiteralPath $ledgerPath -Value $ledger -Encoding utf8 -NoNewline
+
+          $phasePath = 'CURRENT_PHASE.md'
+          $phase = Get-Content -Raw -LiteralPath $phasePath
+          $phaseOld = '- `FCCD-P10-003` — Strongly typed Unity CLI command builder — PENDING.'
+          $phaseNew = '- `FCCD-P10-003` — Strongly typed Unity CLI command builder — CLOSED.'
+          if ([regex]::Matches($phase, [regex]::Escape($phaseOld)).Count -ne 1) {
+            throw 'Expected exactly one P10-003 PENDING current-phase row on merged main.'
+          }
+          if ($phase.Contains('<!-- FCCD-P10-003-INTEGRATED-CLOSURE -->')) {
+            throw 'P10-003 provenance unexpectedly already exists on merged main.'
+          }
+          $phase = $phase.Replace($phaseOld, $phaseNew)
+          $lines = @(
+            '',
+            '<!-- FCCD-P10-003-INTEGRATED-CLOSURE -->',
+            '## P10-003 integration provenance',
+            '',
+            '- Task: `FCCD-P10-003 — Strongly typed Unity CLI command builder` — `CLOSED` in this reconciliation candidate.',
+            '- Implementation PR: #233 (`worker/fccd-p10-003-unity-cli-command-builder`).',
+            '- Exact accepted implementation candidate: `cbe73e901443a7847e4fae3f3da1e582fad93be4`.',
+            '- Exact implementation-head P10-003 Unity CLI Command Builder: run `34202055613` / #2 — SUCCESS.',
+            '- Exact implementation-head Windows CI: run `34202055606` / #644 — SUCCESS.',
+            '- Exact implementation-head P06-007 Workspace Search: run `34202055667` / #373 — SUCCESS.',
+            '- Exact implementation-head P06-008 Large Workspace Safeguards: run `34202055612` / #357 — SUCCESS.',
+            '- Normal implementation merge / accepted implementation main: `165708a542faee753149fedc19c787297a75f38d`.',
+            '- Exact implementation-main P10-003 Unity CLI Command Builder: run `34202965959` / #3 — SUCCESS.',
+            '- Exact implementation-main Windows CI: run `34202965960` / #645 — SUCCESS.',
+            '- Exact implementation-main P06-007 Workspace Search: run `34202965953` / #374 — SUCCESS.',
+            '- Exact implementation-main P06-008 Large Workspace Safeguards: run `34202965909` / #358 — SUCCESS.',
+            '- Integrated evidence: `evidence/phases/P10/P10_003_INTEGRATED_RECONCILIATION_2026-09-08.md`.',
+            '- Reconciliation was refreshed onto exact verified main `ad2395e23d1bf6c3bbf664dedda4b464408cb675`, preserving canonical P10-002 closure.',
+            '- No owner-only evidence is required or added. P10 remains `IN_PROGRESS`; all other unresolved P10 task rows retain their canonical states; `PHASE_EXIT_GATE=NOT_RUN`; P11 and later implementation remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.'
+          )
+          $phase = $phase.TrimEnd("`r", "`n") + ($lines -join "`n") + "`n"
+          Set-Content -LiteralPath $phasePath -Value $phase -Encoding utf8 -NoNewline
+
+          git add -- docs/TASK_LEDGER.md CURRENT_PHASE.md evidence/phases/P10/P10_003_INTEGRATED_RECONCILIATION_2026-09-08.md
+          $unmerged = git diff --name-only --diff-filter=U
+          if ($unmerged) {
+            throw "Unresolved merge conflicts remain: $unmerged"
+          }
+          git commit -m 'chore: merge verified main into P10-003 reconciliation'
+          git push origin HEAD:worker/fccd-p10-003-integrated-reconciliation
