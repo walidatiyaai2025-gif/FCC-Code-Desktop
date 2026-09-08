@@ -107,7 +107,7 @@ public sealed class ToolResourceLockManager : IToolResourceLockManager
         }
     }
 
-    private static IReadOnlyList<ToolResourceLockKey> NormalizeKeys(
+    private static System.Collections.ObjectModel.ReadOnlyCollection<ToolResourceLockKey> NormalizeKeys(
         IEnumerable<ToolResourceLockKey> resourceKeys)
     {
         var distinct = new SortedDictionary<string, ToolResourceLockKey>(StringComparer.OrdinalIgnoreCase);
