@@ -1,0 +1,238 @@
+name: P09 Final Integrated Reconciliation Bootstrap
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p09-final-integrated-closures
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: p09-final-integrated-reconciliation-bootstrap
+  cancel-in-progress: true
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CANDIDATE: 864ed7842b9412f9cafccf89e1b5ae420f557b18
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Wait for exact implementation-main permanent gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          runs=(34192825959 34192826049 34192825878)
+          for attempt in $(seq 1 40); do
+            all_done=1
+            all_success=1
+            for run in "${runs[@]}"; do
+              status=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}" --jq '.status')
+              conclusion=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}" --jq '.conclusion // ""')
+              echo "run=${run} status=${status} conclusion=${conclusion}"
+              if [[ "$status" != "completed" ]]; then all_done=0; fi
+              if [[ "$status" == "completed" && "$conclusion" != "success" ]]; then all_success=0; fi
+            done
+            if [[ "$all_done" == 1 ]]; then
+              if [[ "$all_success" != 1 ]]; then
+                echo "At least one exact implementation-main gate failed." >&2
+                exit 1
+              fi
+              break
+            fi
+            if [[ "$attempt" == 40 ]]; then
+              echo "Timed out waiting for exact implementation-main gates." >&2
+              exit 1
+            fi
+            sleep 15
+          done
+
+          main_sha=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')
+          if [[ "$main_sha" != "$CANDIDATE" ]]; then
+            echo "Canonical main moved: expected $CANDIDATE, got $main_sha" >&2
+            exit 1
+          fi
+
+      - name: Reconcile final P09 task state and evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          candidate = "864ed7842b9412f9cafccf89e1b5ae420f557b18"
+          current = Path("CURRENT_PHASE.md")
+          ledger = Path("docs/TASK_LEDGER.md")
+          c = current.read_text(encoding="utf-8")
+          l = ledger.read_text(encoding="utf-8")
+
+          required = [
+              "CURRENT_PHASE: P09",
+              "CURRENT_PHASE_STATE: IN_PROGRESS",
+              "NEXT_PHASE: P10",
+              "PHASE_EXIT_GATE: NOT_RUN",
+              "- `FCCD-P09-007` — CLI/process generic adapter primitives — PENDING.",
+              "- `FCCD-P09-008` — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling — PENDING.",
+          ]
+          for fragment in required:
+              if fragment not in c:
+                  raise SystemExit(f"CURRENT_PHASE guard missing: {fragment}")
+
+          old7 = "| FCCD-P09-007 | CLI/process generic adapter primitives | PENDING |"
+          old8 = "| FCCD-P09-008 | Optional protocol adapter seam (DAP/MCP/etc.) without core coupling | PENDING |"
+          if l.count(old7) != 1 or l.count(old8) != 1:
+              raise SystemExit("TASK_LEDGER P09-007/P09-008 PENDING row guards failed")
+
+          c = c.replace(
+              "- `FCCD-P09-007` — CLI/process generic adapter primitives — PENDING.",
+              "- `FCCD-P09-007` — CLI/process generic adapter primitives — CLOSED.",
+              1,
+          ).replace(
+              "- `FCCD-P09-008` — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling — PENDING.",
+              "- `FCCD-P09-008` — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling — CLOSED.",
+              1,
+          )
+          l = l.replace(old7, old7.replace("PENDING", "CLOSED"), 1)
+          l = l.replace(old8, old8.replace("PENDING", "CLOSED"), 1)
+
+          current_anchor = "## P08 cloud task inventory"
+          if current_anchor not in c:
+              raise SystemExit("CURRENT_PHASE insertion anchor missing")
+          provenance = f'''## P09-007 integration provenance
+
+- Task: `FCCD-P09-007 — CLI/process generic adapter primitives` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #227 (`worker/fccd-p09-007-cli-process-primitives`).
+- Exact accepted implementation candidate: `7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84`.
+- Exact implementation-head Windows CI: run `34191859920` / #628 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34191859912` / #357 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34191859939` / #341 — SUCCESS.
+- Normal implementation merge / final combined implementation main: `{candidate}`.
+- Exact implementation-main Windows CI: run `34192825959` / #630 — SUCCESS.
+- Exact implementation-main P06-007 Workspace Search: run `34192826049` / #359 — SUCCESS.
+- Exact implementation-main P06-008 Large Workspace Safeguards: run `34192825878` / #343 — SUCCESS.
+- The accepted design keeps generic tool contracts in `FCCCodeDesktop.Tools` while the runtime-dependent runner lives in `FCCCodeDesktop.Application`, composes the P08-owned `IProcessSupervisor`, preserves discrete argv/environment/working-directory semantics, emits structured process events/results, carries durable correlation, sanitizes launch failures, and terminates only the owned process tree on cancellation/early iterator disposal.
+- Integrated evidence: `evidence/phases/P09/P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added.
+
+## P09-008 integration provenance
+
+- Task: `FCCD-P09-008 — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling` — `CLOSED` in this reconciliation candidate.
+- Implementation PR: #226 (`worker/fccd-p09-008-optional-protocol-seam`).
+- Exact accepted implementation candidate: `4c1a8850775de561167765a06b886b7ac990495c`.
+- Exact implementation-head Windows CI: run `34191080131` / #620 — SUCCESS.
+- Exact implementation-head P06-007 Workspace Search: run `34191080073` / #349 — SUCCESS.
+- Exact implementation-head P06-008 Large Workspace Safeguards: run `34191080038` / #333 — SUCCESS.
+- Normal implementation merge: `ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8`.
+- Exact immediate implementation-main Windows CI: run `34192160905` / #629 — SUCCESS.
+- Exact immediate implementation-main P06-007 Workspace Search: run `34192160895` / #358 — SUCCESS.
+- Exact immediate implementation-main P06-008 Large Workspace Safeguards: run `34192160856` / #342 — SUCCESS.
+- Final combined implementation main `{candidate}` also passed Windows CI `34192825959` / #630, Workspace Search `34192826049` / #359, and Large Workspace Safeguards `34192825878` / #343, proving non-regression after P09-007 integration.
+- The seam remains optional/provider-neutral: protocol identity/binding/factory contracts and an immutable registry return the existing `IExternalToolAdapter` boundary without importing DAP/MCP/transport SDK types into core orchestration.
+- Integrated evidence: `evidence/phases/P09/P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No owner-only evidence is required or added.
+
+'''
+          if "## P09-007 integration provenance" not in c:
+              c = c.replace(current_anchor, provenance + current_anchor, 1)
+
+          ledger_anchor = "## P10 — Unity first-class adapter"
+          if ledger_anchor not in l:
+              raise SystemExit("TASK_LEDGER insertion anchor missing")
+          ledger_note = f'''`FCCD-P09-007` is CLOSED from the generic CLI/process gateway primitives integrated in PR #227. Exact accepted implementation candidate `7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84` passed Windows CI `34191859920` / #628, Workspace Search `34191859912` / #357, and Large Workspace Safeguards `34191859939` / #341. PR #227 was normally merged as `{candidate}`; that exact combined implementation main passed Windows CI `34192825959` / #630, Workspace Search `34192826049` / #359, and Large Workspace Safeguards `34192825878` / #343. The accepted layering keeps provider-neutral contracts in Tools and the process-supervisor composition in Application, with discrete argv/environment forwarding, bounded structured output, sanitized failures, durable correlation, and owned-tree-only cancellation. Task evidence: `evidence/phases/P09/P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md`. No owner-only evidence is required.
+
+`FCCD-P09-008` is CLOSED from the optional provider-neutral protocol adapter seam integrated in PR #226. Exact accepted implementation candidate `4c1a8850775de561167765a06b886b7ac990495c` passed Windows CI `34191080131` / #620, Workspace Search `34191080073` / #349, and Large Workspace Safeguards `34191080038` / #333. PR #226 was normally merged as `ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8`; exact immediate implementation-main Windows CI `34192160905` / #629, Workspace Search `34192160895` / #358, and Large Workspace Safeguards `34192160856` / #342 passed, and final combined main `{candidate}` also passed the #630/#359/#343 permanent gates. Task evidence: `evidence/phases/P09/P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md`. No owner-only evidence is required.
+
+All eight mandatory P09 task rows are now CLOSED in this reconciliation candidate. P09 remains `IN_PROGRESS` and `PHASE_EXIT_GATE=NOT_RUN`; the only legal next action after normal reconciliation integration and exact-main verification is the dedicated P09 phase-exit gate. P10 and later implementation remain prohibited until canonical P09 closure and a separate P10 activation transition.
+
+'''
+          if "`FCCD-P09-007` is CLOSED from the generic CLI/process gateway primitives" not in l:
+              l = l.replace(ledger_anchor, ledger_note + ledger_anchor, 1)
+
+          current.write_text(c, encoding="utf-8")
+          ledger.write_text(l, encoding="utf-8")
+
+          evidence_dir = Path("evidence/phases/P09")
+          evidence_dir.mkdir(parents=True, exist_ok=True)
+          ev7 = f'''# FCCD-P09-007 — Integrated Reconciliation Evidence
+
+Date: 2026-09-08
+Task: `FCCD-P09-007 — CLI/process generic adapter primitives`
+Canonical state claimed by this reconciliation: `CLOSED`
+
+## Implementation and integration
+
+- Implementation PR: #227 (`worker/fccd-p09-007-cli-process-primitives`).
+- Accepted implementation head: `7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84`.
+- Exact-head Windows CI `34191859920` / #628 — SUCCESS.
+- Exact-head Workspace Search `34191859912` / #357 — SUCCESS.
+- Exact-head Large Workspace Safeguards `34191859939` / #341 — SUCCESS.
+- Normal merge / final combined implementation main: `{candidate}`.
+- Exact-main Windows CI `34192825959` / #630 — SUCCESS.
+- Exact-main Workspace Search `34192826049` / #359 — SUCCESS.
+- Exact-main Large Workspace Safeguards `34192825878` / #343 — SUCCESS.
+
+## Accepted boundary
+
+The final implementation composes the existing P08 `IProcessSupervisor`; it does not create a second process owner. Tool-facing contracts remain provider-neutral, while the runtime-dependent runner is in Application. Structured argv/environment/working-directory values are forwarded without shell concatenation. Structured start/stdout/stderr/result events preserve bounded output and correlation. Launch failures are sanitized. Caller cancellation and early iterator disposal terminate only the owned process tree before propagation/disposal.
+
+## Closure boundary
+
+No owner-only evidence is required. This task closure does not close P09 by itself. P09 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN` until the dedicated phase-exit gate passes and canonical phase closure is integrated. P10 and later implementation remain prohibited until a separate legal activation transition.
+'''
+          ev8 = f'''# FCCD-P09-008 — Integrated Reconciliation Evidence
+
+Date: 2026-09-08
+Task: `FCCD-P09-008 — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling`
+Canonical state claimed by this reconciliation: `CLOSED`
+
+## Implementation and integration
+
+- Implementation PR: #226 (`worker/fccd-p09-008-optional-protocol-seam`).
+- Accepted implementation head: `4c1a8850775de561167765a06b886b7ac990495c`.
+- Exact-head Windows CI `34191080131` / #620 — SUCCESS.
+- Exact-head Workspace Search `34191080073` / #349 — SUCCESS.
+- Exact-head Large Workspace Safeguards `34191080038` / #333 — SUCCESS.
+- Normal merge: `ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8`.
+- Exact immediate implementation-main Windows CI `34192160905` / #629 — SUCCESS.
+- Exact immediate implementation-main Workspace Search `34192160895` / #358 — SUCCESS.
+- Exact immediate implementation-main Large Workspace Safeguards `34192160856` / #342 — SUCCESS.
+- Final combined implementation main `{candidate}` passed Windows CI `34192825959` / #630, Workspace Search `34192826049` / #359, and Large Workspace Safeguards `34192825878` / #343.
+
+## Accepted boundary
+
+The seam exposes protocol identity, immutable project-scoped bindings, factories returning the existing `IExternalToolAdapter`, and an optional immutable registry. Empty registry is valid. Protocol-specific SDK, transport and RPC types (including DAP/MCP-specific types) remain outside core orchestration. Case-insensitive registration/lookup and duplicate/invalid input handling are covered by focused tests.
+
+## Closure boundary
+
+No owner-only evidence is required. This task closure does not close P09 by itself. P09 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN` until the dedicated phase-exit gate passes and canonical phase closure is integrated. P10 and later implementation remain prohibited until a separate legal activation transition.
+'''
+          (evidence_dir / "P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md").write_text(ev7, encoding="utf-8")
+          (evidence_dir / "P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md").write_text(ev8, encoding="utf-8")
+          PY
+
+          grep -F 'FCCD-P09-007` — CLI/process generic adapter primitives — CLOSED.' CURRENT_PHASE.md
+          grep -F 'FCCD-P09-008` — Optional protocol adapter seam (DAP/MCP/etc.) without core coupling — CLOSED.' CURRENT_PHASE.md
+          grep -E '^\| FCCD-P09-00[1-8] .*\| CLOSED \|$' docs/TASK_LEDGER.md | tee /tmp/p09-closed.txt
+          test "$(wc -l < /tmp/p09-closed.txt)" -eq 8
+          grep -F 'CURRENT_PHASE_STATE: IN_PROGRESS' CURRENT_PHASE.md
+          grep -F 'PHASE_EXIT_GATE: NOT_RUN' CURRENT_PHASE.md
+          git diff --check
+
+      - name: Commit durable reconciliation only
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/p09-final-reconciliation-bootstrap.yml
+          git config user.name "walidatiyaai2025-gif"
+          git config user.email "walidatiyaai2025@gmail.com"
+          git add CURRENT_PHASE.md docs/TASK_LEDGER.md evidence/phases/P09/P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md evidence/phases/P09/P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md .github/workflows/p09-final-reconciliation-bootstrap.yml
+          git diff --cached --check
+          git commit -m "P09: reconcile final integrated task closures"
+          git push origin HEAD:reconcile/fccd-p09-final-integrated-closures
