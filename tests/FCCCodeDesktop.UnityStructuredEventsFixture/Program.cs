@@ -88,7 +88,7 @@ static UnityEditorAutomationValidationResult CreateAutomationResult(
 {
     var constructor = typeof(UnityEditorAutomationValidationResult)
         .GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
-        .Single();
+        .Single(static candidate => candidate.GetParameters().Length == 10);
     return (UnityEditorAutomationValidationResult)constructor.Invoke(new object?[]
     {
         status,
@@ -114,7 +114,7 @@ static UnityBuildTargetValidationResult CreateBuildResult(
 {
     var constructor = typeof(UnityBuildTargetValidationResult)
         .GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
-        .Single();
+        .Single(static candidate => candidate.GetParameters().Length == 8);
     return (UnityBuildTargetValidationResult)constructor.Invoke(new object?[]
     {
         status,
