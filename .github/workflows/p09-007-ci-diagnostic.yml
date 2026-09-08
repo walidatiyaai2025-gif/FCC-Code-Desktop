@@ -4,13 +4,14 @@ on:
   push:
     branches:
       - diagnostic/p09-007-ci
+    paths-ignore:
+      - evidence/diagnostics/**
 
 permissions:
   contents: write
 
 jobs:
   diagnose:
-    if: github.event.head_commit.message != 'ci(p09-007): capture diagnosis'
     runs-on: windows-2025
     timeout-minutes: 15
     steps:
@@ -31,25 +32,26 @@ jobs:
           $resultPath = 'evidence/diagnostics/P09_007_CI_DIAGNOSIS.txt'
           New-Item -ItemType Directory -Force (Split-Path $resultPath) | Out-Null
 
-          function Invoke-Stage {
-              param(
-                  [string]$Name,
-                  [scriptblock]$Action
-              )
+          function Save-Failure {
+              param([string]$Name, [int]$Code, [string[]]$Output)
+              $tail = $Output | Select-Object -Last 180
+              $lines = @(
+                  "SOURCE_SHA=$env:GITHUB_SHA",
+                  "FAILED_STAGE=$Name",
+                  "EXIT_CODE=$Code",
+                  '--- OUTPUT TAIL ---'
+              ) + $tail
+              $lines | Set-Content -LiteralPath $resultPath -Encoding utf8
+          }
 
+          function Invoke-Stage {
+              param([string]$Name, [scriptblock]$Action)
               $output = @(& $Action 2>&1 | ForEach-Object { $_.ToString() })
               $code = $LASTEXITCODE
               if ($code -ne 0) {
-                  $tail = $output | Select-Object -Last 180
-                  @(
-                      "SOURCE_SHA=$env:GITHUB_SHA",
-                      "FAILED_STAGE=$Name",
-                      "EXIT_CODE=$code",
-                      '--- OUTPUT TAIL ---'
-                  ) + $tail | Set-Content -LiteralPath $resultPath -Encoding utf8
+                  Save-Failure -Name $Name -Code $code -Output $output
                   return $false
               }
-
               return $true
           }
 
