@@ -290,7 +290,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - Exact accepted-main P06-008 Large Workspace Safeguards: run `34161963867` / #268 — SUCCESS.
 - Exact accepted-main P08-007 Interactive Terminal UX: run `34161963864` / #4 — SUCCESS.
 - Integrated evidence: `evidence/phases/P08/P08_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
-- Coverage includes Bottom Tool Panel composition without weakening the P02 shell contract, typed ConPTY shell launch, UTF-8 input/output, Ctrl+C copy-versus-interrupt semantics, Ctrl+V paste and navigation sequences, debounced resize work, bounded/coalesced high-output presentation, ANSI SGR color rendering, and safe async window-close disposal. No owner-only evidence is required or added.
+- Coverage includes Bottom Tool Panel composition without weakening the P02 shell contract, typed ConPTY shell launch, UTF-8 input/output, Ctrl+C copy-versus-interrupt semantics, Ctrl+V paste and navigation sequences, debounced resize, bounded/coalesced high-output presentation, ANSI SGR color rendering, and safe async window-close disposal. No owner-only evidence is required or added.
 - P08 remains `IN_PROGRESS`; only `FCCD-P08-008` remains PENDING. `PHASE_EXIT_GATE=NOT_RUN`, P09 and later phases remain prohibited, and `VERIFIED_FINAL_COMPLETE=false`.
 
 ## P07 cloud task inventory
