@@ -351,7 +351,7 @@ public sealed class UnityLogCaptureReader : IUnityLogCaptureReader
                 var value = buffer[index];
                 if (value != (byte)'\n')
                 {
-                    if (pending.Count < _options.MaxLineUtf8Bytes)
+                    if (RetainedContentByteCount(pending) < _options.MaxLineUtf8Bytes)
                     {
                         pending.Add(value);
                     }
@@ -412,6 +412,15 @@ public sealed class UnityLogCaptureReader : IUnityLogCaptureReader
             consumedUtf8Bytes: byteOffset - initialOffset);
     }
 
+    private static int RetainedContentByteCount(List<byte> pending) =>
+        pending.Count - (HasUtf8Bom(pending) ? 3 : 0);
+
+    private static bool HasUtf8Bom(List<byte> pending) =>
+        pending.Count >= 3 &&
+        pending[0] == 0xEF &&
+        pending[1] == 0xBB &&
+        pending[2] == 0xBF;
+
     private static UnityLogEntry CreateEntry(
         long sequence,
         List<byte> pending,
@@ -424,12 +433,7 @@ public sealed class UnityLogCaptureReader : IUnityLogCaptureReader
             count--;
         }
 
-        var start = count >= 3 &&
-                    pending[0] == 0xEF &&
-                    pending[1] == 0xBB &&
-                    pending[2] == 0xBF
-            ? 3
-            : 0;
+        var start = HasUtf8Bom(pending) ? 3 : 0;
         var bytes = pending.GetRange(start, count - start).ToArray();
         string text;
         var hadEncodingErrors = false;
