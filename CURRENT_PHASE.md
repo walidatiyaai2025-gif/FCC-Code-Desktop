@@ -95,7 +95,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-004` — Unity process/project resource locking — CLOSED.
 - `FCCD-P10-005` — Dedicated Unity log capture/parser — CLOSED.
 - `FCCD-P10-006` — Compile validation — CLOSED.
-- `FCCD-P10-007` — EditMode test integration — PENDING.
+- `FCCD-P10-007` — EditMode test integration — CLOSED.
 - `FCCD-P10-008` — PlayMode test integration — PENDING.
 - `FCCD-P10-009` — Project-owned Editor automation invocation — PENDING.
 - `FCCD-P10-010` — Build target execution/artifact validation — PENDING.
@@ -973,3 +973,17 @@ PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged fr
 - Deterministic fixture acceptance covers success/warnings, exit-zero compiler failure, explicit failure markers, process/launch/cancellation/forced-termination outcomes, missing/empty/non-finalized/gapped/reset/truncated/invalid-UTF8 evidence, bounded diagnostics, snapshot immutability, and operation guards.
 - No owner-only evidence is required or added for P10-006. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.
 - P10 remains `IN_PROGRESS`; `FCCD-P10-007` through `FCCD-P10-013` remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
+
+
+---
+
+## P10-007 integration provenance
+
+- Task: `FCCD-P10-007 — EditMode test integration` — `CLOSED`.
+- Live hint `FCCD-P20-007 — Freeze exact release candidate SHA` remained future and was not executed because `CURRENT_PHASE=P10`. Recovery-first execution continued the legitimate P10-007 integration lane instead.
+- Implementation PR #247; exact accepted candidate `d5c9c7c780cf0a05a46ab69d3520ad5183b95cce`. Candidate checks: P10-007 `34237835082`, Windows CI `34237835044`, Workspace Search `34237835184`, Large Workspace `34237835056` — all SUCCESS.
+- Normal implementation merge / exact implementation main: `cf8f2ef42459b11157107ee46d4319592a19ba70`. Exact-main checks: P10-007 `34239031180`, Windows CI `34239031262`, Workspace Search `34239031249`, Large Workspace `34239031144` — all SUCCESS.
+- The initial fixture-only failed-node ordering assumption was repaired on the same lane with order-independent assertions while retaining the 100-detail, 4096-character message and 8192-character stack bounds. No suppression, warning demotion, test deletion, force-push, or safety weakening was used; temporary repair orchestration is absent from the durable implementation diff.
+- Cloud evidence: `evidence/phases/P10/P10_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+- No new owner-only evidence is required. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.
+- P10 remains `IN_PROGRESS`; P10-008 through P10-013 remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
