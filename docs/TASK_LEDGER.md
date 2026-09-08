@@ -263,6 +263,9 @@ P08 is canonically CLOSED at the phase level on immutable candidate `bb372da0a45
 | FCCD-P09-006 | Tool diagnostics/health framework | CLOSED |
 | FCCD-P09-007 | CLI/process generic adapter primitives | CLOSED |
 | FCCD-P09-008 | Optional protocol adapter seam (DAP/MCP/etc.) without core coupling | CLOSED |
+<!-- P09-CANONICAL-PHASE-CLOSURE -->
+All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure candidate `499b042f93efe764465aa1d2ea0f2d0c62188a4b` passed Windows CI `34195027792`, Workspace Search `34195027743`, Large Workspace Safeguards `34195027756`, and dedicated P09 exit run `34195027724`; canonical phase closure is `evidence/phases/P09/CLOSURE.md`. P09 is `CLOSED` with `PHASE_EXIT_GATE=PASS`; P10 remains inactive until a separate governance transition is integrated and exact-main verified.
+
 
 `FCCD-P09-001` is CLOSED from the project-owned external-tool adapter contract integrated in PR #214. Exact accepted implementation candidate `1f33b646deecdb471741ddc406e998c8a5f97da5` passed Windows CI `34169157466`, P06-007 Workspace Search `34169157495`, and P06-008 Large Workspace Safeguards `34169157524`. PR #214 was normally merged as `44dbee3107d4fd3a410629fb72fec5978440683b`; exact implementation-main Windows CI `34169744778`, Workspace Search `34169744791`, and Large Workspace Safeguards `34169744771` all completed SUCCESS. Task evidence: `evidence/phases/P09/P09_001_INTEGRATED_RECONCILIATION_2026-09-08.md`. The contract owns adapter identity, project context, discovery/capability/streamed execution seams, and cancellation propagation only; it does not take P09-002 through P09-008 ownership. No owner-only evidence is required. P09 remains `IN_PROGRESS`, `PHASE_EXIT_GATE=NOT_RUN`, P10 and later implementation remain prohibited, `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item, and `VERIFIED_FINAL_COMPLETE=false`.
 
@@ -446,9 +449,9 @@ P08 is canonically CLOSED at the phase level on immutable candidate `bb372da0a45
 
 ## Current next action
 
-`CURRENT_PHASE = P08` is canonically `CLOSED` in this closure state. `FCCD-P08-001` through `FCCD-P08-008` are CLOSED, dedicated exact-candidate phase-exit run `34165022901` / job `101874255929` is `SUCCESS`, and `PHASE_EXIT_GATE=PASS`. Canonical phase evidence is `evidence/phases/P08/CLOSURE.md`.
+`CURRENT_PHASE = P09` is canonically `CLOSED` in this closure state. `FCCD-P09-001` through `FCCD-P09-008` are CLOSED, exact candidate Windows CI `34195027792`, Workspace Search `34195027743`, Large Workspace Safeguards `34195027756`, and dedicated P09 exit run `34195027724` are `SUCCESS`, and `PHASE_EXIT_GATE=PASS`. Canonical phase evidence is `evidence/phases/P09/CLOSURE.md`.
 
-Normally merge this P08 closure state/evidence and require the resulting exact canonical `main` to remain green. Only then may a separate governance transition activate `CURRENT_PHASE=P09`. Do not implement P09 or any later phase inside this closure change. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep P05 `PASS_INTEGRATED`, and keep `VERIFIED_FINAL_COMPLETE=false`.
+Normally merge this P09 closure state/evidence and require the resulting exact canonical `main` to remain green. Only then may a separate governance transition activate `CURRENT_PHASE=P10`. Do not implement P10 or any later phase inside this closure change. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep P05 `PASS_INTEGRATED`, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.
 <!-- FCCD-P08-004-FINAL-CLOSURE-PROVENANCE -->
 ## FCCD-P08-004 final canonical closure provenance
 
