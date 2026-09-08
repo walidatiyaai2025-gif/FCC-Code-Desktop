@@ -279,7 +279,7 @@ All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure cand
 |---|---|---|
 | FCCD-P10-001 | Unity project/version detector | PENDING |
 | FCCD-P10-002 | Unity install/Hub editor resolver | PENDING |
-| FCCD-P10-003 | Strongly typed Unity CLI command builder | PENDING |
+| FCCD-P10-003 | Strongly typed Unity CLI command builder | CLOSED |
 | FCCD-P10-004 | Unity process/project resource locking | PENDING |
 | FCCD-P10-005 | Dedicated Unity log capture/parser | PENDING |
 | FCCD-P10-006 | Compile validation | PENDING |
