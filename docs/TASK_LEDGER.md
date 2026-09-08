@@ -281,7 +281,7 @@ All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure cand
 | FCCD-P10-002 | Unity install/Hub editor resolver | CLOSED |
 | FCCD-P10-003 | Strongly typed Unity CLI command builder | CLOSED |
 | FCCD-P10-004 | Unity process/project resource locking | CLOSED |
-| FCCD-P10-005 | Dedicated Unity log capture/parser | PENDING |
+| FCCD-P10-005 | Dedicated Unity log capture/parser | CLOSED |
 | FCCD-P10-006 | Compile validation | PENDING |
 | FCCD-P10-007 | EditMode test integration | PENDING |
 | FCCD-P10-008 | PlayMode test integration | PENDING |
@@ -454,7 +454,7 @@ All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure cand
 
 ## Current next action
 
-`CURRENT_PHASE = P10` is the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-004` are CLOSED after normal implementation integration, exact implementation-main validation, and durable task reconciliation; `FCCD-P10-005` through `FCCD-P10-013` remain PENDING. After this P10-004 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-005 — Dedicated Unity log capture/parser` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.
+`CURRENT_PHASE = P10` remains the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-005` are CLOSED after normal implementation integration, exact implementation-main validation, and durable task reconciliation; `FCCD-P10-006` through `FCCD-P10-013` remain PENDING. After this P10-005 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-006 — Compile validation` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.
 <!-- FCCD-P08-004-FINAL-CLOSURE-PROVENANCE -->
 ## FCCD-P08-004 final canonical closure provenance
 
