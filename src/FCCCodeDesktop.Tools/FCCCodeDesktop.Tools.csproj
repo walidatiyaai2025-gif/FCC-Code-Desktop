@@ -6,6 +6,5 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\FCCCodeDesktop.Core\FCCCodeDesktop.Core.csproj" />
-    <ProjectReference Include="..\FCCCodeDesktop.Runtime\FCCCodeDesktop.Runtime.csproj" />
   </ItemGroup>
 </Project>
