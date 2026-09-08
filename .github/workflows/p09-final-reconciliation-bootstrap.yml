@@ -9,14 +9,10 @@ permissions:
   contents: write
   actions: read
 
-concurrency:
-  group: p09-final-integrated-reconciliation-bootstrap
-  cancel-in-progress: true
-
 jobs:
   reconcile:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     env:
       GH_TOKEN: ${{ github.token }}
       CANDIDATE: 864ed7842b9412f9cafccf89e1b5ae420f557b18
@@ -24,187 +20,36 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 2
-
-      - name: Guard accepted implementation main
+      - name: Guard exact accepted main
         shell: bash
         run: |
           set -euo pipefail
           for run in 34192825959 34192826049 34192825878; do
-            status=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}" --jq '.status')
-            conclusion=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${run}" --jq '.conclusion // ""')
-            echo "run=${run} status=${status} conclusion=${conclusion}"
-            test "$status" = "completed"
-            test "$conclusion" = "success"
+            test "$(gh api repos/${GITHUB_REPOSITORY}/actions/runs/${run} --jq .status)" = completed
+            test "$(gh api repos/${GITHUB_REPOSITORY}/actions/runs/${run} --jq .conclusion)" = success
           done
-          main_sha=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')
-          test "$main_sha" = "$CANDIDATE"
-
-      - name: Reconcile final P09 task state and evidence
+          test "$(gh api repos/${GITHUB_REPOSITORY}/git/ref/heads/main --jq .object.sha)" = "$CANDIDATE"
+      - name: Reconcile rows and evidence
         shell: bash
         run: |
           set -euo pipefail
-          cat > /tmp/reconcile_p09.py <<'PY'
-          # -*- coding: utf-8 -*-
-          from pathlib import Path
-
-          candidate = "864ed7842b9412f9cafccf89e1b5ae420f557b18"
-          current_path = Path("CURRENT_PHASE.md")
-          ledger_path = Path("docs/TASK_LEDGER.md")
-          current = current_path.read_text(encoding="utf-8")
-          ledger = ledger_path.read_text(encoding="utf-8")
-
-          for fragment in (
-              "CURRENT_PHASE: P09",
-              "CURRENT_PHASE_STATE: IN_PROGRESS",
-              "NEXT_PHASE: P10",
-              "PHASE_EXIT_GATE: NOT_RUN",
-          ):
-              if fragment not in current:
-                  raise SystemExit("CURRENT_PHASE guard missing: " + fragment)
-
-          def close_current_task(text, task_id):
-              lines = text.splitlines(keepends=True)
-              matches = 0
-              prefix = "- `" + task_id + "`"
-              for index, line in enumerate(lines):
-                  if line.startswith(prefix) and "PENDING." in line:
-                      lines[index] = line.replace("PENDING.", "CLOSED.", 1)
-                      matches += 1
-              if matches != 1:
-                  raise SystemExit(f"Expected one CURRENT_PHASE PENDING row for {task_id}, found {matches}")
-              return "".join(lines)
-
-          def close_ledger_task(text, task_id):
-              lines = text.splitlines(keepends=True)
-              matches = 0
-              prefix = "| " + task_id + " |"
-              for index, line in enumerate(lines):
-                  if line.startswith(prefix) and "| PENDING |" in line:
-                      lines[index] = line.replace("| PENDING |", "| CLOSED |", 1)
-                      matches += 1
-              if matches != 1:
-                  raise SystemExit(f"Expected one TASK_LEDGER PENDING row for {task_id}, found {matches}")
-              return "".join(lines)
-
-          current = close_current_task(current, "FCCD-P09-007")
-          current = close_current_task(current, "FCCD-P09-008")
-          ledger = close_ledger_task(ledger, "FCCD-P09-007")
-          ledger = close_ledger_task(ledger, "FCCD-P09-008")
-
-          current_anchor = "## P08 cloud task inventory"
-          if current_anchor not in current:
-              raise SystemExit("CURRENT_PHASE insertion anchor missing")
-          provenance = f"""## P09-007 integration provenance
-
-- Task: `FCCD-P09-007 - CLI/process generic adapter primitives` - `CLOSED` in this reconciliation candidate.
-- Implementation PR: #227 (`worker/fccd-p09-007-cli-process-primitives`).
-- Exact accepted implementation candidate: `7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84`.
-- Exact implementation-head Windows CI: run `34191859920` / #628 - SUCCESS.
-- Exact implementation-head P06-007 Workspace Search: run `34191859912` / #357 - SUCCESS.
-- Exact implementation-head P06-008 Large Workspace Safeguards: run `34191859939` / #341 - SUCCESS.
-- Normal implementation merge / final combined implementation main: `{candidate}`.
-- Exact implementation-main Windows CI: run `34192825959` / #630 - SUCCESS.
-- Exact implementation-main P06-007 Workspace Search: run `34192826049` / #359 - SUCCESS.
-- Exact implementation-main P06-008 Large Workspace Safeguards: run `34192825878` / #343 - SUCCESS.
-- Accepted layering keeps provider-neutral tool contracts in `FCCCodeDesktop.Tools` while the process-supervisor composition remains in `FCCCodeDesktop.Application`; discrete argv/environment/working-directory semantics, bounded structured output, sanitized launch failures, durable correlation, and owned-tree-only cancellation are preserved.
-- Integrated evidence: `evidence/phases/P09/P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
-- No owner-only evidence is required or added.
-
-## P09-008 integration provenance
-
-- Task: `FCCD-P09-008 - Optional protocol adapter seam without core coupling` - `CLOSED` in this reconciliation candidate.
-- Implementation PR: #226 (`worker/fccd-p09-008-optional-protocol-seam`).
-- Exact accepted implementation candidate: `4c1a8850775de561167765a06b886b7ac990495c`.
-- Exact implementation-head Windows CI: run `34191080131` / #620 - SUCCESS.
-- Exact implementation-head P06-007 Workspace Search: run `34191080073` / #349 - SUCCESS.
-- Exact implementation-head P06-008 Large Workspace Safeguards: run `34191080038` / #333 - SUCCESS.
-- Normal implementation merge: `ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8`.
-- Exact immediate implementation-main Windows CI: run `34192160905` / #629 - SUCCESS.
-- Exact immediate implementation-main P06-007 Workspace Search: run `34192160895` / #358 - SUCCESS.
-- Exact immediate implementation-main P06-008 Large Workspace Safeguards: run `34192160856` / #342 - SUCCESS.
-- Final combined implementation main `{candidate}` also passed Windows CI `34192825959` / #630, Workspace Search `34192826049` / #359, and Large Workspace Safeguards `34192825878` / #343.
-- The seam remains optional and provider-neutral; protocol-specific SDK, transport, and RPC types remain outside core orchestration.
-- Integrated evidence: `evidence/phases/P09/P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
-- No owner-only evidence is required or added.
-
-"""
-          if "## P09-007 integration provenance" not in current:
-              current = current.replace(current_anchor, provenance + current_anchor, 1)
-
-          p10_index = ledger.find("## P10")
-          if p10_index < 0:
-              raise SystemExit("TASK_LEDGER P10 insertion anchor missing")
-          ledger_note = f"""`FCCD-P09-007` is CLOSED from the generic CLI/process gateway primitives integrated in PR #227. Exact implementation head `7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84` passed Windows CI `34191859920`, Workspace Search `34191859912`, and Large Workspace Safeguards `34191859939`. PR #227 was normally merged as `{candidate}`; that exact combined implementation main passed Windows CI `34192825959`, Workspace Search `34192826049`, and Large Workspace Safeguards `34192825878`. Task evidence: `evidence/phases/P09/P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md`.
-
-`FCCD-P09-008` is CLOSED from the optional provider-neutral protocol adapter seam integrated in PR #226. Exact implementation head `4c1a8850775de561167765a06b886b7ac990495c` passed Windows CI `34191080131`, Workspace Search `34191080073`, and Large Workspace Safeguards `34191080038`. PR #226 was normally merged as `ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8`; exact immediate main #629/#358/#342 and final combined main #630/#359/#343 all passed. Task evidence: `evidence/phases/P09/P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md`.
-
-All eight mandatory P09 task rows are CLOSED in this reconciliation candidate. P09 remains `IN_PROGRESS` with `PHASE_EXIT_GATE=NOT_RUN`; P10 remains prohibited until the dedicated P09 exit gate and canonical phase closure complete.
-
-"""
-          if "`FCCD-P09-007` is CLOSED from the generic CLI/process gateway primitives" not in ledger:
-              ledger = ledger[:p10_index] + ledger_note + ledger[p10_index:]
-
-          current_path.write_text(current, encoding="utf-8")
-          ledger_path.write_text(ledger, encoding="utf-8")
-
-          evidence_dir = Path("evidence/phases/P09")
-          evidence_dir.mkdir(parents=True, exist_ok=True)
-          evidence7 = f"""# FCCD-P09-007 - Integrated Reconciliation Evidence
-
-Date: 2026-09-08
-Task: `FCCD-P09-007 - CLI/process generic adapter primitives`
-Canonical state claimed by this reconciliation: `CLOSED`
-
-## Verification
-
-- Implementation PR #227; exact head `7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84`.
-- Exact-head Windows `34191859920`, Workspace `34191859912`, Large `34191859939`: SUCCESS.
-- Normal merge / final combined implementation main `{candidate}`.
-- Exact-main Windows `34192825959`, Workspace `34192826049`, Large `34192825878`: SUCCESS.
-
-## Boundary
-
-The implementation reuses the P08 process supervisor rather than creating a second process owner. Tool-facing contracts remain provider-neutral. Arguments, environment, and working directory remain structured; output is bounded and structured; failures are sanitized; cancellation and early iterator disposal terminate only the owned process tree.
-
-No owner-only evidence is required. P09 itself remains IN_PROGRESS until its dedicated exit gate passes and canonical closure is integrated.
-"""
-          evidence8 = f"""# FCCD-P09-008 - Integrated Reconciliation Evidence
-
-Date: 2026-09-08
-Task: `FCCD-P09-008 - Optional protocol adapter seam without core coupling`
-Canonical state claimed by this reconciliation: `CLOSED`
-
-## Verification
-
-- Implementation PR #226; exact head `4c1a8850775de561167765a06b886b7ac990495c`.
-- Exact-head Windows `34191080131`, Workspace `34191080073`, Large `34191080038`: SUCCESS.
-- Normal merge `ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8`.
-- Exact immediate main Windows `34192160905`, Workspace `34192160895`, Large `34192160856`: SUCCESS.
-- Final combined implementation main `{candidate}` passed Windows `34192825959`, Workspace `34192826049`, Large `34192825878`: SUCCESS.
-
-## Boundary
-
-The seam is optional and provider-neutral. Protocol identity/binding/factory contracts return the existing `IExternalToolAdapter` boundary; protocol-specific SDK, transport, and RPC types remain outside core orchestration.
-
-No owner-only evidence is required. P09 itself remains IN_PROGRESS until its dedicated exit gate passes and canonical closure is integrated.
-"""
-          (evidence_dir / "P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md").write_text(evidence7, encoding="utf-8")
-          (evidence_dir / "P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md").write_text(evidence8, encoding="utf-8")
-          PY
-          python /tmp/reconcile_p09.py
+          python -c 'from pathlib import Path; p=Path("CURRENT_PHASE.md"); s=p.read_text(encoding="utf-8"); lines=s.splitlines(True); ids=("FCCD-P09-007","FCCD-P09-008"); found={x:0 for x in ids}; out=[]; [(out.append(line.replace("PENDING.","CLOSED.",1)) if any(line.startswith("- `"+x+"`") and "PENDING." in line and not found.__setitem__(x,found[x]+1) for x in ids) else out.append(line)) for line in lines]; assert all(found[x]==1 for x in ids),found; p.write_text("".join(out),encoding="utf-8")'
+          python -c 'from pathlib import Path; p=Path("docs/TASK_LEDGER.md"); s=p.read_text(encoding="utf-8"); lines=s.splitlines(True); ids=("FCCD-P09-007","FCCD-P09-008"); found={x:0 for x in ids}; out=[]; exec("for line in lines:\n m=None\n for x in ids:\n  if line.startswith(\"| \"+x+\" |\") and \"| PENDING |\" in line: m=x; break\n if m:\n  found[m]+=1; line=line.replace(\"| PENDING |\",\"| CLOSED |\",1)\n out.append(line)"); assert all(found[x]==1 for x in ids),found; p.write_text("".join(out),encoding="utf-8")'
+          mkdir -p evidence/phases/P09
+          printf '%s\n' '# FCCD-P09-007 Integrated Reconciliation' '' 'Canonical state: CLOSED' 'Implementation PR: #227' 'Exact head: 7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84' 'Exact-head gates: Windows 34191859920 SUCCESS; Workspace 34191859912 SUCCESS; Large 34191859939 SUCCESS.' 'Normal merge / combined implementation main: 864ed7842b9412f9cafccf89e1b5ae420f557b18' 'Exact-main gates: Windows 34192825959 SUCCESS; Workspace 34192826049 SUCCESS; Large 34192825878 SUCCESS.' 'No owner-only evidence is required. P09 remains IN_PROGRESS until phase exit and closure.' > evidence/phases/P09/P09_007_INTEGRATED_RECONCILIATION_2026-09-08.md
+          printf '%s\n' '# FCCD-P09-008 Integrated Reconciliation' '' 'Canonical state: CLOSED' 'Implementation PR: #226' 'Exact head: 4c1a8850775de561167765a06b886b7ac990495c' 'Exact-head gates: Windows 34191080131 SUCCESS; Workspace 34191080073 SUCCESS; Large 34191080038 SUCCESS.' 'Normal merge: ead2676ab1027f28ca73b8318fdb5dd28c0cf9a8' 'Immediate exact-main gates: Windows 34192160905 SUCCESS; Workspace 34192160895 SUCCESS; Large 34192160856 SUCCESS.' 'Combined implementation main 864ed7842b9412f9cafccf89e1b5ae420f557b18: Windows 34192825959 SUCCESS; Workspace 34192826049 SUCCESS; Large 34192825878 SUCCESS.' 'No owner-only evidence is required. P09 remains IN_PROGRESS until phase exit and closure.' > evidence/phases/P09/P09_008_INTEGRATED_RECONCILIATION_2026-09-08.md
           test "$(grep -E '^\| FCCD-P09-00[1-8] .*\| CLOSED \|$' docs/TASK_LEDGER.md | wc -l)" -eq 8
           grep -F 'CURRENT_PHASE_STATE: IN_PROGRESS' CURRENT_PHASE.md
           grep -F 'PHASE_EXIT_GATE: NOT_RUN' CURRENT_PHASE.md
           git diff --check
-
-      - name: Commit durable reconciliation only
+      - name: Commit durable reconciliation
         shell: bash
         run: |
           set -euo pipefail
           rm .github/workflows/p09-final-reconciliation-bootstrap.yml
-          git config user.name "walidatiyaai2025-gif"
-          git config user.email "walidatiyaai2025@gmail.com"
+          git config user.name walidatiyaai2025-gif
+          git config user.email walidatiyaai2025@gmail.com
           git add -A
           git diff --cached --check
-          git commit -m "P09: reconcile final integrated task closures"
+          git commit -m 'P09: reconcile final integrated task closures'
           git push origin HEAD:reconcile/fccd-p09-final-integrated-closures
