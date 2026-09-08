@@ -1,0 +1,45 @@
+name: P10-002 Unity Editor Resolution
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorResolution.cs'
+      - 'tests/FCCCodeDesktop.UnityEditorResolutionFixture/**'
+      - 'tools/unity/validate-unity-editor-resolution.ps1'
+      - '.github/workflows/p10-002-unity-editor-resolution.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/FCCCodeDesktop.Tools.Unity/UnityEditorResolution.cs'
+      - 'tests/FCCCodeDesktop.UnityEditorResolutionFixture/**'
+      - 'tools/unity/validate-unity-editor-resolution.ps1'
+      - '.github/workflows/p10-002-unity-editor-resolution.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p10-002-unity-editor-resolution-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Unity Editor Resolution Validation
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Validate Unity editor resolution
+        shell: pwsh
+        run: .\tools\unity\validate-unity-editor-resolution.ps1
