@@ -2,6 +2,8 @@ using System.Text.Json;
 using FCCCodeDesktop.Tools;
 using FCCCodeDesktop.Tools.Unity;
 
+const string MethodName = "Company.Tools.Automation.Run";
+
 var failures = new List<string>();
 await RunAsync("Typed Editor automation argv and correlation", TypedInvocationContractAsync, failures);
 await RunAsync("Automation-owned switch injection rejected", OwnedSwitchInjectionRejectedAsync, failures);
@@ -42,10 +44,13 @@ static Task TypedInvocationContractAsync()
         "semi;colon&pipe|literal",
         "عربي-✓",
     };
-    var correlation = new ToolProcessCorrelation(taskId: taskId, operationId: operationId);
-    var plan = CreatePlan(scope, operationId, extras, correlation);
-
+    var plan = CreatePlan(
+        scope,
+        operationId,
+        extras,
+        new ToolProcessCorrelation(taskId: taskId, operationId: operationId));
     var invocation = RequireUnityInvocation(plan.ProcessRequest);
+
     Equal("unity.execute-method", invocation.Operation, "operation identity");
     Equal(operationId, plan.OperationId, "plan operation identity");
     Equal(MethodName, plan.MethodName, "plan method name");
@@ -65,8 +70,7 @@ static Task TypedInvocationContractAsync()
     extras[1] = "mutated";
     extras.Add("unexpected");
     True(invocation.Arguments.Contains("value with spaces", StringComparer.Ordinal), "snapshotted argument missing");
-    True(!invocation.Arguments.Contains("mutated", StringComparer.Ordinal), "mutable caller argument leaked into invocation");
-
+    True(!invocation.Arguments.Contains("mutated", StringComparer.Ordinal), "mutable caller argument leaked");
     return Task.CompletedTask;
 }
 
@@ -93,7 +97,6 @@ static Task OwnedSwitchInjectionRejectedAsync()
             operationId,
             correlation: new ToolProcessCorrelation(operationId: Guid.NewGuid())),
         "mismatched operation correlation");
-
     return Task.CompletedTask;
 }
 
@@ -108,7 +111,6 @@ static async Task FreshMatchingResultSucceedsAsync()
 
     await WriteResultAsync(scope.ResultPath, operationId, MethodName, "succeeded", "automation complete");
     var result = await validator.ValidateAsync(SucceededProcess(), plan, baseline);
-
     Equal(UnityEditorAutomationValidationStatus.Succeeded, result.Status, "validation status");
     Equal(UnityEditorAutomationFailureKind.None, result.FailureKind, "failure kind");
     Equal(UnityEditorAutomationReportedStatus.Succeeded, result.ReportedStatus, "reported status");
@@ -125,57 +127,48 @@ static async Task StaleResultRejectedAsync()
     var operationId = Guid.NewGuid();
     var plan = CreatePlan(scope, operationId);
     var validator = new UnityEditorAutomationValidator();
-
     await WriteResultAsync(scope.ResultPath, operationId, MethodName, "succeeded", "old evidence");
     var baseline = await validator.CaptureBaselineAsync(scope.ResultPath);
-    True(baseline.Existed, "stale fixture baseline should exist");
-
     var result = await validator.ValidateAsync(SucceededProcess(), plan, baseline);
-    Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "stale validation status");
-    Equal(UnityEditorAutomationFailureKind.StaleResultArtifact, result.FailureKind, "stale failure kind");
+    Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "stale status");
+    Equal(UnityEditorAutomationFailureKind.StaleResultArtifact, result.FailureKind, "stale kind");
 }
 
 static async Task MissingResultRejectedAsync()
 {
     using var scope = new FixtureScope("Missing Result");
-    var operationId = Guid.NewGuid();
-    var plan = CreatePlan(scope, operationId);
+    var plan = CreatePlan(scope, Guid.NewGuid());
     var validator = new UnityEditorAutomationValidator();
     var baseline = await validator.CaptureBaselineAsync(scope.ResultPath);
-
     var result = await validator.ValidateAsync(SucceededProcess(), plan, baseline);
-    Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "missing result status");
-    Equal(UnityEditorAutomationFailureKind.ResultArtifactUnavailable, result.FailureKind, "missing result failure kind");
+    Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "missing status");
+    Equal(UnityEditorAutomationFailureKind.ResultArtifactUnavailable, result.FailureKind, "missing kind");
 }
 
 static async Task MalformedAndOversizedResultsRejectedAsync()
 {
     using (var scope = new FixtureScope("Malformed Result"))
     {
-        var operationId = Guid.NewGuid();
-        var plan = CreatePlan(scope, operationId);
+        var plan = CreatePlan(scope, Guid.NewGuid());
         var validator = new UnityEditorAutomationValidator();
         var baseline = await validator.CaptureBaselineAsync(scope.ResultPath);
         await File.WriteAllTextAsync(scope.ResultPath, "{ not-json");
-
         var result = await validator.ValidateAsync(SucceededProcess(), plan, baseline);
-        Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "malformed result status");
-        Equal(UnityEditorAutomationFailureKind.ResultMalformed, result.FailureKind, "malformed result failure kind");
+        Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "malformed status");
+        Equal(UnityEditorAutomationFailureKind.ResultMalformed, result.FailureKind, "malformed kind");
     }
 
     using (var scope = new FixtureScope("Oversized Result"))
     {
-        var operationId = Guid.NewGuid();
-        var plan = CreatePlan(scope, operationId);
+        var plan = CreatePlan(scope, Guid.NewGuid());
         var validator = new UnityEditorAutomationValidator();
         var baseline = await validator.CaptureBaselineAsync(scope.ResultPath);
         await File.WriteAllTextAsync(
             scope.ResultPath,
             new string('x', checked((int)UnityEditorAutomationValidator.MaxResultFileBytes + 1)));
-
         var result = await validator.ValidateAsync(SucceededProcess(), plan, baseline);
-        Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "oversized result status");
-        Equal(UnityEditorAutomationFailureKind.ResultArtifactTooLarge, result.FailureKind, "oversized result failure kind");
+        Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "oversized status");
+        Equal(UnityEditorAutomationFailureKind.ResultArtifactTooLarge, result.FailureKind, "oversized kind");
     }
 }
 
@@ -186,11 +179,10 @@ static async Task ContractMismatchRejectedAsync()
     var plan = CreatePlan(scope, operationId);
     var validator = new UnityEditorAutomationValidator();
     var baseline = await validator.CaptureBaselineAsync(scope.ResultPath);
-
     await WriteResultAsync(scope.ResultPath, Guid.NewGuid(), MethodName, "succeeded", "wrong operation");
     var result = await validator.ValidateAsync(SucceededProcess(), plan, baseline);
-    Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "contract mismatch status");
-    Equal(UnityEditorAutomationFailureKind.ContractMismatch, result.FailureKind, "contract mismatch failure kind");
+    Equal(UnityEditorAutomationValidationStatus.Indeterminate, result.Status, "mismatch status");
+    Equal(UnityEditorAutomationFailureKind.ContractMismatch, result.FailureKind, "mismatch kind");
 }
 
 static async Task ReportedFailureOverridesZeroExitAsync()
@@ -200,7 +192,6 @@ static async Task ReportedFailureOverridesZeroExitAsync()
     var plan = CreatePlan(scope, operationId);
     var validator = new UnityEditorAutomationValidator();
     var baseline = await validator.CaptureBaselineAsync(scope.ResultPath);
-
     await WriteResultAsync(scope.ResultPath, operationId, MethodName, "failed", "known fixture failure");
     var result = await validator.ValidateAsync(SucceededProcess(), plan, baseline);
     Equal(UnityEditorAutomationValidationStatus.Failed, result.Status, "reported failure status");
@@ -215,7 +206,6 @@ static async Task ProcessFailureOverridesReportedSuccessAsync()
     var plan = CreatePlan(scope, operationId);
     var validator = new UnityEditorAutomationValidator();
     var baseline = await validator.CaptureBaselineAsync(scope.ResultPath);
-
     await WriteResultAsync(scope.ResultPath, operationId, MethodName, "succeeded", "artifact says success");
     var result = await validator.ValidateAsync(FailedProcess(), plan, baseline);
     Equal(UnityEditorAutomationValidationStatus.Failed, result.Status, "process failure status");
@@ -226,52 +216,28 @@ static async Task ProcessFailureOverridesReportedSuccessAsync()
 static async Task CancellationRemainsDistinctAsync()
 {
     using var scope = new FixtureScope("Cancelled");
-    var operationId = Guid.NewGuid();
-    var plan = CreatePlan(scope, operationId);
+    var plan = CreatePlan(scope, Guid.NewGuid());
     var validator = new UnityEditorAutomationValidator();
     var baseline = await validator.CaptureBaselineAsync(scope.ResultPath);
-
     var result = await validator.ValidateAsync(CancelledProcess(), plan, baseline);
-    Equal(UnityEditorAutomationValidationStatus.Cancelled, result.Status, "cancelled validation status");
-    Equal(UnityEditorAutomationFailureKind.Cancellation, result.FailureKind, "cancelled failure kind");
+    Equal(UnityEditorAutomationValidationStatus.Cancelled, result.Status, "cancelled status");
+    Equal(UnityEditorAutomationFailureKind.Cancellation, result.FailureKind, "cancelled kind");
 }
 
 static Task InvalidResultPathsRejectedAsync()
 {
     using var scope = new FixtureScope("Path Validation");
+    var builder = new UnityEditorAutomationCommandBuilder();
+    var tool = new ToolIdentity("unity", "Unity Editor");
     Throws<ArgumentException>(
-        () => _ = new UnityEditorAutomationCommandBuilder().Build(
-            new ToolIdentity("unity", "Unity Editor"),
-            scope.Project,
-            scope.EditorPath,
-            scope.LogPath,
-            MethodName,
-            Guid.NewGuid(),
-            "result.json"),
+        () => _ = builder.Build(tool, scope.Project, scope.EditorPath, scope.LogPath, MethodName, Guid.NewGuid(), "result.json"),
         "relative result path");
-
     Throws<ArgumentException>(
-        () => _ = new UnityEditorAutomationCommandBuilder().Build(
-            new ToolIdentity("unity", "Unity Editor"),
-            scope.Project,
-            scope.EditorPath,
-            scope.LogPath,
-            MethodName,
-            Guid.NewGuid(),
-            Path.Combine(scope.RootPath, "result.xml")),
+        () => _ = builder.Build(tool, scope.Project, scope.EditorPath, scope.LogPath, MethodName, Guid.NewGuid(), Path.Combine(scope.RootPath, "result.xml")),
         "non-JSON result path");
-
     Throws<ArgumentException>(
-        () => _ = new UnityEditorAutomationCommandBuilder().Build(
-            new ToolIdentity("unity", "Unity Editor"),
-            scope.Project,
-            scope.EditorPath,
-            scope.LogPath,
-            MethodName,
-            Guid.Empty,
-            scope.ResultPath),
+        () => _ = builder.Build(tool, scope.Project, scope.EditorPath, scope.LogPath, MethodName, Guid.Empty, scope.ResultPath),
         "empty operation id");
-
     return Task.CompletedTask;
 }
 
@@ -289,10 +255,7 @@ static UnityEditorAutomationInvocationPlan CreatePlan(
         operationId,
         scope.ResultPath,
         additionalArguments,
-        environment: new[]
-        {
-            new KeyValuePair<string, string>("UNITY_AUTOMATION_FIXTURE", "P10-009"),
-        },
+        environment: new[] { new KeyValuePair<string, string>("UNITY_AUTOMATION_FIXTURE", "P10-009") },
         correlation);
 
 static async Task WriteResultAsync(
@@ -302,74 +265,34 @@ static async Task WriteResultAsync(
     string status,
     string? message)
 {
-    var payload = JsonSerializer.Serialize(
-        new
-        {
-            schemaVersion = 1,
-            operationId = operationId.ToString("D"),
-            methodName,
-            status,
-            message,
-        });
+    var payload = JsonSerializer.Serialize(new
+    {
+        schemaVersion = 1,
+        operationId = operationId.ToString("D"),
+        methodName,
+        status,
+        message,
+    });
     await File.WriteAllTextAsync(path, payload);
 }
 
-static ToolProcessResult SucceededProcess() =>
+static ToolProcessResult SucceededProcess() => CreateProcess(ToolResultStatus.Succeeded, 0, "fixture process succeeded");
+static ToolProcessResult FailedProcess() => CreateProcess(ToolResultStatus.Failed, 1, "fixture process failed");
+static ToolProcessResult CancelledProcess() => CreateProcess(ToolResultStatus.Cancelled, 130, "fixture process cancelled");
+
+static ToolProcessResult CreateProcess(ToolResultStatus status, int exitCode, string summary) =>
     new(
         new ToolIdentity("unity", "Unity Editor"),
         "unity.execute-method",
-        ToolResultStatus.Succeeded,
+        status,
         ToolProcessLaunchStatus.Started,
-        exitCode: 0,
+        exitCode,
         forcedTerminationRequested: false,
-        CompletedOutput(),
-        "fixture process succeeded");
+        new ToolProcessOutputSummary(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, IsCompleted: true),
+        summary);
 
-static ToolProcessResult FailedProcess() =>
-    new(
-        new ToolIdentity("unity", "Unity Editor"),
-        "unity.execute-method",
-        ToolResultStatus.Failed,
-        ToolProcessLaunchStatus.Started,
-        exitCode: 1,
-        forcedTerminationRequested: false,
-        CompletedOutput(),
-        "fixture process failed");
-
-static ToolProcessResult CancelledProcess() =>
-    new(
-        new ToolIdentity("unity", "Unity Editor"),
-        "unity.execute-method",
-        ToolResultStatus.Cancelled,
-        ToolProcessLaunchStatus.Started,
-        exitCode: 130,
-        forcedTerminationRequested: false,
-        CompletedOutput(),
-        "fixture process cancelled");
-
-static ToolProcessOutputSummary CompletedOutput() =>
-    new(
-        AcceptedEntries: 0,
-        AcceptedUtf8Bytes: 0,
-        RetainedEntries: 0,
-        RetainedUtf8Bytes: 0,
-        EvictedEntries: 0,
-        EvictedUtf8Bytes: 0,
-        TruncatedEntries: 0,
-        TruncatedCharacters: 0,
-        DroppedDeliveryEntries: 0,
-        DroppedDeliveryUtf8Bytes: 0,
-        IsCompleted: true);
-
-static UnityCliInvocation RequireUnityInvocation(ToolProcessRequest request)
-{
-    if (request.Invocation is not UnityCliInvocation invocation)
-    {
-        throw new InvalidOperationException("Expected UnityCliInvocation.");
-    }
-
-    return invocation;
-}
+static UnityCliInvocation RequireUnityInvocation(ToolProcessRequest request) =>
+    request.Invocation as UnityCliInvocation ?? throw new InvalidOperationException("Expected UnityCliInvocation.");
 
 static int IndexOf(IReadOnlyList<string> values, string expected)
 {
@@ -384,10 +307,7 @@ static int IndexOf(IReadOnlyList<string> values, string expected)
     throw new InvalidOperationException($"Expected argv value '{expected}' was not found.");
 }
 
-static void SequenceEqual(
-    IEnumerable<string> expected,
-    IEnumerable<string> actual,
-    string description)
+static void SequenceEqual(IEnumerable<string> expected, IEnumerable<string> actual, string description)
 {
     var expectedArray = expected.ToArray();
     var actualArray = actual.ToArray();
@@ -429,10 +349,7 @@ static void Throws<TException>(Action action, string description)
     throw new InvalidOperationException($"Expected {typeof(TException).Name}: {description}.");
 }
 
-static async Task RunAsync(
-    string name,
-    Func<Task> test,
-    ICollection<string> failures)
+static async Task RunAsync(string name, Func<Task> test, ICollection<string> failures)
 {
     try
     {
@@ -444,8 +361,6 @@ static async Task RunAsync(
         failures.Add($"FAIL: {name}: {exception.GetType().Name}: {exception.Message}");
     }
 }
-
-const string MethodName = "Company.Tools.Automation.Run";
 
 sealed class FixtureScope : IDisposable
 {
@@ -461,13 +376,9 @@ sealed class FixtureScope : IDisposable
     }
 
     public string RootPath { get; }
-
     public ProjectContext Project { get; }
-
     public string EditorPath { get; }
-
     public string LogPath { get; }
-
     public string ResultPath { get; }
 
     public void Dispose()
