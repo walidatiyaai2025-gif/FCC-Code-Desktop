@@ -72,12 +72,14 @@ public sealed class StructuredToolContractsTests
     public void StructuredInvocationRejectsInvalidOperationArgumentsAndWorkingDirectory()
     {
         var context = CreateProjectContext();
+        var nulArgument = new List<string> { "ok", "bad\0arg" };
+        var nullArgument = new List<string> { "ok", null! };
 
         Assert.Throws<ArgumentException>(() => new FixtureInvocation(context, " "));
         Assert.Throws<ArgumentException>(() => new FixtureInvocation(context, " fixture.execute"));
         Assert.Throws<ArgumentException>(() => new FixtureInvocation(context, "fixture\0execute"));
-        Assert.Throws<ArgumentException>(() => new FixtureInvocation(context, "fixture.execute", new[] { "ok", "bad\0arg" }));
-        Assert.Throws<ArgumentException>(() => new FixtureInvocation(context, "fixture.execute", new string[] { "ok", null! }));
+        Assert.Throws<ArgumentException>(() => new FixtureInvocation(context, "fixture.execute", nulArgument));
+        Assert.Throws<ArgumentException>(() => new FixtureInvocation(context, "fixture.execute", nullArgument));
         Assert.Throws<ArgumentException>(() => new FixtureInvocation(context, "fixture.execute", workingDirectory: "."));
     }
 
@@ -85,27 +87,40 @@ public sealed class StructuredToolContractsTests
     public void StructuredInvocationRejectsUnsafeOrAmbiguousEnvironmentEntries()
     {
         var context = CreateProjectContext();
+        var leadingWhitespace = new List<KeyValuePair<string, string>>
+        {
+            new(" BAD", "value"),
+        };
+        var equalsInName = new List<KeyValuePair<string, string>>
+        {
+            new("BAD=NAME", "value"),
+        };
+        var nulInValue = new List<KeyValuePair<string, string>>
+        {
+            new("BAD", "value\0tail"),
+        };
+        var duplicateIgnoringCase = new List<KeyValuePair<string, string>>
+        {
+            new("FCCD_MODE", "one"),
+            new("fccd_mode", "two"),
+        };
 
         Assert.Throws<ArgumentException>(() => new FixtureInvocation(
             context,
             "fixture.execute",
-            environment: new[] { new KeyValuePair<string, string>(" BAD", "value") }));
+            environment: leadingWhitespace));
         Assert.Throws<ArgumentException>(() => new FixtureInvocation(
             context,
             "fixture.execute",
-            environment: new[] { new KeyValuePair<string, string>("BAD=NAME", "value") }));
+            environment: equalsInName));
         Assert.Throws<ArgumentException>(() => new FixtureInvocation(
             context,
             "fixture.execute",
-            environment: new[] { new KeyValuePair<string, string>("BAD", "value\0tail") }));
+            environment: nulInValue));
         Assert.Throws<ArgumentException>(() => new FixtureInvocation(
             context,
             "fixture.execute",
-            environment: new[]
-            {
-                new KeyValuePair<string, string>("FCCD_MODE", "one"),
-                new KeyValuePair<string, string>("fccd_mode", "two"),
-            }));
+            environment: duplicateIgnoringCase));
     }
 
     [Fact]
