@@ -95,7 +95,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-004` — Unity process/project resource locking — CLOSED.
 - `FCCD-P10-005` — Dedicated Unity log capture/parser — CLOSED.
 - `FCCD-P10-006` — Compile validation — CLOSED.
-- `FCCD-P10-007` — EditMode test integration — PENDING.
+- `FCCD-P10-007` — EditMode test integration — CLOSED.
 - `FCCD-P10-008` — PlayMode test integration — PENDING.
 - `FCCD-P10-009` — Project-owned Editor automation invocation — PENDING.
 - `FCCD-P10-010` — Build target execution/artifact validation — PENDING.
@@ -671,18 +671,18 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - PR #152 exact-head P06-007 workspace-search CI: run `34022991732` / run #38 — SUCCESS.
 - PR #152 exact-head P06-008 large-workspace CI: run `34022991748` / run #18 — SUCCESS.
 - Production normal merge commit: `c77473fcebb3317168ab1effdf67cc7ecd95bd99`.
-- Exact post-production-merge Windows CI: run `34023363325` / run #310 — SUCCESS.
-- Exact post-production-merge P06-007 workspace-search CI: run `34023363291` / run #39 — SUCCESS.
-- Exact post-production-merge P06-008 large-workspace CI: run `34023363358` / run #19 — SUCCESS.
+- Exact post-production-merge Windows CI: run `34023363325` / #310 — SUCCESS.
+- Exact post-production-merge P06-007 workspace-search CI: run `34023363291` / #39 — SUCCESS.
+- Exact post-production-merge P06-008 large-workspace CI: run `34023363358` / #19 — SUCCESS.
 - Superseded recovery PR #155 was closed without merging stale production code; its legitimate permanent-Windows-baseline idea was recovered separately.
 - Exact permanent-baseline repair candidate: `faba60a8dacc34104b7fce70d12ad430a120bad9`.
-- PR #156 exact-head Windows CI: run `34023727676` / run #311 — SUCCESS.
-- PR #156 exact-head P06-007 workspace-search CI: run `34023727648` / run #40 — SUCCESS.
-- PR #156 exact-head P06-008 large-workspace CI: run `34023727646` / run #20 — SUCCESS.
+- PR #156 exact-head Windows CI: run `34023727676` / #311 — SUCCESS.
+- PR #156 exact-head P06-007 workspace-search CI: run `34023727648` / #40 — SUCCESS.
+- PR #156 exact-head P06-008 large-workspace CI: run `34023727646` / #20 — SUCCESS.
 - Permanent-baseline repair normal merge commit: `dc0a92683f292ac75706601b18bba36e6959656c`.
-- Exact final post-merge canonical-main Windows CI: run `34024101741` / run #312 — SUCCESS.
-- Exact final post-merge P06-007 workspace-search CI: run `34024101733` / run #41 — SUCCESS.
-- Exact final post-merge P06-008 large-workspace CI: run `34024101754` / run #21 — SUCCESS.
+- Exact final post-merge canonical-main Windows CI: run `34024101741` / #312 — SUCCESS.
+- Exact final post-merge P06-007 workspace-search CI: run `34024101733` / #41 — SUCCESS.
+- Exact final post-merge P06-008 large-workspace CI: run `34024101754` / #21 — SUCCESS.
 - Integrated evidence: `evidence/phases/P06/P06_008_INTEGRATED_RECONCILIATION_2026-09-06.md`.
 - Evidence class remains cloud/self-test for bounded large-workspace file/tree/search behavior plus permanent CI enforcement; no new owner-only evidence, P06 phase closure, P07 authorization, or release eligibility is implied.
 ## P05 cloud task inventory
