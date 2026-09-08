@@ -1,0 +1,188 @@
+name: P10-002 reconciliation bootstrap v2
+
+on:
+  push:
+    branches:
+      - reconcile/fccd-p10-002-integrated-closure-v2
+    paths:
+      - .github/workflows/reconcile-p10-002-bootstrap-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: 165708a542faee753149fedc19c787297a75f38d
+    steps:
+      - name: Checkout exact reconciliation branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: reconcile/fccd-p10-002-integrated-closure-v2
+
+      - name: Reconcile P10-002 against pinned live main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          live_main="$(git rev-parse origin/main)"
+          if [[ "$live_main" != "$BASE_SHA" ]]; then
+            printf 'main moved: expected %s, live %s\n' "$BASE_SHA" "$live_main" >&2
+            exit 42
+          fi
+
+          python - <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+
+          current_path = Path('CURRENT_PHASE.md')
+          ledger_path = Path('docs/TASK_LEDGER.md')
+          evidence_path = Path('evidence/phases/P10/P10_002_INTEGRATED_RECONCILIATION_2026-09-08.md')
+
+          current = current_path.read_text(encoding='utf-8')
+          old_current = '- `FCCD-P10-002` — Unity install/Hub editor resolver — PENDING.'
+          new_current = '- `FCCD-P10-002` — Unity install/Hub editor resolver — CLOSED.'
+          if current.count(old_current) != 1:
+              raise SystemExit('CURRENT_PHASE P10-002 inventory anchor missing or duplicated')
+          if current.count('- `FCCD-P10-003` — Strongly typed Unity CLI command builder — PENDING.') != 1:
+              raise SystemExit('Concurrent P10-003 canonical state changed; refusing stale reconciliation')
+          current = current.replace(old_current, new_current)
+
+          provenance = dedent('''
+          ## P10-002 integration provenance
+
+          - Task: `FCCD-P10-002 — Unity install/Hub editor resolver` — `CLOSED` in this reconciliation candidate.
+          - Recovery boundary: the scheduling hint was future P18-005 while canonical `CURRENT_PHASE=P10`; P10-002 implementation was already integrated but its canonical row remained PENDING, so reconciliation took priority over new work.
+          - Concurrent P10-003 implementation was normally merged as `165708a542faee753149fedc19c787297a75f38d`; its canonical row remains PENDING and is not modified here. P10-001 also remains independently owned/PENDING.
+          - Implementation PR: #232 (`worker/fccd-p10-002-unity-editor-resolver`).
+          - Exact accepted implementation candidate: `0d411d877f3e56a7cde08aef3f0c50ff65997733`.
+          - Exact implementation-head P10-002 Unity Editor Resolution: run `34201337027` / #2 — SUCCESS.
+          - Exact implementation-head Windows CI: run `34201337061` / #641 — SUCCESS.
+          - Exact implementation-head P06-007 Workspace Search: run `34201336981` / #370 — SUCCESS.
+          - Exact implementation-head P06-008 Large Workspace Safeguards: run `34201337068` / #354 — SUCCESS.
+          - Normal implementation merge / accepted implementation main: `844edc01c9073048d800a59cafa78d59a78b2668`.
+          - Exact implementation-main P10-002 Unity Editor Resolution: run `34202036522` / #3 — SUCCESS.
+          - Exact implementation-main Windows CI: run `34202036486` / #643 — SUCCESS.
+          - Exact implementation-main P06-007 Workspace Search: run `34202036528` / #372 — SUCCESS.
+          - Exact implementation-main P06-008 Large Workspace Safeguards: run `34202036385` / #356 — SUCCESS.
+          - Integrated evidence: `evidence/phases/P10/P10_002_INTEGRATED_RECONCILIATION_2026-09-08.md`.
+          - No owner-only evidence is required or added. P10 remains `IN_PROGRESS`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
+          ''').strip()
+          anchor = '## P10 cloud activation provenance'
+          if current.count(anchor) != 1:
+              raise SystemExit('CURRENT_PHASE P10 provenance anchor missing or duplicated')
+          current = current.replace(anchor, provenance + '\n\n' + anchor)
+          current_path.write_text(current, encoding='utf-8')
+
+          ledger = ledger_path.read_text(encoding='utf-8')
+          old_ledger = '| FCCD-P10-002 | Unity install/Hub editor resolver | PENDING |'
+          new_ledger = '| FCCD-P10-002 | Unity install/Hub editor resolver | CLOSED |'
+          if ledger.count(old_ledger) != 1:
+              raise SystemExit('TASK_LEDGER P10-002 row missing or duplicated')
+          if ledger.count('| FCCD-P10-003 | Strongly typed Unity CLI command builder | PENDING |') != 1:
+              raise SystemExit('Concurrent P10-003 ledger state changed; refusing stale reconciliation')
+          ledger = ledger.replace(old_ledger, new_ledger)
+          ledger_note = dedent('''
+          `FCCD-P10-002` is CLOSED from the exact-version Unity install/Hub editor resolver integrated in PR #232. Exact accepted implementation candidate `0d411d877f3e56a7cde08aef3f0c50ff65997733` passed P10-002 Unity Editor Resolution `34201337027` / #2, Windows CI `34201337061` / #641, P06-007 Workspace Search `34201336981` / #370, and P06-008 Large Workspace Safeguards `34201337068` / #354. PR #232 was normally merged as `844edc01c9073048d800a59cafa78d59a78b2668`; that exact implementation main passed P10-002 Unity Editor Resolution `34202036522` / #3, Windows CI `34202036486` / #643, Workspace Search `34202036528` / #372, and Large Workspace Safeguards `34202036385` / #356. Coverage includes exact requested-version resolution, configured-root precedence before the default Unity Hub editor root, Hub-collection and direct-install roots, mandatory `Editor/Unity.exe` existence, immutable source provenance, version/path validation, root normalization/de-duplication, China revision suffix support, missing-executable handling, and cancellation propagation. Initial analyzer CA1859 was repaired by tightening the internal helper to `HashSet<string>` rather than suppressing analyzers or weakening gates. Task evidence: `evidence/phases/P10/P10_002_INTEGRATED_RECONCILIATION_2026-09-08.md`. Concurrent P10-003 implementation merge `165708a542faee753149fedc19c787297a75f38d` is preserved with its canonical row still PENDING; P10-001 is likewise unchanged. No owner-only evidence is required. P10 remains `IN_PROGRESS`; P10-004 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `VERIFIED_FINAL_COMPLETE=false`.
+          ''').strip()
+          ledger_anchor = '## P11 — Blender first-class adapter'
+          if ledger.count(ledger_anchor) != 1:
+              raise SystemExit('TASK_LEDGER P11 anchor missing or duplicated')
+          ledger = ledger.replace(ledger_anchor, ledger_note + '\n\n' + ledger_anchor)
+          ledger_path.write_text(ledger, encoding='utf-8')
+
+          evidence = dedent('''
+          # FCCD-P10-002 — Integrated Reconciliation Evidence
+
+          Date: 2026-09-08
+          Task: `FCCD-P10-002 — Unity install/Hub editor resolver`
+          Classification: CLOUD / HOSTED-WINDOWS / INTEGRATED
+          Canonical task result: CLOSED in this reconciliation candidate after normal implementation integration and exact-main validation.
+
+          ## Live-state recovery and concurrency
+
+          The scheduling request carried future hint `FCCD-P18-005`, but canonical live state remained `CURRENT_PHASE=P10`. P10-002 implementation had already been normally merged while `CURRENT_PHASE.md` and `docs/TASK_LEDGER.md` still listed it PENDING, making reconciliation the highest-priority recoverable unit. During the first recovery attempt, concurrent P10-003 work advanced `main`; a fail-closed prospective-diff guard detected that movement and prevented a stale reconciliation commit. P10-003 was then normally merged as `165708a542faee753149fedc19c787297a75f38d`. This reconciliation is rebuilt from that exact main and preserves P10-003 as canonically PENDING. P10-001 is also unchanged.
+
+          Pre-reconciliation canonical main: `165708a542faee753149fedc19c787297a75f38d`.
+
+          ## Implementation
+
+          - Implementation PR: #232 — `P10-002: resolve exact Unity Hub editor installations`.
+          - Branch: `worker/fccd-p10-002-unity-editor-resolver`.
+          - Exact accepted implementation candidate: `0d411d877f3e56a7cde08aef3f0c50ff65997733`.
+          - Adds project-owned typed read-only `IUnityEditorResolver` / `UnityEditorResolver` contracts under `FCCCodeDesktop.Tools.Unity`.
+          - Resolves only the exact requested Unity Editor version; no nearby-version substitution is permitted.
+          - Searches configured editor roots before the default Unity Hub editor root under `Program Files/Unity/Hub/Editor`.
+          - Supports Hub-style version collections and direct version installation roots.
+          - Requires `Editor/Unity.exe` before reporting a resolved installation.
+          - Returns immutable resolution status, installation path, and source provenance.
+          - Normalizes/de-duplicates roots, rejects malformed/path-like version input, supports canonical China revision suffixes, and propagates cancellation.
+          - Deterministic fixture coverage includes root precedence, Hub fallback, direct roots, missing executables, de-duplication, version validation, path-injection rejection, and cancellation.
+          - Permanent validator: `tools/unity/validate-unity-editor-resolution.ps1`.
+          - Permanent workflow: `.github/workflows/p10-002-unity-editor-resolution.yml`.
+
+          ## Repair history
+
+          The first focused implementation CI exposed analyzer `CA1859` on an internal interface-typed set parameter. It was repaired by tightening the helper to `HashSet<string>`; no analyzer suppression, warning downgrade, or gate weakening was introduced.
+
+          ## Exact implementation-head validation
+
+          On `0d411d877f3e56a7cde08aef3f0c50ff65997733`:
+          - P10-002 Unity Editor Resolution `34201337027` / #2 — SUCCESS.
+          - Windows CI `34201337061` / #641 — SUCCESS.
+          - P06-007 Workspace Search `34201336981` / #370 — SUCCESS.
+          - P06-008 Large Workspace Safeguards `34201337068` / #354 — SUCCESS.
+
+          ## Normal implementation integration
+
+          PR #232 was normally merged as `844edc01c9073048d800a59cafa78d59a78b2668`, preserving accepted implementation head `0d411d877f3e56a7cde08aef3f0c50ff65997733` as a merge parent. The accepted head and implementation merge share Git tree `80cad4f502c547c8f0a8b913cb4d3abcae1693ff`; no squash, rebase, force-push, or fabricated evidence is claimed.
+
+          ## Exact implementation-main validation
+
+          On exact implementation main `844edc01c9073048d800a59cafa78d59a78b2668`:
+          - P10-002 Unity Editor Resolution `34202036522` / #3 — SUCCESS.
+          - Windows CI `34202036486` / #643 — SUCCESS.
+          - P06-007 Workspace Search `34202036528` / #372 — SUCCESS.
+          - P06-008 Large Workspace Safeguards `34202036385` / #356 — SUCCESS.
+
+          ## Concurrent-main preservation
+
+          Current reconciliation base `165708a542faee753149fedc19c787297a75f38d` is a normal merge whose first parent is the verified P10-002 implementation main `844edc01c9073048d800a59cafa78d59a78b2668`; it adds P10-003 implementation only. This reconciliation changes no P10-003 product or canonical state.
+
+          ## Owner-last classification
+
+          P10-002 has no genuine owner-only/manual/provider/installed-Unity acceptance requirement at this task boundary. Resolver semantics are fully cloud-verifiable using deterministic hosted-Windows filesystem fixtures. No owner queue entry is added. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.
+
+          ## Reconciliation boundary
+
+          This reconciliation closes only `FCCD-P10-002`. P10 remains `IN_PROGRESS`; P10-001 and P10-003 remain PENDING; P10-004 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11 and later phases remain prohibited; `VERIFIED_FINAL_COMPLETE=false`.
+
+          This reconciliation candidate must itself pass exact-head CI, be normally merged, and the resulting exact canonical main must remain green before P10-002 closure is treated as the durable endpoint.
+          ''').strip() + '\n'
+          evidence_path.parent.mkdir(parents=True, exist_ok=True)
+          evidence_path.write_text(evidence, encoding='utf-8')
+          PY
+
+          rm -f .github/workflows/reconcile-p10-002-bootstrap-v2.yml
+          git add -A
+
+          expected=$'CURRENT_PHASE.md\ndocs/TASK_LEDGER.md\nevidence/phases/P10/P10_002_INTEGRATED_RECONCILIATION_2026-09-08.md'
+          actual="$(git diff --cached --name-only "$BASE_SHA" | sort)"
+          if [[ "$actual" != "$expected" ]]; then
+            printf 'Unexpected prospective P10-002 reconciliation diff:\n%s\n' "$actual" >&2
+            exit 43
+          fi
+
+          git fetch origin main
+          live_main="$(git rev-parse origin/main)"
+          if [[ "$live_main" != "$BASE_SHA" ]]; then
+            printf 'main moved during reconciliation: expected %s, live %s\n' "$BASE_SHA" "$live_main" >&2
+            exit 44
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs: reconcile integrated P10-002 closure'
+          git push origin HEAD:reconcile/fccd-p10-002-integrated-closure-v2
