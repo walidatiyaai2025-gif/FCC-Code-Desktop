@@ -1,0 +1,78 @@
+name: P10 Unity Adapter Exit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'CURRENT_PHASE.md'
+      - 'PROJECT_CONTROL.md'
+      - 'docs/TASK_LEDGER.md'
+      - 'evidence/phases/P10/**'
+      - 'src/FCCCodeDesktop.Tools.Unity/**'
+      - 'tests/FCCCodeDesktop.Unity*Fixture/**'
+      - 'tools/unity/**'
+      - '.github/workflows/p10-unity-adapter-exit.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'CURRENT_PHASE.md'
+      - 'PROJECT_CONTROL.md'
+      - 'docs/TASK_LEDGER.md'
+      - 'evidence/phases/P10/**'
+      - 'src/FCCCodeDesktop.Tools.Unity/**'
+      - 'tests/FCCCodeDesktop.Unity*Fixture/**'
+      - 'tools/unity/**'
+      - '.github/workflows/p10-unity-adapter-exit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  unity-adapter-exit:
+    name: Unity Adapter Exit Validation
+    runs-on: windows-2025
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+
+      - name: Setup exact .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.400
+          cache: false
+
+      - name: Verify exact SHA and clean source
+        shell: pwsh
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          $actual = (git rev-parse HEAD).Trim()
+          if ($actual -ne $env:EXPECTED_SHA) {
+            throw "P10 gate checkout mismatch. Expected $env:EXPECTED_SHA but found $actual."
+          }
+          $dirty = @(git status --porcelain)
+          if ($dirty.Count -ne 0) {
+            throw "P10 gate requires a clean source worktree before validation."
+          }
+          Write-Host "P10 exact candidate: $actual"
+
+      - name: Run Windows Release baseline
+        shell: pwsh
+        run: .\tools\ci\run-windows-ci.ps1
+
+      - name: Run complete P10 Unity contract suite
+        shell: pwsh
+        run: .\tools\unity\validate-unity-contract-suite.ps1
+
+      - name: Verify clean source after gate
+        shell: pwsh
+        run: |
+          $dirty = @(git status --porcelain)
+          if ($dirty.Count -ne 0) {
+            $dirty | ForEach-Object { Write-Host $_ }
+            throw "P10 gate mutated tracked or untracked source inputs."
+          }

@@ -285,9 +285,9 @@ All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure cand
 | FCCD-P10-008 | PlayMode test integration | CLOSED |
 | FCCD-P10-009 | Project-owned Editor automation invocation | CLOSED |
 | FCCD-P10-010 | Build target execution/artifact validation | CLOSED |
-| FCCD-P10-011 | Unity structured UI events | PENDING |
-| FCCD-P10-012 | Unity cancellation/recovery | PENDING |
-| FCCD-P10-013 | Unity contract fixture/suite | PENDING |
+| FCCD-P10-011 | Unity structured UI events | CLOSED |
+| FCCD-P10-012 | Unity cancellation/recovery | CLOSED |
+| FCCD-P10-013 | Unity contract fixture/suite | CLOSED |
 
 `FCCD-P10-008` is CLOSED from the fail-closed Unity PlayMode test integration implemented in PR #249. Exact accepted implementation candidate `46ea2d04bdbba9db723ba7c0e2dd77e39e43afd2` passed Unity PlayMode Test Integration `34246224836`, Windows Release `34246224826`, Workspace Search `34246224742`, and Large Workspace Safeguards `34246224740`. PR #249 was normally merged as `14b8c01c8c80cfb773ebab2de98adff85a042439`; that exact implementation main passed Unity PlayMode Test Integration `34247250447`, Workspace Search `34247250486`, and Large Workspace Safeguards `34247250466`, while Windows Release `34247250499` exposed an unrelated FCC environment-discovery regression. That regression was repaired without waiver by PR #250; current exact main `c49b4f6480c1daac5cde8c30c90c69ce368a1f9b` passed FCC Environment Discovery `34251804819`, Windows Release `34251804798`, Workspace Search `34251804735`, and Large Workspace Safeguards `34251804754`. Task evidence: `evidence/phases/P10/P10_008_INTEGRATED_RECONCILIATION_2026-09-08.md`. No owner-only evidence is required or queued. P10 remains `IN_PROGRESS`; P10-009 through P10-013 remain PENDING; `PHASE_EXIT_GATE=NOT_RUN`; P11+ remain prohibited; `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `VERIFIED_FINAL_COMPLETE=false`.
 
@@ -476,8 +476,7 @@ All eight mandatory P09 task rows are canonically CLOSED. Exact pre-closure cand
 
 ## Current next action
 
-`CURRENT_PHASE = P10` remains the sole active cloud implementation/convergence phase. `FCCD-P10-001` through `FCCD-P10-010` are CLOSED after normal implementation integration, exact-head/exact-main validation, required repair where applicable, and durable task reconciliation; `FCCD-P10-011` through `FCCD-P10-013` remain PENDING. After this P10-010 reconciliation itself passes exact-head CI, normal merge, and exact-main verification, the next legal cloud action is a fresh live claim/concurrency sweep and then `FCCD-P10-011 — Unity structured UI events` only if it remains unclaimed and dependency-valid. P11 and later implementation remain prohibited until P10 is truthfully closed under canonical governance. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.
-
+`CURRENT_PHASE = P10` remains the sole active cloud phase for phase-exit convergence only. `FCCD-P10-001` through `FCCD-P10-013` are now CLOSED after normal implementation integration, task-specific/exact-main validation, and durable reconciliation. The next legal cloud action is the dedicated P10 Unity Adapter Exit gate on an immutable exact candidate. P11 and later implementation remain prohibited until P10 has `PHASE_EXIT_GATE=PASS`, canonical `evidence/phases/P10/CLOSURE.md`, normal closure integration, and exact-main verification. Preserve `OWNER-P04-008-REAL-TARGET` as the sole unresolved release-blocking owner item, keep `P04=NOT_RUN`, and keep `VERIFIED_FINAL_COMPLETE=false`.
 <!-- FCCD-P08-004-FINAL-CLOSURE-PROVENANCE -->
 ## FCCD-P08-004 final canonical closure provenance
 
