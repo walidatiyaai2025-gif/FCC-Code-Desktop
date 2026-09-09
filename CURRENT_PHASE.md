@@ -7,9 +7,9 @@ PROJECT_ID: FCC_CODE_DESKTOP
 TARGET_RELEASE: 1.0.0
 CURRENT_PHASE: P10
 CURRENT_PHASE_NAME: Unity first-class adapter
-CURRENT_PHASE_STATE: IN_PROGRESS
+CURRENT_PHASE_STATE: CLOSED
 NEXT_PHASE: P11
-PHASE_EXIT_GATE: NOT_RUN
+PHASE_EXIT_GATE: PASS
 KNOWN_PHASE_BLOCKERS: 0
 KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
@@ -17,7 +17,7 @@ OWNER_LAST_MODE: ACTIVE
 DEFERRED_OWNER_ACCEPTANCE_COUNT: 1
 DEFERRED_OWNER_ACCEPTANCE_ITEMS: OWNER-P04-008-REAL-TARGET
 DEFERRED_PHASE_GATES: P04=NOT_RUN
-LAST_RECONCILED: 2026-09-08
+LAST_RECONCILED: 2026-09-09
 ```
 
 ## Active scheduling rule
@@ -32,7 +32,7 @@ P08 — Terminal/process supervision — is canonically CLOSED in this closure s
 
 P09 — External Tool Gateway — is canonically CLOSED. All eight mandatory P09 tasks are normally integrated and reconciled; closure PR #230 was normally merged as `aa9f7fbb7fbdc1921d73fa71111fc10911313c94`, whose exact post-closure Windows CI `34197103477` / #637, Workspace Search `34197103520` / #366, Large Workspace Safeguards `34197103493` / #350, and P09 External Tool Gateway Exit `34197103570` / #6 all completed SUCCESS. Canonical closure evidence is `evidence/phases/P09/CLOSURE.md`.
 
-P10 — Unity first-class adapter — is now the sole legal cloud implementation/convergence phase. Only dependency-valid, unclaimed P10 work may begin. P11 and later implementation remain prohibited until P10 is truthfully closed with its exit gate resolved under canonical governance.
+P10 — Unity first-class adapter — is canonically CLOSED. All thirteen mandatory P10 tasks are CLOSED, exact-main P10 Unity Adapter Exit run `34312651614` passed on accepted candidate `de3187f435ff5b248e39a68bc8a9c20d4b5b8675`, and the exact same main passed Windows CI `34312651653`, Workspace Search `34312651640`, Large Workspace Safeguards `34312651707`, and P09 regression gate `34312651670`. Canonical closure evidence is `evidence/phases/P10/CLOSURE.md`. P11 remains inactive until a separate governance transition is normally integrated and exact-main verified.
 
 P05 is canonically closed at the phase level. `FCCD-P05-001` through `FCCD-P05-008` are normally integrated and exact-main verified, and the owner completed the required genuine Windows/FCC/provider interaction on exact tested SHA `60b6ef491e9dde3ca195b377a2ce07442452a6ce`. Provider-backed conversation execution, structured activity, Stop/Retry, close/reopen, and durable session resume all passed. `OWNER-P05-EXIT-REAL-TARGET` is reconciled as `PASS_INTEGRATED`, the P05 exit gate is `PASS`, and canonical closure evidence is `evidence/phases/P05/CLOSURE.md`.
 
@@ -42,7 +42,7 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 
 ## Owner-last invariants
 
-- Exactly one cloud implementation/convergence phase is active: P10.
+- P10 is CLOSED and retained as the current closure checkpoint until a separate validated transition activates P11; no P11 or later implementation is authorized by this closure commit.
 - Earlier unresolved task work is permitted only when every such task is one-to-one represented by a valid `QUEUED`, environment-bound, `releaseBlocking=true` entry in `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md`.
 - A phase-exit requirement may be queued only when all cloud-actionable implementation/tests/CI are complete, the remaining evidence is genuinely environment-bound, and the phase gate remains truthfully unresolved rather than being represented as PASS.
 - Code defects, failed CI, missing tests/implementation, security/data-integrity defects, and repairable repository problems are never deferrable.
@@ -99,9 +99,9 @@ The owner-last policy continues to permit sequential cloud advancement despite t
 - `FCCD-P10-008` — PlayMode test integration — CLOSED.
 - `FCCD-P10-009` — Project-owned Editor automation invocation — CLOSED.
 - `FCCD-P10-010` — Build target execution/artifact validation — CLOSED.
-- `FCCD-P10-011` — Unity structured UI events — PENDING.
-- `FCCD-P10-012` — Unity cancellation/recovery — PENDING.
-- `FCCD-P10-013` — Unity contract fixture/suite — PENDING.
+- `FCCD-P10-011` — Unity structured UI events — CLOSED.
+- `FCCD-P10-012` — Unity cancellation/recovery — CLOSED.
+- `FCCD-P10-013` — Unity contract fixture/suite — CLOSED.
 
 ## P10-008 integration provenance
 
@@ -1009,3 +1009,19 @@ PR #202 carried legitimate owner REAL_TARGET evidence but its branch diverged fr
 - Deterministic fixture acceptance covers success/warnings, exit-zero compiler failure, explicit failure markers, process/launch/cancellation/forced-termination outcomes, missing/empty/non-finalized/gapped/reset/truncated/invalid-UTF8 evidence, bounded diagnostics, snapshot immutability, and operation guards.
 - No owner-only evidence is required or added for P10-006. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item.
 - P10 remains `IN_PROGRESS`; `FCCD-P10-007` through `FCCD-P10-013` remain `PENDING`; `PHASE_EXIT_GATE=NOT_RUN`; P11+ implementation remains prohibited; `VERIFIED_FINAL_COMPLETE=false`.
+
+## P10 canonical closure checkpoint — 2026-09-09
+
+- `FCCD-P10-001` through `FCCD-P10-013`: CLOSED.
+- Accepted pre-closure canonical main: `de3187f435ff5b248e39a68bc8a9c20d4b5b8675`.
+- P10 Unity Adapter Exit `34312651614`: SUCCESS.
+- Windows CI `34312651653`: SUCCESS.
+- Workspace Search `34312651640`: SUCCESS.
+- Large Workspace Safeguards `34312651707`: SUCCESS.
+- P09 External Tool Gateway Exit regression `34312651670`: SUCCESS.
+- `PHASE_EXIT_GATE=PASS`; `CURRENT_PHASE_STATE=CLOSED`.
+- P11 is the authorized next phase but is not activated by this closure.
+- `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item; `P04=NOT_RUN`; `VERIFIED_FINAL_COMPLETE=false`.
+
+Earlier P10 task-specific provenance text that describes P10 as `IN_PROGRESS`, later P10 rows as `PENDING`, or `PHASE_EXIT_GATE=NOT_RUN` is historical task-time provenance. This checkpoint and the top canonical status block supersede those historical scheduling statements.
+
