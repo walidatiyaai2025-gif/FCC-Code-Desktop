@@ -29,9 +29,9 @@ RELEASE_STATE: NOT_RELEASED
 TARGET_VERSION: 1.0.0
 CURRENT_PHASE: P10
 CURRENT_PHASE_NAME: Unity first-class adapter
-CURRENT_PHASE_STATE: IN_PROGRESS
+CURRENT_PHASE_STATE: CLOSED
 NEXT_PHASE: P11
-PHASE_EXIT_GATE: NOT_RUN
+PHASE_EXIT_GATE: PASS
 KNOWN_RELEASE_BLOCKERS: 1
 VERIFIED_FINAL_COMPLETE: false
 OWNER_LAST_MODE: ACTIVE
@@ -426,3 +426,10 @@ only when:
 ## P05 owner real-target recovery on current main
 
 The stale/non-mergeable owner evidence PR #202 is recovered onto canonical base `c9e396e5788ac4ab2d4e98106529ea6d1ea50679` without carrying its divergent history or temporary reconciliation helpers. Genuine P05 REAL_TARGET evidence remains bound to exact tested SHA `60b6ef491e9dde3ca195b377a2ce07442452a6ce` and its successful exact-main CI runs. The current recovery changes governance/evidence only, preserves later P08-004 product work and closure provenance, leaves `CURRENT_PHASE=P08`, and reduces unresolved owner-last release blockers from two to one: `OWNER-P04-008-REAL-TARGET`.
+
+## P10 canonical closure checkpoint — 2026-09-09
+
+P10 — Unity first-class adapter — is canonically CLOSED. All thirteen mandatory P10 task rows are CLOSED. Accepted canonical candidate `de3187f435ff5b248e39a68bc8a9c20d4b5b8675` passed dedicated P10 Unity Adapter Exit run `34312651614`, Windows CI `34312651653`, Workspace Search `34312651640`, Large Workspace Safeguards `34312651707`, and P09 External Tool Gateway Exit regression run `34312651670`, all on that exact SHA. Canonical closure evidence is `evidence/phases/P10/CLOSURE.md`.
+
+This closure does not activate P11. A separate governance transition is required before P11 implementation. `OWNER-P04-008-REAL-TARGET` remains the sole unresolved release-blocking owner item, `P04=NOT_RUN`, `KNOWN_RELEASE_BLOCKERS=1`, and `VERIFIED_FINAL_COMPLETE=false`.
+
