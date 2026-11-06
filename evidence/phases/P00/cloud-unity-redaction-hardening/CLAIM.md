@@ -4,7 +4,7 @@
 - Started from live main: `71d9be8f5d69b9b798745e3c57babb37bc46e47e`
 - Date: 2026-09-02
 - Scope: fix and regression-test non-Bearer Authorization-header leakage in Unity probe persistence sanitization only
-- State: `IN_PROGRESS`
+- State: `CLOSED` — integrated during owner-authorized branch convergence on 2026-11-06; Unity self-tests pass 21/21, including a complete multiword Basic Authorization value and a following-line preservation regression. This closes only the sanitizer repair, not product/release acceptance.
 
 ## Why this claim exists
 

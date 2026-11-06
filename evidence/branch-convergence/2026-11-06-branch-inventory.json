@@ -1,0 +1,1819 @@
+{
+  "date": "2026-11-06",
+  "originalMain": "b58d590961d59d1e31317dca8f23a111b5ea6a63",
+  "branchCount": 302,
+  "branches": [
+    {
+      "branch": "close/p09-canonical",
+      "sha": "078280160068fc3d04cb66989bec1a3d375df20a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "closure/p00-final-exit-gate",
+      "sha": "34dd58762f5f61938c33564f2007734d81cbbf88",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "closure/p01-exit-gate-72ea8b4",
+      "sha": "71aae37e15470356240f619cb494a1399ea59cae",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "closure/p02-exit-gate-8b264cc",
+      "sha": "5abc09941c06a78baba2768b5fd51313e6925a86",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "closure/p03-exit-gate-2d5859c",
+      "sha": "6a12edb7899eb17362f62d89218ab18901124012",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "closure/p07-phase-exit",
+      "sha": "91ddeface277de2a52f7af46f74585ab9d3d7342",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "closure/p08-phase-exit",
+      "sha": "9c144988f49135635aa56de9af9872a9453225bc",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "cloud/fccd-p08-005-shell-profiles-lane1",
+      "sha": "214e3fb7e9b4a985474f5a690d4e6b90da8651fe",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "codex/fccd-p06-008-cancellation-fixture-repair",
+      "sha": "64ad0a17873ae4ed83f9c4b86dac5019c87136d1",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "codex/fccd-p06-008-large-workspace-safeguards",
+      "sha": "7fbb2e32b50ac8866a5c932c3a0fc7b7670ac14e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "codex/fccd-p08-003-bounded-streaming-logs",
+      "sha": "470faa52ea56789b02a0e8b7117b592c18b4672f",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "converge/p09-cloud-exit",
+      "sha": "fd8de95836733fe931af5b47617f1b4a0e57159f",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "convergence/p00-final-closure",
+      "sha": "cfafdbe7a2de1dd5bab3e857092c5617d4563247",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "convergence/p05-owner-last-exit-gate",
+      "sha": "62376324e9f7b906f29e9495945dcbaad53a1f36",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "diagnostic/p09-007-ci",
+      "sha": "f6207ab8bf8170d90bb736ae546f9566c4286e61",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "evidence/p00-authoritative-blender-closure-e693278",
+      "sha": "d68caa3cbbf4ce1e6a72a16b8c1bc1091bf46ec0",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "fix/p00-blender-explicit-discovery",
+      "sha": "d8b66bde6b1a021c7e2ac028ae1a8396a407d0fb",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "fix/p00-blender52-unity-cleanup",
+      "sha": "1b51c12a07d4469d8ac456358f39c1bf1cb2b60a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "fix/p00-runner-powershell-count",
+      "sha": "f0f58d82cc8bcfe6ea31d74fff01bccd01ee6ac6",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "governance/owner-last-canonical-state-reconciliation",
+      "sha": "3940ce4f96d4b76bea815e0fb08cccda647fe509",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "governance/owner-last-cloud-phase-activation",
+      "sha": "3c34cd8035cbc15321c5d419d330b408b078a4de",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "governance/owner-last-execution-bootstrap",
+      "sha": "cf2def8d93a5cbaf161cd836985d1e6c9ed57fce",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "governance/owner-last-p06-cloud-activation",
+      "sha": "ac18055ce5a1ce19aa9c63428776af2f2d3fde1e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "governance/p05-003-integrated-reconciliation",
+      "sha": "c543e440d11432fd36302c10e9a592f3652d1fdc",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "governance/p07-cloud-activation",
+      "sha": "a925369f7c2875839905d2be0fb13ec3c1c340e0",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "governance/p08-cloud-activation",
+      "sha": "63ca3d54641cfc615b43875a1ad9186f258c0520",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "governance/p09-cloud-activation",
+      "sha": "268933676d85a455757b9068ebc6f33b05bafbec",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "governance/p10-cloud-activation",
+      "sha": "afcaee3caeddcd7f4d25cb943aac2abfed7f3a03",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop-check-ignore",
+      "sha": "b307b99bd2c3924b7d47ead1b30740c026a32363",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop-do-not-use",
+      "sha": "0f257a0a3a7f6ab69178ce5cd26cdd9e6d9de2b4",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop-merge-capability-check",
+      "sha": "15348bb824a06fde28414c095574084a6ba6050b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop-p04-001-guard",
+      "sha": "611bfa0091ea496b25758199b777217e52342be5",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop-p09-007-do-not-use",
+      "sha": "040b9591edd56e29b05dc086ffdf2d57900d471b",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop-placeholder",
+      "sha": "9b188a053318c8712dcd6cb13d268d99cf2d9be7",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop-temp",
+      "sha": "136e2cecfcbcc098fca6900e125af0cbb0c2ebed",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop2",
+      "sha": "15348bb824a06fde28414c095574084a6ba6050b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop3",
+      "sha": "15348bb824a06fde28414c095574084a6ba6050b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop4",
+      "sha": "15348bb824a06fde28414c095574084a6ba6050b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "noop5",
+      "sha": "15348bb824a06fde28414c095574084a6ba6050b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "owner/p05-exit-real-target-evidence-20260907",
+      "sha": "7569c30256cca65490ef88a3c3a31c4f666a95b3",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p05-004-integrated",
+      "sha": "efb79dde02bfaba6da84bd7ac9f76176bf06d5b9",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p05-004-integrated-copy",
+      "sha": "2988eb449570cfcf9fc62d2198fe209c8c9b9371",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p05-004-integrated-copy-2",
+      "sha": "2988eb449570cfcf9fc62d2198fe209c8c9b9371",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p05-005-integrated",
+      "sha": "1220cee357ae02c2b4caeda8db93b4e8d7f0fdb3",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p05-006-integrated",
+      "sha": "706c8559c40a4206e5dc57ea6c889400c34c6865",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p05-008-integrated",
+      "sha": "36e670082804c0e15a34a8dc5de69f0aea81f04a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p06-005-integrated",
+      "sha": "a536febaad8a9dee7341741fa68aa094fbca7399",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p06-006-closure",
+      "sha": "72288f8dca9a98187cc62f5a62e3a8a54b18f7c3",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p06-008-closure",
+      "sha": "7f0f24639b3aca58630a7ef3755630a7294906ce",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p06-008-integrated",
+      "sha": "faba60a8dacc34104b7fce70d12ad430a120bad9",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-001-integrated-closure",
+      "sha": "b5a926de6abcbcd48d97257937685ef7db61d5d1",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-002-integrated-closure",
+      "sha": "936680fb8be9ce5a590b21827c9cde7a418fd235",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-003-integrated-closure",
+      "sha": "bc1902d7c68abb0c401d706eae60bc981fb717f6",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-004-integrated-closure",
+      "sha": "838aa7f7cb1fcc0e48bb6abbcbc93b581d6189bb",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-005-integrated-closure",
+      "sha": "a9147b6a81a10e4dbf4348d6df1b4cb868d57baf",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-006-integrated-closure",
+      "sha": "d47f362bd2cde9a96a3f6391820bc3b7299a8485",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-007-integrated-closure",
+      "sha": "c914a1f725d0eec0452eefc241e7b33e0798c315",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-008-integrated-closure",
+      "sha": "a8a3a405d41cac72b5db97431a8054da23c23ec3",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-009-integrated-closure",
+      "sha": "dd5cf86c4c1d5ed38f84a5025b0b758e5e1bf2f6",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-010-integrated-closure",
+      "sha": "bd49213276a08ce26b2a52fe47b624367a88ff47",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p07-011-integrated-closure",
+      "sha": "3d686ac9b0a6e75297baf47f258f66d9b898fe80",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-001-integrated-closure",
+      "sha": "f4210e23e75fcc5c9423f3b1dd5015c31b23d623",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-002-integrated-closure",
+      "sha": "f1825f186aea33a9e30da29cd2340eafd0de85a6",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-003-integrated-closure",
+      "sha": "a3b2205ec3cdf59ca9a6fcabc812bd5f87c21476",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-004-clean-pr",
+      "sha": "d09653191cf36a9f1b428d785ec572c5d1183382",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-004-final-closure-evidence",
+      "sha": "7103ce1afd9b86e6166245d3e7d88f12871ce7a2",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-004-integrated",
+      "sha": "d09653191cf36a9f1b428d785ec572c5d1183382",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-005-integrated-closure",
+      "sha": "f86c7d1bea01365e7ea64048ef7449ec72f93f0b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-006-integrated-closure",
+      "sha": "c3cbbd9f7cb3f9636f5cf97ecd6a2faba0902112",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-007-integrated-closure",
+      "sha": "68c830b8ccd010f4ff17e01a0298d6f27f3b335d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-008-after-p08-007",
+      "sha": "b97a08682a6d346937cfb1a1af7489b9bff975b9",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p08-008-integrated-closure",
+      "sha": "9e96c3ed38f1b71a19cfaeb747b8a39cb98d2250",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p09-001-external-tool-adapter-contract",
+      "sha": "2c3d9ef7c50f1875036c9120ef38ad498a1343e7",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p09-002-tool-discovery-capability-registry",
+      "sha": "8c91876a1989b292050134dda304f647be4a92de",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p09-003-integrated",
+      "sha": "2085349c287c35f77e6e1a13a4dfd6781a4a49a8",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p09-004-integrated-closure",
+      "sha": "3c6e0353d85a23aac86f7cea4370b3512b90b67a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p09-005-integrated-closure",
+      "sha": "905b8baa5f2e9950dae8265228c28a49e92f4cd0",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p09-006-integrated-closure",
+      "sha": "bce1fe5045757f90b1565e3e0f7f288a45351c40",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p09-final-integrated-closures",
+      "sha": "9aeec7c91a013c57b4b4b2cf3af69371bd59acef",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p10-001-integrated-closure",
+      "sha": "61c8103c7502edef9594b1a9a366fd43e6ad265b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p10-002-integrated-closure",
+      "sha": "fa1b8a05c81eded65b7e987760201237017f1ba1",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/fccd-p10-002-integrated-closure-v2",
+      "sha": "818ef5be92b235ed64ace33c93d10c901ecac96e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/owner-last-p05-stale-current-phase-line",
+      "sha": "020d39edf052fb13982ec1a8528ecc43dc2f247a",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p00-004-ledger-summary",
+      "sha": "8cfbf6331779becb2d72c3e88532709843101e77",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p00-target-validation-status",
+      "sha": "3461882690cd79eac51a65704a91d3e7076bf925",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p01-integrated-task-state-9d3098e",
+      "sha": "00472c15efbaee93b003c8cd1d222571d5a25f18",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p02-005-integrated-task-fb488d0",
+      "sha": "eb88bf9cd97bb585d4b5679ceadba477f4bd6b2e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p02-006-integrated-task-949379c",
+      "sha": "ad8848721a012cb2c99f4a0ffe18272f48427106",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p02-007-integrated-task-45ee529",
+      "sha": "03bfa5a3687903618059749bd52421f7df3e3ade",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p02-008-integrated-task-4296434",
+      "sha": "56fba64f4f4cf7b27c0909316ddb9b1a922a0eb0",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p02-009-integrated-task-4a9e697",
+      "sha": "edcc289491d374288b62a643cecb946c7727fbe4",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p02-integrated-task-state-018da0c",
+      "sha": "72bcf3770f139fc921baad1c1692d4723924e4c2",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p03-001-integrated-task-b7437a65",
+      "sha": "79eae1766d7e995c4580b672a22d570e8a5a5144",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p03-002-integrated-task-0d6402d0",
+      "sha": "9bd9498cba1ee2506ad087e6d80f178e66080a22",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p03-003-integrated-task-cb58551f",
+      "sha": "3c032d0a2ae81ac41a1a5ce21a474f7b63cdaa7c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p03-004-integrated-task-7ee0b5e",
+      "sha": "d6cec335a6e902805d3acace85a733d6302ec14c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p03-005-integrated-task-46d1f49b",
+      "sha": "fe3b238409719077837f693c7d802e22b1eab19f",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p03-006-integrated-task-cc325971",
+      "sha": "c0935007f3bc62e87b4e33f81a880ffef7050292",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p03-007-integrated-task-d475f576",
+      "sha": "7fbf0206a281d35a23f4e48102d05cc013794a99",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p04-001-integrated-task-0bc04b6",
+      "sha": "674c5b6b6d0c23ca57048199783c1630bdca2d7c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p04-002-integrated-task-e5b6c3e",
+      "sha": "745b9fdca971cd3bab94f48a5ec8d3b17c34310e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p04-003-integrated-task-8fd24dc",
+      "sha": "749be1eec80817eac3a21378002bf5ffb3ab131c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p04-004-integrated-task-30df27e",
+      "sha": "bbc64b0b54c82055b9d88d3dc1b3624fb3ab21ce",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p04-005-integrated-task-bba771d",
+      "sha": "44aefc71b9feb9572a5e8e5af6d27e118feb02cc",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p04-006-integrated-task-3b178d6",
+      "sha": "0a9ca618b393634599f194a16db98d878afafdd8",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p04-007-integrated-task-9e0dc4e",
+      "sha": "06d0bbd6e3f47ed20c3ea9d915aa27207954516a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p04-008-cloud-complete-target-required-16f848f",
+      "sha": "33d324cb90d3bdc406d31605228889d5e54da1b1",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p05-owner-real-target-current-main",
+      "sha": "91fcebc3946ef89073ebf76b01ccf2430c3c728b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p06-001-integration",
+      "sha": "7b053e0497fb7ddbfcd4c11f2fe2722dece8bc08",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p06-002-integration",
+      "sha": "4838f40140f45b39418bfbcba6c04cb51c47b764",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/p06-003-integration",
+      "sha": "8e563b8bb385115e696efd8a1847dfca1900c106",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "reconcile/project-control-p10-closure-state-20260925",
+      "sha": "dafc62164f3bd405de72cfd6ed6938dc353699c8",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "recovery/fccd-p08-008-main-integration",
+      "sha": "8de5f4722b1eeba03966494738f9738bcc106adc",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "recovery/fccd-p10-001-unity-project-detector",
+      "sha": "4fb5fbbc0d106230a48d5f1d8922671ccc62bb9d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "recovery/fccd-p10-006-integrated-reconciliation",
+      "sha": "920d8aff501e57c0d35768b5761b3f690374048d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "recovery/p10-004-final-evidence",
+      "sha": "a1589fc2f37d7200538c189c6f09a7a4cc68179e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "recovery/p10-004-p05-005-settlement-flake",
+      "sha": "de80d63130d2d18c6698d543a07a3ef665acd55d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "repair/p06-008-deterministic-cancellation-fixture",
+      "sha": "a094a7e1cc7b20a188574d4e6593991e6f1fc6a3",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "repair/p08-001-post-merge-workspace-lock",
+      "sha": "e3d6ecdc14f01be5460ca1656d6f6ba2b6535460",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "repair/p08-002-p05-005-settlement-fixture",
+      "sha": "636b4df95d4fdd74fb8fb0cb6f9e1dd84f5940ce",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "repair/p09-activation-temp-cleanup-settlement",
+      "sha": "0019fc44b1a5d25c6a218499bb90c10a8d1aab41",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "temp-ignore",
+      "sha": "3b178d62ec1235c9e9b6d727251218f790c78fc4",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "transition/p01-phase-activation",
+      "sha": "1a0e69eb8185752902b25c3e8330e7e16f147129",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "transition/p02-phase-activation",
+      "sha": "b8ec1827ba71ebe8b0372a3ef5adc4245e64b975",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "transition/p03-phase-activation",
+      "sha": "531eb0aca101232555348547f837c1181de8c4bb",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "transition/p04-phase-activation",
+      "sha": "628be6d786553c47711b095c254eb7c482af933e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-001-cloud-build-83f146c",
+      "sha": "15cf5deaa4099d9298e67cd173612a49247eb33d",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-001-main-2b94152",
+      "sha": "8cb3e124aee14b62e44f0c2a88fa355ace14aa01",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-002-main-0b84859",
+      "sha": "aadb3b9c41564bc73fc40a80035e3085426389c2",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-002-quality-3ca4895",
+      "sha": "cb3eb613bc4bc1eb982724819bc356bdb66a693a",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-002-quality-8e34efe",
+      "sha": "e35ee6677540aed41191afde67aabd089dff542c",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-002-quality-aba2027",
+      "sha": "ec7a86a2dfd802f580e96163a3dd08cd11c4e457",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-002-quality-c4812b0",
+      "sha": "4600883a72ba36645796cb81ffc49d3376c5b995",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-002-quality-c8ef814",
+      "sha": "62393ae3441f490792318188b90946060efbcc15",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-003-exact-2cf2bb6",
+      "sha": "52eabd2d3f571a38b76a44d60c216f1c2eb42069",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-003-final-lock-generation-20c45fa",
+      "sha": "c9f68a20dc69e0ef308878e10e84b6a41e727ce0",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-003-lock-generation-cb11161",
+      "sha": "841c2e9371f030517b08a4c6c95a2d39a755d2a4",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-003-policy-20c45fa",
+      "sha": "8776694aefecde71a27ee3fbaae52f4f7b31de11",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-003-policy-2bd4a43",
+      "sha": "318d57ba7f58663f43797a07a2999ae13a607a8c",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-003-recover-locks-20c45fa",
+      "sha": "c0191f3d58ddb8f2e994e973be43d7dd595658b0",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-003-recover-locks-c3e6801",
+      "sha": "d1a25c5981e4ce6e6be6db4e469dbbcbb8e811db",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-003-recover-locks-cc22177",
+      "sha": "93f3999215e65b8e721119d00a2008bade4fecd3",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-004-exact-229c179",
+      "sha": "e9f74123477cc32268efb86601b8c09db4b17d75",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-004-exact-fa809d2",
+      "sha": "b3c73ea868eba5f36bdf66f0894768da4a64ee69",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-004-integrate-3eda80b",
+      "sha": "f9675d35a6caf29fcc7b27b26f90889427e960f0",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-004-integrate-481d3bb",
+      "sha": "2e31a41cf2d1e4273a514db523a81a9ca1a70938",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-004-integrate-8416b4f",
+      "sha": "81ab6237bfb090ad317d1bb97ca0dc66299171e4",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-004-integrate-b283fe7",
+      "sha": "69e7797cf36977a73dbdc3ac837238218a42170e",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-004-minimal-sln-fa809d2",
+      "sha": "ca5bad07b863ed083b5346b0345e2f5259c265a8",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-004-xunit-template-a2d52fd",
+      "sha": "c3fef99257036cd2ebee57cf4d944d066a75f84d",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-exit-gate-72ea8b4",
+      "sha": "f35ac6d9b6982bfeb9ce270693484f54f5e5d3c1",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p01-reconciliation-9d3098e",
+      "sha": "09a443e614609753ec50a1f305a1e8a55a82a739",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p02-001-pr-precheck-095eab8",
+      "sha": "095eab850b3e3efa6c4d69838bdd291125d60c0f",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p02-exit-gate-8b264cc",
+      "sha": "6f9ad1778335a0609eb96c383a3088a321851640",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "validation/p03-exit-gate-2d5859c",
+      "sha": "781e4e847941445af256a7de294fa26ef9704797",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p06-003-reconcile",
+      "sha": "7ba18e26ba7443a22e87524ed9618372fced80b8",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p06-004-reconcile",
+      "sha": "2a4f4454a613f60c373680a9a5c0b0db3055459e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p06-004-safe-file-service",
+      "sha": "d5f625d595f959317b4e9c7a5048c94283715d12",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p06-005-reconcile",
+      "sha": "75f39de1b1e10b2043998f579ca1ef6c4f4862ba",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p06-006-editor-lifecycle",
+      "sha": "60aca82b36b046c7d5373cb8b4c807e0550e85e4",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p06-006-reconcile",
+      "sha": "98d6de6a839bd46cdcb90ffc6ee7d45c098b9f59",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p06-006-reconcile-recovery",
+      "sha": "a0ade53172a29c6b28711d4dc3436fb10f8741d2",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p06-008-large-workspace-recovery",
+      "sha": "d9742ec83f800cea2c16e59aa864273f73986a4a",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p06-008-reconcile",
+      "sha": "dc0a92683f292ac75706601b18bba36e6959656c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-001-git-repository-detection",
+      "sha": "64324363aed3936e8e882096f65a8449c3eb8bc2",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-001-reconcile",
+      "sha": "31732f0da6b3756d18a87d82b7cd5b6428535d5f",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-003-diff-viewer",
+      "sha": "4f046aa1f39a3107d9e74ff1d889d66b0f881e42",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-004-stage-unstage",
+      "sha": "5ea39d620def36a0855bf88fab67860ea9899c06",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-005-branch-create-checkout",
+      "sha": "f45018c57fb5474730f4007a55bd9999429eaa4e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-006-fetch-pull",
+      "sha": "1fa59f6d6ac3a422e013c8119b9208b68b1e34c0",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-007-commit-push",
+      "sha": "e7e6365ae0f2113a23f7b48327a537ab7af6298d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-008-history",
+      "sha": "78a3e789b89b6fe07b0d6ba92194a5cb9a5edec8",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-010-destructive-operation-safeguards",
+      "sha": "b2ebc3b811f1b0ac0320fa01212567a8256f29a6",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/fccd-p07-011-git-integration-conflicts",
+      "sha": "391f9caf8cd53cc810ca02012def35d7815b937a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/p06-exit-gate",
+      "sha": "2c69baef3c4da9da0ccb184eb80e47a600f11baa",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/p07-exit-gate",
+      "sha": "7fc98af72b72c0e5f0848e95d25abfb4afb80c0e",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker-b/p08-exit-gate",
+      "sha": "8884d62b7c29ec66db5599e5aa30e70eb937e4d0",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-exact-main-fcc-discovery-repair",
+      "sha": "0c7ee8a1ffa159971d480fd0b818eb93865a206c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p01-001-solution-foundation",
+      "sha": "83f146c4c6888cbc19fb0c930651a92288b1480d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p01-002-quality-policy",
+      "sha": "3ca48955463b5bb953ee2146fc3acbfb4fa2d01c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p01-003-dependency-locking",
+      "sha": "2cf2bb63c1d73f5b878264e63d6196616d21dbbb",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p01-004-test-infrastructure",
+      "sha": "229c179f3530bf70d6c28bae16aaaef3757edb62",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p01-005-windows-ci",
+      "sha": "07c502f89dfd8728b709f3d3f79cc41b0f358fe2",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p01-006-build-metadata",
+      "sha": "56df3ed8436f6c753a8ea36749c1aaac9d176360",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p02-001-design-tokens-typography",
+      "sha": "095eab850b3e3efa6c4d69838bdd291125d60c0f",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p02-002-semantic-themes",
+      "sha": "be29a4d33df393857f5ff3dffc428a02811d07ae",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p02-003-premium-app-chrome",
+      "sha": "1ffcd179c1a3a7e06086d3862ad0e16833141dea",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p02-004-workspace-layout",
+      "sha": "14881ab1a8af2dde4def841f117becacce4926b5",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p02-005-navigation-surfaces",
+      "sha": "40f1401451c95c1a66618cae9d1af80d869055cf",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p02-006-bottom-tool-panel",
+      "sha": "bc2b5f034a4b2fa22cb2988360f05326d6605f82",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p02-007-command-palette-keyboard",
+      "sha": "3a25ce5e582a126262803be791f81abc5e6d451d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p02-008-common-state-components",
+      "sha": "04a0a8176bf16ad6c8d53b9268b46d23126253de",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p02-009-dpi-resolution-foundations",
+      "sha": "b6e397e842978f4ac3efadcd9259ab8c01cd4ca7",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p03-001-sqlite-bootstrap",
+      "sha": "ba30c8f3bef8c56977b59756bf168c480f2ad6b3",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p03-002-project-session-message-persistence",
+      "sha": "9911627c3ccbce4c82bbded9ef0c7e4c7c9173c7",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p03-003-execution-event-journal",
+      "sha": "12053c1c3252df45f52ac8c13ee0fc398ce80daa",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p03-004-queue-persistence",
+      "sha": "2a1f3d0296765507e15b9b7e4a8934940c4e4b57",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p03-005-settings-persistence",
+      "sha": "bd717c0acd625f1ba660175a9506849047e54be7",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p03-006-database-integrity-backup-rotation",
+      "sha": "308a8856850290f8c18b434a5e33a8d448c299da",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p03-007-migration-recovery-tests",
+      "sha": "f0f21f5aa616c4d2733c6c271f95c269b8b71e66",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p04-001-fcc-environment-discovery",
+      "sha": "7d613f75805fe0939f823425482e80492fe5536b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p04-002-agent-runtime-contract",
+      "sha": "7b28a0bdbc76a092ae0df372cb780eb235ef525a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p04-003-primary-structured-runtime",
+      "sha": "3a017c0eec34bd9c80d3dc6ef6e16ec564939e4f",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p04-004-cli-fallback-runtime",
+      "sha": "699749679fe9a4b970e94f3fa18992c12989fe8d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p04-005-runtime-event-normalization",
+      "sha": "5e733d7424a73e02d3c03a86abf5c076b64b4552",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p04-006-runtime-health-compatibility",
+      "sha": "22c83e6f6565ab3cf17965d5c747a119dd8a7f2c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p04-007-runtime-supervision",
+      "sha": "a1e0d023e8450692aea2bf6f634323e1898c7b96",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p04-008-runtime-contract-suite",
+      "sha": "d2f2512d4708c0d064ff9dd2b83a5080da6af1d3",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-001-integrated-reconciliation",
+      "sha": "6654d23797259bb5f284246312c841d369cc7a91",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-001-streaming-chat-rendering",
+      "sha": "b261a511222dfa79b77172b0fd390345b6af10c6",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-002-integrated-reconciliation",
+      "sha": "9da089b721c97ca02f01aab8a914b292e63ac21f",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-002-structured-tool-timeline",
+      "sha": "d17643560b2ec8e36f24b052ab0ee322a6b0a4c5",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-003-composer-attachments-context",
+      "sha": "4406f748667e8b928f3956ccedb482af509b8792",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-003-composer-candidate",
+      "sha": "3cbfc00a79ce7f7826bb442939c9c0d29ae8036e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-004-session-history-resume",
+      "sha": "12bb212bc5fc5455045efd4d08c01cb56a62bbb7",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-005-recovery",
+      "sha": "cb7edc6909235a275949b6e184ceabb2a8340859",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-005-task-state-machine",
+      "sha": "9b62df03eb96a50f445c1952eaa50e75a9a700ff",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-006-stop-cancel-retry",
+      "sha": "7c49d2e6009acb7f1e3dcceec57ad88e690fd34c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-007-integrated-reconciliation",
+      "sha": "c312625149fd9f1599cd5a84592228b3c849cc48",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-007-markdown-code-diff",
+      "sha": "6732ed69207260d8372b2f581480dc03ea59d6b7",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-007-markdown-code-diff-safe",
+      "sha": "903e7276337dd90c029d284dbd1bb386acc44574",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p05-008-conversation-virtualization",
+      "sha": "a81f1ec86e0c05498cfd86ed3cafd91d0fd5b124",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p06-003-lazy-file-explorer",
+      "sha": "8af341c0300052e3471eb1563f3acf7901be0ebd",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p06-005-local-code-editor",
+      "sha": "b09dfcfa90fd737f11d564fb7155f4c48705a663",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p06-007-reconcile",
+      "sha": "50da69fa131ffc0a51f3e8984a763f48beea7cc2",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p06-007-workspace-search",
+      "sha": "fcf6ff496fc50837a401c15c8d1e0823439a0a41",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p06-008-reconcile",
+      "sha": "c77473fcebb3317168ab1effdf67cc7ecd95bd99",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p07-002-status-changed-files",
+      "sha": "1341412ee80a8141ed3a7ea462c6e280e7017ea0",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p07-009-dirty-provenance",
+      "sha": "2db2276dc920d769c235c8581bd272d6b7b05519",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p08-001-process-supervisor",
+      "sha": "5915ce7f21d8b487346acf7334b34bd4523a215a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p08-002-cancellation-escalation",
+      "sha": "978d71baa75a21cb55a8c2ef4db546097e44b6c4",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p08-004-conpty-terminal-host",
+      "sha": "218cc7d93fafb690a5e2cf7192970bf6be0caa1f",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p08-006-optional-shell-detection",
+      "sha": "72f313ab27a54a0188ee31faea69f00aaeb0f0c9",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p08-007-interactive-terminal-ux",
+      "sha": "bebe178af5f36f97427d101c5b2e3ab2cd0ff075",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p08-008-process-terminal-safety-tests",
+      "sha": "5ba9f58a70ae76effcac709ff2f1233dc247392c",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p09-001-external-tool-adapter-contract",
+      "sha": "1f33b646deecdb471741ddc406e998c8a5f97da5",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p09-002-tool-discovery-capability-registry",
+      "sha": "41f8ee42248693c0c3313c317412027647224910",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p09-003-structured-invocation-result-contracts",
+      "sha": "f50233efb761e9144d5e229a9aeab1710852a532",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p09-004-tool-resource-locking",
+      "sha": "c9c9b2af6df94ce9de897fdbcd7b9340821e5c00",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p09-005-artifact-manifest-validation",
+      "sha": "b0381ad11381a958eb6ef588fde057630e246be5",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p09-006-tool-diagnostics-health",
+      "sha": "556d9eaacaa58460ec4220ec036cd5d0ecb91619",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p09-007-cli-process-primitives",
+      "sha": "7150ed11f39cd987ad6fdd9aa55415d7ba3f8b84",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p09-008-optional-protocol-seam",
+      "sha": "4c1a8850775de561167765a06b886b7ac990495c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-001-unity-project-detector",
+      "sha": "3a7f66ef1437df59002d86f1a5e31f4da84ab65f",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-002-unity-editor-resolver",
+      "sha": "0d411d877f3e56a7cde08aef3f0c50ff65997733",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-003-integrated-reconciliation",
+      "sha": "fcd94a7819d2818e0d1cb27587df3558e71d1fa5",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-003-unity-cli-command-builder",
+      "sha": "cbe73e901443a7847e4fae3f3da1e582fad93be4",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-004-unity-resource-locking",
+      "sha": "71a614d425251335b78a1f9047d20891d90847e7",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-005-integrated-reconciliation",
+      "sha": "cfe070aff97962f5566bd05a8489cd177102267a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-005-unity-log-capture-parser",
+      "sha": "f7b9dd7663546d233c6140c6aa8c6911ee863512",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-006-unity-compile-validation",
+      "sha": "d6eceee3f9cb3c1b0ea282febb24abf5c1728ac5",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-007-integrated-reconciliation",
+      "sha": "524174aa1df2fd33146ffb84c97fe8754830eb34",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-007-reconciliation",
+      "sha": "661cbbfefc1a753a31291f12a81b2367c064fa27",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-007-unity-editmode-tests",
+      "sha": "d5c9c7c780cf0a05a46ab69d3520ad5183b95cce",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-008-reconciliation",
+      "sha": "e4367a2fa7eec6fea6d1e3fac5dd6e567840ad6e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-008-unity-playmode-tests",
+      "sha": "46ea2d04bdbba9db723ba7c0e2dd77e39e43afd2",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-009-reconciliation",
+      "sha": "255c34e9eb7697008700cb86f61b374264198d91",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-009-unity-editor-automation",
+      "sha": "ce8486cdee218f243fc74f6aa066ffd426a9834d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-010-reconciliation",
+      "sha": "0301e34c2d35c0209cfc6b098a9652feb307a89d",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-010-unity-build-validation",
+      "sha": "61fab6d08bd8f1f8434a6547e47a76e6a9d086fa",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/fccd-p10-011-unity-structured-events",
+      "sha": "99186b9b29a6b2d08c7f805e85f4521b24754f63",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/final-owner-acceptance-pack",
+      "sha": "274a371baef330c4669b0d67df9bb9bdb62fc82b",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-004-session-resume-closure",
+      "sha": "d6f56013325a38eb3a17356c4de8fbc2f1f2dec6",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-005-failure-target-closure",
+      "sha": "1bbd45bc645b48af5df96e9a1ad9bfbbfde77c8e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-007-cli-fallback-closure",
+      "sha": "3cb61e6c422d38cf7eecee325183b666e088bdb4",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-blender-final-cloud-hardening",
+      "sha": "3e0704a80a9a304b390484e38b5976f083917d6a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-blender-redaction-hardening",
+      "sha": "d766f068bad9c28d51eaf092a3e79ff8027749dd",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-blender-redaction-reconcile",
+      "sha": "57fb0325c885d31ddcc59e6d300555c2e978e466",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-compatibility-taxonomy",
+      "sha": "a909b3dea6fe2a8fb0370802889b9aebd456bd7e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-fcc-cli-redaction-hardening",
+      "sha": "4254c6d358593f81273387a59a00caa3225aa137",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-fcc-cli-redaction-reconcile",
+      "sha": "59fc2e2d4941252cf696eefc33a1384784c16468",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-fcc-redaction-hardening",
+      "sha": "db0bce000cbcfd1553ee67c903ad4084c38d7f52",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-fcc-redaction-reconcile",
+      "sha": "dfb28f69c487cbf0f1aedceab3795042e2ce7384",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-fcc-target-status-supersession",
+      "sha": "6bae89bb2929e0165db4e0f6e79258b53ad8f108",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-fcc-target-status-supersession-reconcile",
+      "sha": "9fac842de4a62f105ac7b3927166c81433964be0",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-plan-gap-reconcile",
+      "sha": "f5ee3d953bbf0ae536fc4f0bc28009a7b8f682ee",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-post-probe-reconcile",
+      "sha": "f97ca5a7501f0b4636c68d70816dfffb0d9a1e8e",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-process-tree-observation",
+      "sha": "368019926c3fb11d326e52446b0718325b8eadc1",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-rate-limit-closure",
+      "sha": "8bde79a21f385b77bb38e484ef7a807f3979cf53",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-rerun-policy-reconcile",
+      "sha": "d7f6146298c95461f4bc9cc66354bf1d2f311f1c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-runner-regression-reconcile",
+      "sha": "c4bd28a1f379a6696e3fca948704c64249b35c27",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-runner-regression-tests",
+      "sha": "37e0ffd8c516d34f509b6801b82513ba44a48e2a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-runner-rerun-safety",
+      "sha": "97d5237a7b948cf9f0746355ae758230e0a6d470",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-target-evidence-artifact-integrity",
+      "sha": "126f9d9a8d0fd4b379ba21dddf2b3c46e90a0bd1",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-target-evidence-artifact-integrity-reconcile",
+      "sha": "d3750659227e01bfc444af1252110b55ede5319d",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-target-manifest-schema",
+      "sha": "136741dbf91a42a34a90d91b36c50ccf7d0e64e3",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-target-manifest-schema-reconcile",
+      "sha": "29eb22c7c67050caf3ccc7f9f39fcd333dd25c2f",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-target-manifest-schema-reconcile-live",
+      "sha": "b108b5c0d1c40a1fc973b8d5d517429516a2b9d6",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-target-policy-reconcile",
+      "sha": "8b6f91ef2d4d2e8074935f4d3e7052860de1dd80",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-target-runner-hardening",
+      "sha": "00825712c45623642c371475783b5ec094027070",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-cloud-unity-redaction-hardening",
+      "sha": "0850a31bfd653a980d48955e362ae3c765fa4963",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-fcc-cli-contract",
+      "sha": "846595d49800c3bd2e51a10f9131c255a27e17df",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-final-runner-readiness",
+      "sha": "f8ee94f95a01a8d030ff0693ea7d9497b45ce722",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-runtime-compatibility-final-reconcile",
+      "sha": "23e2c6e60012e8f9b8259f2a94cf6893f5625ff7",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-stream-session-failure-contract",
+      "sha": "0db87efd6114566b924d9e14bf58670c774f5f83",
+      "alreadyInOriginalMain": false,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-unity-contract",
+      "sha": "d21ada88fd2da57107de681db99a622872203524",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p00-w2-contract-hardening",
+      "sha": "e1797650dc93f941f6754f64cf201051d2e98c0c",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p06-001-project-workflows",
+      "sha": "2b51797dcf2b6ac674c116bfeb1cc33497f8b878",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p06-002-project-technology-detection",
+      "sha": "53d2f71a23496fa270f1480689724dc3a5f5b252",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p10-canonical-closure",
+      "sha": "dcd2caaf947984fcee347c4555d29e5ecf6d311a",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p10-phase-closure",
+      "sha": "c42e9ffa08449f73e569b00d4f66c39cc6bf5aea",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    },
+    {
+      "branch": "worker/p10-unity-final-convergence",
+      "sha": "81e9fccbce0008f051e86fcb4a08e38059939289",
+      "alreadyInOriginalMain": true,
+      "reachableFromConvergedMain": true
+    }
+  ]
+}
