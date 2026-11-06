@@ -21,7 +21,7 @@ const SECRET_VALUE_PATTERNS = [
   /\b(sk-[A-Za-z0-9_-]{8,})\b/g,
   /\b(gh[pousr]_[A-Za-z0-9_]{8,})\b/g,
   /(Bearer\s+)([A-Za-z0-9._~+/=-]{8,})/gi,
-  /(Authorization\s*[:=]\s*)([^\s,;]+)/gi,
+  /(Authorization\s*[:=]\s*)([^\r\n,;]+)/gi,
   /((?:api[_-]?key|token|secret|password|credential)\s*[:=]\s*["']?)([^\s"',;]+)/gi,
 ];
 
