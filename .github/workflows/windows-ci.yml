@@ -80,3 +80,7 @@ jobs:
       - name: Validate P06-008 large workspace safeguards
         shell: pwsh
         run: .\tools\projects\validate-large-workspace-safeguards.ps1 -RunFixtures -RequireRuntime
+
+      - name: Validate P08-003 bounded process output
+        shell: pwsh
+        run: .\tools\runtime\validate-bounded-process-output.ps1 -RunFixtures -RequireRuntime

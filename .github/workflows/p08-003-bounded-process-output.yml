@@ -54,4 +54,4 @@ jobs:
 
       - name: Validate P08-003 bounded process output
         shell: pwsh
-        run: .\tools\runtime\validate-bounded-process-output.ps1 -Configuration Release
+        run: .\tools\runtime\validate-bounded-process-output.ps1 -Configuration Release -RunFixtures -RequireRuntime
