@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace FCCCodeDesktop.Fcc;
 
-public sealed class FccEnvironmentDiscoveryService
+public sealed class FccEnvironmentDiscoveryService : IFccEnvironmentDiscovery
 {
     private const int DefaultFccServerPort = 8082;
     private const int MinimumTcpPort = 1;
@@ -186,7 +186,7 @@ public sealed class FccEnvironmentDiscoveryService
             CreateNoWindow = true
         };
 
-    private async Task<FccLoopbackHealth> ProbeLoopbackHealthAsync(CancellationToken cancellationToken)
+    public async Task<FccLoopbackHealth> ProbeLoopbackHealthAsync(CancellationToken cancellationToken = default)
     {
         var endpoint = ResolveHealthUri();
         using var handler = new HttpClientHandler

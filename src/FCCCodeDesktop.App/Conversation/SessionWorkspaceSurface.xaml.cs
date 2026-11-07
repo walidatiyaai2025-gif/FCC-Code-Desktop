@@ -6,6 +6,14 @@ namespace FCCCodeDesktop.App.Conversation;
 
 public partial class SessionWorkspaceSurface : UserControl
 {
+    public static readonly DependencyProperty RuntimeSettingsContentProperty = DependencyProperty.Register(
+        nameof(RuntimeSettingsContent), typeof(object), typeof(SessionWorkspaceSurface), new PropertyMetadata(null));
+
+    public object? RuntimeSettingsContent
+    {
+        get => GetValue(RuntimeSettingsContentProperty);
+        set => SetValue(RuntimeSettingsContentProperty, value);
+    }
     public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
         nameof(State),
         typeof(SessionWorkspaceState),
@@ -44,8 +52,15 @@ public partial class SessionWorkspaceSurface : UserControl
             return;
         }
 
-        var session = await State.CreateSessionAsync().ConfigureAwait(true);
-        SessionHistoryItems.SelectedItem = session;
+        try
+        {
+            var session = await State.CreateSessionAsync().ConfigureAwait(true);
+            SessionHistoryItems.SelectedItem = session;
+        }
+        catch (InvalidOperationException)
+        {
+            // State displays the reason; keep the task's owning session selected.
+        }
     }
 
     private async void OnRefreshClicked(object sender, RoutedEventArgs e)

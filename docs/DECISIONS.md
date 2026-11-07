@@ -1,5 +1,11 @@
 # FCC Code Desktop — Decision Log
 
+## Owner instruction — integrated repository coding workflow (2026-11-06)
+
+The owner explicitly prioritizes a usable application that starts the FCC server it needs, opens a selected repository, and executes coding requests from chat against that repository and its task documents. This authorizes integration repairs to P04/P05/P06 before further feature-phase advancement. Work continues directly on `main`; no new branch is authorized. This scheduling instruction does not waive any mandatory v1 scope, safety gate, real-provider acceptance, or release closure requirement.
+
+The desktop reuses a healthy loopback server without taking ownership of it. Otherwise it starts the discovered `fcc-server` using the existing supervised-process boundary, bounded output, a readiness deadline, serialized startup and owned-tree cleanup. Server health is separate from provider acceptance. Every coding run rechecks readiness. A project/session cannot be switched while its task is active. The first message can create a persisted session automatically. Repository contents remain the runtime working directory; no credentials are copied into the project.
+
 This file records durable decisions. New workers must not reopen a decided item merely from preference; supersede it only with stronger evidence and a new explicit ADR.
 
 ---

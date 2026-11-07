@@ -22,6 +22,8 @@ LAST_RECONCILED: 2026-09-09
 
 ## Active scheduling rule
 
+Owner instruction 2026-11-06 prioritizes the integrated automatic FCC startup → selected repository → coding-chat workflow on `main`, without new branches. Integration repairs `FCCD-INT-001` through `FCCD-INT-003` in `docs/TASK_LEDGER.md` are the active work under this explicit instruction before further feature-phase advancement. Historical P10 closure and all remaining P11–P22 release obligations remain unchanged. See `docs/DECISIONS.md` and `docs/runtime/FCC_DESKTOP_CODING_WORKFLOW.md`.
+
 `CURRENT_PHASE` means the single phase authorized for **cloud-actionable implementation** while the owner-authorized scheduling amendment in `docs/OWNER_LAST_EXECUTION_POLICY.md` is active. Workers must read that policy and `docs/FINAL_OWNER_ACCEPTANCE_QUEUE.md` before selecting work.
 
 P06 is canonically CLOSED. `FCCD-P06-001` through `FCCD-P06-008` are normally integrated, dedicated exact-candidate phase-exit run `34030997937` passed, closure PR #160 was normally merged as `38f01c2c07104b1e169a8fd4606f374e499cafc7`, and exact post-merge Windows CI `34031863567`, Workspace Search `34031863569`, and Large Workspace Safeguards `34031863551` all completed SUCCESS. Canonical closure evidence is `evidence/phases/P06/CLOSURE.md`.

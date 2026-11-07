@@ -229,6 +229,19 @@ public sealed class TaskExecutionState : DispatcherObject, INotifyPropertyChange
         }
     }
 
+    public async Task ShutdownAsync()
+    {
+        VerifyAccess();
+        if (_activeExecution is not null)
+        {
+            await _activeExecution.CancelAsync().ConfigureAwait(true);
+        }
+        if (_activePumpTask is not null)
+        {
+            await _activePumpTask.ConfigureAwait(true);
+        }
+    }
+
     public async Task RetryAsync(CancellationToken cancellationToken = default)
     {
         VerifyAccess();

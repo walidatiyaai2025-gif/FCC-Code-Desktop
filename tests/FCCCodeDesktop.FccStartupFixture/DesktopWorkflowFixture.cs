@@ -1,0 +1,132 @@
+using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Threading;
+using FCCCodeDesktop.App.Conversation;
+using FCCCodeDesktop.App.Shell;
+using FCCCodeDesktop.Core.State;
+using FCCCodeDesktop.Fcc;
+using FCCCodeDesktop.Persistence;
+
+internal static class DesktopWorkflowFixture
+{
+    private static readonly string[] ResourceDictionaries = ["DesignTokens.xaml", "Typography.xaml", "Themes/Theme.Dark.xaml", "AppChrome.xaml"];
+    public static Task RunAsync()
+    {
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            var dispatcher = Dispatcher.CurrentDispatcher;
+            _ = dispatcher.InvokeAsync(async () =>
+            {
+                try
+                {
+                    var app = new System.Windows.Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+                    foreach (var dictionary in ResourceDictionaries)
+                    {
+                        app.Resources.MergedDictionaries.Add(new ResourceDictionary
+                        {
+                            Source = new Uri("pack://application:,,,/FCCCodeDesktop.App;component/DesignSystem/" + dictionary)
+                        });
+                    }
+                    await RunOnDispatcherAsync();
+                    completion.TrySetResult();
+                }
+                catch (Exception exception) { completion.TrySetException(exception); }
+                finally { dispatcher.BeginInvokeShutdown(DispatcherPriority.Background); }
+            });
+            Dispatcher.Run();
+        });
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return completion.Task.WaitAsync(TimeSpan.FromSeconds(45));
+    }
+
+    private static async Task RunOnDispatcherAsync()
+    {
+        var surface = new ToolApprovalSurface();
+        var request = new FccToolPermissionRequest("Bash", "{\"command\":\"fixture-command\"}", Path.GetTempPath());
+        var approval = surface.RequestAsync(request, CancellationToken.None);
+        Require(surface.Visibility == Visibility.Visible, "Approval did not appear.");
+        Require(!await surface.RequestAsync(request, CancellationToken.None), "Concurrent approval was accepted.");
+        Button(surface, "Allow once").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Require(await approval && surface.Visibility == Visibility.Collapsed, "Allow-once UI failed.");
+        var denial = surface.RequestAsync(request, CancellationToken.None);
+        Button(surface, "Deny").RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent));
+        Require(!await denial, "Deny UI failed.");
+        using var cancelled = new CancellationTokenSource();
+        var cancellation = surface.RequestAsync(request, cancelled.Token);
+        await cancelled.CancelAsync();
+        try { await cancellation; throw new InvalidOperationException("Cancelled approval succeeded."); }
+        catch (OperationCanceledException) { }
+        Require(surface.Visibility == Visibility.Collapsed, "Cancelled approval remained visible.");
+
+        var root = Path.Combine(Path.GetTempPath(), "FCCD desktop ownership " + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var options = new SqliteDatabaseOptions(Path.Combine(root, "state.db"));
+            await new SqliteDatabaseInitializer(options).InitializeAsync();
+            var store = new SqliteConversationStateStore(options);
+            var first = new PersistedProject(Guid.NewGuid(), root, "First repo", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow);
+            var secondRoot = Path.Combine(root, "second repository");
+            Directory.CreateDirectory(secondRoot);
+            var second = first with { Id = Guid.NewGuid(), RootPath = secondRoot, DisplayName = "Second repo" };
+            await store.UpsertProjectAsync(first);
+            await store.UpsertProjectAsync(second);
+            var state = new SessionWorkspaceState(store);
+            await state.ActivateProjectAsync(first.Id);
+            var session = await state.CreateSessionAsync();
+            state.CanChangeSession = () => false;
+            foreach (var blocked in new Func<Task>[] { () => state.ActivateProjectAsync(second.Id), () => state.CreateSessionAsync(), () => state.ResumeSessionAsync(session.Id) })
+            {
+                try { await blocked(); throw new IOException("Session ownership guard was bypassed."); }
+                catch (InvalidOperationException) { }
+            }
+            Require(state.ActiveProjectId == first.Id && state.ActiveSessionId == session.Id && state.HasError, "Blocked switch changed task ownership.");
+            state.CanChangeSession = () => true;
+            await state.ActivateProjectAsync(second.Id);
+            Require(state.ActiveProjectId == second.Id, "Session change did not recover after task completion.");
+            var startup = new FccStartupState();
+            startup.SetModels(["fixture/model-a", "fixture/model-b"]);
+            startup.SelectedModel = "fixture/model-b";
+            startup.SetTaskActive(true);
+            startup.SelectedModel = "fixture/model-a";
+            Require(startup.SelectedModel == "fixture/model-b" && !startup.CanSelectModel, "Active task model changed.");
+            startup.SetTaskActive(false);
+            Require(startup.CanSelectModel, "Model picker did not recover.");
+            startup.SetModels(["fixture/model-a", "fixture/model-b"]);
+            Require(startup.SelectedModel == "fixture/model-b", "Refreshing models lost the chosen model.");
+            var restored = new FccStartupState();
+            restored.SetModels(["fixture/model-a", "fixture/model-b"], "fixture/model-b");
+            Require(restored.SelectedModel == "fixture/model-b", "Initial catalog ignored the persisted preference.");
+            var settings = new SqliteSettingsStore(options);
+            await settings.UpsertGlobalSettingAsync(new PersistedSetting("runtime.model", "\"fixture/model-b\"", DateTimeOffset.UtcNow));
+            Require((await settings.GetGlobalSettingAsync("runtime.model"))?.ValueJson == "\"fixture/model-b\"", "Model preference did not persist.");
+            await using var window = new FCCCodeDesktop.App.MainWindow();
+            Require(window.FindName("ToolApprovalHost") is ToolApprovalSurface, "Main window approval overlay is missing.");
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            Require(Path.GetFullPath(root).StartsWith(Path.GetFullPath(Path.GetTempPath()) + "FCCD desktop ownership ", StringComparison.OrdinalIgnoreCase), "Fixture cleanup escaped its owned temporary root.");
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    private static Button Button(DependencyObject root, string content)
+    {
+        foreach (var child in LogicalTreeHelper.GetChildren(root).OfType<DependencyObject>())
+        {
+            if (child is Button button && Equals(button.Content, content)) { return button; }
+            try { return Button(child, content); }
+            catch (KeyNotFoundException) { }
+        }
+        throw new KeyNotFoundException(content);
+    }
+
+    private static void Require(bool condition, string message)
+    {
+        if (!condition) { throw new InvalidOperationException(message); }
+    }
+}

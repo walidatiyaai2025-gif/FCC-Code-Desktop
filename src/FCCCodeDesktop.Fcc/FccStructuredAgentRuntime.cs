@@ -89,6 +89,23 @@ public sealed class FccStructuredAgentRuntime : IAgentRuntime
         startInfo.ArgumentList.Add("stream-json");
         startInfo.ArgumentList.Add("--verbose");
 
+        if (_options.Model is not null)
+        {
+            startInfo.ArgumentList.Add("--model");
+            startInfo.ArgumentList.Add(_options.Model);
+        }
+
+        if (_options.AcceptFileEdits)
+        {
+            startInfo.ArgumentList.Add("--permission-mode");
+            startInfo.ArgumentList.Add("acceptEdits");
+        }
+        if (!string.IsNullOrWhiteSpace(_options.AppendSystemPrompt))
+        {
+            startInfo.ArgumentList.Add("--append-system-prompt");
+            startInfo.ArgumentList.Add(_options.AppendSystemPrompt);
+        }
+
         if (request.ResumeSessionId is not null)
         {
             startInfo.ArgumentList.Add("--resume");
@@ -468,7 +485,7 @@ public sealed class FccStructuredAgentRuntime : IAgentRuntime
         }
     }
 
-    private static class FccStructuredPayloadSanitizer
+    internal static class FccStructuredPayloadSanitizer
     {
         private static readonly string[] SensitivePropertyFragments =
         [

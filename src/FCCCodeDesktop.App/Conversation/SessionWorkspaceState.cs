@@ -44,6 +44,18 @@ public sealed class SessionWorkspaceState : DispatcherObject, INotifyPropertyCha
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    public Func<bool>? CanChangeSession { get; set; }
+
+    private void EnsureSessionChangeAllowed()
+    {
+        if (ReadOnDispatcher(() => IsBusy) || CanChangeSession?.Invoke() == false)
+        {
+            const string message = "Wait for the current task to finish or stop it before changing its repository or session.";
+            SetErrorMessage(message);
+            throw new InvalidOperationException(message);
+        }
+    }
+
     public event EventHandler<SessionChangedEventArgs>? SessionChanged;
 
     public ReadOnlyObservableCollection<PersistedSession> Sessions => _readonlySessions;
@@ -84,6 +96,7 @@ public sealed class SessionWorkspaceState : DispatcherObject, INotifyPropertyCha
 
     public async Task ActivateProjectAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
+        EnsureSessionChangeAllowed();
         if (projectId == Guid.Empty)
         {
             throw new ArgumentException("Project identifier must not be empty.", nameof(projectId));
@@ -152,6 +165,7 @@ public sealed class SessionWorkspaceState : DispatcherObject, INotifyPropertyCha
         string? title = null,
         CancellationToken cancellationToken = default)
     {
+        EnsureSessionChangeAllowed();
         var project = ReadOnDispatcher(() => ActiveProject)
             ?? throw new InvalidOperationException("A persisted project must be active before a session can be created.");
         var now = _timeProvider.GetUtcNow();
@@ -187,6 +201,7 @@ public sealed class SessionWorkspaceState : DispatcherObject, INotifyPropertyCha
 
     public async Task ResumeSessionAsync(Guid sessionId, CancellationToken cancellationToken = default)
     {
+        EnsureSessionChangeAllowed();
         if (sessionId == Guid.Empty)
         {
             throw new ArgumentException("Session identifier must not be empty.", nameof(sessionId));

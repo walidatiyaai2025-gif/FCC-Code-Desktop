@@ -101,6 +101,10 @@ try {
     & pwsh -NoProfile -File .\tools\runtime\validate-fcc-runtime-contract-suite.ps1 -RunFixtures -RequireRuntime
     Assert-LastExitCode 'P04 aggregate runtime contract-suite validation'
 
+    Write-Host 'CI stage: automatic FCC server startup'
+    & pwsh -NoProfile -File .\tools\runtime\validate-fcc-server-startup.ps1 -RunFixtures -RequireRuntime
+    Assert-LastExitCode 'FCC server startup validation'
+
     Write-Host 'CI stage: design-system contract'
     & pwsh -NoProfile -File .\tools\ui\validate-design-system.ps1 -RunFixtures
     Assert-LastExitCode 'Design-system validation'

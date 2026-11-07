@@ -20,6 +20,7 @@
         SnapsToDevicePixels="True"
         AutomationProperties.Name="FCC Code Desktop">
     <Window.Resources>
+        <chrome:FccStartupState x:Key="FccStartupState" />
         <chrome:WorkspaceNavigationState x:Key="WorkspaceNavigationState" />
         <chrome:WorkspaceLayoutState x:Key="WorkspaceLayoutState" />
         <terminal:InteractiveTerminalSurface x:Key="InteractiveTerminalSurface" />
@@ -56,7 +57,17 @@
 
             <chrome:AppTitleBar x:Name="AppTitleBarHost"
                                 Grid.Row="0"
-                                ProductName="FCC Code Desktop" />
+                                ProductName="FCC Code Desktop">
+                <chrome:AppTitleBar.StatusContent>
+                    <StackPanel Orientation="Horizontal" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                        <TextBlock Text="{Binding Message, Source={StaticResource FccStartupState}}" VerticalAlignment="Center"
+                                   MaxWidth="300" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource FccBrushTextSecondary}" />
+                        <Button Content="Retry FCC" Margin="8,0,0,0" Padding="8,3"
+                                IsEnabled="{Binding CanRetry, Source={StaticResource FccStartupState}}" Click="OnFccRetryClick" AutomationProperties.Name="Retry FCC server startup" />
+                    </StackPanel>
+                </chrome:AppTitleBar.StatusContent>
+            </chrome:AppTitleBar>
 
             <ContentControl x:Name="WorkspaceHost"
                             Grid.Row="1"
@@ -83,6 +94,8 @@
                                    Grid.RowSpan="2"
                                    Panel.ZIndex="100"
                                    State="{StaticResource CommandPaletteState}" />
+            <chrome:ToolApprovalSurface x:Name="ToolApprovalHost" Grid.RowSpan="2" Panel.ZIndex="200"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Grid>
     </Border>
 </Window>

@@ -1,5 +1,18 @@
 # FCC Code Desktop — Canonical Task Ledger
 
+## Owner-directed integration — 2026-11-06
+
+The owner explicitly prioritizes the integrated launch → repository → coding-chat workflow on `main` before further feature-phase advancement. See the dated instruction in `docs/DECISIONS.md`. Existing phase/release gates remain binding and no final-product completion is claimed.
+
+| ID | Required outcome | State |
+|---|---|---|
+| FCCD-INT-001 | Automatic supervised FCC server readiness, reuse, retry, cancellation and owned shutdown | IMPLEMENTED |
+| FCCD-INT-002 | Select repository, enter chat, create first session automatically, preserve owning repository during execution | IMPLEMENTED |
+| FCCD-INT-003 | Real provider-backed repository task intake and verified code-file creation from chat | IMPLEMENTED |
+| FCCD-INT-004 | Installable complete product with all P11–P22 mandatory acceptance and clean-machine gates | PENDING |
+
+Integration candidate verification is in progress. Lifecycle/catalog/control-protocol/WPF ownership fixtures pass locally. A real FCC provider-backed task read `TASKS.md`, created `calculator.py`, denied an unapproved operation, approved the exact isolated verification command, returned `PASS` and ended `Succeeded`. Final candidate baseline and exact-head evidence are required before these integration rows close. See `docs/runtime/FCC_DESKTOP_CODING_WORKFLOW.md`.
+
 This file is the authoritative inventory of mandatory v1 work.
 
 ## State rules

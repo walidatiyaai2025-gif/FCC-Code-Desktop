@@ -1,6 +1,9 @@
 using System.ComponentModel;
 using System.IO;
+using System.Net.Http;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using FCCCodeDesktop.App.Conversation;
@@ -15,19 +18,26 @@ using FCCCodeDesktop.Runtime;
 
 namespace FCCCodeDesktop.App;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Window, IAsyncDisposable
 {
     private readonly WorkspaceViewportCoordinator _viewportCoordinator = new();
     private Task<SessionWorkspaceState>? _sessionInitializationTask;
     private SessionWorkspaceState? _sessionWorkspaceState;
     private TaskExecutionState? _taskExecutionState;
     private ProjectWorkspaceSurface? _projectWorkspaceSurface;
+    private readonly FccServerLifecycle _fccServer = new();
+    private readonly CancellationTokenSource _windowLifetime = new();
     private bool _terminalShutdownStarted;
     private bool _terminalShutdownCompleted;
+    private bool _windowDisposed;
+    private bool _submissionStarting;
+    private SqliteSettingsStore? _settingsStore;
+    private string? _preferredModel;
 
     public MainWindow()
     {
         InitializeComponent();
+        _fccServer.StatusChanged += OnFccStatusChanged;
         ConfigureConversationSurface();
         ConfigureShellCommandFramework();
         Loaded += OnSessionPersistenceLoaded;
@@ -67,6 +77,23 @@ public partial class MainWindow : Window
         _projectWorkspaceSurface = new ProjectWorkspaceSurface();
         composerState.SubmissionRequested += OnComposerSubmissionRequested;
         navigationState.SessionsContent = sessionWorkspaceSurface;
+        var startupState = RequireResource<FccStartupState>("FccStartupState");
+        var modelSettings = new StackPanel { DataContext = startupState };
+        modelSettings.Children.Add(new TextBlock { Text = "Coding model", Margin = new Thickness(0, 0, 0, 4) });
+        var modelPicker = new ComboBox { MaxDropDownHeight = 320 };
+        modelPicker.SetBinding(ItemsControl.ItemsSourceProperty, new Binding(nameof(FccStartupState.Models)));
+        modelPicker.SetBinding(System.Windows.Controls.Primitives.Selector.SelectedItemProperty,
+            new Binding(nameof(FccStartupState.SelectedModel)) { Mode = BindingMode.TwoWay });
+        modelPicker.SetBinding(IsEnabledProperty, new Binding(nameof(FccStartupState.CanSelectModel)));
+        System.Windows.Automation.AutomationProperties.SetName(modelPicker, "FCC coding model");
+        modelSettings.Children.Add(modelPicker);
+        modelSettings.Children.Add(new TextBlock
+        {
+            Text = "File edits enabled for coding tasks. Review changes before committing.",
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 6, 0, 0)
+        });
+        sessionWorkspaceSurface.RuntimeSettingsContent = modelSettings;
         navigationState.TasksContent = taskExecutionSurface;
         bottomToolPanelState.TerminalContent = terminalSurface;
     }
@@ -127,8 +154,7 @@ public partial class MainWindow : Window
         await Task.Yield();
         try
         {
-            var terminalSurface = RequireResource<InteractiveTerminalSurface>("InteractiveTerminalSurface");
-            await terminalSurface.DisposeAsync().ConfigureAwait(true);
+            await DisposeAsync().ConfigureAwait(true);
             _terminalShutdownCompleted = true;
             _terminalShutdownStarted = false;
             Close();
@@ -149,7 +175,23 @@ public partial class MainWindow : Window
 
     private void OnWindowClosed(object? sender, EventArgs e)
     {
+        _fccServer.StatusChanged -= OnFccStatusChanged;
         _projectWorkspaceSurface?.EditorWorkspace.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_windowDisposed) { return; }
+        await _windowLifetime.CancelAsync().ConfigureAwait(true);
+        if (_taskExecutionState is not null)
+        {
+            await _taskExecutionState.ShutdownAsync().ConfigureAwait(true);
+        }
+        await RequireResource<InteractiveTerminalSurface>("InteractiveTerminalSurface").DisposeAsync().ConfigureAwait(true);
+        await _fccServer.DisposeAsync().ConfigureAwait(true);
+        _windowLifetime.Dispose();
+        _windowDisposed = true;
+        GC.SuppressFinalize(this);
     }
 
     private async void OnSessionPersistenceLoaded(object sender, RoutedEventArgs e)
@@ -193,8 +235,22 @@ public partial class MainWindow : Window
         Directory.CreateDirectory(stateDirectory);
         var options = new SqliteDatabaseOptions(Path.Combine(stateDirectory, "fcc-code-desktop.db"));
         await new SqliteDatabaseInitializer(options).InitializeAsync(CancellationToken.None).ConfigureAwait(true);
+        _settingsStore = new SqliteSettingsStore(options);
+        var modelSetting = await _settingsStore.GetGlobalSettingAsync("runtime.model", _windowLifetime.Token).ConfigureAwait(true);
+        if (modelSetting is not null)
+        {
+            try
+            {
+                _preferredModel = System.Text.Json.JsonSerializer.Deserialize<string>(modelSetting.ValueJson);
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                // Invalid non-secret preference is recovered by the live model catalog.
+            }
+        }
 
         var state = new SessionWorkspaceState(new SqliteConversationStateStore(options));
+        state.CanChangeSession = () => !_submissionStarting && !_terminalShutdownStarted && _taskExecutionState?.IsActive != true;
         state.SessionChanged += OnSessionChanged;
         _sessionWorkspaceState = state;
         RequireResource<SessionWorkspaceSurface>("SessionWorkspaceSurface").State = state;
@@ -208,6 +264,15 @@ public partial class MainWindow : Window
             new FileSystemProjectTechnologyDetectionService(),
             state);
         projectSurface.State = projectState;
+        projectState.PropertyChanged += (_, change) =>
+        {
+            if (change.PropertyName == nameof(ProjectWorkspaceState.ActiveProject) && projectState.HasActiveProject)
+            {
+                AppTitleBarHost.ContextContent = projectState.ActiveProjectName;
+                RequireResource<WorkspaceNavigationState>("WorkspaceNavigationState")
+                    .SelectSectionCommand.Execute(WorkspaceSection.Sessions);
+            }
+        };
         var navigationState = RequireResource<WorkspaceNavigationState>("WorkspaceNavigationState");
         navigationState.ProjectsContent = _projectWorkspaceSurface;
         await projectState.InitializeAsync(CancellationToken.None).ConfigureAwait(true);
@@ -218,30 +283,50 @@ public partial class MainWindow : Window
 
     private async Task InitializeTaskExecutionAsync(SqliteDatabaseOptions options, SessionWorkspaceState sessionState)
     {
-        var discovery = await new FccEnvironmentDiscoveryService()
-            .DiscoverAsync(CancellationToken.None)
-            .ConfigureAwait(true);
-        IAgentRuntime? runtime = null;
-        string? unavailableReason = null;
-        if (discovery.IsFccClaudeAvailable)
-        {
-            runtime = new ConversationSequencedAgentRuntime(
-                new AgentRuntimeSupervisor(new FccStructuredAgentRuntime(discovery.FccClaude)));
-        }
-        else
-        {
-            unavailableReason = discovery.FccClaude.ProbeFailure ?? "fcc-claude was not discovered.";
-        }
+        var startupState = RequireResource<FccStartupState>("FccStartupState");
+        IAgentRuntime runtime = new ConversationSequencedAgentRuntime(new FccManagedAgentRuntime(_fccServer,
+            () => startupState.SelectedModel, ToolApprovalHost.RequestAsync));
 
         var taskState = new TaskExecutionState(
             new SqliteExecutionJournalStore(options),
             sessionState,
             RequireResource<StreamingConversationState>("StreamingConversationState"),
-            runtime,
-            unavailableReason);
+            runtime);
         _taskExecutionState = taskState;
+        taskState.PropertyChanged += (_, _) => startupState.SetTaskActive(taskState.IsActive);
         RequireResource<TaskExecutionSurface>("TaskExecutionSurface").State = taskState;
+        await PrepareFccAsync().ConfigureAwait(true);
     }
+
+    private void OnFccStatusChanged(object? sender, EventArgs e)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            _ = Dispatcher.InvokeAsync(() => OnFccStatusChanged(sender, e));
+            return;
+        }
+        RequireResource<FccStartupState>("FccStartupState").Update(_fccServer.Status);
+    }
+
+    private async Task PrepareFccAsync()
+    {
+        try
+        {
+            var snapshot = await _fccServer.EnsureReadyAsync(_windowLifetime.Token).ConfigureAwait(true);
+            var models = await FccModelCatalog.ListAsync(snapshot.LoopbackHealth.Endpoint, _windowLifetime.Token).ConfigureAwait(true);
+            RequireResource<FccStartupState>("FccStartupState").SetModels(models, _preferredModel);
+        }
+        catch (OperationCanceledException) when (_windowLifetime.IsCancellationRequested) { }
+        catch (Exception exception) when (exception is IOException or InvalidOperationException or UnauthorizedAccessException
+                                           or HttpRequestException or System.Text.Json.JsonException)
+        {
+            RequireResource<FccStartupState>("FccStartupState").Update(
+                _fccServer.Status.State == FccServerState.Failed ? _fccServer.Status
+                    : new FccServerStatus(FccServerState.Failed, "FCC model discovery failed. Check the local server and retry."));
+        }
+    }
+
+    private async void OnFccRetryClick(object sender, RoutedEventArgs e) => await PrepareFccAsync().ConfigureAwait(true);
 
     private void OnSessionChanged(object? sender, SessionChangedEventArgs e)
     {
@@ -265,12 +350,26 @@ public partial class MainWindow : Window
         try
         {
             var sessionState = await EnsureSessionWorkspaceInitializedAsync(CancellationToken.None).ConfigureAwait(true);
+            var owningProjectId = sessionState.ActiveProjectId;
             var taskState = _taskExecutionState
                 ?? throw new InvalidOperationException("Task execution state is not initialized.");
-            taskState.ValidateCanStart();
-            if (!sessionState.HasActiveSession)
+            if (!sessionState.HasActiveSession && sessionState.HasActiveProject)
             {
-                throw new InvalidOperationException("Create or resume a session before starting a task.");
+                await sessionState.CreateSessionAsync(cancellationToken: _windowLifetime.Token).ConfigureAwait(true);
+            }
+            taskState.ValidateCanStart();
+            if (sessionState.ActiveProjectId != owningProjectId)
+            {
+                throw new InvalidOperationException("The selected repository changed while preparing this request. Send the request again in its intended repository.");
+            }
+            _submissionStarting = true;
+            var startupState = RequireResource<FccStartupState>("FccStartupState");
+            startupState.SetTaskActive(true);
+            if (_settingsStore is not null && startupState.SelectedModel is not null)
+            {
+                await _settingsStore.UpsertGlobalSettingAsync(new FCCCodeDesktop.Core.State.PersistedSetting(
+                    "runtime.model", System.Text.Json.JsonSerializer.Serialize(startupState.SelectedModel), DateTimeOffset.UtcNow),
+                    _windowLifetime.Token).ConfigureAwait(true);
             }
 
             await sessionState.AppendMessageAsync(
@@ -278,12 +377,21 @@ public partial class MainWindow : Window
                 e.Submission.Text,
                 CancellationToken.None).ConfigureAwait(true);
             conversationState.AddUserMessage(e.Submission.Text);
-            await taskState.StartTaskAsync(e.Submission.Text, CancellationToken.None).ConfigureAwait(true);
+            await taskState.StartTaskAsync(e.Submission.Text, _windowLifetime.Token).ConfigureAwait(true);
             composerState.AcceptSubmission(e.Submission.SubmissionId);
+        }
+        catch (OperationCanceledException) when (_windowLifetime.IsCancellationRequested)
+        {
+            composerState.RejectSubmission(e.Submission.SubmissionId, "Task startup cancelled because the application is closing.");
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             composerState.RejectSubmission(e.Submission.SubmissionId, exception.Message);
+        }
+        finally
+        {
+            _submissionStarting = false;
+            RequireResource<FccStartupState>("FccStartupState").SetTaskActive(_taskExecutionState?.IsActive == true);
         }
     }
 

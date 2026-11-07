@@ -32,6 +32,7 @@
                     <TextBlock Text="Sessions"
                                Style="{StaticResource FccTextSection}"
                                Foreground="{DynamicResource FccBrushTextPrimary}" />
+                    <ContentControl Margin="0,8,0,8" Content="{Binding RuntimeSettingsContent, ElementName=Root}" />
                     <TextBlock Margin="0,4,0,0"
                                Text="{Binding ActiveProjectName}"
                                TextTrimming="CharacterEllipsis"
