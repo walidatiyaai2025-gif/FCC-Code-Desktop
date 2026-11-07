@@ -126,22 +126,28 @@ public sealed class FccEnvironmentDiscoveryService : IFccEnvironmentDiscovery
             return ProcessProbeResult.Failed("Version probe launch failed because the process state was invalid.");
         }
 
-        var standardOutputTask = process.StandardOutput.ReadToEndAsync(CancellationToken.None);
-        var standardErrorTask = process.StandardError.ReadToEndAsync(CancellationToken.None);
         using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutSource.CancelAfter(_options.ProcessTimeout);
+        var standardOutputTask = ReadBoundedVersionOutputAsync(process.StandardOutput, timeoutSource.Token);
+        var standardErrorTask = ReadBoundedVersionOutputAsync(process.StandardError, timeoutSource.Token);
 
         try
         {
             await process.WaitForExitAsync(timeoutSource.Token).ConfigureAwait(false);
+            return new ProcessProbeResult(
+                process.ExitCode,
+                await standardOutputTask.ConfigureAwait(false),
+                await standardErrorTask.ConfigureAwait(false),
+                TimedOut: false,
+                Failure: null);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             TryKillOwnedProcess(process);
             await WaitForTerminationAfterKillAsync(process).ConfigureAwait(false);
             return ProcessProbeResult.Timeout(
-                Bound(await standardOutputTask.ConfigureAwait(false), MaximumVersionTextLength),
-                Bound(await standardErrorTask.ConfigureAwait(false), MaximumVersionTextLength));
+                standardOutputTask.IsCompletedSuccessfully ? await standardOutputTask.ConfigureAwait(false) : string.Empty,
+                standardErrorTask.IsCompletedSuccessfully ? await standardErrorTask.ConfigureAwait(false) : string.Empty);
         }
         catch (OperationCanceledException)
         {
@@ -150,12 +156,19 @@ public sealed class FccEnvironmentDiscoveryService : IFccEnvironmentDiscovery
             throw;
         }
 
-        return new ProcessProbeResult(
-            process.ExitCode,
-            Bound(await standardOutputTask.ConfigureAwait(false), MaximumVersionTextLength),
-            Bound(await standardErrorTask.ConfigureAwait(false), MaximumVersionTextLength),
-            TimedOut: false,
-            Failure: null);
+    }
+
+    private static async Task<string> ReadBoundedVersionOutputAsync(StreamReader reader, CancellationToken cancellationToken)
+    {
+        var output = new System.Text.StringBuilder(MaximumVersionTextLength);
+        var buffer = new char[512];
+        int count;
+        while ((count = await reader.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false)) != 0)
+        {
+            var remaining = MaximumVersionTextLength - output.Length;
+            if (remaining > 0) { output.Append(buffer, 0, Math.Min(count, remaining)); }
+        }
+        return output.ToString();
     }
 
     private static ProcessStartInfo CreateVersionProbeStartInfo(string executablePath, string argument)
@@ -429,13 +442,18 @@ public sealed class FccEnvironmentDiscoveryService : IFccEnvironmentDiscovery
 
     private static async Task WaitForTerminationAfterKillAsync(Process process)
     {
+        using var cleanupDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         try
         {
-            await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+            await process.WaitForExitAsync(cleanupDeadline.Token).ConfigureAwait(false);
         }
         catch (InvalidOperationException)
         {
             // A process that never started has no termination wait to perform.
+        }
+        catch (OperationCanceledException)
+        {
+            // A failed probe must not hold application startup indefinitely after an attempted owned-tree kill.
         }
     }
 

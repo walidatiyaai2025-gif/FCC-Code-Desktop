@@ -115,9 +115,10 @@ function Assert-TaskStateContract {
         'TaskExecutionState? _taskExecutionState',
         'navigationState.TasksContent = taskExecutionSurface',
         'new SqliteExecutionJournalStore(options)',
-        'new FccEnvironmentDiscoveryService()',
+        'private readonly FccServerLifecycle _fccServer = new()',
         'new ConversationSequencedAgentRuntime(',
-        'new AgentRuntimeSupervisor(new FccStructuredAgentRuntime(discovery.FccClaude))',
+        'new FccManagedAgentRuntime(_fccServer,',
+        'ToolApprovalHost.RequestAsync',
         'taskState.ValidateCanStart()',
         'await taskState.StartTaskAsync(e.Submission.Text',
         'composerState.AcceptSubmission(e.Submission.SubmissionId)',
@@ -680,6 +681,8 @@ if ($RunFixtures) {
     Assert-Rejected { Assert-TaskStateContract $stateText $surfaceText $surfaceCodeText ($sequenceText.Replace('Source runtime event sequence must remain contiguous.', 'Sequence unchecked.')) $mainWindowText $mainWindowCodeText } 'source sequence continuity guard removed'
     Assert-Rejected { Assert-TaskStateContract $stateText ($surfaceText.Replace('{DynamicResource FccBrushCanvas}', '#112233')) $surfaceCodeText $sequenceText $mainWindowText $mainWindowCodeText } 'hard-coded task surface color'
     Assert-Rejected { Assert-TaskStateContract $stateText $surfaceText $surfaceCodeText $sequenceText $mainWindowText ($mainWindowCodeText.Replace('navigationState.TasksContent = taskExecutionSurface', '')) } 'task navigation composition removed'
+    Assert-Rejected { Assert-TaskStateContract $stateText $surfaceText $surfaceCodeText $sequenceText $mainWindowText ($mainWindowCodeText.Replace('new FccManagedAgentRuntime(_fccServer,', 'new UnmanagedRuntime(')) } 'managed FCC startup composition removed'
+    Assert-Rejected { Assert-TaskStateContract $stateText $surfaceText $surfaceCodeText $sequenceText $mainWindowText ($mainWindowCodeText.Replace('ToolApprovalHost.RequestAsync', 'null')) } 'desktop tool approval callback removed'
     Write-Host 'Negative P05-005 fixtures: PASS.'
 }
 

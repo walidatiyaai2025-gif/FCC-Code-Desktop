@@ -4,6 +4,30 @@ using System.Text.Json;
 using FCCCodeDesktop.Fcc;
 using FCCCodeDesktop.Runtime;
 
+if (args.Contains("--hold-probe-pipes", StringComparer.Ordinal))
+{
+    await Task.Delay(TimeSpan.FromSeconds(2));
+    return;
+}
+if (args.Contains("--hold-tool-pipes", StringComparer.Ordinal))
+{
+    await Task.Delay(TimeSpan.FromSeconds(30));
+    return;
+}
+if (Environment.GetEnvironmentVariable("FCCD_TEST_VERSION_PIPES") == "hold"
+    && args.Any(argument => argument is "--version" or "version" or "-V"))
+{
+    using var descendant = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+        Path.Combine(AppContext.BaseDirectory, "FCCCodeDesktop.FccStartupFixture.exe"))
+    {
+        UseShellExecute = false,
+        CreateNoWindow = true,
+        RedirectStandardError = true,
+        ArgumentList = { "--hold-probe-pipes" }
+    });
+    return;
+}
+
 if (args.Contains("--print", StringComparer.Ordinal)
     && Environment.GetEnvironmentVariable("FCCD_TEST_INTERACTIVE_MODE") is { } fixtureMode)
 {
@@ -14,6 +38,19 @@ if (args.Contains("--print", StringComparer.Ordinal)
     using var userMessage = JsonDocument.Parse(user!);
     Require(userMessage.RootElement.GetProperty("message").GetProperty("content").GetString() == "fixture prompt", "Prompt was not delivered through stdin.");
     Console.WriteLine("""{"type":"system","subtype":"init","session_id":"fixture-session"}""");
+    if (fixtureMode == "orphan")
+    {
+        using var descendant = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+            Path.Combine(AppContext.BaseDirectory, "FCCCodeDesktop.FccStartupFixture.exe"))
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardError = true,
+            ArgumentList = { "--hold-tool-pipes" }
+        });
+        Console.WriteLine(JsonSerializer.Serialize(new { type = "system", subtype = "fixture_child", child_pid = descendant!.Id }));
+        return;
+    }
     if (fixtureMode == "missing-result") { return; }
     if (fixtureMode == "malformed") { Console.WriteLine("not json"); return; }
     Console.WriteLine("""{"type":"control_request","request_id":"approval-1","request":{"subtype":"can_use_tool","tool_name":"Bash","input":{"command":"fixture-command","api_key":"fixture-sensitive-value"}}}""");
@@ -36,8 +73,11 @@ if (args.Contains("--print", StringComparer.Ordinal)
 if (args.Contains("--real-startup", StringComparer.Ordinal))
 {
     await using var real = new FccServerLifecycle();
-    var snapshot = await real.EnsureReadyAsync();
+    real.StatusChanged += (_, _) => Console.Error.WriteLine($"FCC_STARTUP_STATE: {real.Status.State}");
+    using var startupDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    var snapshot = await real.EnsureReadyAsync(startupDeadline.Token);
     Console.WriteLine($"REAL_LOCAL_STARTUP: {real.Status.State}; owned={real.Status.OwnsServer}; health={snapshot.LoopbackHealth.HttpStatusCode}");
+    Console.Out.Flush();
     if (args.Length >= 3 && args[1] == "--task-repository")
     {
         using var taskTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
@@ -144,13 +184,14 @@ catch (HttpRequestException) { }
 try { await FccModelCatalog.ListAsync(new Uri("https://example.com/health")); throw new InvalidOperationException("Remote catalog accepted."); }
 catch (ArgumentException) { }
 
-foreach (var mode in new[] { "allow", "deny", "missing-result", "malformed", "cancel" })
+foreach (var mode in new[] { "allow", "deny", "missing-result", "malformed", "cancel", "orphan" })
 {
     var previousMode = Environment.GetEnvironmentVariable("FCCD_TEST_INTERACTIVE_MODE");
     Environment.SetEnvironmentVariable("FCCD_TEST_INTERACTIVE_MODE", mode);
     try
     {
         var permissionReached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        int? ownedDescendantPid = null;
         var options = new FccStructuredAgentRuntimeOptions
         {
             PermissionHandler = async (permission, token) =>
@@ -165,19 +206,65 @@ foreach (var mode in new[] { "allow", "deny", "missing-result", "malformed", "ca
         var runtime = new FccInteractiveAgentRuntime(new FccExecutableDiscovery("fcc-claude",
             Path.Combine(AppContext.BaseDirectory, "FCCCodeDesktop.FccStartupFixture.exe"), null, null, null), options);
         await using var execution = await runtime.StartAsync(new AgentRuntimeRequest(Guid.NewGuid(), Guid.NewGuid(), "fixture prompt", Path.GetTempPath()));
-        var drain = Task.Run(async () => { await foreach (var item in execution.Events) { _ = item.Kind; } });
-        if (mode == "cancel")
+        var drain = Task.Run(async () =>
+        {
+            await foreach (var item in execution.Events)
+            {
+                if (mode == "orphan" && item.PayloadJson is not null)
+                {
+                    using var payload = JsonDocument.Parse(item.PayloadJson);
+                    if (payload.RootElement.TryGetProperty("child_pid", out var pid))
+                    {
+                        ownedDescendantPid = pid.GetInt32();
+                        permissionReached.TrySetResult();
+                    }
+                }
+            }
+        });
+        if (mode is "cancel" or "orphan")
         {
             await permissionReached.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            if (mode == "orphan") { await Task.Delay(250); }
             await execution.CancelAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(15));
         }
         var result = await execution.Completion.WaitAsync(TimeSpan.FromSeconds(15));
         await drain;
-        var expected = mode == "cancel" ? AgentRuntimeTerminalState.Cancelled
+        var expected = mode is "cancel" or "orphan" ? AgentRuntimeTerminalState.Cancelled
             : mode is "missing-result" or "malformed" ? AgentRuntimeTerminalState.Failed : AgentRuntimeTerminalState.Succeeded;
         Require(result.State == expected, $"Interactive fixture {mode} returned {result.State}.");
+        if (ownedDescendantPid is { } childPid)
+        {
+            try
+            {
+                using var descendant = System.Diagnostics.Process.GetProcessById(childPid);
+                Require(descendant.HasExited, "Owned descendant survived cancellation after its launcher exited.");
+            }
+            catch (ArgumentException) { }
+        }
     }
     finally { Environment.SetEnvironmentVariable("FCCD_TEST_INTERACTIVE_MODE", previousMode); }
+}
+
+var previousProbeMode = Environment.GetEnvironmentVariable("FCCD_TEST_VERSION_PIPES");
+Environment.SetEnvironmentVariable("FCCD_TEST_VERSION_PIPES", "hold");
+try
+{
+    var elapsed = System.Diagnostics.Stopwatch.StartNew();
+    var probe = await new FccEnvironmentDiscoveryService(new FccEnvironmentDiscoveryOptions
+    {
+        FccClaudeExecutablePath = Path.Combine(AppContext.BaseDirectory, "FCCCodeDesktop.FccStartupFixture.exe"),
+        PathValue = string.Empty,
+        ProcessTimeout = TimeSpan.FromMilliseconds(250),
+        HealthTimeout = TimeSpan.FromMilliseconds(50),
+        HealthUri = new Uri("http://127.0.0.1:1/health")
+    }).DiscoverAsync().WaitAsync(TimeSpan.FromSeconds(5));
+    Require(elapsed.Elapsed < TimeSpan.FromSeconds(4) && probe.FccClaude.ProbeFailure?.Contains("timed out", StringComparison.Ordinal) == true,
+        "Version discovery waited for inherited pipe EOF beyond its deadline.");
+}
+finally
+{
+    Environment.SetEnvironmentVariable("FCCD_TEST_VERSION_PIPES", previousProbeMode);
+    await Task.Delay(TimeSpan.FromSeconds(2));
 }
 
 // An already running service belongs to its original owner, including after application exit.

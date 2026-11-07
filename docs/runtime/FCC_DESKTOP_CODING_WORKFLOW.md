@@ -10,6 +10,8 @@ Opening a repository navigates to its chat. A first message creates a persisted 
 
 The coding instructions direct the agent to read applicable repository guidance and inspect `TASKS.md`, `TODO.md`, or the documented task ledger when the user requests repository work. They do not authorize pushes, deployment, destructive actions, secret disclosure, or changes in unrelated directories.
 
+Interactive coding processes are placed in a private kill-on-close Windows job before any prompt is sent. Cancellation releases pending approval and pipe reads, terminates the owned job and waits for its process count to reach zero within a cleanup deadline. A descendant retaining stdout/stderr after launcher exit cannot keep the chat waiting for pipe EOF. A terminal result ends input explicitly; success still requires both a successful structured result and a zero launcher exit code.
+
 ## Tool approvals
 
 Desktop sessions use a bidirectional stream-json CLI transport. The installed CLI's control initialization and `can_use_tool` requests are correlated by request ID. The user sees the tool, repository and sanitized exact input, and can allow that request once or deny it. Approval is never a blanket permission bypass; only the original request input is returned to the CLI. Cancellation dismisses a pending prompt and stops the owned coding process. Missing or malformed terminal results cannot count as success.

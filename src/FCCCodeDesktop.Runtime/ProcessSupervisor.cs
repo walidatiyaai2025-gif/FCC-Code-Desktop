@@ -517,7 +517,7 @@ public sealed class ProcessSupervisor : IProcessSupervisor
         }
     }
 
-    private sealed class WindowsJobObject : IDisposable
+    internal sealed class WindowsJobObject : IDisposable
     {
         private const uint JobObjectLimitKillOnJobClose = 0x00002000;
         private const int JobObjectBasicAccountingInformation = 1;

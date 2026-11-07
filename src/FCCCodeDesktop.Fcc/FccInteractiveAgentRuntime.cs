@@ -31,6 +31,7 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
     private sealed class Execution : IAgentRuntimeExecution
     {
         private readonly Process _process;
+        private readonly OwnedProcessTreeLease? _tree;
         private readonly FccStructuredAgentRuntimeOptions _options;
         private readonly AgentRuntimeRequest _request;
         private readonly Channel<AgentRuntimeEvent> _events = Channel.CreateBounded<AgentRuntimeEvent>(512);
@@ -66,10 +67,13 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
             try
             {
                 if (!_process.Start()) { throw new InvalidOperationException("FCC coding process could not start."); }
+                _tree = new OwnedProcessTreeLease(_process);
                 _pump = PumpAsync();
             }
             catch
             {
+                KillOwnedProcess();
+                _tree?.Dispose();
                 _process.Dispose();
                 _stop.Dispose();
                 throw;
@@ -93,9 +97,17 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
         public async ValueTask DisposeAsync()
         {
             if (Interlocked.Exchange(ref _disposed, 1) != 0) { return; }
-            if (!_completion.Task.IsCompleted) { await CancelAsync().ConfigureAwait(false); }
-            _stop.Dispose();
-            _process.Dispose();
+            try
+            {
+                if (!_completion.Task.IsCompleted) { await CancelAsync().ConfigureAwait(false); }
+                await _pump.ConfigureAwait(false);
+            }
+            finally
+            {
+                _tree?.Dispose();
+                _stop.Dispose();
+                _process.Dispose();
+            }
         }
 
         private async Task WriteAsync(object message, CancellationToken cancellationToken)
@@ -107,7 +119,11 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
         private async Task DrainErrorsAsync()
         {
             var buffer = new char[4096];
-            while (await _process.StandardError.ReadAsync(buffer).ConfigureAwait(false) != 0) { }
+            try
+            {
+                while (await _process.StandardError.ReadAsync(buffer.AsMemory(), _stop.Token).ConfigureAwait(false) != 0) { }
+            }
+            catch (OperationCanceledException) when (_stop.IsCancellationRequested) { }
         }
 
         private async Task PumpAsync()
@@ -162,9 +178,15 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
                         terminalSeen = true;
                         succeeded = String(root, "subtype") == "success" && root.TryGetProperty("is_error", out var error) && error.ValueKind == JsonValueKind.False;
                         _process.StandardInput.Close();
+                        break;
                     }
                 }
-                await _process.WaitForExitAsync(_stop.Token).ConfigureAwait(false);
+                using var exitDeadline = CancellationTokenSource.CreateLinkedTokenSource(_stop.Token);
+                exitDeadline.CancelAfter(TimeSpan.FromSeconds(10));
+                await _process.WaitForExitAsync(exitDeadline.Token).ConfigureAwait(false);
+                _tree?.Terminate();
+                if (_tree is not null) { await _tree.WaitForExitAsync(exitDeadline.Token).ConfigureAwait(false); }
+                await _stop.CancelAsync().ConfigureAwait(false);
                 await stderr.ConfigureAwait(false);
                 if (!initialized) { failureMessage = "FCC did not initialize its interactive protocol. Check the installed Claude Code version."; }
                 var success = initialized && terminalSeen && succeeded && _process.ExitCode == 0;
@@ -174,8 +196,11 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
             }
             catch (Exception exception) when (exception is IOException or JsonException or InvalidOperationException or OperationCanceledException or Win32Exception)
             {
+                await _stop.CancelAsync().ConfigureAwait(false);
                 KillOwnedProcess();
-                await _process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+                using var cleanup = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                await _process.WaitForExitAsync(cleanup.Token).ConfigureAwait(false);
+                if (_tree is not null) { await _tree.WaitForExitAsync(cleanup.Token).ConfigureAwait(false); }
                 await stderr.ConfigureAwait(false);
                 var cancelled = Volatile.Read(ref _cancelled) != 0;
                 _completion.TrySetResult(new AgentRuntimeResult(TaskId, RunId,
@@ -183,7 +208,12 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
                     cancelled ? null : new AgentRuntimeFailure(AgentRuntimeFailureKind.UnknownFailure,
                         initialized ? "FCC interactive execution failed. Check the server/model and retry." : "FCC interactive startup failed or timed out.")));
             }
-            finally { _events.Writer.TryComplete(); }
+            finally
+            {
+                _completion.TrySetResult(new AgentRuntimeResult(TaskId, RunId, AgentRuntimeTerminalState.Failed, session,
+                    new AgentRuntimeFailure(AgentRuntimeFailureKind.ProcessCrash, "FCC execution ended unexpectedly; inspect the runtime and retry.")));
+                _events.Writer.TryComplete();
+            }
         }
 
         private async Task AnswerPermissionAsync(JsonElement root, CancellationToken cancellationToken)
@@ -210,6 +240,7 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
         {
             try { if (!_process.HasExited) { _process.Kill(entireProcessTree: true); } }
             catch (InvalidOperationException) { }
+            _tree?.Terminate();
         }
 
         private static string? String(JsonElement value, string name) => value.TryGetProperty(name, out var property)

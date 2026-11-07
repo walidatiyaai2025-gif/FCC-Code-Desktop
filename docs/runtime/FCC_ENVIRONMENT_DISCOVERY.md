@@ -25,6 +25,8 @@ Version probes default to a bounded 15-second timeout and kill only the process 
 
 ## FCC loopback health
 
+The process deadline covers both launcher exit and stdout/stderr EOF. Captured version text is bounded during reading, and cleanup has its own bounded wait. An exited launcher whose descendant retains an inherited pipe therefore cannot hold startup indefinitely. The desktop integration fixture includes this regression.
+
 The health probe is independent from executable discovery and independent from provider readiness.
 
 Endpoint selection is:
