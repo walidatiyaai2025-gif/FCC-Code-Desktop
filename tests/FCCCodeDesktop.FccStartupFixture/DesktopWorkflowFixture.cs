@@ -105,6 +105,26 @@ internal static class DesktopWorkflowFixture
             Require((await settings.GetGlobalSettingAsync("runtime.model"))?.ValueJson == "\"fixture/model-b\"", "Model preference did not persist.");
             await using var window = new FCCCodeDesktop.App.MainWindow();
             Require(window.FindName("ToolApprovalHost") is ToolApprovalSurface, "Main window approval overlay is missing.");
+
+            // Hold asynchronous workspace initialization to verify that a coding request
+            // locks model/project ownership synchronously, before the first await.
+            var heldWorkspace = new TaskCompletionSource<SessionWorkspaceState>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var initializationField = typeof(FCCCodeDesktop.App.MainWindow).GetField(
+                "_sessionInitializationTask", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                ?? throw new InvalidOperationException("Main window workspace initialization seam changed.");
+            initializationField.SetValue(window, heldWorkspace.Task);
+            var windowStartup = (FccStartupState)window.Resources["FccStartupState"];
+            var composer = (ComposerState)window.Resources["ComposerState"];
+            windowStartup.SetModels(["fixture/model-a"]);
+            Require(windowStartup.CanSelectModel, "Model picker was not selectable before submission.");
+            composer.DraftText = "fixture coding request";
+            Require(composer.RequestSubmission(), "Initial coding request was rejected.");
+            Require(!windowStartup.CanSelectModel, "Model picker remained enabled during asynchronous submission preparation.");
+            Require(!composer.RequestSubmission(), "Second request bypassed pending-submission ownership.");
+            heldWorkspace.SetException(new InvalidOperationException("Fixture-held initialization was intentionally rejected."));
+            await Dispatcher.Yield(DispatcherPriority.Background);
+            Require(windowStartup.CanSelectModel, "Model picker remained locked after failed submission preparation.");
+            Require(composer.CanSubmit && composer.HasValidationMessage, "Failed submission did not restore the composer draft.");
         }
         finally
         {
