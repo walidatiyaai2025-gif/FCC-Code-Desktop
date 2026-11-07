@@ -95,6 +95,14 @@ internal static class DesktopWorkflowFixture
             Require(startup.SelectedModel == "fixture/model-b" && !startup.CanSelectModel, "Active task model changed.");
             startup.SetTaskActive(false);
             Require(startup.CanSelectModel, "Model picker did not recover.");
+            startup.Update(new FccServerStatus(FccServerState.Failed, "Fixture server unavailable"));
+            Require(startup.CanRetry, "Failed FCC startup did not enable retry.");
+            startup.SetTaskActive(true);
+            Require(!startup.CanRetry, "FCC retry remained enabled during a coding task.");
+            startup.SetTaskActive(false);
+            Require(startup.CanRetry, "FCC retry did not recover after coding task finished.");
+            startup.Update(new FccServerStatus(FccServerState.Checking, "Checking FCC"));
+            Require(!startup.CanRetry, "FCC retry remained enabled while startup was checking.");
             startup.SetModels(["fixture/model-a", "fixture/model-b"]);
             Require(startup.SelectedModel == "fixture/model-b", "Refreshing models lost the chosen model.");
             var restored = new FccStartupState();

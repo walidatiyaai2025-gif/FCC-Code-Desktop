@@ -326,7 +326,17 @@ public partial class MainWindow : Window, IAsyncDisposable
         }
     }
 
-    private async void OnFccRetryClick(object sender, RoutedEventArgs e) => await PrepareFccAsync().ConfigureAwait(true);
+    private async void OnFccRetryClick(object sender, RoutedEventArgs e)
+    {
+        // A retry may restart an owned FCC process: never interrupt a coding task or its startup.
+        if (!RequireResource<FccStartupState>("FccStartupState").CanRetry || _submissionStarting
+            || _taskExecutionState?.IsActive == true || _terminalShutdownStarted)
+        {
+            return;
+        }
+
+        await PrepareFccAsync().ConfigureAwait(true);
+    }
 
     private void OnSessionChanged(object? sender, SessionChangedEventArgs e)
     {

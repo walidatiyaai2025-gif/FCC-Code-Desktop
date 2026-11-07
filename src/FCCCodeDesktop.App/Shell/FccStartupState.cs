@@ -8,7 +8,8 @@ public sealed class FccStartupState : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
     public string Message { get; private set; } = "Preparing FCC…";
-    public bool CanRetry { get; private set; }
+    private bool _statusAllowsRetry;
+    public bool CanRetry => !_isTaskActive && _statusAllowsRetry;
     private string? _selectedModel;
     private bool _isTaskActive;
     private bool _refreshingModels;
@@ -28,6 +29,7 @@ public sealed class FccStartupState : INotifyPropertyChanged
     {
         _isTaskActive = active;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanSelectModel)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRetry)));
     }
     public void SetModels(IReadOnlyList<string> models, string? preferredModel = null)
     {
@@ -49,7 +51,7 @@ public sealed class FccStartupState : INotifyPropertyChanged
     {
         ArgumentNullException.ThrowIfNull(status);
         Message = status.Message;
-        CanRetry = status.State is FccServerState.Failed or FccServerState.Ready;
+        _statusAllowsRetry = status.State is FccServerState.Failed or FccServerState.Ready;
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Message)));
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanRetry)));
     }

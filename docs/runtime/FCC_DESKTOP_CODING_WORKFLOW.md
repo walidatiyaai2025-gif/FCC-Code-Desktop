@@ -4,7 +4,7 @@ Owner instruction: 2026-11-06. Work is integrated directly on `main`; no new bra
 
 ## Launch and repository ownership
 
-The desktop checks for `fcc-claude` and `fcc-server` on the configured PATH. It reuses a healthy loopback FCC service, or starts `fcc-server` as a supervised owned process with bounded output and a readiness deadline. Startup is serialized. Failed/cancelled startup cleans up the owned tree; shutdown never terminates an externally started server. The header exposes readiness/failure and Retry FCC. Health is not provider acceptance.
+The desktop checks for `fcc-claude` and `fcc-server` on the configured PATH. It reuses a healthy loopback FCC service, or starts `fcc-server` as a supervised owned process with bounded output and a readiness deadline. Startup is serialized. Failed/cancelled startup cleans up the owned tree; shutdown never terminates an externally started server. The header exposes readiness/failure and Retry FCC. Retry is disabled during active coding tasks or submission initialization, with the click handler independently guarding against task/startup races so a user-initiated retry cannot disrupt an owned coding process. Health is not provider acceptance.
 
 Opening a repository navigates to its chat. A first message creates a persisted session automatically. The runtime receives that repository's actual root as its working directory. Project/session changes are rejected while starting or executing a task. Models are discovered from the local server's `/v1/models` catalog, bounded to loopback, without proxies or redirects. The chosen model is saved as a non-secret SQLite preference after submission and cannot change during a task.
 
