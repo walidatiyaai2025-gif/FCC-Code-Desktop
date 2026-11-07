@@ -397,9 +397,12 @@ public partial class MainWindow : Window, IAsyncDisposable
             await taskState.StartTaskAsync(e.Submission.Text, _windowLifetime.Token).ConfigureAwait(true);
             composerState.AcceptSubmission(e.Submission.SubmissionId);
         }
-        catch (OperationCanceledException) when (_windowLifetime.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
-            composerState.RejectSubmission(e.Submission.SubmissionId, "Task startup cancelled because the application is closing.");
+            composerState.RejectSubmission(e.Submission.SubmissionId,
+                _windowLifetime.IsCancellationRequested
+                    ? "Task startup cancelled because the application is closing."
+                    : "Task startup was cancelled. Retry the request.");
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {

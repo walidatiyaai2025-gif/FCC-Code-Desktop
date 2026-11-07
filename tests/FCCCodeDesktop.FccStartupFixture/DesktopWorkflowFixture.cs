@@ -133,6 +133,26 @@ internal static class DesktopWorkflowFixture
             await Dispatcher.Yield(DispatcherPriority.Background);
             Require(windowStartup.CanSelectModel, "Model picker remained locked after failed submission preparation.");
             Require(composer.CanSubmit && composer.HasValidationMessage, "Failed submission did not restore the composer draft.");
+
+            await using (var cancelledWindow = new FCCCodeDesktop.App.MainWindow())
+            {
+                var cancelledWorkspace = new TaskCompletionSource<SessionWorkspaceState>(TaskCreationOptions.RunContinuationsAsynchronously);
+                initializationField.SetValue(cancelledWindow, cancelledWorkspace.Task);
+                var cancelledStartup = (FccStartupState)cancelledWindow.Resources["FccStartupState"];
+                var cancelledComposer = (ComposerState)cancelledWindow.Resources["ComposerState"];
+                cancelledStartup.SetModels(["fixture/model-a"]);
+                cancelledComposer.DraftText = "fixture cancelled coding request";
+                Require(cancelledComposer.RequestSubmission(), "Cancellation fixture submission was rejected unexpectedly.");
+                Require(!cancelledStartup.CanSelectModel, "Cancellation fixture did not lock model selection.");
+                cancelledWorkspace.SetCanceled();
+                for (var attempt = 0; attempt < 30 && !cancelledComposer.CanSubmit; attempt++)
+                {
+                    await Task.Delay(25);
+                }
+                Require(cancelledComposer.CanSubmit && cancelledComposer.HasValidationMessage,
+                    "Cancelled workspace preparation did not restore a retryable composer draft.");
+                Require(cancelledStartup.CanSelectModel, "Cancelled workspace preparation kept the model locked.");
+            }
         }
         finally
         {
