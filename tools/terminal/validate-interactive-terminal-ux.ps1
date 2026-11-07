@@ -46,7 +46,7 @@ function Assert-InteractiveTerminalContract {
         '_terminalShutdownCompleted',
         'e.Cancel = true',
         'ShutdownTerminalAndCloseAsync()',
-        'await terminalSurface.DisposeAsync()',
+        'await RequireResource<InteractiveTerminalSurface>("InteractiveTerminalSurface").DisposeAsync()',
         '_projectWorkspaceSurface?.EditorWorkspace.Dispose()'
     )) { Assert-ContainsLiteral $MainCode $literal 'MainWindow.xaml.cs' }
 
@@ -256,7 +256,7 @@ Write-Host 'Static P08-007 interactive terminal UX validation: PASS.'
 
 if ($RunFixtures) {
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml ($mainCode.Replace('bottomToolPanelState.TerminalContent = terminalSurface', '')) $terminalXaml $terminalCode } 'terminal composition removed'
-    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml ($mainCode.Replace('await terminalSurface.DisposeAsync()', 'await Task.CompletedTask')) $terminalXaml $terminalCode } 'window-close terminal disposal removed'
+    Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml ($mainCode.Replace('await RequireResource<InteractiveTerminalSurface>("InteractiveTerminalSurface").DisposeAsync()', 'await Task.CompletedTask')) $terminalXaml $terminalCode } 'window-close terminal disposal removed'
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode ($terminalXaml.Replace('<RichTextBox x:Name="TerminalOutput"', '<TextBox x:Name="TerminalOutput"')) $terminalCode } 'rich ANSI surface removed'
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('MaximumTranscriptCharacters = 250_000', 'MaximumTranscriptCharacters = int.MaxValue')) } 'transcript bound removed'
     Assert-Rejected { Assert-InteractiveTerminalContract $mainXaml $mainCode $terminalXaml ($terminalCode.Replace('MaximumPendingOutputCharacters = 65_536', 'MaximumPendingOutputCharacters = int.MaxValue')) } 'pending-output bound removed'
