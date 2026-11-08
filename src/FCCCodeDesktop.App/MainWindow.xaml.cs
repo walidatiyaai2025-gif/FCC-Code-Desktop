@@ -293,6 +293,7 @@ public partial class MainWindow : Window, IAsyncDisposable
             RequireResource<StreamingConversationState>("StreamingConversationState"),
             runtime);
         _taskExecutionState = taskState;
+        RequireResource<ConversationSurface>("ConversationSurface").Execution = taskState;
         taskState.PropertyChanged += (_, _) => startupState.SetTaskActive(taskState.IsActive);
         RequireResource<TaskExecutionSurface>("TaskExecutionSurface").State = taskState;
         await PrepareFccAsync().ConfigureAwait(true);

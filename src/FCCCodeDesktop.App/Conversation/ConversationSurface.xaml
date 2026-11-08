@@ -253,6 +253,44 @@
             </Grid>
         </Border>
 
-        <conversation:ConversationComposer x:Name="ConversationComposerHost" Grid.Row="2" State="{Binding Composer, ElementName=Root}" />
+        <StackPanel Grid.Row="2">
+            <Border x:Name="ExecutionStatusBanner" Margin="16,0,16,8" Padding="12"
+                    DataContext="{Binding Execution, ElementName=Root}"
+                    Background="{DynamicResource FccBrushSurfaceRaised}" BorderBrush="{DynamicResource FccBrushBorder}"
+                    BorderThickness="1" CornerRadius="{StaticResource FccRadiusSmall}"
+                    AutomationProperties.Name="Chat execution status">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasTask}" Value="True"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel>
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="Stop" IsEnabled="{Binding CanStop}" Click="OnStopExecution" Padding="12,4"
+                                    AutomationProperties.Name="Stop chat execution" />
+                            <Button Content="Retry" IsEnabled="{Binding CanRetry}" Click="OnRetryExecution" Padding="12,4" Margin="8,0,0,0"
+                                    AutomationProperties.Name="Retry chat execution" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding StateLabel}" VerticalAlignment="Center" Foreground="{DynamicResource FccBrushAccent}" />
+                    </DockPanel>
+                    <TextBlock Text="Waiting for the model response. You can stop this task."
+                               Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource FccBrushTextSecondary}">
+                        <TextBlock.Style><Style TargetType="TextBlock"><Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers><DataTrigger Binding="{Binding State}" Value="{x:Static conversation:TaskLifecycleState.Running}">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger></Style.Triggers>
+                        </Style></TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock x:Name="ChatExecutionFailure" Text="{Binding FailureMessage}" TextWrapping="Wrap"
+                               Foreground="{DynamicResource FccBrushError}" Margin="0,6,0,0"
+                               AutomationProperties.LiveSetting="Assertive" />
+                </StackPanel>
+            </Border>
+            <conversation:ConversationComposer x:Name="ConversationComposerHost" State="{Binding Composer, ElementName=Root}" />
+        </StackPanel>
     </Grid>
 </UserControl>

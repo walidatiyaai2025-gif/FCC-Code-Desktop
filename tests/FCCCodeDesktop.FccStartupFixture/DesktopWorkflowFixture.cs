@@ -7,6 +7,7 @@ using FCCCodeDesktop.App.Shell;
 using FCCCodeDesktop.Core.State;
 using FCCCodeDesktop.Fcc;
 using FCCCodeDesktop.Persistence;
+using FCCCodeDesktop.Runtime;
 
 internal static class DesktopWorkflowFixture
 {
@@ -105,6 +106,23 @@ internal static class DesktopWorkflowFixture
             Require((await settings.GetGlobalSettingAsync("runtime.model"))?.ValueJson == "\"fixture/model-b\"", "Model preference did not persist.");
             await using var window = new FCCCodeDesktop.App.MainWindow();
             Require(window.FindName("ToolApprovalHost") is ToolApprovalSurface, "Main window approval overlay is missing.");
+            await state.CreateSessionAsync();
+            var task = new TaskExecutionState(new SqliteExecutionJournalStore(options), state,
+                new StreamingConversationState(), new FailedModelRuntime());
+            var conversation = new ConversationSurface { Execution = task };
+            await task.StartTaskAsync("fixture request");
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            while (task.IsActive || !task.CanRetry) { await Task.Delay(20, deadline.Token); }
+            conversation.Measure(new Size(900, 700));
+            conversation.Arrange(new Rect(0, 0, 900, 700));
+            conversation.UpdateLayout();
+            await System.Windows.Threading.Dispatcher.Yield(DispatcherPriority.DataBind);
+            Require(((Border)conversation.FindName("ExecutionStatusBanner")).Visibility == Visibility.Visible,
+                "Failed task status is hidden in chat.");
+            Require(((TextBlock)conversation.FindName("ChatExecutionFailure")).Text.Contains("model", StringComparison.Ordinal),
+                "Provider error is not shown in chat.");
+            Require(Button(conversation, "Retry").IsEnabled && !Button(conversation, "Stop").IsEnabled,
+                "Chat controls do not reflect terminal failure.");
         }
         finally
         {
@@ -128,5 +146,25 @@ internal static class DesktopWorkflowFixture
     private static void Require(bool condition, string message)
     {
         if (!condition) { throw new InvalidOperationException(message); }
+    }
+
+    private sealed class FailedModelRuntime : IAgentRuntime
+    {
+        public AgentRuntimeDescriptor Descriptor { get; } = new("fixture", "Fixture", AgentRuntimeTransport.StructuredProcess,
+            new AgentRuntimeCapabilities(true, true, true, true, true));
+        public Task<IAgentRuntimeExecution> StartAsync(AgentRuntimeRequest request, CancellationToken cancellationToken = default)
+            => Task.FromResult<IAgentRuntimeExecution>(new FailedModelExecution(request));
+    }
+
+    private sealed class FailedModelExecution(AgentRuntimeRequest request) : IAgentRuntimeExecution
+    {
+        public Guid TaskId => request.TaskId;
+        public Guid RunId => request.RunId;
+        public IAsyncEnumerable<AgentRuntimeEvent> Events => NoEvents();
+        public Task<AgentRuntimeResult> Completion => Task.FromResult(new AgentRuntimeResult(TaskId, RunId,
+            AgentRuntimeTerminalState.Failed, null, new AgentRuntimeFailure(AgentRuntimeFailureKind.Timeout, "FCC model did not respond. Choose another model or retry.")));
+        public ValueTask CancelAsync(CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+        private static async IAsyncEnumerable<AgentRuntimeEvent> NoEvents() { await Task.CompletedTask; yield break; }
     }
 }

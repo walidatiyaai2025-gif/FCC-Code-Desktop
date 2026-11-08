@@ -7,9 +7,14 @@ public sealed class FccStructuredAgentRuntimeOptions
     public string? Model { get; init; }
     public Func<FccToolPermissionRequest, CancellationToken, Task<bool>>? PermissionHandler { get; init; }
     public string? AppendSystemPrompt { get; init; }
+    public TimeSpan FirstResponseTimeout { get; init; } = TimeSpan.FromMinutes(2);
 
     internal void Validate()
     {
+        if (FirstResponseTimeout <= TimeSpan.Zero || FirstResponseTimeout > TimeSpan.FromMinutes(10))
+        {
+            throw new ArgumentOutOfRangeException(nameof(FirstResponseTimeout));
+        }
         if (Model is not null && (string.IsNullOrWhiteSpace(Model) || Model.Length > 256 || Model.Any(char.IsControl)))
         {
             throw new ArgumentException("A valid FCC model identifier is required.", nameof(Model));

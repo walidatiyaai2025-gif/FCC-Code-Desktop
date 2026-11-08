@@ -38,6 +38,7 @@ if (args.Contains("--print", StringComparer.Ordinal)
     using var userMessage = JsonDocument.Parse(user!);
     Require(userMessage.RootElement.GetProperty("message").GetProperty("content").GetString() == "fixture prompt", "Prompt was not delivered through stdin.");
     Console.WriteLine("""{"type":"system","subtype":"init","session_id":"fixture-session"}""");
+    if (fixtureMode == "silent") { await Task.Delay(Timeout.InfiniteTimeSpan); return; }
     if (fixtureMode == "orphan")
     {
         using var descendant = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
@@ -109,6 +110,7 @@ if (args.Contains("--real-startup", StringComparer.Ordinal))
         }
         var result = await execution.Completion;
         Console.WriteLine($"REAL_REPOSITORY_TASK: state={result.State}; events={eventCount}; failure={result.Failure?.Kind}; reason={result.Failure?.Message}");
+        Require(result.State == AgentRuntimeTerminalState.Succeeded, "Real repository coding task did not succeed.");
         return;
     }
     using var help = new System.Diagnostics.Process
@@ -184,7 +186,7 @@ catch (HttpRequestException) { }
 try { await FccModelCatalog.ListAsync(new Uri("https://example.com/health")); throw new InvalidOperationException("Remote catalog accepted."); }
 catch (ArgumentException) { }
 
-foreach (var mode in new[] { "allow", "deny", "missing-result", "malformed", "cancel", "orphan" })
+foreach (var mode in new[] { "allow", "deny", "missing-result", "malformed", "cancel", "orphan", "silent" })
 {
     var previousMode = Environment.GetEnvironmentVariable("FCCD_TEST_INTERACTIVE_MODE");
     Environment.SetEnvironmentVariable("FCCD_TEST_INTERACTIVE_MODE", mode);
@@ -194,6 +196,7 @@ foreach (var mode in new[] { "allow", "deny", "missing-result", "malformed", "ca
         int? ownedDescendantPid = null;
         var options = new FccStructuredAgentRuntimeOptions
         {
+            FirstResponseTimeout = mode == "silent" ? TimeSpan.FromMilliseconds(500) : TimeSpan.FromSeconds(15),
             PermissionHandler = async (permission, token) =>
             {
                 Require(!permission.InputJson.Contains("fixture-sensitive-value", StringComparison.Ordinal), "Approval UI leaked a credential.");
@@ -230,8 +233,13 @@ foreach (var mode in new[] { "allow", "deny", "missing-result", "malformed", "ca
         var result = await execution.Completion.WaitAsync(TimeSpan.FromSeconds(15));
         await drain;
         var expected = mode is "cancel" or "orphan" ? AgentRuntimeTerminalState.Cancelled
-            : mode is "missing-result" or "malformed" ? AgentRuntimeTerminalState.Failed : AgentRuntimeTerminalState.Succeeded;
+            : mode is "missing-result" or "malformed" or "silent" ? AgentRuntimeTerminalState.Failed : AgentRuntimeTerminalState.Succeeded;
         Require(result.State == expected, $"Interactive fixture {mode} returned {result.State}.");
+        if (mode == "silent")
+        {
+            Require(result.Failure?.Kind == AgentRuntimeFailureKind.Timeout, "Silent provider was not classified as a timeout.");
+            Require(result.Failure?.Message.Contains("another model", StringComparison.Ordinal) == true, "Silent provider failure has no actionable model recovery.");
+        }
         if (ownedDescendantPid is { } childPid)
         {
             try

@@ -8,6 +8,29 @@ namespace FCCCodeDesktop.App.Conversation;
 
 public partial class ConversationSurface : UserControl
 {
+    public static readonly DependencyProperty ExecutionProperty = DependencyProperty.Register(
+        nameof(Execution), typeof(TaskExecutionState), typeof(ConversationSurface), new PropertyMetadata(null));
+
+    public TaskExecutionState? Execution
+    {
+        get => (TaskExecutionState?)GetValue(ExecutionProperty);
+        set => SetValue(ExecutionProperty, value);
+    }
+
+    private async void OnStopExecution(object sender, RoutedEventArgs e)
+    {
+        if (Execution is null) { return; }
+        try { await Execution.RequestStopAsync(); }
+        catch (Exception exception) when (exception is not OperationCanceledException) { Execution.ReportControlError(exception.Message); }
+    }
+
+    private async void OnRetryExecution(object sender, RoutedEventArgs e)
+    {
+        if (Execution is null) { return; }
+        try { await Execution.RetryAsync(); }
+        catch (Exception exception) when (exception is not OperationCanceledException) { Execution.ReportControlError(exception.Message); }
+    }
+
     public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
         nameof(State),
         typeof(StreamingConversationState),

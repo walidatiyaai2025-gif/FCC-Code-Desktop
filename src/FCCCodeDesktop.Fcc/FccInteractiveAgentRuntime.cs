@@ -154,17 +154,24 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
                         {
                             if (String(response, "subtype") != "success") { throw new InvalidOperationException("FCC rejected interactive initialization."); }
                             initialized = true;
-                            deadline.CancelAfter(Timeout.InfiniteTimeSpan);
+                            deadline.CancelAfter(_options.FirstResponseTimeout);
                             await WriteAsync(new { type = "user", message = new { role = "user", content = _request.Prompt } }, deadline.Token).ConfigureAwait(false);
                         }
                         continue;
                     }
                     if (type == "control_request")
                     {
+                        if (initialized && root.TryGetProperty("request", out var controlRequest)
+                            && String(controlRequest, "subtype") == "can_use_tool")
+                        { deadline.CancelAfter(Timeout.InfiniteTimeSpan); }
                         await AnswerPermissionAsync(root, deadline.Token).ConfigureAwait(false);
                         continue;
                     }
                     if (type == "control_cancel_request") { continue; }
+                    if (initialized && type is "assistant" or "user" or "result")
+                    {
+                        deadline.CancelAfter(Timeout.InfiniteTimeSpan);
+                    }
                     session = String(root, "session_id") ?? session;
                     var source = type == "system" && String(root, "subtype") == "init" ? "system/init" : type;
                     var payload = FccStructuredPayloadSanitizer.Sanitize(root, _options.MaximumPayloadCharacters);
@@ -203,10 +210,12 @@ public sealed class FccInteractiveAgentRuntime(FccExecutableDiscovery discovery,
                 if (_tree is not null) { await _tree.WaitForExitAsync(cleanup.Token).ConfigureAwait(false); }
                 await stderr.ConfigureAwait(false);
                 var cancelled = Volatile.Read(ref _cancelled) != 0;
+                var timedOut = !cancelled && exception is OperationCanceledException;
                 _completion.TrySetResult(new AgentRuntimeResult(TaskId, RunId,
                     cancelled ? AgentRuntimeTerminalState.Cancelled : AgentRuntimeTerminalState.Failed, session,
-                    cancelled ? null : new AgentRuntimeFailure(AgentRuntimeFailureKind.UnknownFailure,
-                        initialized ? "FCC interactive execution failed. Check the server/model and retry." : "FCC interactive startup failed or timed out.")));
+                    cancelled ? null : new AgentRuntimeFailure(timedOut ? AgentRuntimeFailureKind.Timeout : AgentRuntimeFailureKind.UnknownFailure,
+                        timedOut && initialized ? "FCC model did not respond before the deadline. Choose another model or retry."
+                        : initialized ? "FCC interactive execution failed. Check the server/model and retry." : "FCC interactive startup failed or timed out.")));
             }
             finally
             {
