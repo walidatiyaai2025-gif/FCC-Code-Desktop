@@ -327,7 +327,17 @@ public partial class MainWindow : Window, IAsyncDisposable
         }
     }
 
-    private async void OnFccRetryClick(object sender, RoutedEventArgs e) => await PrepareFccAsync().ConfigureAwait(true);
+    private async void OnFccRetryClick(object sender, RoutedEventArgs e)
+    {
+        // A retry may restart an owned FCC process: never interrupt a coding task or its startup.
+        if (!RequireResource<FccStartupState>("FccStartupState").CanRetry || _submissionStarting
+            || _taskExecutionState?.IsActive == true || _terminalShutdownStarted)
+        {
+            return;
+        }
+
+        await PrepareFccAsync().ConfigureAwait(true);
+    }
 
     private void OnSessionChanged(object? sender, SessionChangedEventArgs e)
     {
@@ -347,9 +357,19 @@ public partial class MainWindow : Window, IAsyncDisposable
             throw new InvalidOperationException("Composer submission sender is invalid.");
         }
 
-        var conversationState = RequireResource<StreamingConversationState>("StreamingConversationState");
+        if (_submissionStarting || _taskExecutionState?.IsActive == true)
+        {
+            composerState.RejectSubmission(e.Submission.SubmissionId, "A coding task is already starting or running.");
+            return;
+        }
+
+        // Protect project/session ownership and model selection before the first asynchronous operation.
+        _submissionStarting = true;
+        var startupState = RequireResource<FccStartupState>("FccStartupState");
         try
         {
+            startupState.SetTaskActive(true);
+            var conversationState = RequireResource<StreamingConversationState>("StreamingConversationState");
             var sessionState = await EnsureSessionWorkspaceInitializedAsync(CancellationToken.None).ConfigureAwait(true);
             var owningProjectId = sessionState.ActiveProjectId;
             var taskState = _taskExecutionState
@@ -363,9 +383,6 @@ public partial class MainWindow : Window, IAsyncDisposable
             {
                 throw new InvalidOperationException("The selected repository changed while preparing this request. Send the request again in its intended repository.");
             }
-            _submissionStarting = true;
-            var startupState = RequireResource<FccStartupState>("FccStartupState");
-            startupState.SetTaskActive(true);
             if (_settingsStore is not null && startupState.SelectedModel is not null)
             {
                 await _settingsStore.UpsertGlobalSettingAsync(new FCCCodeDesktop.Core.State.PersistedSetting(
@@ -381,9 +398,12 @@ public partial class MainWindow : Window, IAsyncDisposable
             await taskState.StartTaskAsync(e.Submission.Text, _windowLifetime.Token).ConfigureAwait(true);
             composerState.AcceptSubmission(e.Submission.SubmissionId);
         }
-        catch (OperationCanceledException) when (_windowLifetime.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
-            composerState.RejectSubmission(e.Submission.SubmissionId, "Task startup cancelled because the application is closing.");
+            composerState.RejectSubmission(e.Submission.SubmissionId,
+                _windowLifetime.IsCancellationRequested
+                    ? "Task startup cancelled because the application is closing."
+                    : "Task startup was cancelled. Retry the request.");
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -392,7 +412,7 @@ public partial class MainWindow : Window, IAsyncDisposable
         finally
         {
             _submissionStarting = false;
-            RequireResource<FccStartupState>("FccStartupState").SetTaskActive(_taskExecutionState?.IsActive == true);
+            startupState.SetTaskActive(_taskExecutionState?.IsActive == true);
         }
     }
 
